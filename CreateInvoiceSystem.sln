@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientService.Domain", "Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientService.Infrastructure", "ClientService.Infrastructure\ClientService.Infrastructure.csproj", "{F6A210D2-165A-4FF3-A424-91893A3DCF0A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Blazor", "CreateInvoiceSystem.Blazor\CreateInvoiceSystem.Blazor.csproj", "{354E474F-D977-40DA-BB00-9F34926C478E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{F6A210D2-165A-4FF3-A424-91893A3DCF0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6A210D2-165A-4FF3-A424-91893A3DCF0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6A210D2-165A-4FF3-A424-91893A3DCF0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{354E474F-D977-40DA-BB00-9F34926C478E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{354E474F-D977-40DA-BB00-9F34926C478E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{354E474F-D977-40DA-BB00-9F34926C478E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{354E474F-D977-40DA-BB00-9F34926C478E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
