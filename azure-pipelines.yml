@@ -1,0 +1,35 @@
+﻿trigger:
+  branches:
+    include:
+      - master
+
+pr: none  # Nie uruchamiaj builda automatycznie dla pull requestów
+
+# Pozwala uruchomić pipeline ręcznie z Azure DevOps
+# (np. z przyciskiem "Run pipeline")
+resources:
+  repositories:
+    - repository: self
+      type: git
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '9.0.x'
+
+- script: dotnet restore InvoiceCreateSystem.sln
+  displayName: '🔄 Restore NuGet packages'
+
+- script: dotnet build InvoiceCreateSystem.sln --configuration $(buildConfiguration)
+  displayName: '🛠️ Build solution'
+
+- script: dotnet test InvoiceCreateSystem.BuildTests/InvoiceCreateSystem.BuildTests.csproj --configuration $(buildConfiguration)
+  displayName: '🧪 Run build verification test'
