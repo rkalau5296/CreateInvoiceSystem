@@ -10,4 +10,12 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CreateInvoiceSystem.Address\CreateInvoiceSystem.Address.csproj" />
+  </ItemGroup>
+
 </Project>

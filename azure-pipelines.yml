@@ -3,10 +3,8 @@
     include:
       - master
 
-pr: none  # Nie uruchamiaj builda automatycznie dla pull requestów
+pr: none  
 
-# Pozwala uruchomić pipeline ręcznie z Azure DevOps
-# (np. z przyciskiem "Run pipeline")
 resources:
   repositories:
     - repository: self
