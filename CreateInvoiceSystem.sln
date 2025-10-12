@@ -32,6 +32,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Persist
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Web", "CreateInvoiceSystem.Web\CreateInvoiceSystem.Web.csproj", "{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Identity", "CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj", "{E58791FD-1E0A-435E-84C5-4C433F7017FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.API", "CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj", "{C291ED97-B208-4116-A7B9-98194278EE79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,6 +82,14 @@ Global
 		{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E58791FD-1E0A-435E-84C5-4C433F7017FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E58791FD-1E0A-435E-84C5-4C433F7017FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E58791FD-1E0A-435E-84C5-4C433F7017FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E58791FD-1E0A-435E-84C5-4C433F7017FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C291ED97-B208-4116-A7B9-98194278EE79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C291ED97-B208-4116-A7B9-98194278EE79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C291ED97-B208-4116-A7B9-98194278EE79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C291ED97-B208-4116-A7B9-98194278EE79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +105,8 @@ Global
 		{5922A6DD-7EC0-411C-BBA5-8C857FE431BE} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{DD40F326-7FB3-47F9-9757-E9888608F98F} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{E58791FD-1E0A-435E-84C5-4C433F7017FB} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{C291ED97-B208-4116-A7B9-98194278EE79} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B0B660D-CCA3-49AF-9023-8C1BC503EE00}

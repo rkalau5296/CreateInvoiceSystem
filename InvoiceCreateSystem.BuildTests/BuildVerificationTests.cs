@@ -10,7 +10,9 @@ public class BuildVerificationTests
         var projectsToBuild = new[]
         {            
             @"..\..\..\..\CreateInvoiceSystem.Address\CreateInvoiceSystem.Address.csproj",
+            @"..\..\..\..\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj",
+            @"..\..\..\..\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",
             @"..\..\..\..\CreateInvoiceSystem.InvoicePositions\CreateInvoiceSystem.InvoicePositions.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",
             @"..\..\..\..\CreateInvoiceSystem.MethodsOfPayments\CreateInvoiceSystem.MethodsOfPayments.csproj",
@@ -18,7 +20,6 @@ public class BuildVerificationTests
             @"..\..\..\..\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",
             @"..\..\..\..\CreateInvoiceSystem.SharedKernel\CreateInvoiceSystem.SharedKernel.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Web\CreateInvoiceSystem.Web.csproj"
-
         };
 
         foreach (var project in projectsToBuild)
