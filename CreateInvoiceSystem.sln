@@ -26,7 +26,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.MethodsOfPayments", "CreateInvoiceSystem.MethodsOfPayments\CreateInvoiceSystem.MethodsOfPayments.csproj", "{5BF4F778-AFFC-42EE-9535-484D16300A5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.SharedKernel", "CreateInvoiceSystem.SharedKernel\CreateInvoiceSystem.SharedKernel.csproj", "{5922A6DD-7EC0-411C-BBA5-8C857FE431BE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Abstractions", "CreateInvoiceSystem.SharedKernel\CreateInvoiceSystem.Abstractions.csproj", "{5922A6DD-7EC0-411C-BBA5-8C857FE431BE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Persistence", "CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj", "{DD40F326-7FB3-47F9-9757-E9888608F98F}"
 EndProject

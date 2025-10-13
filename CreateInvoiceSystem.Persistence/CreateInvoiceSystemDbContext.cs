@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using Microsoft.EntityFrameworkCore;
 using AddressEntity = CreateInvoiceSystem.Address.Domain.Entities.Address;
 
 namespace CreateInvoiceSystem.Persistence;
 
-public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options)
+public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), ICreateInvoiceSystemDbContext
 {
     public DbSet<AddressEntity> Addresses => Set<AddressEntity>();
 

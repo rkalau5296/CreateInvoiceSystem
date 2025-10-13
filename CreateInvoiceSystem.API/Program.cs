@@ -1,3 +1,4 @@
+using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ICreateInvoiceSystemDbContext, CreateInvoiceSystemDbContext>();
 
 var app = builder.Build();
 
