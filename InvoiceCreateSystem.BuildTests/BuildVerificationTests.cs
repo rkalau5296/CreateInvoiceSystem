@@ -18,7 +18,7 @@ public class BuildVerificationTests
             @"..\..\..\..\CreateInvoiceSystem.MethodsOfPayments\CreateInvoiceSystem.MethodsOfPayments.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",
-            @"..\..\..\..\CreateInvoiceSystem.SharedKernel\CreateInvoiceSystem.SharedKernel.csproj",
+            @"..\..\..\..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Web\CreateInvoiceSystem.Web.csproj"
         };
 

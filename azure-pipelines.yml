@@ -11,7 +11,7 @@ resources:
       type: git
 
 pool:
-  vmImage: 'windows-latest'
+  name: 'CreateInvoiceSystemPool'
 
 variables:
   buildConfiguration: 'Release'
