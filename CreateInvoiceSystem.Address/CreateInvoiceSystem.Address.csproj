@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CreateInvoiceSystem.SharedKernel\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
   </ItemGroup>
   
 </Project>
