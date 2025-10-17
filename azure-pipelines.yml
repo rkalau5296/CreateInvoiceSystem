@@ -23,11 +23,11 @@ steps:
     packageType: 'sdk'
     version: '9.0.x'
 
-- script: dotnet restore InvoiceCreateSystem.sln
+- script: dotnet restore CreateInvoiceSystem.sln
   displayName: '🔄 Restore NuGet packages'
 
-- script: dotnet build InvoiceCreateSystem.sln --configuration $(buildConfiguration)
+- script: dotnet build CreateInvoiceSystem.sln --configuration $(buildConfiguration)
   displayName: '🛠️ Build solution'
 
-- script: dotnet test InvoiceCreateSystem.BuildTests/InvoiceCreateSystem.BuildTests.csproj --configuration $(buildConfiguration)
+- script: dotnet test CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration $(buildConfiguration)
   displayName: '🧪 Run build verification test'
