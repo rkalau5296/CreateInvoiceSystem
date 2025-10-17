@@ -17,17 +17,20 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+
+- checkout: self
+
 - task: UseDotNet@2
   displayName: 'Install .NET SDK'
   inputs:
     packageType: 'sdk'
     version: '9.0.x'
 
-- script: dotnet restore CreateInvoiceSystem.sln
+- script: dotnet restore $(Build.SourcesDirectory)\CreateInvoiceSystem.sln
   displayName: '🔄 Restore NuGet packages'
 
-- script: dotnet build CreateInvoiceSystem.sln --configuration $(buildConfiguration)
+- script: dotnet build $(Build.SourcesDirectory)\CreateInvoiceSystem.sln --configuration $(buildConfiguration)
   displayName: '🛠️ Build solution'
 
-- script: dotnet test CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration $(buildConfiguration)
+- script: dotnet test $(Build.SourcesDirectory)\CreateInvoiceSystem.BuildTests\CreateInvoiceSystem.BuildTests.csproj --configuration $(buildConfiguration)
   displayName: '🧪 Run build verification test'
