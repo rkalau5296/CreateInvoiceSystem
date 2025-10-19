@@ -19,20 +19,20 @@ namespace CreateInvoiceSystem.API.Controllers
             return Ok(response);
         }       
 
-        [HttpGet]
-        public async Task<IActionResult> GetTrucksAsync([FromQuery] GetTrucksRequest request, CancellationToken cancellationToken) =>
-            (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
+        //[HttpGet]
+        //public async Task<IActionResult> GetTrucksAsync([FromQuery] GetTrucksRequest request, CancellationToken cancellationToken) =>
+        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
 
-        [HttpPost]
-        public async Task<IActionResult> CreateTruckAsync([FromBody] CreateTruckRequest request, CancellationToken cancellationToken) =>
-            (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
+        //[HttpPost]
+        //public async Task<IActionResult> CreateTruckAsync([FromBody] CreateTruckRequest request, CancellationToken cancellationToken) =>
+        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateTruckAsync([FromBody] UpdateTruckRequest request, CancellationToken cancellationToken) =>
-            (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
+        //[HttpPut]
+        //public async Task<IActionResult> UpdateTruckAsync([FromBody] UpdateTruckRequest request, CancellationToken cancellationToken) =>
+        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
 
-        [HttpDelete("{idOrCode}")]
-        public async Task<IActionResult> DeleteTruckAsync([FromRoute] string idOrCode, CancellationToken cancellationToken) =>
-            (await _mediator.Send(new DeleteTruckCommand() { IdOrCode = idOrCode }, cancellationToken)).Match(Ok, this.ErrorResult);
+        //[HttpDelete("{idOrCode}")]
+        //public async Task<IActionResult> DeleteTruckAsync([FromRoute] string idOrCode, CancellationToken cancellationToken) =>
+        //    (await _mediator.Send(new DeleteTruckCommand() { IdOrCode = idOrCode }, cancellationToken)).Match(Ok, this.ErrorResult);
     }
 }
