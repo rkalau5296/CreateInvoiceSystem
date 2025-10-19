@@ -1,8 +1,8 @@
 ﻿namespace CreateInvoiceSystem.Address.Application.Queries;
 
-using AddressEntity = Domain.Entities.Address;
 using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Address.Application.DTO;
 
-public class GetAddressResponse: ResponseBase<AddressEntity>
+public class GetAddressResponse: ResponseBase<AddressDto>
 {
 }
