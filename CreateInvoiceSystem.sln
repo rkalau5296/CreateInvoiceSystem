@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AD1C75FD-903C-4F54-9BA1-AEC30E8BE829}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
+		gitHubAction-pipeline.yml = gitHubAction-pipeline.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Clients", "CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj", "{5C2DBE16-07A0-4482-8ED8-0135D558B786}"
