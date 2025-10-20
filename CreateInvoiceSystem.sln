@@ -12,7 +12,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AD1C75FD-903C-4F54-9BA1-AEC30E8BE829}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
-		gitHubAction-pipeline.yml = gitHubAction-pipeline.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Clients", "CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj", "{5C2DBE16-07A0-4482-8ED8-0135D558B786}"
@@ -36,6 +35,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Identity", "CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj", "{E58791FD-1E0A-435E-84C5-4C433F7017FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.API", "CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj", "{C291ED97-B208-4116-A7B9-98194278EE79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{73408AEF-3567-410A-9F80-B639ECE65355}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workfllows", "workfllows", "{1659ADEF-4F16-46EE-9F46-A94720062306}"
+	ProjectSection(SolutionItems) = preProject
+		ci.yml = ci.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,6 +114,7 @@ Global
 		{2BD26E0C-7BEF-41AB-8B98-55F8D3D97092} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{E58791FD-1E0A-435E-84C5-4C433F7017FB} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{C291ED97-B208-4116-A7B9-98194278EE79} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{1659ADEF-4F16-46EE-9F46-A94720062306} = {73408AEF-3567-410A-9F80-B639ECE65355}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B0B660D-CCA3-49AF-9023-8C1BC503EE00}
