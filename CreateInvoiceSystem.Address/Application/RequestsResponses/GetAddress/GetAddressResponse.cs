@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Address.Application.Queries;
+﻿namespace CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddress;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Address.Application.DTO;

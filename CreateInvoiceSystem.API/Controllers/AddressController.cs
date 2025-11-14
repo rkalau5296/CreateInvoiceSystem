@@ -1,38 +1,41 @@
-﻿using CreateInvoiceSystem.Address.Application.Queries;
+﻿namespace CreateInvoiceSystem.API.Controllers;
+
 using MediatR;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
+using CreateInvoiceSystem.Address.Application.DTO;
+using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddress;
+using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddresses;
+using CreateInvoiceSystem.Address.Application.RequestsResponses.CreateAddress;
 
-namespace CreateInvoiceSystem.API.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AddressController : Controller
+[ApiController]
+[Route("api/[controller]")]
+public class AddressController(IMediator _mediator) : Controller
+{        
+
+    [HttpGet("{addressId}")]
+    public async Task<IActionResult> GetAddressAsync([FromRoute] int addressId, CancellationToken cancellationToken) 
     {
-        private readonly IMediator _mediator;        
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAddressAsync([FromRoute] int id, CancellationToken cancellationToken) 
-        {
-            GetAddressRequest request = new(id);
-            GetAddressResponse response = await _mediator.Send(request, cancellationToken);
-            return Ok(response);
-        }       
-
-        //[HttpGet]
-        //public async Task<IActionResult> GetTrucksAsync([FromQuery] GetTrucksRequest request, CancellationToken cancellationToken) =>
-        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
-
-        //[HttpPost]
-        //public async Task<IActionResult> CreateTruckAsync([FromBody] CreateTruckRequest request, CancellationToken cancellationToken) =>
-        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
-
-        //[HttpPut]
-        //public async Task<IActionResult> UpdateTruckAsync([FromBody] UpdateTruckRequest request, CancellationToken cancellationToken) =>
-        //    (await _mediator.Send(_mapper.MapToMessage(request), cancellationToken)).Match(Ok, this.ErrorResult);
-
-        //[HttpDelete("{idOrCode}")]
-        //public async Task<IActionResult> DeleteTruckAsync([FromRoute] string idOrCode, CancellationToken cancellationToken) =>
-        //    (await _mediator.Send(new DeleteTruckCommand() { IdOrCode = idOrCode }, cancellationToken)).Match(Ok, this.ErrorResult);
+        GetAddressRequest request = new(addressId);
+        GetAddressResponse response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
     }
+
+    [HttpGet()]
+    public async Task<IActionResult> GetAddressesAsync([FromQuery] GetAddressesRequest request, CancellationToken cancellationToken)
+    {
+        GetAddressesResponse response = await _mediator.Send(request, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost]
+    [Route("create")]
+    public async Task<IActionResult> CreateAddressAsync([FromBody] AddressDto addressDto)
+    {
+        CreateAddressRequest request = new(addressDto);
+        CreateAddressResponse response = await _mediator.Send(request);
+
+        return Ok(response);
+    }
+
+
 }

@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Commands\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
   </ItemGroup>
   

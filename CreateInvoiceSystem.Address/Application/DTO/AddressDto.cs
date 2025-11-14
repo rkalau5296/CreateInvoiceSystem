@@ -1,10 +1,10 @@
 ﻿namespace CreateInvoiceSystem.Address.Application.DTO;
 
 public record AddressDto(
-    int Id,
+    int AddressId,
     string Street,
     string Number,
     string City,
     string PostalCode,
-    string? Email
+    string Email
 );

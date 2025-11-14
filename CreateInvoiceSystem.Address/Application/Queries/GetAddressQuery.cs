@@ -11,6 +11,6 @@ public class GetAddressQuery(int id) : QueryBase<Address>
 
     public override async Task<Address> Execute(ICreateInvoiceSystemDbContext context)
     {
-        return await context.Set<Address>().FirstOrDefaultAsync(a => a.Id == Id);
+        return await context.Set<Address>().FirstOrDefaultAsync(a => a.AddressId == Id);
     }
 }
