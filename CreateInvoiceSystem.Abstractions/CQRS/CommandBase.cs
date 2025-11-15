@@ -6,5 +6,5 @@ public abstract class CommandBase<TParametr, TResult>
 {
     public TParametr? Parametr { get; set; }
 
-    public abstract Task<TResult> Execute(ICreateInvoiceSystemDbContext context);
+    public abstract Task<TResult> Execute(ICreateInvoiceSystemDbContext context, CancellationToken cancellationToken = default);
 }

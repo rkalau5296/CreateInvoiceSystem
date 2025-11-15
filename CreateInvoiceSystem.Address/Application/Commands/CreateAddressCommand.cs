@@ -8,7 +8,7 @@ using CreateInvoiceSystem.Address.Domain.Entities;
 
 public class CreateAddressCommand : CommandBase<AddressDto, AddressDto>
 {
-    public override async Task<AddressDto> Execute(ICreateInvoiceSystemDbContext context)
+    public override async Task<AddressDto> Execute(ICreateInvoiceSystemDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(this.Parametr));

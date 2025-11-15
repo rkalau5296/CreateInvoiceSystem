@@ -9,6 +9,7 @@ public class Address(int addressId, string street, string number, string city, s
     //{
     //    Clients = [];
     //}
+
     public int AddressId { get; set; } = addressId;
 
     [Required]
