@@ -43,18 +43,18 @@ public class AddressController(IMediator _mediator) : Controller
     [Route("update/id")]
     public async Task<IActionResult> UpdateAddressAsync(int id, [FromBody] AddressDto addressDto, CancellationToken cancellationToken)
     {
-        PutAddressRequest updatedAddress = new(id, addressDto);
-        PutAddressResponse response = await _mediator.Send(updatedAddress, cancellationToken);
+        UpdateAddressRequest updatedAddress = new(id, addressDto);
+        UpdateAddressResponse response = await _mediator.Send(updatedAddress, cancellationToken);
 
         return Ok(response);
     }
 
     [HttpDelete]
     [Route("id")]
-    public async Task<IActionResult> DeleteAddress(int id)
+    public async Task<IActionResult> DeleteAddress(int id, CancellationToken cancellationToken)
     {
         DeleteAddressRequest request = new(id);
-        DeleteAddressResponse response = await _mediator.Send(request);
+        DeleteAddressResponse response = await _mediator.Send(request, cancellationToken);
 
         return Ok(response);
     }

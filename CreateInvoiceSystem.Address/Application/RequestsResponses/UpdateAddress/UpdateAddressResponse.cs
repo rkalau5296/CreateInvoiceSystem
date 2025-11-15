@@ -3,6 +3,6 @@ using CreateInvoiceSystem.Address.Application.DTO;
 
 namespace CreateInvoiceSystem.Address.Application.RequestsResponses.UpdateAddress;
 
-public class PutAddressResponse : ResponseBase<AddressDto>
+public class UpdateAddressResponse : ResponseBase<AddressDto>
 {
 }

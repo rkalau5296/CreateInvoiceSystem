@@ -13,7 +13,7 @@ public class UpdateAddressCommand : CommandBase<AddressDto, AddressDto>
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(this.Parametr));        
 
-        var existingAddress = await context.Set<AddressDto>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId) ?? 
+        var existingAddress = await context.Set<AddressDto>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId, cancellationToken: cancellationToken) ?? 
                               throw new InvalidOperationException($"Address with ID {Parametr.AddressId} not found.");
 
         var entity = AddressMappers.ToEntity(existingAddress);
@@ -23,7 +23,7 @@ public class UpdateAddressCommand : CommandBase<AddressDto, AddressDto>
         entity.City = Parametr.City;
         entity.PostalCode = Parametr.PostalCode;
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
         return existingAddress;
     }
 }

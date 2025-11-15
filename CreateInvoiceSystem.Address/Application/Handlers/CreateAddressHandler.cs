@@ -13,7 +13,7 @@ public class CreateAddressHandler(ICommandExecutor commandExecutor) : IRequestHa
     {
         var command = new CreateAddressCommand() { Parametr = request.Address };
 
-        var addressFromDb = await commandExecutor.Execute(command);
+        var addressFromDb = await commandExecutor.Execute(command, cancellationToken);
 
         return new CreateAddressResponse()
         {

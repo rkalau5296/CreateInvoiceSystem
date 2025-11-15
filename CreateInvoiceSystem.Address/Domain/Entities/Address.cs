@@ -1,25 +1,21 @@
 ﻿namespace CreateInvoiceSystem.Address.Domain.Entities;
 
-using CreateInvoiceSystem.SharedKernel.Domain;
-using System.ComponentModel.DataAnnotations;
-
-public class Address(int addressId, string street, string number, string city, string postalCode, string email)
-{
+public class Address()
+{   
     //public Address()
     //{
     //    Clients = [];
     //}
 
-    public int AddressId { get; set; } = addressId;
-
+    public int AddressId { get; set; }
     
-    public string Street { get; set; } = street;
+    public string Street { get; set; }
     
-    public string Number { get; set; } = number;
+    public string Number { get; set; }
     
-    public string City { get; set; } = city;
+    public string City { get; set; }
     
-    public string PostalCode { get; set; } = postalCode;
-    public string Email { get; set; } = email;
+    public string PostalCode { get; set; }
+    public string Email { get; set; }
     //public ICollection<Client> Clients { get; set; }
 }

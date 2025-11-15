@@ -3,7 +3,7 @@
 using CreateInvoiceSystem.Address.Application.DTO;
 using MediatR;
 
-public class PutAddressRequest(int id, AddressDto addressDto) : IRequest<PutAddressResponse>
+public class UpdateAddressRequest(int id, AddressDto addressDto) : IRequest<UpdateAddressResponse>
 {
     public AddressDto Address { get; } = addressDto;
     public int Id { get; set; } = id;

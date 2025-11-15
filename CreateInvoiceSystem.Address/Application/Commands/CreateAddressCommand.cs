@@ -15,8 +15,8 @@ public class CreateAddressCommand : CommandBase<AddressDto, AddressDto>
 
         var entity = AddressMappers.ToEntity(this.Parametr);
 
-        await context.Set<Address>().AddAsync(entity);
-        await context.SaveChangesAsync();
+        await context.Set<Address>().AddAsync(entity, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         this.Parametr = AddressMappers.ToDto(entity);
         return this.Parametr;

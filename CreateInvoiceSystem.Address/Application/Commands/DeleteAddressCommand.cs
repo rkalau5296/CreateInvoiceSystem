@@ -7,19 +7,21 @@ using CreateInvoiceSystem.Address.Domain.Entities;
 using CreateInvoiceSystem.Address.Application.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-
-public class DeleteAddressCommand : CommandBase<AddressDto, AddressDto>
+public class DeleteAddressCommand : CommandBase<Address, AddressDto>
 {
     public override async Task<AddressDto> Execute(ICreateInvoiceSystemDbContext context, CancellationToken cancellationToken = default)
     {
-        var existingAddress = await context.Set<AddressDto>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId) ??
+        if (Parametr is null)
+            throw new ArgumentNullException(nameof(Parametr));
+
+        var addressEntity = await context.Set<Address>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId, cancellationToken: cancellationToken) ??
                               throw new InvalidOperationException($"Address with ID {Parametr.AddressId} not found.");
 
-        var entity = AddressMappers.ToEntity(existingAddress);
+        var addressDto = AddressMappers.ToDto(addressEntity);
 
-        context.Set<Address>().Remove(entity);
-        await context.SaveChangesAsync();
+        context.Set<Address>().Remove(addressEntity);
+        await context.SaveChangesAsync(cancellationToken);
 
-        return existingAddress;
+        return addressDto;
     }
 }
