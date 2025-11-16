@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 public class GetAddressesQuery : QueryBase<List<Address>>
 {
-    public override async Task<List<Address>> Execute(IDbContext context)
+    public override async Task<List<Address>> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        return await context.Set<Address>().ToListAsync();
+        return await context.Set<Address>().ToListAsync(cancellationToken: cancellationToken);
     }
 }
