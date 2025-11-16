@@ -12,7 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ICreateInvoiceSystemDbContext, CreateInvoiceSystemDbContext>();
+builder.Services.AddScoped<IDbContext, CreateInvoiceSystemDbContext>();
 
 var app = builder.Build();
 

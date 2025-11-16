@@ -2,7 +2,7 @@
 
 namespace CreateInvoiceSystem.Abstractions.DbContext;
 
-public interface ICreateInvoiceSystemDbContext
+public interface IDbContext
 {
     DbSet<T> Set<T>() where T : class;
 

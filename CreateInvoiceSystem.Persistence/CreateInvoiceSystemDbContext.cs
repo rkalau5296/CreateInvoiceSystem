@@ -4,7 +4,7 @@ using AddressEntity = CreateInvoiceSystem.Address.Domain.Entities.Address;
 
 namespace CreateInvoiceSystem.Persistence;
 
-public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), ICreateInvoiceSystemDbContext
+public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IDbContext
 {
     public DbSet<AddressEntity> Addresses => Set<AddressEntity>();
 

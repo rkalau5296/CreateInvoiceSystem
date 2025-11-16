@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class DeleteAddressCommand : CommandBase<Address, AddressDto>
 {
-    public override async Task<AddressDto> Execute(ICreateInvoiceSystemDbContext context, CancellationToken cancellationToken = default)
+    public override async Task<AddressDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));

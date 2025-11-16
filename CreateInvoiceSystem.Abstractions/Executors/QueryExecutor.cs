@@ -3,9 +3,9 @@ using CreateInvoiceSystem.Abstractions.DbContext;
 
 namespace CreateInvoiceSystem.Abstractions.Executors;
 
-public class QueryExecutor(ICreateInvoiceSystemDbContext invoiceContext) : IQueryExecutor
+public class QueryExecutor(IDbContext invoiceContext) : IQueryExecutor
 {
-    private readonly ICreateInvoiceSystemDbContext invoiceContext = invoiceContext;
+    private readonly IDbContext invoiceContext = invoiceContext;
 
     public Task<TResult> Execute<TResult>(QueryBase<TResult> query)
     {

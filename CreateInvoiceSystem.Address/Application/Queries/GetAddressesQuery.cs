@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class GetAddressesQuery : QueryBase<List<AddressDto>>
 {
-    public override async Task<List<AddressDto>> Execute(ICreateInvoiceSystemDbContext context)
+    public override async Task<List<AddressDto>> Execute(IDbContext context)
     {
         return await context.Set<AddressDto>().ToListAsync();
     }

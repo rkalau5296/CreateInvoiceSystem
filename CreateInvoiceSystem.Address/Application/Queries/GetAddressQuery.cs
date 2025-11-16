@@ -9,7 +9,7 @@ public class GetAddressQuery(int id) : QueryBase<Address>
 {
     public int Id { get; set; } = id;
 
-    public override async Task<Address> Execute(ICreateInvoiceSystemDbContext context)
+    public override async Task<Address> Execute(IDbContext context)
     {
         return await context.Set<Address>().FirstOrDefaultAsync(a => a.AddressId == Id);
     }

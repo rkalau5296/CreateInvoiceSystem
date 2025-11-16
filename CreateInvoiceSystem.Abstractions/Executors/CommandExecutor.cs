@@ -4,9 +4,9 @@ using System.Threading;
 
 namespace CreateInvoiceSystem.Abstractions.Executors;
 
-public class CommandExecutor(ICreateInvoiceSystemDbContext context) : ICommandExecutor
+public class CommandExecutor(IDbContext context) : ICommandExecutor
 {
-    private readonly ICreateInvoiceSystemDbContext context = context;
+    private readonly IDbContext context = context;
 
     public Task<TResult> Execute<TParameters, TResult>(CommandBase<TParameters, TResult> command, CancellationToken cancellationToken = default)
     {
