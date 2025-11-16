@@ -22,4 +22,9 @@ public static class AddressMappers
                 PostalCode = dto.PostalCode,
                 Email = dto.Email
             };
+
+    public static List<AddressDto> ToDtoList(this IEnumerable<Address> addresses) =>
+        addresses is null
+            ? throw new ArgumentNullException(nameof(addresses))
+            : addresses.Select(a => a.ToDto()).ToList();
 }

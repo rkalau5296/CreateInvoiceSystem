@@ -6,9 +6,7 @@ using CreateInvoiceSystem.Address.Application.RequestsResponses.CreateAddress;
 using MediatR;
 
 public class CreateAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<CreateAddressRequest, CreateAddressResponse>
-{
-    private readonly ICommandExecutor commandExecutor = commandExecutor;
-    
+{   
     public async Task<CreateAddressResponse> Handle(CreateAddressRequest request, CancellationToken cancellationToken)
     {
         var command = new CreateAddressCommand() { Parametr = request.Address };

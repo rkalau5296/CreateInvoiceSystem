@@ -7,9 +7,7 @@ using MediatR;
 
 
 public class UpdateAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<UpdateAddressRequest, UpdateAddressResponse>
-{
-    private readonly ICommandExecutor commandExecutor = commandExecutor;    
-
+{    
     public async Task<UpdateAddressResponse> Handle(UpdateAddressRequest request, CancellationToken cancellationToken)
     {
         var command = new UpdateAddressCommand() { Parametr = request.Address };

@@ -9,19 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 
 public class GetAddressHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetAddressRequest, GetAddressResponse>
-{
-    private readonly IQueryExecutor _queryExecutor = queryExecutor;
+{   
 
     public async Task<GetAddressResponse> Handle(GetAddressRequest request, CancellationToken cancellationToken)
     {
         GetAddressQuery query = new(request.Id);
-        var address = await _queryExecutor.Execute(query);                
+        var address = await queryExecutor.Execute(query);
 
-        GetAddressResponse response = new()
+        return new GetAddressResponse
         {
             Data = AddressMappers.ToDto(address),
         };
-
-        return response;
     }
 }

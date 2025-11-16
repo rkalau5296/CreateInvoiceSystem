@@ -2,13 +2,13 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Address.Application.DTO;
+using CreateInvoiceSystem.Address.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class GetAddressesQuery : QueryBase<List<AddressDto>>
+public class GetAddressesQuery : QueryBase<List<Address>>
 {
-    public override async Task<List<AddressDto>> Execute(IDbContext context)
+    public override async Task<List<Address>> Execute(IDbContext context)
     {
-        return await context.Set<AddressDto>().ToListAsync();
+        return await context.Set<Address>().ToListAsync();
     }
 }

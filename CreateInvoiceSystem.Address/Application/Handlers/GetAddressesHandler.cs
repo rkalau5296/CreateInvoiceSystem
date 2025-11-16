@@ -1,26 +1,24 @@
 ﻿namespace CreateInvoiceSystem.Address.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Address.Application.DTO;
+using CreateInvoiceSystem.Address.Domain.Entities;
 using CreateInvoiceSystem.Address.Application.Queries;
 using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddresses;
 using MediatR;
+using CreateInvoiceSystem.Address.Application.DTO;
+using CreateInvoiceSystem.Address.Application.Mappers;
 
 public class GetAddressesHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetAddressesRequest, GetAddressesResponse>
 {
-    private readonly IQueryExecutor queryExecutor = queryExecutor;    
-
     public async Task<GetAddressesResponse> Handle(GetAddressesRequest request, CancellationToken cancellationToken)
     {
         GetAddressesQuery query = new();
 
-        List<AddressDto> addresses = await this.queryExecutor.Execute(query);
+        List<Address> addresses = await queryExecutor.Execute(query);
 
-        GetAddressesResponse response = new()
+        return new GetAddressesResponse
         {
-            Data = addresses
-        };
-
-        return response;
+            Data = AddressMappers.ToDtoList(addresses)
+        }; 
     }
 }

@@ -9,8 +9,6 @@ using MediatR;
 
 public class DeleteAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteAddressRequest, DeleteAddressResponse>
 {
-    private readonly ICommandExecutor commandExecutor = commandExecutor;
-
     public async Task<DeleteAddressResponse> Handle(DeleteAddressRequest request, CancellationToken cancellationToken)
     {
         var address = new Address { AddressId = request.Id };
