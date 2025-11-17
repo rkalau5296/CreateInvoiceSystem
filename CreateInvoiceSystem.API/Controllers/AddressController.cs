@@ -60,8 +60,8 @@ public class AddressController : Controller
     public async Task<IActionResult> DeleteAddress(int id, CancellationToken cancellationToken)
     {
         DeleteAddressRequest request = new(id);
-        DeleteAddressResponse response = await _mediator.Send(request, cancellationToken);
+        await _mediator.Send(request, cancellationToken);
 
-        return Ok(response);
+        return NoContent();
     }
 }
