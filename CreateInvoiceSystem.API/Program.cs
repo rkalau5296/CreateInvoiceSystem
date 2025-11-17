@@ -2,8 +2,11 @@ using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
+using CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
+using CreateInvoiceSystem.Addresses.Application.Validators;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +21,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddValidatorsFromAssembly(typeof(CreateAddressRequestValidator).Assembly);
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient<ICommandExecutor, CommandExecutor>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAddressesRequest).Assembly));

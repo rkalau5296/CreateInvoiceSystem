@@ -23,6 +23,7 @@ public record AddressDto(
     [Required]
     [Display(Name = "kod pocztowy")]
     [MaxLength(255)]
-    string PostalCode,
-    string Email
+    string PostalCode,    
+    string Email,
+    string Country
 );
