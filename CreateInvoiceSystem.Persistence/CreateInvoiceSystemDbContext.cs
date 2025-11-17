@@ -1,8 +1,8 @@
-﻿using CreateInvoiceSystem.Abstractions.DbContext;
-using Microsoft.EntityFrameworkCore;
-using AddressEntity = CreateInvoiceSystem.Address.Domain.Entities.Address;
+﻿namespace CreateInvoiceSystem.Persistence;
 
-namespace CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Abstractions.DbContext;
+using Microsoft.EntityFrameworkCore;
+using AddressEntity = Address.Domain.Entities.Address;
 
 public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IDbContext
 {
@@ -11,5 +11,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);
+
+        modelBuilder.Entity<AddressEntity>().ToTable("Addresses");
     }
 }

@@ -11,8 +11,14 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AddressController(IMediator _mediator) : Controller
-{        
+public class AddressController : Controller
+{
+    private readonly IMediator _mediator;
+
+    public AddressController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
 
     [HttpGet("{addressId}")]
     public async Task<IActionResult> GetAddressAsync([FromRoute] int addressId, CancellationToken cancellationToken) 

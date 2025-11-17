@@ -2,10 +2,11 @@
 
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Address.Application.Commands;
-using CreateInvoiceSystem.Address.Domain.Entities;
+using CreateInvoiceSystem.Address.Application.Mappers;
 using CreateInvoiceSystem.Address.Application.RequestsResponses.DeleteAddress;
-
+using CreateInvoiceSystem.Address.Domain.Entities;
 using MediatR;
+using System.Reflection.Metadata;
 
 public class DeleteAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteAddressRequest, DeleteAddressResponse>
 {
@@ -15,7 +16,12 @@ public class DeleteAddressHandler(ICommandExecutor commandExecutor) : IRequestHa
 
         var command = new DeleteAddressCommand { Parametr = address };
         await commandExecutor.Execute(command, cancellationToken);
-        return new DeleteAddressResponse();
+
+
+        return new DeleteAddressResponse()
+        {
+            Data = AddressMappers.ToDto(address)
+        };
     }
 }
 
