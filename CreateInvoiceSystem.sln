@@ -20,7 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Products", "CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj", "{CD8E9D53-A086-4F69-A471-607AEFD8BA6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Address", "CreateInvoiceSystem.Address\CreateInvoiceSystem.Address.csproj", "{1B8B7444-9DB3-42E5-9358-5EDC7099F658}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Addresses", "CreateInvoiceSystem.Addresses\CreateInvoiceSystem.Addresses.csproj", "{1B8B7444-9DB3-42E5-9358-5EDC7099F658}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.InvoicePositions", "CreateInvoiceSystem.InvoicePositions\CreateInvoiceSystem.InvoicePositions.csproj", "{EF1338C3-4049-48CB-BC4F-33C661E579BF}"
 EndProject

@@ -2,7 +2,7 @@
 
 using CreateInvoiceSystem.Abstractions.DbContext;
 using Microsoft.EntityFrameworkCore;
-using AddressEntity = Address.Domain.Entities.Address;
+using AddressEntity = Addresses.Domain.Entities.Address;
 
 public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IDbContext
 {

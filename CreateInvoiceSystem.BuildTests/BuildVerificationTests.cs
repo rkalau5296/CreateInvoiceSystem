@@ -9,7 +9,7 @@ public class BuildVerificationTests
     {
         var projectsToBuild = new[]
         {            
-            @"..\..\..\..\CreateInvoiceSystem.Address\CreateInvoiceSystem.Address.csproj",
+            @"..\..\..\..\CreateInvoiceSystem.Addresses\CreateInvoiceSystem.Addresses.csproj",
             @"..\..\..\..\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj",
             @"..\..\..\..\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",

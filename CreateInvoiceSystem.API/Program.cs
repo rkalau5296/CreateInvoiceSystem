@@ -1,10 +1,10 @@
-using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddresses;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using CreateInvoiceSystem.Persistence;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +18,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 builder.Services.AddTransient<ICommandExecutor, CommandExecutor>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAddressesRequest).Assembly));
@@ -29,8 +28,6 @@ builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDbContext, CreateInvoiceSystemDbContext>();
 
-
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -39,10 +36,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
-        c.RoutePrefix = string.Empty; // Swagger dostêpny pod rootem
+        c.RoutePrefix = string.Empty;
     });
 }
-
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");

@@ -1,34 +1,34 @@
 ﻿namespace CreateInvoiceSystem.API.Controllers;
 
-using CreateInvoiceSystem.Address.Application.DTO;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.CreateAddress;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.DeleteAddress;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddress;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.GetAddresses;
-using CreateInvoiceSystem.Address.Application.RequestsResponses.UpdateAddress;
+using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.DeleteAddress;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddress;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/[controller]")]
-public class AddressController : Controller
+[Route("[controller]")]
+public class AddressController(IMediator _mediator) : Controller
 {
-    private readonly IMediator _mediator;
-
-    public AddressController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpGet("{addressId}")]
+    [ProducesResponseType(typeof(GetAddressResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAddressAsync([FromRoute] int addressId, CancellationToken cancellationToken) 
     {
         GetAddressRequest request = new(addressId);
         GetAddressResponse response = await _mediator.Send(request, cancellationToken);
+
+        if (response is null)
+            return NotFound();
+
         return Ok(response);
     }
 
     [HttpGet()]
+    [Route("/Addresses")]
     public async Task<IActionResult> GetAddressesAsync([FromQuery] GetAddressesRequest request, CancellationToken cancellationToken)
     {
         GetAddressesResponse response = await _mediator.Send(request, cancellationToken);
