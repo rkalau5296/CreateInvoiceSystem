@@ -22,7 +22,7 @@ public class CreateAddressRequestValidator : AbstractValidator<CreateAddressRequ
 
             RuleFor(x => x.Address.PostalCode)
                 .NotEmpty().WithMessage("PostalCode is required.")
-                .Matches(@"^\d{5}(-\d{4})?$").WithMessage("PostalCode must be in a valid format.");
+                .Matches(@"^\d{2}-\d{3}$").WithMessage("PostalCode must be in a valid format.");
 
             RuleFor(x => x.Address.Country)
                 .NotEmpty().WithMessage("Country is required.")
