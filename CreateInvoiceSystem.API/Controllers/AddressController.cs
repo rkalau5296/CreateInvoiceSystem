@@ -64,4 +64,10 @@ public class AddressController(IMediator _mediator) : Controller
 
         return NoContent();
     }
+
+    [HttpGet("throw")]
+    public IActionResult Throw()
+    {
+        throw new FluentValidation.ValidationException("test", new List<FluentValidation.Results.ValidationFailure>());
+    }
 }

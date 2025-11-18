@@ -30,7 +30,6 @@ builder.Services.AddCors(options =>
 });
 
 
-
 builder.Services.AddTransient<ICommandExecutor, CommandExecutor>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 
@@ -49,7 +48,6 @@ app.UseRouting();
 app.UseMiddleware<ValidationExceptionMiddleware>();
 app.UseAuthorization();
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -59,6 +57,7 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
     });
 }
+
 app.MapControllers();
 
 app.Run();
