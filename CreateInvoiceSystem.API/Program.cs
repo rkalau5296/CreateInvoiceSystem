@@ -59,26 +59,6 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
     });
 }
-
-
-app.MapGet("/test", () =>
-{
-    throw new FluentValidation.ValidationException(new[]
-    {
-        new FluentValidation.Results.ValidationFailure("TestField", "Test message")
-    });
-});
-
-app.MapPost("/addresses", HandleCreateAddress)
-    .Produces<CreateAddressResponse>(StatusCodes.Status200OK)
-    .Produces(StatusCodes.Status400BadRequest);
-
 app.MapControllers();
 
 app.Run();
-
-static async Task<IResult> HandleCreateAddress(CreateAddressRequest request, IMediator mediator)
-{
-    var result = await mediator.Send(request);
-    return Results.Ok(result);
-}
