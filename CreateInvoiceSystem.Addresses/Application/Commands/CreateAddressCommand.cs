@@ -11,7 +11,7 @@ public class CreateAddressCommand : CommandBase<AddressDto, AddressDto>
     public override async Task<AddressDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(this.Parametr));
+            throw new ArgumentNullException(nameof(context));
 
         var entity = AddressMappers.ToEntity(this.Parametr);
 

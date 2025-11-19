@@ -13,10 +13,7 @@ public class GetAddressHandler(IQueryExecutor queryExecutor) : IRequestHandler<G
     public async Task<GetAddressResponse> Handle(GetAddressRequest request, CancellationToken cancellationToken)
     {
         GetAddressQuery query = new(request.Id);
-        var address = await queryExecutor.Execute(query);
-
-        if (address is null)
-            return null;
+        var address = await queryExecutor.Execute(query);      
 
         return new GetAddressResponse
         {

@@ -22,35 +22,8 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
                         errors = x.Value.Errors
                     }));
         }
-        var response = await _mediator.Send(request, cancellationToken);
-
-        if (response == null)
-        {
-            var notFoundError = new ErrorModel(ErrorType.NotFound);            
-            return StatusCode((int)HttpStatusCode.NotFound, notFoundError);
-        }
-
-        if (response.Error != null)
-        {
-            return this.ErrorResponse(response.Error);
-        }        
+        var response = await _mediator.Send(request, cancellationToken);        
 
         return this.Ok(response);
-    }
-
-    private ObjectResult ErrorResponse(ErrorModel errorModel)
-    {
-        var httpCode = errorModel.Error switch
-        {
-            ErrorType.NotFound => HttpStatusCode.NotFound,
-            ErrorType.InternalServerError => HttpStatusCode.InternalServerError,
-            ErrorType.Unauthorized => HttpStatusCode.Unauthorized,
-            ErrorType.RequestTooLarge => HttpStatusCode.RequestEntityTooLarge,
-            ErrorType.TooManyRequests => (HttpStatusCode)429,
-            ErrorType.UnsupportedMethod => HttpStatusCode.MethodNotAllowed,
-            _ => HttpStatusCode.BadRequest,
-        };
-
-        return StatusCode((int)httpCode, errorModel);
-    }
+    }    
 }

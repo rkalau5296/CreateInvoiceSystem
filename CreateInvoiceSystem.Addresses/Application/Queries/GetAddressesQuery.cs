@@ -9,6 +9,7 @@ public class GetAddressesQuery : QueryBase<List<Address>>
 {
     public override async Task<List<Address>> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        return await context.Set<Address>().ToListAsync(cancellationToken: cancellationToken);
+        return await context.Set<Address>().ToListAsync(cancellationToken: cancellationToken) 
+            ?? throw new InvalidOperationException($"List of addresses is empty.");
     }
 }

@@ -12,11 +12,10 @@ public class UpdateAddressCommand : CommandBase<AddressDto, AddressDto>
     public override async Task<AddressDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(this.Parametr));
-        
+            throw new ArgumentNullException(nameof(context));
 
-        var address = await context.Set<Address>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId, cancellationToken: cancellationToken) ?? 
-                              throw new InvalidOperationException($"Address with ID {Parametr.AddressId} not found.");
+        var address = await context.Set<Address>().FirstOrDefaultAsync(a => a.AddressId == Parametr.AddressId, cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException($"Address with ID {Parametr.AddressId} not found.");   
 
         address.Street = this.Parametr.Street;
         address.Number = this.Parametr.Number;
