@@ -1,19 +1,12 @@
 ﻿namespace CreateInvoiceSystem.API.Middleware;
 
-public class ValidationExceptionMiddleware
+public class ValidationExceptionMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;    
-
-    public ValidationExceptionMiddleware(RequestDelegate next)
-    {
-        _next = next;        
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (FluentValidation.ValidationException ex)
         {            

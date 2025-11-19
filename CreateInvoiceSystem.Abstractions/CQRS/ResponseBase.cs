@@ -1,6 +1,8 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.CQRS;
 
-public abstract class ResponseBase<T>
+using CreateInvoiceSystem.Abstractions.ErrorResponseBase;
+
+public class ResponseBase<T> : ErrorResponseBase
 {
     public T Data { get; set; } = default!;
 
