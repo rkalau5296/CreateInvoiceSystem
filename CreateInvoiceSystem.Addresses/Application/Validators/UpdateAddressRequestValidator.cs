@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
+﻿using CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
 using FluentValidation;
 
 namespace CreateInvoiceSystem.Addresses.Application.Validators;
 
-public class UpdateAddressRequestValidator : AbstractValidator<CreateAddressRequest>
+public class UpdateAddressRequestValidator : AbstractValidator<UpdateAddressRequest>
 {
     public UpdateAddressRequestValidator()
     {
