@@ -1,6 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using System.Threading;
 
 namespace CreateInvoiceSystem.Abstractions.Executors;
 

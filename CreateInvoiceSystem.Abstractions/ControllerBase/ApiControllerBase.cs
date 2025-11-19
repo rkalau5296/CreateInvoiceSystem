@@ -3,8 +3,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using CreateInvoiceSystem.Abstractions.ErrorResponseBase;
-using System.Net;
-using CreateInvoiceSystem.Abstractions.Error;
 
 public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
 {

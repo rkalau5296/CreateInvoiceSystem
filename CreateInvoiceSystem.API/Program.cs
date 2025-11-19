@@ -3,7 +3,6 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
 using CreateInvoiceSystem.Addresses.Application.Validators;
-using CreateInvoiceSystem.API.Filters;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
 using MediatR;

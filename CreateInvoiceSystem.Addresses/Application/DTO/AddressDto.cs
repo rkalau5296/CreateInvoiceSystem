@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace CreateInvoiceSystem.Addresses.Application.DTO;
+﻿namespace CreateInvoiceSystem.Addresses.Application.DTO;
 
 public record AddressDto(
     int AddressId,   
