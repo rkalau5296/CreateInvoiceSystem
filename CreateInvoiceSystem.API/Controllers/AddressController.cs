@@ -20,7 +20,7 @@ public class AddressController(IMediator mediator) : ApiControllerBase(mediator)
     public Task<IActionResult> GetAddressAsync([FromRoute] int addressId, CancellationToken cancellationToken) 
     {
         GetAddressRequest request = new(addressId);
-        return this.HandleRequest<GetAddressRequest, GetAddressResponse>(request);        
+        return this.HandleRequest<GetAddressRequest, GetAddressResponse>(request, cancellationToken);        
     }
 
     [HttpGet()]

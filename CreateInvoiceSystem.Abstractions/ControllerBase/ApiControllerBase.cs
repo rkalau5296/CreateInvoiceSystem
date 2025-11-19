@@ -9,7 +9,7 @@ using CreateInvoiceSystem.Abstractions.Error;
 
 public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
 {
-    protected async Task<IActionResult> HandleRequest<TRequest, TResponse>(TRequest request)
+    protected async Task<IActionResult> HandleRequest<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken)
         where TRequest : IRequest<TResponse>
         where TResponse : ErrorResponseBase
     {
@@ -20,9 +20,10 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
                     .Select(x => new
                     {
                         property = x.Key,
-                        errors = x.Value.Errors}));
+                        errors = x.Value.Errors
+                    }));
         }
-        var response = await _mediator.Send(request);
+        var response = await _mediator.Send(request, cancellationToken);
         if (response.Error != null)
         {
             return this.ErrorResponse(response.Error);
@@ -31,23 +32,19 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
         return this.Ok(response);
     }
 
-    private IActionResult ErrorResponse(ErrorModel errorModel)
+    private ObjectResult ErrorResponse(ErrorModel errorModel)
     {
-        var httpCode = GetHttpStatusCode(errorModel.Error);
-        return StatusCode((int)httpCode, errorModel);
-    }
-
-    private static HttpStatusCode GetHttpStatusCode(string errorType)
-    {
-        return errorType switch
+        var httpCode = errorModel.Error switch
         {
             ErrorType.NotFound => HttpStatusCode.NotFound,
             ErrorType.InternalServerError => HttpStatusCode.InternalServerError,
             ErrorType.Unauthorized => HttpStatusCode.Unauthorized,
             ErrorType.RequestTooLarge => HttpStatusCode.RequestEntityTooLarge,
-            ErrorType.TooManyRequests => (HttpStatusCode)429,// Too Many Requests
+            ErrorType.TooManyRequests => (HttpStatusCode)429,
             ErrorType.UnsupportedMethod => HttpStatusCode.MethodNotAllowed,
             _ => HttpStatusCode.BadRequest,
         };
+
+        return StatusCode((int)httpCode, errorModel);
     }
 }
