@@ -16,6 +16,9 @@ public class CreateAddressRequestValidator : AbstractValidator<CreateAddressRequ
                 .NotEmpty().WithMessage("Street is required.")
                 .MaximumLength(100).WithMessage("Street cannot exceed 100 characters.");
 
+            RuleFor(x => x.Address.Number)
+                .NotEmpty().WithMessage("Number cannot be empty.");
+
             RuleFor(x => x.Address.City)
                 .NotEmpty().WithMessage("City is required.")
                 .MaximumLength(50).WithMessage("City cannot exceed 50 characters.");
@@ -30,7 +33,7 @@ public class CreateAddressRequestValidator : AbstractValidator<CreateAddressRequ
 
             RuleFor(x => x.Address.Email)
                 .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email must be a valid email address.");
+                .Matches(@"^[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}$").WithMessage("Email must be in a valid format.");                
         });
     }
 }

@@ -20,39 +20,30 @@ public class AddressController(IMediator mediator) : ApiControllerBase(mediator)
     public Task<IActionResult> GetAddressAsync([FromRoute] int addressId, CancellationToken cancellationToken) 
     {
         GetAddressRequest request = new(addressId);
-        return this.HandleRequest<GetAddressRequest, GetAddressResponse>(request, cancellationToken);        
+        return this.HandleRequest<GetAddressRequest, GetAddressResponse>(request, cancellationToken);
     }
 
     [HttpGet()]
     [Route("/Addresses")]
     public async Task<IActionResult> GetAddressesAsync([FromQuery] GetAddressesRequest request, CancellationToken cancellationToken)
     {
-        GetAddressesResponse response = await mediator.Send(request, cancellationToken);
-        return Ok(response);
+        return await this.HandleRequest<GetAddressesRequest, GetAddressesResponse>(request, cancellationToken);
     }
 
     [HttpPost]
     [Route("create")]
     public async Task<IActionResult> CreateAddressAsync([FromBody] AddressDto addressDto, CancellationToken cancellationToken)
-    {
-        if(!this.ModelState.IsValid == false)
-        {
-            return BadRequest("Do dupy z takim adresem. Gdzie jest kraj baranie?!");
-        }
+    {        
         CreateAddressRequest request = new(addressDto);
-        CreateAddressResponse response = await mediator.Send(request, cancellationToken);
-
-        return Ok(response);
+        return await this.HandleRequest<CreateAddressRequest, CreateAddressResponse>(request, cancellationToken);
     }
 
     [HttpPut]
     [Route("update/id")]
     public async Task<IActionResult> UpdateAddressAsync(int id, [FromBody] AddressDto addressDto, CancellationToken cancellationToken)
     {
-        UpdateAddressRequest updatedAddress = new(id, addressDto);
-        UpdateAddressResponse response = await mediator.Send(updatedAddress, cancellationToken);
-
-        return Ok(response);
+        UpdateAddressRequest request = new(id, addressDto);
+        return await this.HandleRequest<UpdateAddressRequest, UpdateAddressResponse>(request, cancellationToken);
     }
 
     [HttpDelete]
@@ -60,16 +51,6 @@ public class AddressController(IMediator mediator) : ApiControllerBase(mediator)
     public async Task<IActionResult> DeleteAddress(int id, CancellationToken cancellationToken)
     {
         DeleteAddressRequest request = new(id);
-        await mediator.Send(request, cancellationToken);
-
-        return NoContent();
-    }
-
-    [HttpGet("throw")]
-    public IActionResult Throw()
-    {
-        throw new FluentValidation.ValidationException(
-            [new FluentValidation.Results.ValidationFailure("TestField", "Test message")]
-        );
-    }
+        return await this.HandleRequest<DeleteAddressRequest, DeleteAddressResponse>(request, cancellationToken);
+    }    
 }

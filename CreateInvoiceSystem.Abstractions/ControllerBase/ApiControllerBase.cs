@@ -3,7 +3,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using CreateInvoiceSystem.Abstractions.ErrorResponseBase;
-using System;
 using System.Net;
 using CreateInvoiceSystem.Abstractions.Error;
 
@@ -24,10 +23,17 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
                     }));
         }
         var response = await _mediator.Send(request, cancellationToken);
+
+        if (response == null)
+        {
+            var notFoundError = new ErrorModel(ErrorType.NotFound);            
+            return StatusCode((int)HttpStatusCode.NotFound, notFoundError);
+        }
+
         if (response.Error != null)
         {
             return this.ErrorResponse(response.Error);
-        }
+        }        
 
         return this.Ok(response);
     }

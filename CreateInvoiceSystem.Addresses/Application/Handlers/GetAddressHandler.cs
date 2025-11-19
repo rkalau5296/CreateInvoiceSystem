@@ -1,6 +1,5 @@
 ﻿namespace CreateInvoiceSystem.Addresses.Application.Handlers;
 
-using CreateInvoiceSystem.Abstractions.Exceptions;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.Mappers;
 using CreateInvoiceSystem.Addresses.Application.Queries;
