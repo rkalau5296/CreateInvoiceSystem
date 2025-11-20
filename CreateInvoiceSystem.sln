@@ -9,11 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.BuildTe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AD1C75FD-903C-4F54-9BA1-AEC30E8BE829}"
-	ProjectSection(SolutionItems) = preProject
-		azure-pipelines.yml = azure-pipelines.yml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Clients", "CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj", "{5C2DBE16-07A0-4482-8ED8-0135D558B786}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoices", "CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj", "{03BF7615-2DB1-4FD8-8524-D7CDA905233E}"
@@ -42,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workfllows", "workfllows", 
 	ProjectSection(SolutionItems) = preProject
 		ci.yml = ci.yml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Nbp", "Nbp\CreateInvoiceSystem.Nbp.csproj", "{152FF342-8CA2-4EAA-A161-6E6F284D489B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,6 +94,10 @@ Global
 		{C291ED97-B208-4116-A7B9-98194278EE79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C291ED97-B208-4116-A7B9-98194278EE79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C291ED97-B208-4116-A7B9-98194278EE79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{152FF342-8CA2-4EAA-A161-6E6F284D489B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{152FF342-8CA2-4EAA-A161-6E6F284D489B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{152FF342-8CA2-4EAA-A161-6E6F284D489B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{152FF342-8CA2-4EAA-A161-6E6F284D489B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,6 +116,7 @@ Global
 		{E58791FD-1E0A-435E-84C5-4C433F7017FB} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{C291ED97-B208-4116-A7B9-98194278EE79} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{1659ADEF-4F16-46EE-9F46-A94720062306} = {73408AEF-3567-410A-9F80-B639ECE65355}
+		{152FF342-8CA2-4EAA-A161-6E6F284D489B} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B0B660D-CCA3-49AF-9023-8C1BC503EE00}

@@ -12,8 +12,13 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("[controller]")]
-public class AddressController(IMediator mediator) : ApiControllerBase(mediator)
+public class AddressController : ApiControllerBase
 {
+    public AddressController(IMediator mediator, ILogger<AddressController> logger) : base(mediator)
+    {
+        logger.LogInformation("This is AddressController");
+    }
+
     [HttpGet("{addressId}")]
     [ProducesResponseType(typeof(GetAddressResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

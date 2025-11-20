@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿namespace CreateInvoiceSystem.Abstractions.DbContext;
 
-namespace CreateInvoiceSystem.Abstractions.DbContext;
+using Microsoft.EntityFrameworkCore;
 
 public interface IDbContext
 {
