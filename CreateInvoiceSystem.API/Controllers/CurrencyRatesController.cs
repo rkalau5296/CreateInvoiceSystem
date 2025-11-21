@@ -3,6 +3,7 @@
 using CreateInvoiceSystem.Abstractions.ControllerBase;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRate;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Nbp.Application.RequestResponse.PreviousDatesRate;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.PreviousDatesRates;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -36,5 +37,13 @@ public class CurrencyRatesController: ApiControllerBase
     {
         GetActualCurrencyRateRequest request = new(tableName, currencyCode);
         return await this.HandleRequest<GetActualCurrencyRateRequest, GetActualCurrencyRateResponse>(request, cancellationToken);
+    }
+
+    [HttpGet()]
+    [Route("/CurrencyRates/{tableName}/{currencyCode}/{dateFrom}/{dateTo}")]
+    public async Task<IActionResult> GetSeriesCurrencyRateFromToAsync([FromRoute] string tableName, string currencyCode, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
+    {
+        GetSeriesCurrencyRateFromToRequest request = new(tableName, currencyCode, dateFrom, dateTo);
+        return await this.HandleRequest<GetSeriesCurrencyRateFromToRequest, GetSeriesCurrencyRateFromToResponse>(request, cancellationToken);
     }
 }
