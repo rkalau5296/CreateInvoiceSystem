@@ -3,13 +3,14 @@
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Nbp.Application.DTO;
+using CreateInvoiceSystem.Nbp.Application.Options;
 using Newtonsoft.Json;
 using RestSharp;
+using System.Buffers.Text;
 using System.Net;
 
-public class GetActualCurrencyRateQyuery(string table, string currencyCode) : QueryBase<CurrencyRatesTable>
-{
-    private const string baseUrl = "https://api.nbp.pl/api/exchangerates/";
+public class GetActualCurrencyRateQyuery(string table, string currencyCode, string baseUrl) : QueryBase<CurrencyRatesTable>
+{    
     private readonly RestClient _client = new(baseUrl);
 
     public override async Task<CurrencyRatesTable> Execute(IDbContext context, CancellationToken cancellationToken)

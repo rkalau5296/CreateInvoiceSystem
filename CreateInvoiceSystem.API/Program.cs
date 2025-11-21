@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
 using CreateInvoiceSystem.Addresses.Application.Validators;
 using CreateInvoiceSystem.API.Middleware;
+using CreateInvoiceSystem.Nbp.Application.Options;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
@@ -19,6 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAddressesRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
+builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressRequestValidator>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.Configure<ApiBehaviorOptions>(options =>

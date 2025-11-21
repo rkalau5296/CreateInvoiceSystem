@@ -7,9 +7,8 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.Net;
 
-public class GetSeriesCurrencyRatesFromToQuery(string table, DateTime dateFrom, DateTime dateTo) : QueryBase<List<CurrencyRatesTable>>
-{
-    private const string baseUrl = "https://api.nbp.pl/api/exchangerates/";
+public class GetSeriesCurrencyRatesFromToQuery(string table, DateTime dateFrom, DateTime dateTo, string baseUrl) : QueryBase<List<CurrencyRatesTable>>
+{    
     private readonly RestClient _client = new(baseUrl);
 
     public override async Task<List<CurrencyRatesTable>> Execute(IDbContext context, CancellationToken cancellationToken)
