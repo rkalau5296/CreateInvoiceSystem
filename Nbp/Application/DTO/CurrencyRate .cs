@@ -8,4 +8,5 @@ public record CurrencyRate
     public double Ask { get; set; }
     public DateTime EffectiveDate { get; set; }
     public double Mid { get; set; }
+    public string No { get; set; }
 }
