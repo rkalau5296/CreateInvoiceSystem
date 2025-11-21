@@ -1,39 +1,40 @@
-﻿using CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
+﻿namespace CreateInvoiceSystem.Clients.Application.Validators;
+
 using FluentValidation;
+using CreateInvoiceSystem.Clients.Domain.Entities;
 
-namespace CreateInvoiceSystem.Clients.Application.Validators;
-
-public class UpdateClientRequestValidator : AbstractValidator<UpdateClientRequest>
+public class UpdateClientRequestValidator : AbstractValidator<Client>
 {
     public UpdateClientRequestValidator()
     {
-        RuleFor(x => x.Address)
-            .NotNull().WithMessage("Address cannot be null.");
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Name is required.")
+            .MaximumLength(100);
 
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email is required.")
+            .EmailAddress().WithMessage("Please enter a valid email address.");
+
+        RuleFor(x => x.AddressId)
+            .GreaterThan(0).WithMessage("Address is required.");
+
+        RuleFor(x => x.UserId)
+            .GreaterThan(0).WithMessage("UserId is required.");
+
+        RuleFor(x => x.Address)
+            .NotNull().WithMessage("Address must be specified.");
+
+        // Validate AddressBase properties
         When(x => x.Address != null, () =>
         {
             RuleFor(x => x.Address.Street)
-                .NotEmpty().WithMessage("Street is required.")
-                .MaximumLength(100).WithMessage("Street cannot exceed 100 characters.");
-
-            RuleFor(x => x.Address.Number)
-                .NotEmpty().WithMessage("Number cannot be empty.");
+                .NotEmpty().WithMessage("Street is required in address.");
 
             RuleFor(x => x.Address.City)
-                .NotEmpty().WithMessage("City is required.")
-                .MaximumLength(50).WithMessage("City cannot exceed 50 characters.");
+                .NotEmpty().WithMessage("City is required in address.");
 
             RuleFor(x => x.Address.PostalCode)
-                .NotEmpty().WithMessage("PostalCode is required.")
-                .Matches(@"^\d{2}-\d{3}$").WithMessage("PostalCode must be in a valid format.");
-
-            RuleFor(x => x.Address.Country)
-                .NotEmpty().WithMessage("Country is required.")
-                .MaximumLength(50).WithMessage("Country cannot exceed 50 characters.");
-
-            RuleFor(x => x.Address.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .Matches(@"^[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}$").WithMessage("Email must be in a valid format.");
+                .NotEmpty().WithMessage("Postal code is required in address.");
         });
     }
 }

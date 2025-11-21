@@ -1,6 +1,5 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
 
-using CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
 using CreateInvoiceSystem.Clients.Application.DTO;
 using MediatR;
 

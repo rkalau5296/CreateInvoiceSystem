@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Clients.Application.DTO;
+﻿namespace CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
 
-namespace CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
+using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Clients.Application.DTO;
 
 public class UpdateClientResponse : ResponseBase<ClientDto>
 {

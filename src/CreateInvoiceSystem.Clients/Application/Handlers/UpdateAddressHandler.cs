@@ -1,22 +1,23 @@
-﻿namespace CreateInvoiceSystem.Addresses.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Clients.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Addresses.Application.Commands;
-using CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
+using CreateInvoiceSystem.Clients.Application.Commands;
+using CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Clients.Domain.Entities;
 using MediatR;
 
 
-public class UpdateAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<UpdateClientRequest, UpdateClientResponse>
+public class UpdateClientHandler(ICommandExecutor commandExecutor) : IRequestHandler<UpdateClientRequest, UpdateClientResponse>
 {    
     public async Task<UpdateClientResponse> Handle(UpdateClientRequest request, CancellationToken cancellationToken)
     {        
-        var command = new UpdateClientCommand() { Parametr = request.Address };
+        var command = new UpdateClientCommand() { Parametr = request.Client };
         
-        var address = await commandExecutor.Execute(command, cancellationToken);        
+        var client = await commandExecutor.Execute(command, cancellationToken);        
 
         return new UpdateClientResponse()
         {
-            Data = address
+            Data = client
         };
     }
 }
