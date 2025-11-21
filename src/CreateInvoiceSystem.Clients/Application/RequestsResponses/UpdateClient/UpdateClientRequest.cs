@@ -1,0 +1,12 @@
+﻿namespace CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
+
+using CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
+using CreateInvoiceSystem.Clients.Application.DTO;
+using MediatR;
+
+public class UpdateClientRequest(int id, ClientDto clientDto) : IRequest<UpdateClientResponse>
+{
+    public ClientDto Client { get; } = clientDto with { ClientId = id };
+    public int Id { get; set; } = id;
+
+}

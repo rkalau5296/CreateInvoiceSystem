@@ -1,24 +1,12 @@
 ﻿namespace CreateInvoiceSystem.Addresses.Domain.Entities;
 
-public class Address()
-{   
-    //public Address()
-    //{
-    //    Clients = [];
-    //}
+using CreateInvoiceSystem.Abstractions.EntitiesBases;
 
-    public int AddressId { get; set; }
-    
-    public string Street { get; set; }
-    
-    public string Number { get; set; }
-    
-    public string City { get; set; }
-    
-    public string PostalCode { get; set; }
-
-    public string Email { get; set; }
-
-    public string Country { get; set; }
-    //public ICollection<Client> Clients { get; set; }
+public class Address : AddressBase
+{
+    public Address()
+    {
+        Clients = [];
+    } 
+    public ICollection<ClientBase> Clients { get; set; }
 }

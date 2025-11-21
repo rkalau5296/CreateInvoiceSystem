@@ -1,0 +1,27 @@
+﻿namespace CreateInvoiceSystem.Clients.Application.Commands;
+
+using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Clients.Application.DTO;
+using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Clients.Application.Mappers;
+using Microsoft.EntityFrameworkCore;
+
+public class DeleteClientCommand : CommandBase<Client, ClientDto>
+{
+    public override async Task<ClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
+    {
+        if (Parametr is null)
+            throw new ArgumentNullException(nameof(context)); 
+
+        var clientEntity = await context.Set<Client>().FirstOrDefaultAsync(a => a.ClientId == Parametr.ClientId, cancellationToken: cancellationToken) ??
+                              throw new InvalidOperationException($"Address with ID {Parametr.ClientId} not found.");
+
+        var clientDto = ClientMappers.ToDto(clientEntity);
+
+        context.Set<Client>().Remove(clientEntity);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return clientDto;
+    }
+}
