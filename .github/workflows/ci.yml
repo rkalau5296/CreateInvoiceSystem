@@ -26,4 +26,4 @@ jobs:
         run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
 
       - name: 🧪 Run build verification test
-        run: dotnet test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build
+        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build
