@@ -7,13 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{73408AEF-3567-410A-9F80-B639ECE65355}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workfllows", "workfllows", "{1659ADEF-4F16-46EE-9F46-A94720062306}"
-	ProjectSection(SolutionItems) = preProject
-		ci.yml = ci.yml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Abstractions", "src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj", "{F1D40D15-2A9D-7404-96CF-1ED58CAB725F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Addresses", "src\CreateInvoiceSystem.Addresses\CreateInvoiceSystem.Addresses.csproj", "{E10CF2F2-359C-399B-440E-472302DE03C5}"
@@ -39,6 +32,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Web", "src\CreateInvoiceSystem.Web\CreateInvoiceSystem.Web.csproj", "{936A90B7-5146-3003-3973-0C26BED4030E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.BuildTests", "test\CreateInvoiceSystem.BuildTests\CreateInvoiceSystem.BuildTests.csproj", "{0735F4FE-5604-9BA1-DD88-05631C1EE9F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,7 +101,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1659ADEF-4F16-46EE-9F46-A94720062306} = {73408AEF-3567-410A-9F80-B639ECE65355}
 		{F1D40D15-2A9D-7404-96CF-1ED58CAB725F} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{E10CF2F2-359C-399B-440E-472302DE03C5} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{C8D7E3A3-B910-82F0-7960-262D6F157FE8} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
