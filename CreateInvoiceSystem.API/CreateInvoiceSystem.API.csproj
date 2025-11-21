@@ -23,6 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
-    <ProjectReference Include="..\Nbp\CreateInvoiceSystem.Nbp.csproj" />    
+    <ProjectReference Include="..\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj" />    
   </ItemGroup>
 </Project>
