@@ -4,7 +4,7 @@ using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
 using CreateInvoiceSystem.Addresses.Application.Validators;
 using CreateInvoiceSystem.API.Middleware;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse;
+using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
 using MediatR;

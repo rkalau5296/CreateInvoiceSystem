@@ -1,4 +1,5 @@
-﻿namespace CreateInvoiceSystem.Nbp.Application.RequestResponse;
+﻿namespace CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
+
 using MediatR;
 
 public class GetActualCurrencyRatesRequest(string tableName) : IRequest<GetActualCurrencyRatesResponse>

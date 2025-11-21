@@ -1,10 +1,9 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Nbp.Application.DTO;
-using CreateInvoiceSystem.Nbp.Application.Queries;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse;
-using MediatR;
+﻿namespace CreateInvoiceSystem.Nbp.Application.Handlers;
 
-namespace CreateInvoiceSystem.Nbp.Application.Handlers;
+using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.Nbp.Application.Queries;
+using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
+using MediatR;
 
 public class GetActualCurrencyRatesHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetActualCurrencyRatesRequest, GetActualCurrencyRatesResponse>
 {

@@ -6,6 +6,6 @@ public record CurrencyRate
     public string Code { get; set; }
     public double Bid { get; set; }
     public double Ask { get; set; }
-    public string EffectiveDate { get; set; }
+    public DateTime EffectiveDate { get; set; }
     public double Mid { get; set; }
 }
