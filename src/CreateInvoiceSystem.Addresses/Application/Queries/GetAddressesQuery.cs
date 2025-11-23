@@ -2,7 +2,7 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class GetAddressesQuery : QueryBase<List<Address>>

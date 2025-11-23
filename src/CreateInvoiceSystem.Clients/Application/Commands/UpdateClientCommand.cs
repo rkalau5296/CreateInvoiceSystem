@@ -2,9 +2,9 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Clients.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Clients.Application.Mappers;
-using CreateInvoiceSystem.Clients.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class UpdateClientCommand : CommandBase<ClientDto, ClientDto>

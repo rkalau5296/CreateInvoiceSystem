@@ -2,9 +2,9 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Addresses.Application.Mappers;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
 
 public class CreateAddressCommand : CommandBase<AddressDto, AddressDto>
 {

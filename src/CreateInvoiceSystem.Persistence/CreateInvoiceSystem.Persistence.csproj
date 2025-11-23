@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CreateInvoiceSystem.Addresses\CreateInvoiceSystem.Addresses.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,7 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.Mappers;
 
-using CreateInvoiceSystem.Abstractions.EntitiesBases;
-using CreateInvoiceSystem.Clients.Application.DTO;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 
 public static class ClientMappers
 {

@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Addresses.Application.DTO;
+﻿namespace CreateInvoiceSystem.Abstractions.DTO;
 
 public record AddressDto(
     int AddressId,   

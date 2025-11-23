@@ -4,7 +4,7 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.Commands;
 using CreateInvoiceSystem.Addresses.Application.Mappers;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.DeleteAddress;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using MediatR;
 
 public class DeleteAddressHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteAddressRequest, DeleteAddressResponse>

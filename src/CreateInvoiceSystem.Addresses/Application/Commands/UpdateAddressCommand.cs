@@ -2,9 +2,9 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 using CreateInvoiceSystem.Addresses.Application.Mappers;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class UpdateAddressCommand : CommandBase<AddressDto, AddressDto>

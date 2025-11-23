@@ -1,7 +1,7 @@
 ﻿namespace CreateInvoiceSystem.Addresses.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Addresses.Application.Queries;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using MediatR;

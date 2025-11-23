@@ -1,6 +1,6 @@
 ﻿namespace CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
 
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 using MediatR;
 
 public class CreateAddressRequest(AddressDto addressDto) : IRequest<CreateAddressResponse>

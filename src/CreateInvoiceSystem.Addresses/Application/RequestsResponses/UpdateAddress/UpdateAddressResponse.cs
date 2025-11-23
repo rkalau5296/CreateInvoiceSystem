@@ -1,5 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 
 namespace CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
 

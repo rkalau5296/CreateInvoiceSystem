@@ -3,7 +3,7 @@
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Clients.Application.Commands;
 using CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using MediatR;
 
 

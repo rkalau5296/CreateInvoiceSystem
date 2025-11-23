@@ -1,7 +1,7 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.RequestsResponses.CreateClient;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Clients.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 
 public class CreateClientResponse : ResponseBase<ClientDto>
 {

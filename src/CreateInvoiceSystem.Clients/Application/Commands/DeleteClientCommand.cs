@@ -2,8 +2,8 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Clients.Application.DTO;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Clients.Application.Mappers;
 using Microsoft.EntityFrameworkCore;
 

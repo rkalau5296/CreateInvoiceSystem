@@ -2,7 +2,7 @@
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class GetClientsQuery : QueryBase<List<Client>>

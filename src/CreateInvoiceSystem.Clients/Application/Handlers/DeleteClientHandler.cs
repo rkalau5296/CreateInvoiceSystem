@@ -4,7 +4,7 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Clients.Application.Commands;
 using CreateInvoiceSystem.Clients.Application.Mappers;
 using CreateInvoiceSystem.Clients.Application.RequestsResponses.DeleteClient;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 using MediatR;
 
 public class DeleteClientHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteClientRequest, DeleteClientResponse>

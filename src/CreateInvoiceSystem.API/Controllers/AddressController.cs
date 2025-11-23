@@ -1,7 +1,7 @@
 ﻿namespace CreateInvoiceSystem.API.Controllers;
 
 using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.CreateAddress;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.DeleteAddress;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddress;

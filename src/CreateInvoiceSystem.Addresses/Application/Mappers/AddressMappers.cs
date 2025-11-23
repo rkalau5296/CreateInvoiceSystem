@@ -1,7 +1,8 @@
-﻿namespace CreateInvoiceSystem.Addresses.Application.Mappers;
+﻿using CreateInvoiceSystem.Abstractions.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 
-using CreateInvoiceSystem.Addresses.Application.DTO;
-using CreateInvoiceSystem.Addresses.Domain.Entities;
+namespace CreateInvoiceSystem.Addresses.Application.Mappers;
+
 
 public static class AddressMappers
 {

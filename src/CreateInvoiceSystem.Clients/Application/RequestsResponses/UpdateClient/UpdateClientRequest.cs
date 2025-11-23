@@ -1,6 +1,6 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
 
-using CreateInvoiceSystem.Clients.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 using MediatR;
 
 public class UpdateClientRequest(int id, ClientDto clientDto) : IRequest<UpdateClientResponse>

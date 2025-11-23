@@ -1,6 +1,6 @@
 ﻿namespace CreateInvoiceSystem.Addresses.Application.RequestsResponses.UpdateAddress;
 
-using CreateInvoiceSystem.Addresses.Application.DTO;
+using CreateInvoiceSystem.Abstractions.DTO;
 using MediatR;
 
 public class UpdateAddressRequest(int id, AddressDto addressDto) : IRequest<UpdateAddressResponse>

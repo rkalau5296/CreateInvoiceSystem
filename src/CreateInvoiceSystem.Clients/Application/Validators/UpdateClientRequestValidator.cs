@@ -1,7 +1,7 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.Validators;
 
 using FluentValidation;
-using CreateInvoiceSystem.Clients.Domain.Entities;
+using CreateInvoiceSystem.Abstractions.Entities;
 
 public class UpdateClientRequestValidator : AbstractValidator<Client>
 {

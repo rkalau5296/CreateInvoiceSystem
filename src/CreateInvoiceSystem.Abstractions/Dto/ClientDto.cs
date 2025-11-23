@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Abstractions.EntitiesBases;
+﻿namespace CreateInvoiceSystem.Abstractions.DTO;
 
-namespace CreateInvoiceSystem.Clients.Application.DTO;
+using CreateInvoiceSystem.Abstractions.Entities;
 
 public record ClientDto(
     int ClientId,   
@@ -8,5 +8,5 @@ public record ClientDto(
     int AddressId,    
     string Email,        
     int UserId,
-    AddressBase Address
+    Address Address
 );
