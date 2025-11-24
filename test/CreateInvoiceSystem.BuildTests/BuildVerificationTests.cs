@@ -1,4 +1,4 @@
-﻿namespace InvoiceCreateSystem.BuildTests;
+﻿namespace CreateInvoiceSystem.BuildTests;
 
 using System.Diagnostics;
 
@@ -9,14 +9,12 @@ public class BuildVerificationTests
     {
         var projectsToBuild = new[]
         {
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Addresses\CreateInvoiceSystem.Addresses.csproj",
+            @"..\..\..\..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.InvoicePositions\CreateInvoiceSystem.InvoicePositions.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.MethodsOfPayments\CreateInvoiceSystem.MethodsOfPayments.csproj",
+            @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",
