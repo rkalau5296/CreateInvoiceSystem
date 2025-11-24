@@ -1,9 +1,0 @@
-﻿@page "/authentication/{action}"
-@using CreateInvoiceSystem.Web
-@using CreateInvoiceSystem.Web.Layout
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-<RemoteAuthenticatorView Action="@Action" />
-
-@code{
-    [Parameter] public string? Action { get; set; }
-}
