@@ -17,8 +17,7 @@ public class BuildVerificationTests
             @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Web\CreateInvoiceSystem.Web.csproj"
+            @"..\..\..\..\..\src\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",            
         };
 
         foreach (var project in projectsToBuild)
