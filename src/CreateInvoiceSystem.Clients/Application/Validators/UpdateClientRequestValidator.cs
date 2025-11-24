@@ -9,10 +9,7 @@ public class UpdateClientRequestValidator : AbstractValidator<UpdateClientReques
     {
         RuleFor(x => x.Client.Name)
             .NotEmpty().WithMessage("Name is required.")
-            .MaximumLength(100);        
-
-        RuleFor(x => x.Client.AddressId)
-            .GreaterThan(0).WithMessage("Address is required.");
+            .MaximumLength(100);
 
         RuleFor(x => x.Client.Nip)
             .NotEmpty().WithMessage("Nip number is required.")

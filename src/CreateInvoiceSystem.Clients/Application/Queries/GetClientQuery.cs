@@ -9,7 +9,9 @@ public class GetClientQuery(int id) : QueryBase<Client>
 {
     public override async Task<Client> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        return await context.Set<Client>().FirstOrDefaultAsync(a => a.AddressId == id, cancellationToken: cancellationToken) 
-            ?? throw new InvalidOperationException($"Address with ID {id} not found.");
+        return await context.Set<Client>()
+            .Include(c => c.Address)
+            .FirstOrDefaultAsync(c => c.ClientId == id, cancellationToken: cancellationToken) 
+            ?? throw new InvalidOperationException($"Client with ID {id} not found.");
     }
 }

@@ -9,7 +9,9 @@ public class GetClientsQuery : QueryBase<List<Client>>
 {
     public override async Task<List<Client>> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        return await context.Set<Client>().ToListAsync(cancellationToken: cancellationToken) 
+        return await context.Set<Client>()
+            .Include(c => c.Address)
+            .ToListAsync(cancellationToken: cancellationToken) 
             ?? throw new InvalidOperationException($"List of addresses is empty.");
     }
 }

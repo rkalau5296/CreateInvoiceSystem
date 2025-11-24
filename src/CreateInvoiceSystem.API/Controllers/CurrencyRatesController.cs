@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 public class CurrencyRatesController: ApiControllerBase
 {
-    public CurrencyRatesController(IMediator mediator, ILogger<AddressController> logger) : base(mediator)
+    public CurrencyRatesController(IMediator mediator, ILogger<CurrencyRatesController> logger) : base(mediator)
     {
         logger.LogInformation("This is CurrencyRatesController");
     }

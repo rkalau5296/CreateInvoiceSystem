@@ -2,13 +2,11 @@
 
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using CreateInvoiceSystem.Abstractions.ErrorResponseBase;
 
 public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
 {
     protected async Task<IActionResult> HandleRequest<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken)
-        where TRequest : IRequest<TResponse>
-        where TResponse : ErrorResponseBase
+        where TRequest : IRequest<TResponse>        
     {
         if (!this.ModelState.IsValid)
         {
