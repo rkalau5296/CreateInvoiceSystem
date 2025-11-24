@@ -17,7 +17,8 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .HasOne(c => c.Address)
             .WithMany()
             .HasForeignKey(c => c.AddressId)
-            .IsRequired();
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Client>()
             .HasIndex(c => c.AddressId)
