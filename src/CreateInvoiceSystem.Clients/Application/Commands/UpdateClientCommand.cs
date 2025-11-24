@@ -4,8 +4,9 @@ using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.DTO;
 using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Clients.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 public class UpdateClientCommand : CommandBase<ClientDto, ClientDto>
 {
@@ -14,12 +15,20 @@ public class UpdateClientCommand : CommandBase<ClientDto, ClientDto>
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(context));
 
-        var client = await context.Set<Client>().FirstOrDefaultAsync(a => a.ClientId == Parametr.ClientId, cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException($"Address with ID {Parametr.ClientId} not found.");
+        var client = await context.Set<Client>()
+            .Include(c => c.Address)
+            .FirstOrDefaultAsync(c => c.ClientId == Parametr.ClientId, cancellationToken: cancellationToken)
+            
+            ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");        
 
-        client.Name = this.Parametr.Name;
-        client.Email = this.Parametr.Email;
-        client.Address = this.Parametr.Address;        
+        client.Name = Parametr.Name;  
+        client.AddressId = client.AddressId;
+        client.Address.Street = this.Parametr.AddressDto.Street;
+        client.Address.Number = this.Parametr.AddressDto.Number;
+        client.Address.City = this.Parametr.AddressDto.City;
+        client.Address.PostalCode = this.Parametr.AddressDto.PostalCode;
+        client.Address.Email = this.Parametr.AddressDto.Email;
+        client.Address.Country = this.Parametr.AddressDto.Country;
 
         await context.SaveChangesAsync(cancellationToken);        
         return ClientMappers.ToDto(client);

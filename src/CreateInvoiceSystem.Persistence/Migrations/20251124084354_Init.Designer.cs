@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    [Migration("20251117230507_ChangeDisplayNameCountry")]
-    partial class ChangeDisplayNameCountry
+    [Migration("20251124084354_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CreateInvoiceSystem.Addresses.Domain.Entities.Address", b =>
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Address", b =>
                 {
                     b.Property<int>("AddressId")
                         .ValueGeneratedOnAdd()
@@ -53,6 +53,49 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasKey("AddressId");
 
                     b.ToTable("Addresses", (string)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
+                {
+                    b.Property<int>("ClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClientId"));
+
+                    b.Property<int>("AddressId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ClientId");
+
+                    b.HasIndex("AddressId");
+
+                    b.ToTable("Clients", (string)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.Address", "Address")
+                        .WithMany("Clients")
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Address", b =>
+                {
+                    b.Navigation("Clients");
                 });
 #pragma warning restore 612, 618
         }

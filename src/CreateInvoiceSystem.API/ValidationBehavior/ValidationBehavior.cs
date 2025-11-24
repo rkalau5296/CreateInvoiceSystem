@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
+﻿namespace CreateInvoiceSystem.API.ValidationBehavior;
 
 using FluentValidation;
 using MediatR;

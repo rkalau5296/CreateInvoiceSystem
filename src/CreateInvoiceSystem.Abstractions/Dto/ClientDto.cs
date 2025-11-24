@@ -4,9 +4,9 @@ using CreateInvoiceSystem.Abstractions.Entities;
 
 public record ClientDto(
     int ClientId,   
-    string Name,    
-    int AddressId,    
-    string Email,        
-    int UserId,
-    Address Address
+    string Name,
+    string Nip,
+    int AddressId,
+    //int UserId,    
+    AddressDto AddressDto
 );

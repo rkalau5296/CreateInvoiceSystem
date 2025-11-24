@@ -7,5 +7,5 @@ public record AddressDto(
     string City,    
     string PostalCode,    
     string Email,
-    string Country
+    string Country    
 );

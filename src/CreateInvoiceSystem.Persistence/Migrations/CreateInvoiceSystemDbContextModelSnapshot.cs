@@ -63,18 +63,16 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<int>("AddressId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("Nip")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ClientId");
 
-                    b.HasIndex("AddressId");
+                    b.HasIndex("AddressId")
+                        .IsUnique();
 
                     b.ToTable("Clients", (string)null);
                 });
@@ -82,17 +80,12 @@ namespace CreateInvoiceSystem.Persistence.Migrations
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
                 {
                     b.HasOne("CreateInvoiceSystem.Abstractions.Entities.Address", "Address")
-                        .WithMany("Clients")
+                        .WithMany()
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Address");
-                });
-
-            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Address", b =>
-                {
-                    b.Navigation("Clients");
                 });
 #pragma warning restore 612, 618
         }

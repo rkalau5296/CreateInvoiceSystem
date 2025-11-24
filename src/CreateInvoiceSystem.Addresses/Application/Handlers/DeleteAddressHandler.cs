@@ -2,7 +2,7 @@
 
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.Commands;
-using CreateInvoiceSystem.Addresses.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.DeleteAddress;
 using CreateInvoiceSystem.Abstractions.Entities;
 using MediatR;

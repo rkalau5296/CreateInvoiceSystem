@@ -5,7 +5,7 @@ using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Addresses.Application.Queries;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
 using MediatR;
-using CreateInvoiceSystem.Addresses.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 
 public class GetAddressesHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetAddressesRequest, GetAddressesResponse>
 {

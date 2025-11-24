@@ -10,6 +10,7 @@ public class CreateAddressRequestValidator : AbstractValidator<CreateAddressRequ
         RuleFor(x => x.Address)
             .NotNull().WithMessage("Address cannot be null.");
 
+
         When(x => x.Address != null, () =>
         {
             RuleFor(x => x.Address.Street)
@@ -29,7 +30,7 @@ public class CreateAddressRequestValidator : AbstractValidator<CreateAddressRequ
 
             RuleFor(x => x.Address.Country)
                 .NotEmpty().WithMessage("Country is required.")
-                .MaximumLength(50).WithMessage("Country cannot exceed 50 characters.");
+                .MaximumLength(50).WithMessage("Country cannot exceed 50 characters.");            
 
             RuleFor(x => x.Address.Email)
                 .NotEmpty().WithMessage("Email is required.")

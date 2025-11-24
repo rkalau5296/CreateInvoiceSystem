@@ -4,7 +4,7 @@ using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.DTO;
 using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Clients.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 public class DeleteClientCommand : CommandBase<Client, ClientDto>

@@ -9,15 +9,19 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<Client> Clients => Set<Client>();
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);
 
         modelBuilder.Entity<Client>()
             .HasOne(c => c.Address)
-            .WithMany(a => a.Clients)
-            .HasForeignKey(c => c.AddressId);
+            .WithMany()
+            .HasForeignKey(c => c.AddressId)
+            .IsRequired();
+
+        modelBuilder.Entity<Client>()
+            .HasIndex(c => c.AddressId)
+            .IsUnique();        
 
         modelBuilder.Entity<Address>().ToTable("Addresses");
         modelBuilder.Entity<Client>().ToTable("Clients");

@@ -5,7 +5,7 @@ using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Clients.Application.Queries;
 using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
 using MediatR;
-using CreateInvoiceSystem.Clients.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 
 public class GetClientsHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetClientsRequest, GetClientsResponse>
 {

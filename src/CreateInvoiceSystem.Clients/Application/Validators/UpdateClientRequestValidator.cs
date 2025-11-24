@@ -1,44 +1,44 @@
 ﻿namespace CreateInvoiceSystem.Clients.Application.Validators;
 
+using CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
 using FluentValidation;
-using CreateInvoiceSystem.Abstractions.Entities;
 
-public class UpdateClientRequestValidator : AbstractValidator<Client>
+public class UpdateClientRequestValidator : AbstractValidator<UpdateClientRequest>
 {
     public UpdateClientRequestValidator()
     {
-        RuleFor(x => x.Name)
+        RuleFor(x => x.Client.Name)
             .NotEmpty().WithMessage("Name is required.")
-            .MaximumLength(100);
+            .MaximumLength(100);        
 
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Please enter a valid email address.");
-
-        RuleFor(x => x.AddressId)
+        RuleFor(x => x.Client.AddressId)
             .GreaterThan(0).WithMessage("Address is required.");
 
+        RuleFor(x => x.Client.Nip)
+            .NotEmpty().WithMessage("Nip number is required.")
+            .Matches(@"^\d{10}$")
+            .WithMessage("The Nip number must contain exactly 10 digits.");
         //RuleFor(x => x.UserId)
         //    .GreaterThan(0).WithMessage("UserId is required.");
 
-        RuleFor(x => x.Address)
+        RuleFor(x => x.Client.AddressDto)
             .NotNull().WithMessage("Address must be specified.");
         
-        When(x => x.Address != null, () =>
+        When(x => x.Client.AddressDto != null, () =>
         {
-            RuleFor(x => x.Address.Street)
+            RuleFor(x => x.Client.AddressDto.Street)
                 .NotEmpty().WithMessage("Street is required in address.");
 
-            RuleFor(x => x.Address.Number)
+            RuleFor(x => x.Client.AddressDto.Number)
                 .NotEmpty().WithMessage("Street number is required in address.");
 
-            RuleFor(x => x.Address.City)
+            RuleFor(x => x.Client.AddressDto.City)
                 .NotEmpty().WithMessage("City is required in address.");
 
-            RuleFor(x => x.Address.PostalCode)
+            RuleFor(x => x.Client.AddressDto.PostalCode)
                 .NotEmpty().WithMessage("Postal code is required in address.");
 
-            RuleFor(x => x.Address.Country)
+            RuleFor(x => x.Client.AddressDto.Country)
                 .NotEmpty().WithMessage("Postal code is required in address.");
         });
     }

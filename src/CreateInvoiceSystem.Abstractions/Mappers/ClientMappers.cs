@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Clients.Application.Mappers;
+﻿namespace CreateInvoiceSystem.Abstractions.Mappers;
 
 using CreateInvoiceSystem.Abstractions.DTO;
 using CreateInvoiceSystem.Abstractions.Entities;
@@ -6,17 +6,16 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class ClientMappers
 {
     public static ClientDto ToDto(this Client client) =>
-        new (client.ClientId, client.Name, client.AddressId, client.Email, client.UserId, client.Address);
+        new (client.ClientId, client.Name, client.Nip, client.AddressId, client.Address?.ToDto());
 
     public static Client ToEntity(this ClientDto dto) =>
         new()
         {
             ClientId = dto.ClientId,
             Name = dto.Name,
-            AddressId = dto.AddressId,
-            Email = dto.Email,
-            UserId = dto.UserId,
-            Address = dto.Address 
+            Nip = dto.Nip,
+            AddressId = dto.AddressId,            
+            Address = dto.AddressDto?.ToEntity()
         };
 
     public static List<ClientDto> ToDtoList(this IEnumerable<Client> addresses) =>

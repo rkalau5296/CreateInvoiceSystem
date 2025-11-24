@@ -3,7 +3,7 @@
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.DTO;
-using CreateInvoiceSystem.Addresses.Application.Mappers;
+using CreateInvoiceSystem.Abstractions.Mappers;
 using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 

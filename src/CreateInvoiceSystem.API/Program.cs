@@ -1,9 +1,11 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Addresses.Application.RequestsResponses.GetAddresses;
-using CreateInvoiceSystem.Addresses.Application.ValidationBehavior;
 using CreateInvoiceSystem.Addresses.Application.Validators;
 using CreateInvoiceSystem.API.Middleware;
+using CreateInvoiceSystem.API.ValidationBehavior;
+using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Clients.Application.Validators;
 using CreateInvoiceSystem.Nbp.Application.Options;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
@@ -19,9 +21,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAddressesRequest).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetClientsRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateClientRequestValidator>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -44,7 +49,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), options => options.EnableRetryOnFailure()));
 builder.Services.AddScoped<IDbContext, CreateInvoiceSystemDbContext>();
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
