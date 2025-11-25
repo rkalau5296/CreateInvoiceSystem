@@ -1,0 +1,61 @@
+﻿namespace CreateInvoiceSystem.API.Controllers;
+
+using CreateInvoiceSystem.Abstractions.ControllerBase;
+using CreateInvoiceSystem.Abstractions.Dto;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.CreateProduct;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.DeleteProduct;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.GetProduct;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.GetProducts;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.UpdateProduct;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("[controller]")]
+public class ProductController : ApiControllerBase
+{
+    public ProductController(IMediator mediator, ILogger<ProductController> logger) : base(mediator)
+    {
+        logger.LogInformation("This is AddressController");
+    }
+
+    [HttpGet("{ProductId}")]
+    [ProducesResponseType(typeof(GetProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<IActionResult> GetProductAsync([FromRoute] int ProductId, CancellationToken cancellationToken)
+    {
+        GetProductRequest request = new(ProductId);
+        return this.HandleRequest<GetProductRequest, GetProductResponse>(request, cancellationToken);
+    }
+
+    [HttpGet()]
+    [Route("/Products")]
+    public async Task<IActionResult> GetProductsAsync([FromQuery] GetProductsRequest request, CancellationToken cancellationToken)
+    {
+        return await this.HandleRequest<GetProductsRequest, GetProductsResponse>(request, cancellationToken);
+    }
+
+    [HttpPost]
+    [Route("create")]
+    public async Task<IActionResult> CreateProductsAsync([FromBody] ProductDto ProductDto, CancellationToken cancellationToken)
+    {
+        CreateProductRequest request = new(ProductDto);
+        return await this.HandleRequest<CreateProductRequest, CreateProductResponse>(request, cancellationToken);
+    }
+
+    [HttpPut]
+    [Route("update/id")]
+    public async Task<IActionResult> UpdateProductAsync(int id, [FromBody] ProductDto ProductDto, CancellationToken cancellationToken)
+    {
+        UpdateProductRequest request = new(id, ProductDto);
+        return await this.HandleRequest<UpdateProductRequest, UpdateProductResponse>(request, cancellationToken);
+    }
+
+    [HttpDelete]
+    [Route("id")]
+    public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
+    {
+        DeleteProductRequest request = new(id);
+        return await this.HandleRequest<DeleteProductRequest, DeleteProductResponse>(request, cancellationToken);
+    }
+}
