@@ -13,6 +13,7 @@ public class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequ
             .MaximumLength(100);
 
         RuleFor(p => p.Product.Value)
+            .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
             .Must(v => DecimalPlaces(v) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");

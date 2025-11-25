@@ -7,6 +7,8 @@ using CreateInvoiceSystem.Clients.Application.Validators;
 using CreateInvoiceSystem.Nbp.Application.Options;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Products.Application.RequestsResponses.GetProducts;
+using CreateInvoiceSystem.Products.Application.Validators;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +20,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetClientsRequest).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateClientRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
