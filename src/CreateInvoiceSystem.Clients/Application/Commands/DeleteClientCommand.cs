@@ -21,7 +21,7 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto>
 
         var clientDto = ClientMappers.ToDto(clientEntity);
         
-        var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Address with ID {Parametr.ClientId} not found."); 
+        var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found."); 
         
         context.Set<Address>().Remove(clientEntity.Address);
         context.Set<Client>().Remove(clientEntity);

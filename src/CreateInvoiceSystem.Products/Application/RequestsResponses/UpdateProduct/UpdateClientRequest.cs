@@ -5,7 +5,7 @@ using MediatR;
 
 public class UpdateProductRequest(int id, ProductDto productDto) : IRequest<UpdateProductResponse>
 {
-    public ProductDto Client { get; } = productDto with { ProductId = id };
+    public ProductDto Product { get; } = productDto with { ProductId = id };
     public int Id { get; set; } = id;
 
 }
