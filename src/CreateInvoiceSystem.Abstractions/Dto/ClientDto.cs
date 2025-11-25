@@ -1,7 +1,5 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.DTO;
 
-using CreateInvoiceSystem.Abstractions.Entities;
-
 public record ClientDto(
     int ClientId,   
     string Name,
