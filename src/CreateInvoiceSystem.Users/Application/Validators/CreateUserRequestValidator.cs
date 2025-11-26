@@ -19,7 +19,33 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 
         RuleFor(x => x.User.Nip)            
             .Matches(@"^\d{10}$")
-            .WithMessage("The Nip number must contain exactly 10 digits.");       
+            .WithMessage("The Nip number must contain exactly 10 digits.");
+
+        RuleFor(x => x.User.AddressDto)
+            .NotNull().WithMessage("Address must be specified.");
+
+        When(x => x.User.AddressDto != null, () =>
+        {
+            RuleFor(x => x.User.AddressDto.Street)
+                .NotEmpty().WithMessage("Street is required in address.");
+
+            RuleFor(x => x.User.AddressDto.Number)
+                .NotEmpty().WithMessage("Street number is required in address.");
+
+            RuleFor(x => x.User.AddressDto.City)
+                .NotEmpty().WithMessage("City is required in address.");
+
+            RuleFor(x => x.User.AddressDto.PostalCode)
+                .NotEmpty().WithMessage("Postal code is required in address.");
+
+            RuleFor(p => p.User.AddressDto.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                .WithMessage("Invalid email address.");
+
+            RuleFor(x => x.User.AddressDto.Country)
+                .NotEmpty().WithMessage("Postal code is required in address.");
+        });
 
     }
 }

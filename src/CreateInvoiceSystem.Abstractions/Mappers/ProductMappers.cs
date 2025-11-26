@@ -18,6 +18,6 @@ public static class ProductMappers
             User = dto.UserDto.ToEntity()
         };
 
-    public static List<ProductDto> ToDtoList(this IEnumerable<Product> addresses) =>
-         [.. addresses.Select(a => a.ToDto())];
+    public static List<ProductDto> ToDtoList(this IEnumerable<Product> products) =>
+         [.. products.Select(a => a.ToDto())];
 }

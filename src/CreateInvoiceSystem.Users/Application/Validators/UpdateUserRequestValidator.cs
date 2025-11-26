@@ -18,7 +18,29 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
         RuleFor(p => p.User.Email)
             .NotEmpty().WithMessage("Email is required.")
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-            .WithMessage("Invalid email address.");      
+            .WithMessage("Invalid email address.");   
+        
+        When(x => x.User.AddressDto != null, () =>
+        {
+            RuleFor(x => x.User.AddressDto.Street)
+                .NotEmpty().WithMessage("Street is required in address.");
 
+            RuleFor(x => x.User.AddressDto.Number)
+                .NotEmpty().WithMessage("Street number is required in address.");
+
+            RuleFor(x => x.User.AddressDto.City)
+                .NotEmpty().WithMessage("City is required in address.");
+
+            RuleFor(x => x.User.AddressDto.PostalCode)
+                .NotEmpty().WithMessage("Postal code is required in address.");
+
+            RuleFor(p => p.User.AddressDto.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                .WithMessage("Invalid email address.");
+
+            RuleFor(x => x.User.AddressDto.Country)
+                .NotEmpty().WithMessage("Postal code is required in address.");
+        });
     }
 }

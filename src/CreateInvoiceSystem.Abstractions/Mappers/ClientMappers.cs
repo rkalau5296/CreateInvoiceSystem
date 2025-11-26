@@ -20,6 +20,6 @@ public static class ClientMappers
             User = dto.UserDto.ToEntity()
         };
 
-    public static List<ClientDto> ToDtoList(this IEnumerable<Client> addresses) =>
-         [.. addresses.Select(a => a.ToDto())];
+    public static List<ClientDto> ToDtoList(this IEnumerable<Client> clients) =>
+         [.. clients.Select(a => a.ToDto())];
 }
