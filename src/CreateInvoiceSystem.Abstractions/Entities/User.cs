@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace CreateInvoiceSystem.Abstractions.Entities;
+﻿namespace CreateInvoiceSystem.Abstractions.Entities;
 
 public class User
 {

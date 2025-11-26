@@ -3,5 +3,7 @@
 public record ProductDto(
     int ProductId,
     string Name,
-    decimal Value
+    decimal Value,
+    int UserId,
+    UserDto UserDto
 );

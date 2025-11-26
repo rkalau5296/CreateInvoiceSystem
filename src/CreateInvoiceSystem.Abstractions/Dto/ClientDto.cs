@@ -5,6 +5,7 @@ public record ClientDto(
     string Name,
     string Nip,
     int AddressId,
-    //int UserId,    
-    AddressDto AddressDto
+    AddressDto AddressDto,
+    int UserId,
+    UserDto UserDto    
 );
