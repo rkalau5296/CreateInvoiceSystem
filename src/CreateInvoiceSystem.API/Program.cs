@@ -9,6 +9,8 @@ using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Products.Application.RequestsResponses.GetProducts;
 using CreateInvoiceSystem.Products.Application.Validators;
+using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Users.Application.Validators;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,12 +23,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetClientsRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsRequest).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetUsersRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateClientRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
+
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>

@@ -17,8 +17,9 @@ public class CreateClientRequestValidator : AbstractValidator<CreateClientReques
             .NotEmpty().WithMessage("Nip number is required.")
             .Matches(@"^\d{10}$")
             .WithMessage("The Nip number must contain exactly 10 digits.");
-        //RuleFor(x => x.UserId)
-        //    .GreaterThan(0).WithMessage("UserId is required.");
+
+        RuleFor(x => x.Client.UserId)
+            .GreaterThan(0).WithMessage("UserId is required.");
 
         RuleFor(x => x.Client.AddressDto)
             .NotNull().WithMessage("Address must be specified.");

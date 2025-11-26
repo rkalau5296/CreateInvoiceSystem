@@ -4,5 +4,6 @@ public record UserDto(
     int UserId,
     string Name,
     string Email,
-    string Password
+    string Password,
+    string Nip
  );

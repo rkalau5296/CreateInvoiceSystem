@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    [Migration("20251125132211_AddProduct")]
-    partial class AddProduct
+    [Migration("20251126220048_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,10 +75,15 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("ClientId");
 
                     b.HasIndex("AddressId")
                         .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Clients", (string)null);
                 });
@@ -96,12 +101,45 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ProductId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Products", (string)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.User", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
@@ -112,7 +150,33 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.User", "User")
+                        .WithMany("Clients")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Address");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Product", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.User", "User")
+                        .WithMany("Products")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.User", b =>
+                {
+                    b.Navigation("Clients");
+
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

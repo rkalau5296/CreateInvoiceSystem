@@ -17,9 +17,9 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
             .WithMessage("Invalid email address.");
 
-
-        //RuleFor(x => x.UserId)
-        //    .GreaterThan(0).WithMessage("UserId is required.");
+        RuleFor(x => x.User.Nip)            
+            .Matches(@"^\d{10}$")
+            .WithMessage("The Nip number must contain exactly 10 digits.");       
 
     }
 }
