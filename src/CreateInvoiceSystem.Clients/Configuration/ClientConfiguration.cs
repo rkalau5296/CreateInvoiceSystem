@@ -22,7 +22,7 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
             .WithMany()
             .HasForeignKey(c => c.AddressId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(c => c.AddressId)
             .IsUnique();

@@ -24,11 +24,11 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
         builder.HasMany(u => u.Clients)
             .WithOne(c => c.User)
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
         builder.HasMany(u => u.Products)
             .WithOne(p => p.User)
             .HasForeignKey(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         //builder.HasMany(u => u.Invoices)
         //        .WithOne(i => i.User)

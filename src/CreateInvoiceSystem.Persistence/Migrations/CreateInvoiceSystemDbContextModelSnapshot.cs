@@ -49,7 +49,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("AddressId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
@@ -119,9 +119,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -141,8 +138,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("UserId");
-
-                    b.HasIndex("AddressId");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -175,17 +170,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.User", b =>
-                {
-                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Address");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.User", b =>
