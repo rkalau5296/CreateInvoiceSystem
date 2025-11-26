@@ -2,9 +2,7 @@
 
 using CreateInvoiceSystem.Products.Application.RequestsResponses.UpdateProduct;
 using CreateInvoiceSystem.Products.DecimalHelper;
-using CreateInvoiceSystem.Products.Helpers;
 using FluentValidation;
-using System;
 
 public class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequest>
 {
