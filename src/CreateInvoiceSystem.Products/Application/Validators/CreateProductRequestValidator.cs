@@ -1,6 +1,5 @@
 ﻿namespace CreateInvoiceSystem.Products.Application.Validators;
 
-using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Products.Application.RequestsResponses.CreateProduct;
 using FluentValidation;
 

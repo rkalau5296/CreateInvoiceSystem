@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Clients.Application.Commands;
+﻿namespace CreateInvoiceSystem.Users.Application.Commands;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
@@ -6,19 +6,19 @@ using CreateInvoiceSystem.Abstractions.Dto;
 using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Abstractions.Mappers;
 
-public class CreateClientCommand : CommandBase<ClientDto, ClientDto>
+public class CreateUserCommand : CommandBase<UserDto, UserDto>
 {
-    public override async Task<ClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
+    public override async Task<UserDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(context));
 
-        var entity = ClientMappers.ToEntity(this.Parametr);
+        var entity = UserMappers.ToEntity(this.Parametr);
 
-        await context.Set<Client>().AddAsync(entity, cancellationToken);
+        await context.Set<User>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        this.Parametr = ClientMappers.ToDto(entity);
+        this.Parametr = UserMappers.ToDto(entity);
         return this.Parametr;
     }
 }

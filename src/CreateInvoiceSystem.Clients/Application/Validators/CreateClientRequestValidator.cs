@@ -37,6 +37,11 @@ public class CreateClientRequestValidator : AbstractValidator<CreateClientReques
             RuleFor(x => x.Client.AddressDto.PostalCode)
                 .NotEmpty().WithMessage("Postal code is required in address.");
 
+            RuleFor(p => p.Client.AddressDto.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                .WithMessage("Invalid email address.");
+
             RuleFor(x => x.Client.AddressDto.Country)
                 .NotEmpty().WithMessage("Postal code is required in address.");
         });
