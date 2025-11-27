@@ -4,6 +4,7 @@ using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Clients.Application.Validators;
+using CreateInvoiceSystem.Invoices.Application.Validators;
 using CreateInvoiceSystem.Nbp.Application.Options;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Persistence;
@@ -32,6 +33,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductRequestValidat
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidator>();
+
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

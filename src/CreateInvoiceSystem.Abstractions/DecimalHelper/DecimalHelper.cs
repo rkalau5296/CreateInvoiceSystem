@@ -1,8 +1,8 @@
-﻿using System.Globalization;
+﻿namespace CreateInvoiceSystem.Abstractions.DecimalHelper;
 
-namespace CreateInvoiceSystem.Products.DecimalHelper;
+using System.Globalization;
 
-public class ProductDecimalHelper
+public class DecimalHelper
 {
     public static int GetDecimalPlaces(decimal value)
     {

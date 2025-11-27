@@ -22,6 +22,7 @@
 
   <ItemGroup>    
     <ProjectReference Include="..\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj" />    
+    <ProjectReference Include="..\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj" />    
     <ProjectReference Include="..\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj" />    
     <ProjectReference Include="..\CreateInvoiceSystem.Users\CreateInvoiceSystem.Users.csproj" />
   </ItemGroup>
