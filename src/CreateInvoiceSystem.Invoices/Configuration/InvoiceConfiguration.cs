@@ -10,12 +10,43 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
     public void Configure(EntityTypeBuilder<Invoice> builder)
     {
         builder.ToTable("Invoices");
-        builder.HasKey(p => p.InvoiceId);
-        //builder.Property(p => p.Name)
-        //    .IsRequired()
-        //    .HasMaxLength(100);
 
-        builder.Property(p => p.Value)
-            .HasColumnType("decimal(18,2)");
+        builder.HasKey(i => i.InvoiceId);
+
+        builder.Property(i => i.Title)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(i => i.Value)
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
+
+        builder.Property(i => i.PaymentDate)
+            .IsRequired();
+
+        builder.Property(i => i.CreatedDate)
+            .IsRequired();
+
+        builder.Property(i => i.Comments)
+            .HasMaxLength(500);
+
+        builder.HasOne(i => i.Client)
+            .WithMany(c => c.Invoices) 
+            .HasForeignKey(i => i.ClientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.User)
+            .WithMany(u => u.Invoices) 
+            .HasForeignKey(i => i.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.Product)
+            .WithMany(p => p.Invoices) 
+            .HasForeignKey(i => i.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        
+        builder.HasMany(i => i.Products)
+            .WithMany();
     }
 }

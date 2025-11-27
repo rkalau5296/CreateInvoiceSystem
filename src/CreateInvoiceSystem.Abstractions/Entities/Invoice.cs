@@ -2,11 +2,11 @@
 
 public class Invoice
 {
-    //public Invoice()
-    //{
-    //    InvoicePositions = new Collection<InvoicePosition>();
-    //    Products = new Collection<Product>();
-    //}
+    public Invoice()
+    {
+        //InvoicePositions = new Collection<InvoicePosition>();
+        Products = [];
+    }
     public int InvoiceId { get; set; }    
     public string Title { get; set; }
     public decimal Value { get; set; }        
@@ -22,5 +22,5 @@ public class Invoice
     //public int MethodOfPaymentId { get; set; }    
     //public MethodOfPayment MethodOfPayment { get; set; }
     //public ICollection<InvoicePosition> InvoicePositions { get; set; }
-    //public ICollection<Product> Products { get; set; }
+    public ICollection<Product> Products { get; set; }
 }

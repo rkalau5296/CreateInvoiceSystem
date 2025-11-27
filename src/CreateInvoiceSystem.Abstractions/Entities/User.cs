@@ -4,7 +4,7 @@ public class User
 {
     public User()
     {
-        //Invoices = [];
+        Invoices = [];
         Clients = [];
         Products = [];
         //MethodOfPayments = [];
@@ -17,7 +17,7 @@ public class User
     public string Nip { get; set; }
     public int AddressId { get; set; }
     public Address Address { get; set; }
-    //public ICollection<Invoice> Invoices { get; set; }
+    public ICollection<Invoice> Invoices { get; set; }
     public ICollection<Client> Clients { get; set; }
     public ICollection<Product> Products { get; set; }
     //public ICollection<MethodOfPayment> MethodOfPayments { get; set; }
