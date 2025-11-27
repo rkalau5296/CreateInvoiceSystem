@@ -6,7 +6,7 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class InvoiceMappers
 {
     public static InvoiceDto ToDto(this Invoice Invoice) =>
-        new(Invoice.InvoiceId, Invoice.Title, Invoice.Value, Invoice.PaymentDate, Invoice.CreatedDate, Invoice.Comments, Invoice.ClientId, Invoice.UserId, Invoice.ProductId, Invoice.Product.ToDto(), Invoice.Client.ToDto(), Invoice.User.ToDto(), Invoice.MethodOfPayment);
+        new(Invoice.InvoiceId, Invoice.Title, Invoice.Value, Invoice.PaymentDate, Invoice.CreatedDate, Invoice.Comments, Invoice.ClientId, Invoice.UserId, Invoice.Client.ToDto(), Invoice.User.ToDto(), Invoice.MethodOfPayment, [.. Invoice.Products.Select(p=>p.ToDto())], Invoice.Product);
 
     public static Invoice ToEntity(this InvoiceDto dto) =>
         new()
@@ -18,12 +18,12 @@ public static class InvoiceMappers
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
             ClientId = dto.ClientId,
-            UserId = dto.UserId,
-            ProductId = dto.ProductId,
-            Product = dto.Product.ToEntity(),
+            UserId = dto.UserId,            
             Client = dto.Client.ToEntity(),
             User = dto.User.ToEntity(),
-            MethodOfPayment = dto.MethodOfPayment
+            MethodOfPayment = dto.MethodOfPayment,
+            Products = [.. dto.Products.Select(p => p.ToEntity())],
+            Product = dto.Product
         };
 
     public static List<InvoiceDto> ToDtoList(this IEnumerable<Invoice> Invoices) =>

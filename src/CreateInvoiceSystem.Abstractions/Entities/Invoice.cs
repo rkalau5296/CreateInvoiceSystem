@@ -3,8 +3,7 @@
 public class Invoice
 {
     public Invoice()
-    {
-        //InvoicePositions = new Collection<InvoicePosition>();
+    {        
         Products = [];
     }
     public int InvoiceId { get; set; }    
@@ -14,13 +13,10 @@ public class Invoice
     public DateTime CreatedDate { get; set; }    
     public string Comments { get; set; }    
     public int ClientId { get; set; }    
-    public int UserId { get; set; }
-    public int ProductId { get; set; }
-    public Product Product { get; set; }    
+    public int UserId { get; set; }   
     public Client Client { get; set; }
     public User User { get; set; }
-    public string MethodOfPayment { get; set; }    
-    //public MethodOfPayment MethodOfPayment { get; set; }
-    //public ICollection<InvoicePosition> InvoicePositions { get; set; }
+    public string MethodOfPayment { get; set; }        
     public ICollection<Product> Products { get; set; }
+    public string Product { get; set; }
 }

@@ -24,8 +24,7 @@ public class UpdateInvoiceCommand : CommandBase<InvoiceDto, InvoiceDto>
         invoice.CreatedDate = Parametr.CreatedDate;
         invoice.Comments = Parametr.Comments;
         invoice.ClientId = Parametr.ClientId;
-        invoice.UserId = Parametr.UserId;
-        invoice.ProductId = Parametr.ProductId;
+        invoice.UserId = Parametr.UserId;        
 
 
         await context.SaveChangesAsync(cancellationToken);        
