@@ -42,5 +42,8 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         
         builder.HasMany(i => i.Products)
             .WithMany();
+
+        builder.Property(i => i.MethodOfPayment)
+            .HasMaxLength(50);
     }
 }
