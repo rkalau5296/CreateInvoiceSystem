@@ -16,7 +16,7 @@ public class ClientController : ApiControllerBase
 {
     public ClientController(IMediator mediator, ILogger<ClientController> logger) : base(mediator)
     {
-        logger.LogInformation("This is AddressController");
+        logger.LogInformation("This is ClientController");
     }
 
     [HttpGet("{clientId}")]

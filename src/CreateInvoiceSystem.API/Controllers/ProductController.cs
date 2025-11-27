@@ -16,7 +16,7 @@ public class ProductController : ApiControllerBase
 {
     public ProductController(IMediator mediator, ILogger<ProductController> logger) : base(mediator)
     {
-        logger.LogInformation("This is AddressController");
+        logger.LogInformation("This is ProductController");
     }
 
     [HttpGet("{ProductId}")]

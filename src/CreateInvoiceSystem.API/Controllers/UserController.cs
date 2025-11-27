@@ -16,7 +16,7 @@ public class UserController : ApiControllerBase
 {
     public UserController(IMediator mediator, ILogger<UserController> logger) : base(mediator)
     {
-        logger.LogInformation("This is AddressController");
+        logger.LogInformation("This is UserController");
     }
 
     [HttpGet("{UserId}")]

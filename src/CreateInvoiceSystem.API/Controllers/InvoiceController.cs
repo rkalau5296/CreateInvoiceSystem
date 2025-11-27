@@ -16,7 +16,7 @@ public class InvoiceController : ApiControllerBase
 {
     public InvoiceController(IMediator mediator, ILogger<InvoiceController> logger) : base(mediator)
     {
-        logger.LogInformation("This is AddressController");
+        logger.LogInformation("This is InvoiceController");
     }
 
     [HttpGet("{InvoiceId}")]
