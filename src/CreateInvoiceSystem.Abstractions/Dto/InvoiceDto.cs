@@ -15,5 +15,6 @@ public record InvoiceDto(
     int ProductId,
     ProductDto Product,
     ClientDto Client,
-    UserDto User
+    UserDto User,
+    string MethodOfPayment
     );
