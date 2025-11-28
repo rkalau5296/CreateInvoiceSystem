@@ -33,8 +33,8 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
         RuleFor(x => x.Invoice.UserId)
             .GreaterThan(0).WithMessage("UserId is required.");
 
-        RuleFor(p => p.Invoice.Value)
-            .NotEmpty().WithMessage("Value is required.")
+        RuleFor(p => p.Invoice.TotalAmount)
+            .NotEmpty().WithMessage("TotalAmount is required.")
             .GreaterThanOrEqualTo(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
@@ -43,8 +43,8 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
             .NotEmpty().WithMessage("MethodOfPayment is required.")
             .MaximumLength(10).WithMessage("MethodOfPayment can have maximum 10 characters.");
 
-        RuleFor(x => x.Invoice.Product)
-            .NotEmpty().WithMessage("Product is required.")
-            .MaximumLength(100).WithMessage("Product can have maximum 10 characters.");
+        //RuleFor(x => x.Invoice.InvoicePositions)
+        //    .NotEmpty().WithMessage("Product is required.")
+        //    .MaximumLength(100).WithMessage("Product can have maximum 10 characters.");
     }
 }

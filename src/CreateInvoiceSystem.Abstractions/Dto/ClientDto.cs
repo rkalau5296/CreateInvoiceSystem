@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Abstractions.Dto;
+﻿using CreateInvoiceSystem.Abstractions.Entities;
+
+namespace CreateInvoiceSystem.Abstractions.Dto;
 
 public record ClientDto(
     int ClientId,   
@@ -6,6 +8,7 @@ public record ClientDto(
     string Nip,
     int AddressId,
     AddressDto AddressDto,
+    ICollection<Invoice> Invoices,
     int UserId,
     UserDto UserDto    
 );

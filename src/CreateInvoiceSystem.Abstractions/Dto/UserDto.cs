@@ -3,9 +3,13 @@
 public record UserDto(
     int UserId,
     string Name,
+    string CompanyName,
     string Email,
     string Password,
     string Nip,
     int AddressId,
-    AddressDto AddressDto
+    AddressDto AddressDto,
+    IEnumerable<InvoiceDto> Invoices,
+    IEnumerable<ClientDto> Clients,
+    IEnumerable<ProductDto> Products
  );

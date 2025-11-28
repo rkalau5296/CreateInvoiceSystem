@@ -19,7 +19,7 @@ public class UpdateInvoiceCommand : CommandBase<InvoiceDto, InvoiceDto>
             ?? throw new InvalidOperationException($"Invoice with ID {Parametr.InvoiceId} not found.");        
 
         invoice.Title = Parametr.Title;
-        invoice.Value = Parametr.Value;
+        //TODO
         invoice.PaymentDate = Parametr.PaymentDate;
         invoice.CreatedDate = Parametr.CreatedDate;
         invoice.Comments = Parametr.Comments;

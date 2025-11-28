@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Abstractions.Dto;
+﻿using CreateInvoiceSystem.Abstractions.Entities;
+
+namespace CreateInvoiceSystem.Abstractions.Dto;
 
 public record AddressDto(
     int AddressId,   
@@ -7,5 +9,7 @@ public record AddressDto(
     string City,    
     string PostalCode,    
     string Email,
-    string Country    
+    string Country,
+    int UserId,
+    UserDto UserDto
 );

@@ -4,6 +4,7 @@ using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Clients.Application.Validators;
+using CreateInvoiceSystem.Invoices.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Invoices.Application.Validators;
 using CreateInvoiceSystem.Nbp.Application.Options;
 using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
@@ -26,6 +27,8 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetCl
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetUsersRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetInvoicesRequest).Assembly));
+
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateClientRequestValidator>();

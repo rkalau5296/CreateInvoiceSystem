@@ -1,19 +1,18 @@
-﻿namespace CreateInvoiceSystem.Abstractions.Dto;
+﻿using CreateInvoiceSystem.Abstractions.Entities;
+
+namespace CreateInvoiceSystem.Abstractions.Dto;
 
 public record InvoiceDto(
     int InvoiceId,
     string Title,
-    decimal Value,    
+    decimal TotalAmount,    
     DateTime PaymentDate,
     DateTime CreatedDate,
     string Comments,
     int ClientId,
-    int UserId,
-    //int ProductId,
-    //ProductDto Product,
+    int UserId,    
     ClientDto Client,
     UserDto User,
     string MethodOfPayment,
-    ICollection<ProductDto> Products,
-    string Product
+    ICollection<InvoicePosition> InvoicePositions
     );

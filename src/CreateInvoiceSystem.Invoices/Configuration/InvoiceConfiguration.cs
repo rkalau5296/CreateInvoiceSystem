@@ -15,11 +15,7 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         builder.Property(i => i.Title)
             .IsRequired()
-            .HasMaxLength(100);
-
-        builder.Property(i => i.Value)
-            .HasColumnType("decimal(18,2)")
-            .IsRequired();
+            .HasMaxLength(100);        
 
         builder.Property(i => i.PaymentDate)
             .IsRequired();
@@ -40,14 +36,6 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasForeignKey(i => i.UserId)
             .OnDelete(DeleteBehavior.Restrict);        
         
-        builder.HasMany(i => i.Products)
-            .WithMany();
-
-        builder.Property(i => i.MethodOfPayment)
-            .HasMaxLength(50);
-
-        builder.Property(i => i.Product)
-            .HasMaxLength(50)
-            .IsRequired();
+       
     }
 }

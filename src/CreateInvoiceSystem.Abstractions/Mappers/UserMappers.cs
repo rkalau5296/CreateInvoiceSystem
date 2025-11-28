@@ -5,8 +5,9 @@ using CreateInvoiceSystem.Abstractions.Entities;
 
 public static class UserMappers
 {
-    public static UserDto ToDto(this User User) =>
-        new(User.UserId, User.Name, User.Email, User.Password, User.Nip, User.AddressId, User.Address.ToDto());
+    public static UserDto ToDto(this User user) =>
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.AddressId, user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
+
 
     public static User ToEntity(this UserDto dto) =>
         new()
@@ -17,7 +18,10 @@ public static class UserMappers
             Password = dto.Password,
             Nip = dto.Nip,
             AddressId = dto.AddressId,
-            Address = dto.AddressDto.ToEntity()
+            Address = dto.AddressDto.ToEntity(),
+            Invoices = [.. dto.Invoices.Select(i => i.ToEntity())],
+            Clients = [.. dto.Clients.Select(c => c.ToEntity())],
+            Products = [.. dto.Products.Select(p => p.ToEntity())]
         };
 
     public static List<UserDto> ToDtoList(this IEnumerable<User> users) =>
