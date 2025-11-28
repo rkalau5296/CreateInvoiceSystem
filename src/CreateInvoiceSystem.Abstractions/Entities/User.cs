@@ -9,6 +9,7 @@ public class User
     public string Password { get; set; }
     public string Nip { get; set; }    
     public Address Address { get; set; }
+    public int AddressId { get; set; }
     public ICollection<Invoice> Invoices { get; set; } = [];    
     public ICollection<Client> Clients { get; set; } = [];
     public ICollection<Product> Products { get; set; } = [];

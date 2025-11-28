@@ -16,31 +16,28 @@ public class CreateClientRequestValidator : AbstractValidator<CreateClientReques
         RuleFor(x => x.Client.Nip)
             .NotEmpty().WithMessage("Nip number is required.")
             .Matches(@"^\d{10}$")
-            .WithMessage("The Nip number must contain exactly 10 digits.");
+            .WithMessage("The Nip number must contain exactly 10 digits.");       
 
-        RuleFor(x => x.Client.UserId)
-            .GreaterThan(0).WithMessage("UserId is required.");
-
-        RuleFor(x => x.Client.AddressDto)
+        RuleFor(x => x.Client.Address)
             .NotNull().WithMessage("Address must be specified.");
         
-        When(x => x.Client.AddressDto != null, () =>
+        When(x => x.Client.Address != null, () =>
         {
-            RuleFor(x => x.Client.AddressDto.Street)
+            RuleFor(x => x.Client.Address.Street)
                 .NotEmpty().WithMessage("Street is required in address.");
 
-            RuleFor(x => x.Client.AddressDto.Number)
+            RuleFor(x => x.Client.Address.Number)
                 .NotEmpty().WithMessage("Street number is required in address.");
 
-            RuleFor(x => x.Client.AddressDto.City)
+            RuleFor(x => x.Client.Address.City)
                 .NotEmpty().WithMessage("City is required in address.");
 
-            RuleFor(x => x.Client.AddressDto.PostalCode)
+            RuleFor(x => x.Client.Address.PostalCode)
                 .NotEmpty().WithMessage("Postal code is required in address.")
                 .Matches(@"^\d{2}-\d{3}$")
                 .WithMessage("Postal code must be in the format XX-XXX.");
             
-            RuleFor(x => x.Client.AddressDto.Country)
+            RuleFor(x => x.Client.Address.Country)
                 .NotEmpty().WithMessage("Postal code is required in address.");
         });
     }

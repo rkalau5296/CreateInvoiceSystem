@@ -22,11 +22,11 @@ public class UpdateClientCommand : CommandBase<ClientDto, ClientDto>
 
         client.Name = Parametr.Name;  
         client.AddressId = client.AddressId;
-        client.Address.Street = this.Parametr.AddressDto.Street;
-        client.Address.Number = this.Parametr.AddressDto.Number;
-        client.Address.City = this.Parametr.AddressDto.City;
-        client.Address.PostalCode = this.Parametr.AddressDto.PostalCode;        
-        client.Address.Country = this.Parametr.AddressDto.Country;
+        //client.Address.Street = this.Parametr.AddressDto.Street;
+        //client.Address.Number = this.Parametr.AddressDto.Number;
+        //client.Address.City = this.Parametr.AddressDto.City;
+        //client.Address.PostalCode = this.Parametr.AddressDto.PostalCode;        
+        //client.Address.Country = this.Parametr.AddressDto.Country;
 
         await context.SaveChangesAsync(cancellationToken);        
         return ClientMappers.ToDto(client);

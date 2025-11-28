@@ -35,8 +35,8 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         
         modelBuilder.Entity<User>()
             .HasOne(u => u.Address)
-            .WithOne()
-            .HasForeignKey<Address>(a => a.UserId)
+            .WithMany()
+            .HasForeignKey(u => u.AddressId)
             .OnDelete(DeleteBehavior.NoAction);
         
         modelBuilder.Entity<Invoice>()

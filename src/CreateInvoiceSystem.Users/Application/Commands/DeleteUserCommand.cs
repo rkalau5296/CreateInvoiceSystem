@@ -24,8 +24,9 @@ public class DeleteUserCommand : CommandBase<User, UserDto>
         if (userEntity.Address is null)
             throw new ArgumentNullException(nameof(userEntity.Address));
 
-        context.Set<Address>().Remove(userEntity.Address);        
         context.Set<User>().Remove(userEntity);
+        context.Set<Address>().Remove(userEntity.Address);        
+        
         await context.SaveChangesAsync(cancellationToken);
 
         return UserDto;

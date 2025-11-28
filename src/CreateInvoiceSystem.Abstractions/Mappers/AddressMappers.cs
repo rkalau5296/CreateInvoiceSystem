@@ -6,7 +6,7 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class AddressMappers
 {
     public static AddressDto ToDto(this Address address) =>
-        new(address.AddressId, address.Street, address.Number, address.City, address.PostalCode,  address.Country, address.UserId);
+        new(address.AddressId, address.Street, address.Number, address.City, address.PostalCode,  address.Country);
 
     public static UpdateAddressDto ToUpdateAddressDto(this Address address) =>
         new(address.Street, address.Number, address.City, address.PostalCode, address.Country);
@@ -19,8 +19,7 @@ public static class AddressMappers
             Number = dto.Number,
             City = dto.City,
             PostalCode = dto.PostalCode,
-            Country = dto.Country,
-            UserId = dto.UserId,            
+            Country = dto.Country           
         };
 
     public static Address ToEntity(CreateAddressDto dto)
