@@ -32,12 +32,9 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
                 .NotEmpty().WithMessage("City is required in address.");
 
             RuleFor(x => x.User.AddressDto.PostalCode)
-                .NotEmpty().WithMessage("Postal code is required in address.");
-
-            RuleFor(p => p.User.AddressDto.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-                .WithMessage("Invalid email address.");
+                .NotEmpty().WithMessage("Postal code is required in address.")
+                .Matches(@"^\d{2}-\d{3}$")
+                .WithMessage("Postal code must be in the format XX-XXX.");            
 
             RuleFor(x => x.User.AddressDto.Country)
                 .NotEmpty().WithMessage("Postal code is required in address.");

@@ -25,8 +25,7 @@ public class UpdateClientCommand : CommandBase<ClientDto, ClientDto>
         client.Address.Street = this.Parametr.AddressDto.Street;
         client.Address.Number = this.Parametr.AddressDto.Number;
         client.Address.City = this.Parametr.AddressDto.City;
-        client.Address.PostalCode = this.Parametr.AddressDto.PostalCode;
-        client.Address.Email = this.Parametr.AddressDto.Email;
+        client.Address.PostalCode = this.Parametr.AddressDto.PostalCode;        
         client.Address.Country = this.Parametr.AddressDto.Country;
 
         await context.SaveChangesAsync(cancellationToken);        

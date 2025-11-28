@@ -37,7 +37,7 @@ public class UserController : ApiControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<IActionResult> CreateUsersAsync([FromBody] UserDto UserDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUsersAsync([FromBody] CreateUserDto UserDto, CancellationToken cancellationToken)
     {
         CreateUserRequest request = new(UserDto);
         return await this.HandleRequest<CreateUserRequest, CreateUserResponse>(request, cancellationToken);

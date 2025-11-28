@@ -6,9 +6,9 @@ using CreateInvoiceSystem.Abstractions.Dto;
 using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Abstractions.Mappers;
 
-public class CreateUserCommand : CommandBase<UserDto, UserDto>
+public class CreateUserCommand : CommandBase<CreateUserDto, CreateUserDto>
 {
-    public override async Task<UserDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
+    public override async Task<CreateUserDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(context));
@@ -18,7 +18,7 @@ public class CreateUserCommand : CommandBase<UserDto, UserDto>
         await context.Set<User>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        this.Parametr = UserMappers.ToDto(entity);
+        this.Parametr = UserMappers.ToCreateUserDto(entity);
         return this.Parametr;
     }
 }

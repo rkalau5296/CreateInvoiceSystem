@@ -2,10 +2,6 @@
 
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Clients.Configuration;
-using CreateInvoiceSystem.Invoices.Configuration;
-using CreateInvoiceSystem.Products.Configuration;
-using CreateInvoiceSystem.Users.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IDbContext
@@ -39,7 +35,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         
         modelBuilder.Entity<User>()
             .HasOne(u => u.Address)
-            .WithOne(a => a.User)
+            .WithOne()
             .HasForeignKey<Address>(a => a.UserId)
             .OnDelete(DeleteBehavior.NoAction);
         
@@ -59,13 +55,8 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .HasMany(pos => pos.InvoicePositions)
             .WithOne(ip => ip.Product)
             .HasForeignKey(ip => ip.ProductId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.NoAction);       
         
-        modelBuilder.Entity<InvoicePosition>()
-            .HasOne(ip => ip.Product)
-            .WithMany()
-            .HasForeignKey(ip => ip.ProductId)
-            .OnDelete(DeleteBehavior.NoAction);
 
         base.OnModelCreating(modelBuilder);
     }

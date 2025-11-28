@@ -7,9 +7,7 @@ public record AddressDto(
     string Street,    
     string Number,    
     string City,    
-    string PostalCode,    
-    string Email,
+    string PostalCode,
     string Country,
-    int UserId,
-    UserDto UserDto
+    int UserId
 );

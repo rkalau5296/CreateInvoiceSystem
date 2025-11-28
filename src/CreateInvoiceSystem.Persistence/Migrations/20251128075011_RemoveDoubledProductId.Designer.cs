@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251128075011_RemoveDoubledProductId")]
+    partial class RemoveDoubledProductId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,6 +37,9 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Number")
@@ -221,11 +227,13 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Address", b =>
                 {
-                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.User", null)
+                    b.HasOne("CreateInvoiceSystem.Abstractions.Entities.User", "User")
                         .WithOne("Address")
                         .HasForeignKey("CreateInvoiceSystem.Abstractions.Entities.Address", "UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Abstractions.Entities.Client", b =>
