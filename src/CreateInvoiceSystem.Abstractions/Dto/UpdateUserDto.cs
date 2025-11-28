@@ -1,10 +1,11 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.Dto;
 
-public record CreateUserDto(
+public record UpdateUserDto(
+    int UserId,
     string Name,
     string CompanyName,
     string Email,
     string Password,
     string Nip,
-    CreateAddressDto Address
+    UpdateAddressDto Address
 );

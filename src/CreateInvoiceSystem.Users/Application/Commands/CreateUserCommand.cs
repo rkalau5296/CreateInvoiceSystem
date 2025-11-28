@@ -16,9 +16,7 @@ public class CreateUserCommand : CommandBase<CreateUserDto, CreateUserDto>
         var entity = UserMappers.ToEntity(this.Parametr);
 
         await context.Set<User>().AddAsync(entity, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        this.Parametr = UserMappers.ToCreateUserDto(entity);
+        await context.SaveChangesAsync(cancellationToken);        
         return this.Parametr;
     }
 }

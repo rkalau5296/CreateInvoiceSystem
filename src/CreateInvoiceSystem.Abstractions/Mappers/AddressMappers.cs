@@ -8,6 +8,9 @@ public static class AddressMappers
     public static AddressDto ToDto(this Address address) =>
         new(address.AddressId, address.Street, address.Number, address.City, address.PostalCode,  address.Country, address.UserId);
 
+    public static UpdateAddressDto ToUpdateAddressDto(this Address address) =>
+        new(address.Street, address.Number, address.City, address.PostalCode, address.Country);
+    
     public static Address ToEntity(this AddressDto dto) =>
         new()
         {

@@ -12,11 +12,11 @@ public class UpdateUserHandler(ICommandExecutor commandExecutor) : IRequestHandl
     {        
         var command = new UpdateUserCommand() { Parametr = request.User };
         
-        var User = await commandExecutor.Execute(command, cancellationToken);        
+        var user = await commandExecutor.Execute(command, cancellationToken);        
 
         return new UpdateUserResponse()
         {
-            Data = User
+            Data = user
         };
     }
 }

@@ -14,14 +14,18 @@ public class DeleteUserCommand : CommandBase<User, UserDto>
         if (Parametr is null)
             throw new ArgumentNullException(nameof(context)); 
 
-        var UserEntity = await context.Set<User>()
-            //.Include(c => c.User) 
+        var userEntity = await context.Set<User>()
+            .Include(c => c.Address) 
             .FirstOrDefaultAsync(a => a.UserId == Parametr.UserId, cancellationToken: cancellationToken) ??
                               throw new InvalidOperationException($"User with ID {Parametr.UserId} not found.");
 
-        var UserDto = UserMappers.ToDto(UserEntity);        
-        
-        context.Set<User>().Remove(UserEntity);
+        var UserDto = UserMappers.ToDto(userEntity);
+
+        if (userEntity.Address is null)
+            throw new ArgumentNullException(nameof(userEntity.Address));
+
+        context.Set<Address>().Remove(userEntity.Address);        
+        context.Set<User>().Remove(userEntity);
         await context.SaveChangesAsync(cancellationToken);
 
         return UserDto;

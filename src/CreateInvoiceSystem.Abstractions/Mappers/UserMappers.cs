@@ -6,8 +6,10 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class UserMappers
 {
     public static UserDto ToDto(this User user) =>
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.AddressId, user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip,  user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
 
+    public static UpdateUserDto ToUpdateUserDto(this User user) =>
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address.ToUpdateAddressDto());
 
     public static User ToEntity(this UserDto dto) =>
         new()
@@ -16,15 +18,14 @@ public static class UserMappers
             Name = dto.Name,
             Email = dto.Email,
             Password = dto.Password,
-            Nip = dto.Nip,
-            AddressId = dto.AddressId,
-            Address = dto.AddressDto.ToEntity(),
+            Nip = dto.Nip,            
+            Address = dto.Address.ToEntity(),
             Invoices = [.. dto.Invoices.Select(i => i.ToEntity())],
             Clients = [.. dto.Clients.Select(c => c.ToEntity())],
             Products = [.. dto.Products.Select(p => p.ToEntity())]
         };
 
-    public static List<UserDto> ToDtoList(this IEnumerable<User> users) =>
+    public static List<UserDto> ToDtoList(this ICollection<User> users) =>
          [.. users.Select(a => a.ToDto())];
 
     public static User ToEntity(CreateUserDto dto)

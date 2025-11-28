@@ -11,14 +11,14 @@ public class DeleteUserHandler(ICommandExecutor commandExecutor) : IRequestHandl
 {
     public async Task<DeleteUserResponse> Handle(DeleteUserRequest request, CancellationToken cancellationToken)
     {
-        var User = new User { UserId = request.Id };
+        var user = new User { UserId = request.Id };
 
-        var command = new DeleteUserCommand { Parametr = User };
-        await commandExecutor.Execute(command, cancellationToken);
+        var command = new DeleteUserCommand { Parametr = user };
+        var deletedUser = await commandExecutor.Execute(command, cancellationToken);
 
         return new DeleteUserResponse()
         {
-            Data = UserMappers.ToDto(User)
+            Data = deletedUser
         };
     }
 }

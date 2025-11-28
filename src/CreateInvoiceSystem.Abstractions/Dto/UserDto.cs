@@ -6,9 +6,8 @@ public record UserDto(
     string CompanyName,
     string Email,
     string Password,
-    string Nip,
-    int AddressId,
-    AddressDto AddressDto,
+    string Nip,    
+    AddressDto Address,
     IEnumerable<InvoiceDto> Invoices,
     IEnumerable<ClientDto> Clients,
     IEnumerable<ProductDto> Products

@@ -1,23 +1,25 @@
 ﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Abstractions.Mappers;
+using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Users.Application.Queries;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUser;
+using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUsers;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
+using CreateInvoiceSystem.Abstractions.Mappers;
 
-public class GetUsersHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetUserRequest, GetUserResponse>
+public class GetUsersHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetUsersRequest, GetUsersResponse>
 {
-    public async Task<GetUserResponse> Handle(GetUserRequest request, CancellationToken cancellationToken)
+    public async Task<GetUsersResponse> Handle(GetUsersRequest request, CancellationToken cancellationToken)
     {
-        GetUserQuery query = new(request.Id);
-        var User = await queryExecutor.Execute(query);      
+        GetUsersQuery query = new();
 
-        return new GetUserResponse
+        List<User> users = await queryExecutor.Execute(query);
+
+        var userList = UserMappers.ToDtoList(users);
+
+        return new GetUsersResponse
         {
-            Data = UserMappers.ToDto(User),
-        };
+            Data = userList
+        }; 
     }
 }

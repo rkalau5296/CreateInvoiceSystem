@@ -11,11 +11,11 @@ public class CreateUserHandler(ICommandExecutor commandExecutor) : IRequestHandl
     {
         var command = new CreateUserCommand() { Parametr = request.User };
 
-        var UserFromDb = await commandExecutor.Execute(command, cancellationToken);
+        var createdUser = await commandExecutor.Execute(command, cancellationToken);
 
         return new CreateUserResponse()
         {
-            Data = UserFromDb
+            Data = createdUser
         };
     }
 }

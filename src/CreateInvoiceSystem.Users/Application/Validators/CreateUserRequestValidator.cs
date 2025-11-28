@@ -12,6 +12,10 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100);
 
+        RuleFor(x => x.User.CompanyName)
+           .NotEmpty().WithMessage("CompanyName is required.")
+           .MaximumLength(100);
+
         RuleFor(p => p.User.Email)
             .NotEmpty().WithMessage("Email is required.")
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
