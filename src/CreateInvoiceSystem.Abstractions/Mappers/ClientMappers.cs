@@ -6,19 +6,28 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class ClientMappers
 {
     public static ClientDto ToDto(this Client client) =>
-        new (client.ClientId, client.Name, client.Nip, client.Address?.ToDto(), [.. client.Invoices.Select(i => i.ToDto())], client.UserId);
+        new (client.ClientId, client.Name, client.Nip, client.Address?.ToDto(), client.UserId);
+
+    public static UpdateClientDto ToUpdateDto(this Client client) =>
+        new(client.ClientId, client.Name, client.Nip, client.Address?.ToDto(), client.AddressId, client.UserId);
 
     public static Client ToEntity(this ClientDto dto) =>
         new()
         {
             ClientId = dto.ClientId,
             Name = dto.Name,
+            Nip = dto.Nip,           
+            Address = dto.Address.ToEntity(),            
+            UserId = dto.UserId,            
+        };
+
+    public static Client ToEntity(this CreateClientDto dto) =>
+        new()
+        {            
+            Name = dto.Name,
             Nip = dto.Nip,
-            //AddressId = dto.AddressId,            
-            Address = dto.Address.ToEntity(),
-            Invoices = [.. dto.Invoices.Select(i => i.ToEntity())],
+            Address = dto.Address.ToEntity(),            
             UserId = dto.UserId,
-            //User = dto.UserDto.ToEntity()
         };
 
     public static List<ClientDto> ToDtoList(this IEnumerable<Client> clients) =>

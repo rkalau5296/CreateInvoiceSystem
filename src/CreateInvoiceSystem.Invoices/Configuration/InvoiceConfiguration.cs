@@ -24,18 +24,12 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .IsRequired();
 
         builder.Property(i => i.Comments)
-            .HasMaxLength(500);
-
-        builder.HasOne(i => i.Client)
-            .WithMany(c => c.Invoices) 
-            .HasForeignKey(i => i.ClientId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasMaxLength(500);        
 
         builder.HasOne(i => i.User)
             .WithMany(u => u.Invoices) 
             .HasForeignKey(i => i.UserId)
-            .OnDelete(DeleteBehavior.Restrict);        
-        
+            .OnDelete(DeleteBehavior.Restrict);       
        
     }
 }

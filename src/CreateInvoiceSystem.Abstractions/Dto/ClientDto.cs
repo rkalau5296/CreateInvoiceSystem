@@ -6,7 +6,6 @@ public record ClientDto(
     int ClientId,   
     string Name,
     string Nip,
-    AddressDto Address,    
-    ICollection<InvoiceDto> Invoices,
+    AddressDto Address,
     int UserId    
 );

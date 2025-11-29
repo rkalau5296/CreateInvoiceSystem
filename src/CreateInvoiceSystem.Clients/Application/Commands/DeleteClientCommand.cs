@@ -15,16 +15,18 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto>
             throw new ArgumentNullException(nameof(context)); 
 
         var clientEntity = await context.Set<Client>()
-            .Include(c => c.Address) 
+            .Include(c => c.Address)
+            .Include(u => u.User)
             .FirstOrDefaultAsync(a => a.ClientId == Parametr.ClientId, cancellationToken: cancellationToken) ??
                               throw new InvalidOperationException($"Address with ID {Parametr.ClientId} not found.");
 
         var clientDto = ClientMappers.ToDto(clientEntity);
         
-        var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found."); 
-        
-        context.Set<Address>().Remove(clientEntity.Address);
+        var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
+
         context.Set<Client>().Remove(clientEntity);
+        context.Set<Address>().Remove(clientEntity.Address);
+        
         await context.SaveChangesAsync(cancellationToken);
 
         return clientDto;

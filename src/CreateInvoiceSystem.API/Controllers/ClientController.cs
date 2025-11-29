@@ -37,7 +37,7 @@ public class ClientController : ApiControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<IActionResult> CreateClientsAsync([FromBody] ClientDto clientDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateClientsAsync([FromBody] CreateClientDto clientDto, CancellationToken cancellationToken)
     {
         CreateClientRequest request = new(clientDto);
         return await this.HandleRequest<CreateClientRequest, CreateClientResponse>(request, cancellationToken);
@@ -45,7 +45,7 @@ public class ClientController : ApiControllerBase
 
     [HttpPut]
     [Route("update/id")]
-    public async Task<IActionResult> UpdateClientAsync(int id, [FromBody] ClientDto clientDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateClientAsync(int id, [FromBody] UpdateClientDto clientDto, CancellationToken cancellationToken)
     {
         UpdateClientRequest request = new(id, clientDto);
         return await this.HandleRequest<UpdateClientRequest, UpdateClientResponse>(request, cancellationToken);
