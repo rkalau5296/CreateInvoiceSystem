@@ -72,11 +72,11 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .OnDelete(DeleteBehavior.NoAction);
 
         // PRODUCT - INVOICEPOSITIONS
-        modelBuilder.Entity<Product>()
-            .HasMany(p => p.InvoicePositions)
-            .WithOne(ip => ip.Product)
+        modelBuilder.Entity<InvoicePosition>()
+            .HasOne(ip => ip.Product)
+            .WithMany() 
             .HasForeignKey(ip => ip.ProductId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Restrict);
 
         base.OnModelCreating(modelBuilder);
     }

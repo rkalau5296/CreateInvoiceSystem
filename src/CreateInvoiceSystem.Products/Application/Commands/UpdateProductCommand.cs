@@ -7,21 +7,22 @@ using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
 
-public class UpdateProductCommand : CommandBase<ProductDto, ProductDto>
+public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductDto>
 {
-    public override async Task<ProductDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
+    public override async Task<UpdateProductDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(context));
 
-        var Product = await context.Set<Product>()            
+        var product = await context.Set<Product>()            
             .FirstOrDefaultAsync(c => c.ProductId == Parametr.ProductId, cancellationToken: cancellationToken)            
             ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");        
 
-        Product.Name = Parametr.Name;
-        Product.Value = Parametr.Value;
+        product.Name = this.Parametr.Name ?? product.Name; 
+        product.Description = this.Parametr.Description ?? product.Description;
+        product.Value = this.Parametr.Value ?? product.Value;        
 
         await context.SaveChangesAsync(cancellationToken);        
-        return ProductMappers.ToDto(Product);
+        return this. Parametr;
     }
 }

@@ -19,7 +19,7 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
         RuleFor(p => p.Product.Value)
             .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
-            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
-            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+            .Must(v => v != null && DecimalHelper.GetDecimalPlaces(v.Value) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");            
     }
 }

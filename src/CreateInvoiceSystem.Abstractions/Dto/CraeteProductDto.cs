@@ -1,9 +1,8 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.Dto;
 
-public record ProductDto(
-    int ProductId,
+public record CreateProductDto(
     string Name,
     string Description,
     decimal? Value,
-    int UserId    
+    int UserId 
 );

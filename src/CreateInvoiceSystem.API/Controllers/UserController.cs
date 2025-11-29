@@ -47,7 +47,7 @@ public class UserController : ApiControllerBase
     [Route("update/id")]
     public async Task<IActionResult> UpdateUserAsync(int id, [FromBody] UpdateUserDto userDto, CancellationToken cancellationToken)
     {
-        UpdateUserRequest request = new(id, userDto);
+        UpdateUserRequest request = new(userDto, id);
         return await this.HandleRequest<UpdateUserRequest, UpdateUserResponse>(request, cancellationToken);
     }
 

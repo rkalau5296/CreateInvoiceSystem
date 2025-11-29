@@ -13,7 +13,7 @@ public static class InvoicePositionMappers
             InvoicePositionId = dto.InvoicePositionId,
             InvoiceId = dto.InvoiceId,
             Invoice = dto.Invoice,
-            ProductId = dto.ProductId,
+            //ProductId = dto.ProductId,
             Product = dto.Product,
             Name = dto.Name,
             Description = dto.Description,

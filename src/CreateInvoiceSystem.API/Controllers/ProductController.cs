@@ -37,17 +37,17 @@ public class ProductController : ApiControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<IActionResult> CreateProductsAsync([FromBody] ProductDto ProductDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateProductsAsync([FromBody] CreateProductDto productDto, CancellationToken cancellationToken)
     {
-        CreateProductRequest request = new(ProductDto);
+        CreateProductRequest request = new(productDto);
         return await this.HandleRequest<CreateProductRequest, CreateProductResponse>(request, cancellationToken);
     }
 
     [HttpPut]
     [Route("update/id")]
-    public async Task<IActionResult> UpdateProductAsync(int id, [FromBody] ProductDto ProductDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateProductAsync(int id, [FromBody] UpdateProductDto productDto, CancellationToken cancellationToken)
     {
-        UpdateProductRequest request = new(id, ProductDto);
+        UpdateProductRequest request = new(id, productDto);
         return await this.HandleRequest<UpdateProductRequest, UpdateProductResponse>(request, cancellationToken);
     }
 

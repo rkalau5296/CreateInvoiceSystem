@@ -12,7 +12,6 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
         {            
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             context.Response.ContentType = "application/json";
-
             var errors = ex.Errors.Select(e => new
             {
                 field = e.PropertyName,
@@ -25,7 +24,15 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound; 
             context.Response.ContentType = "application/json";
-
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = ex.Message
+            });
+        }
+        catch(NullReferenceException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new
             {
                 error = ex.Message
@@ -35,7 +42,15 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             context.Response.ContentType = "application/json";
-
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = ex.Message
+            });
+        }
+        catch(ArgumentOutOfRangeException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new
             {
                 error = ex.Message

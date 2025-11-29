@@ -1,9 +1,8 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.Dto;
 
-public record ProductDto(
+public record UpdateProductDto(
     int ProductId,
     string Name,
     string Description,
-    decimal? Value,
-    int UserId    
+    decimal? Value
 );

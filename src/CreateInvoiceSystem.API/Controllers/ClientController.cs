@@ -47,7 +47,7 @@ public class ClientController : ApiControllerBase
     [Route("update/id")]
     public async Task<IActionResult> UpdateClientAsync(int id, [FromBody] UpdateClientDto clientDto, CancellationToken cancellationToken)
     {
-        UpdateClientRequest request = new(id, clientDto);
+        UpdateClientRequest request = new(clientDto, id);
         return await this.HandleRequest<UpdateClientRequest, UpdateClientResponse>(request, cancellationToken);
     }
 

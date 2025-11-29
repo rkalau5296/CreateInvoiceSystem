@@ -3,6 +3,6 @@
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.Dto;
 
-public class UpdateProductResponse : ResponseBase<ProductDto>
+public class UpdateProductResponse : ResponseBase<UpdateProductDto>
 {
 }

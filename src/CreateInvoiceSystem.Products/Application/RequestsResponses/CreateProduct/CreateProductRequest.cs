@@ -3,7 +3,7 @@
 using CreateInvoiceSystem.Abstractions.Dto;
 using MediatR;
 
-public class CreateProductRequest(ProductDto productDto) : IRequest<CreateProductResponse>
+public class CreateProductRequest(CreateProductDto productDto) : IRequest<CreateProductResponse>
 {
-    public ProductDto Product { get; } = productDto;
+    public CreateProductDto Product { get; } = productDto;
 }
