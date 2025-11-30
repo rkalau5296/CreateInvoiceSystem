@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130135312_AddNewPropertiresToInvoice")]
+    partial class AddNewPropertiresToInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,16 +90,31 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
-                    b.Property<string>("City")
+                    b.Property<string>("ClientCity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientCountry")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ClientId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Comments")
+                    b.Property<string>("ClientName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Country")
+                    b.Property<string>("ClientNip")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientPostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientStreet")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Comments")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
@@ -105,23 +123,8 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("MethodOfPayment")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nip")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Number")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Street")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");

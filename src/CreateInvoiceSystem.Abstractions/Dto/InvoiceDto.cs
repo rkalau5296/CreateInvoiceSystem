@@ -9,10 +9,10 @@ public record InvoiceDto(
     DateTime PaymentDate,
     DateTime CreatedDate,
     string Comments,
-    int ClientId,
+    int? ClientId,
     int UserId,    
     ClientDto Client,
     UserDto User,
     string MethodOfPayment,
-    ICollection<InvoicePosition> InvoicePositions
+    ICollection<InvoicePosition> InvoicePositionsDto
     );

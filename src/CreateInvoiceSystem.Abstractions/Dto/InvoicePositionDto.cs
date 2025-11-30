@@ -9,8 +9,8 @@ public record InvoicePositionDto
     Invoice Invoice,
     int? ProductId,
     Product Product,
-    string Name,
     string Description,
-    int Quantity,
-    decimal UnitPrice
+    string Name,
+    decimal? Value,
+    int Quantity
 );

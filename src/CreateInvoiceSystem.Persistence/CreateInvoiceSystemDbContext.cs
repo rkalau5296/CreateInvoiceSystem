@@ -11,7 +11,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<Product> Products => Set<Product>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
-    public DbSet<InvoicePosition> InvoicePosition => Set<InvoicePosition>();
+    public DbSet<InvoicePosition> InvoicePositions => Set<InvoicePosition>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

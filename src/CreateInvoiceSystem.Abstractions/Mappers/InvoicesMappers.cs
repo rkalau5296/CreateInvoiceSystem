@@ -1,7 +1,11 @@
 ﻿namespace CreateInvoiceSystem.Abstractions.Mappers;
 
+using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Dto;
 using CreateInvoiceSystem.Abstractions.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
+using System.Threading;
 
 public static class InvoiceMappers
 {
@@ -22,8 +26,54 @@ public static class InvoiceMappers
             Client = dto.Client.ToEntity(),
             User = dto.User.ToEntity(),
             MethodOfPayment = dto.MethodOfPayment,
-            InvoicePositions = dto.InvoicePositions
+            InvoicePositions = dto.InvoicePositionsDto
         };
+
+    public static Invoice FromCreateInvoiceDtoToInvoiceIfClientIdIsNull(this CreateInvoiceDto dto, Client client)
+    {
+        return new Invoice
+        {
+            Title = dto.Title,
+            TotalAmount = dto.TotalAmount,
+            PaymentDate = dto.PaymentDate,
+            CreatedDate = dto.CreatedDate,
+            Comments = dto.Comments,            
+            UserId = dto.UserId,
+            Client = client,
+            MethodOfPayment = dto.MethodOfPayment,
+            InvoicePositions = []
+        };
+    }
+
+    public static Invoice FromCreateInvoiceDtoToInvoiceIfClientIdIsNotNull(this CreateInvoiceDto dto)
+    {
+        return new Invoice
+        {
+            Title = dto.Title,
+            TotalAmount = dto.TotalAmount,
+            PaymentDate = dto.PaymentDate,
+            CreatedDate = dto.CreatedDate,
+            Comments = dto.Comments,
+            ClientId = dto.ClientId,
+            UserId = dto.UserId,
+            MethodOfPayment = dto.MethodOfPayment,
+            InvoicePositions = []
+        };
+    }
+
+
+
+    public static InvoicePosition MapToInvoicePosition(InvoicePositionDto dto)
+    {
+        return new InvoicePosition
+        {
+            ProductId = dto.ProductId,
+            Name = dto.Name,
+            Description = dto.Description,
+            Value = dto.Value,
+            Quantity = dto.Quantity            
+        };
+    }
 
     public static List<InvoiceDto> ToDtoList(this IEnumerable<Invoice> Invoices) =>
          [.. Invoices.Select(a => a.ToDto())];

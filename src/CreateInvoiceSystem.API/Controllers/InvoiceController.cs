@@ -37,9 +37,9 @@ public class InvoiceController : ApiControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<IActionResult> CreateInvoicesAsync([FromBody] InvoiceDto InvoiceDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateInvoicesAsync([FromBody] CreateInvoiceDto invoiceDto, CancellationToken cancellationToken)
     {
-        CreateInvoiceRequest request = new(InvoiceDto);
+        CreateInvoiceRequest request = new(invoiceDto);
         return await this.HandleRequest<CreateInvoiceRequest, CreateInvoiceResponse>(request, cancellationToken);
     }
 

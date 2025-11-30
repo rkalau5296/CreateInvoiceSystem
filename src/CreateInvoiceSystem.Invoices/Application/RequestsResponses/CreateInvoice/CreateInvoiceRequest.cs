@@ -3,7 +3,7 @@
 using CreateInvoiceSystem.Abstractions.Dto;
 using MediatR;
 
-public class CreateInvoiceRequest(InvoiceDto invoiceDto) : IRequest<CreateInvoiceResponse>
+public class CreateInvoiceRequest(CreateInvoiceDto invoiceDto) : IRequest<CreateInvoiceResponse>
 {
-    public InvoiceDto Invoice { get; } = invoiceDto;
+    public CreateInvoiceDto Invoice { get; } = invoiceDto;
 }

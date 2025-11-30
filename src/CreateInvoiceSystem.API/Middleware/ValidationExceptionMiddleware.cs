@@ -56,9 +56,18 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
                 error = ex.Message
             });
         }
+        catch(Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = ex.Message
+            });
+        }
         catch (Exception ex)
         {
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.StatusCode = StatusCodes.Status406NotAcceptable;
             context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsJsonAsync(new
