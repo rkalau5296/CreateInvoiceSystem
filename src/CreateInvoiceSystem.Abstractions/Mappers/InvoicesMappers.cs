@@ -29,7 +29,7 @@ public static class InvoiceMappers
             InvoicePositions = dto.InvoicePositionsDto
         };
 
-    public static Invoice FromCreateInvoiceDtoToInvoiceIfClientIdIsNull(this CreateInvoiceDto dto, Client client)
+    public static Invoice ToInvoiceIfClientIdIsNull(this CreateInvoiceDto dto, Client client)
     {
         return new Invoice
         {
@@ -40,12 +40,11 @@ public static class InvoiceMappers
             Comments = dto.Comments,            
             UserId = dto.UserId,
             Client = client,
-            MethodOfPayment = dto.MethodOfPayment,
-            InvoicePositions = []
+            MethodOfPayment = dto.MethodOfPayment,            
         };
     }
 
-    public static Invoice FromCreateInvoiceDtoToInvoiceIfClientIdIsNotNull(this CreateInvoiceDto dto)
+    public static Invoice ToInvoiceIfClientIdIsNotNull(this CreateInvoiceDto dto)
     {
         return new Invoice
         {
@@ -56,8 +55,7 @@ public static class InvoiceMappers
             Comments = dto.Comments,
             ClientId = dto.ClientId,
             UserId = dto.UserId,
-            MethodOfPayment = dto.MethodOfPayment,
-            InvoicePositions = []
+            MethodOfPayment = dto.MethodOfPayment
         };
     }
 
