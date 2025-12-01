@@ -6,7 +6,6 @@ using CreateInvoiceSystem.Abstractions.Dto;
 using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceDto>
 {
@@ -20,22 +19,24 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
             throw new InvalidOperationException("Invoice must contain at least one position.");
         }
 
-        Invoice entity = null;
-        Product product = null;
+        Invoice entity = new();
+        Product product = new();
         Client client = null;        
 
         if (this.Parametr.ClientId is null)
         {            
             client = ClientMappers.ToEntity(this.Parametr.Client);
+            client.UserId = this.Parametr.UserId;
             entity = InvoiceMappers.ToInvoiceIfClientIdIsNull(this.Parametr, client);            
 
             foreach (var position in this.Parametr.InvoicePositions)
             {                
                 if (position.ProductId is null)
                 {
-                    product.Name = position.Product.Name;
-                    product.Description = position.Product.Description;
-                    product.Value = position.Product.Value;
+                    product.Name = position.Name;
+                    product.Description = position.Description;
+                    product.Value = position.Value;
+                    product.UserId = this.Parametr.UserId;
                     await context.Set<Product>().AddAsync(product, cancellationToken);
                 }
                 if (position.ProductId is not null)
@@ -43,14 +44,17 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                     product = await context.Set<Product>().FirstOrDefaultAsync(c => c.ProductId == position.ProductId, cancellationToken: cancellationToken)
                         ?? throw new InvalidOperationException($"Product with ID {position.ProductId} not found.");                   
                 }
-                
-                entity.InvoicePositions.Add(new InvoicePosition
+
+                InvoicePosition invoicePosition = new()
                 {
                     Name = product.Name,
                     Description = product.Description,
                     Value = product.Value,
-                    Quantity = position.Quantity
-                });
+                    Quantity = position.Quantity,
+                    Product = product
+                };
+                entity.InvoicePositions.Add(invoicePosition);
+                await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
             }
 
         }
@@ -61,9 +65,10 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
             {
                 if (position.ProductId is null)
                 {
-                    product.Name = position.Product.Name;
-                    product.Description = position.Product.Description;
-                    product.Value = position.Product.Value;
+                    product.Name = position.Name;
+                    product.Description = position.Description;
+                    product.Value = position.Value;
+                    product.UserId = this.Parametr.UserId;
                     await context.Set<Product>().AddAsync(product, cancellationToken);
                 }
                 if (position.ProductId is not null)
@@ -72,20 +77,23 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                         ?? throw new InvalidOperationException($"Product with ID {position.ProductId} not found.");
                 }
 
-                entity.InvoicePositions.Add(new InvoicePosition
+                InvoicePosition invoicePosition = new()
                 {
                     Name = product.Name,
                     Description = product.Description,
                     Value = product.Value,
-                    Quantity = position.Quantity
-                });
+                    Quantity = position.Quantity,
+                    ProductId = product.ProductId
+                };
+                entity.InvoicePositions.Add(invoicePosition);
+                await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
             }
         }
-        
+
         await context.Set<Client>().AddAsync(client, cancellationToken);
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         return this.Parametr;
-    }
+    }    
 }
