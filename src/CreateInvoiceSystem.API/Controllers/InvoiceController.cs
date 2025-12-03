@@ -22,9 +22,9 @@ public class InvoiceController : ApiControllerBase
     [HttpGet("{InvoiceId}")]
     [ProducesResponseType(typeof(GetInvoiceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<IActionResult> GetInvoiceAsync([FromRoute] int InvoiceId, CancellationToken cancellationToken)
+    public Task<IActionResult> GetInvoiceAsync([FromRoute] int invoiceId, CancellationToken cancellationToken)
     {
-        GetInvoiceRequest request = new(InvoiceId);
+        GetInvoiceRequest request = new(invoiceId);
         return this.HandleRequest<GetInvoiceRequest, GetInvoiceResponse>(request, cancellationToken);
     }
 

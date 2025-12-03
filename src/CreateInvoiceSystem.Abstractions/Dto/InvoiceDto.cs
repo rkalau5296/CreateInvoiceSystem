@@ -11,8 +11,8 @@ public record InvoiceDto(
     string Comments,
     int? ClientId,
     int UserId,    
-    ClientDto Client,
-    UserDto User,
+    //ClientDto Client,
+    //UserDto User,
     string MethodOfPayment,
-    ICollection<InvoicePosition> InvoicePositionsDto
+    ICollection<InvoicePositionDto> InvoicePositionsDto
     );

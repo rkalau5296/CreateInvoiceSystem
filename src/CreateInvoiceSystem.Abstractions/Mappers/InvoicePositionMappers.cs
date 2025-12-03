@@ -6,15 +6,15 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class InvoicePositionMappers
 {    
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
-        new(invoicePosition.InvoicePositionId, invoicePosition.InvoiceId, invoicePosition.Invoice, invoicePosition.ProductId, invoicePosition.Product, invoicePosition.Description, invoicePosition.Name, invoicePosition.Value, invoicePosition.Quantity);
+        new(invoicePosition.InvoicePositionId, invoicePosition.InvoiceId, /*invoicePosition.Invoice,*/ invoicePosition.ProductId, invoicePosition.Product.ToDto(), invoicePosition.Description, invoicePosition.Name, invoicePosition.Value, invoicePosition.Quantity);
     public static InvoicePosition ToEntity(this InvoicePositionDto dto) =>
         new()
         {
             InvoicePositionId = dto.InvoicePositionId,
             InvoiceId = dto.InvoiceId,
-            Invoice = dto.Invoice,
+            //Invoice = dto.Invoice,
             ProductId = dto.ProductId,
-            Product = dto.Product,
+            Product = dto.ProductDto.ToEntity(),
             Description = dto.Description,
             Name = dto.Name,
             Value = dto.Value,
