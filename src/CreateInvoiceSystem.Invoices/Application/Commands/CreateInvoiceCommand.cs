@@ -20,25 +20,25 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         }
 
         Invoice entity = new();
-        Product product = new();
-        Client client = null;        
 
         if (this.Parametr.ClientId is null)
-        {            
+        {
+            Client client = new();
             client = ClientMappers.ToEntity(this.Parametr.Client);
             client.UserId = this.Parametr.UserId;
-            entity = InvoiceMappers.ToInvoiceIfClientIdIsNull(this.Parametr, client);
+            entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client);
             await context.Set<Client>().AddAsync(client, cancellationToken);
 
             foreach (var position in this.Parametr.InvoicePositions)
-            {                
+            {              
+                Product product = new();
                 if (position.ProductId is null)
-                {
-                    product.Name = position.Name;
-                    product.Description = position.Description;
-                    product.Value = position.Value;
+                {                    
                     product.UserId = this.Parametr.UserId;
-                    await context.Set<Product>().AddAsync(product, cancellationToken);
+                    product.Name = position.Product.Name;
+                    product.Description = position.Product.Description;
+                    product.Value = position.Product.Value;                        
+                    await context.Set<Product>().AddAsync(product, cancellationToken);                    
                 }
                 if (position.ProductId is not null)
                 {
@@ -47,33 +47,35 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                 }
 
                 InvoicePosition invoicePosition = new()
-                {
-                    Name = product.Name,
-                    Description = product.Description,
-                    Value = product.Value,
+                {                    
                     Quantity = position.Quantity,
                     Product = product                    
                 };
                 entity.InvoicePositions.Add(invoicePosition);
-                await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
+                await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);                
             }
 
         }
         else if (this.Parametr.ClientId is not null)
         {
-            entity = InvoiceMappers.ToInvoiceIfClientIdIsNotNull(this.Parametr);
-            entity.Client = await context.Set<Client>().FirstOrDefaultAsync(c => c.ClientId == this.Parametr.ClientId, cancellationToken: cancellationToken)
+            Client client = new();
+            
+            client = await context.Set<Client>()
+                .Include(c =>c.Address)
+                .FirstOrDefaultAsync(c => c.ClientId == this.Parametr.ClientId, cancellationToken: cancellationToken)
                         ?? throw new InvalidOperationException($"Client with ID {this.Parametr.ClientId} not found.");
+            entity = InvoiceMappers.ToInvoiceWithExistingClient(this.Parametr, client);
 
             foreach (var position in this.Parametr.InvoicePositions)
             {
+                Product product = new();
                 if (position.ProductId is null)
                 {
-                    product.Name = position.Name;
-                    product.Description = position.Description;
-                    product.Value = position.Value;
                     product.UserId = this.Parametr.UserId;
-                    await context.Set<Product>().AddAsync(product, cancellationToken);
+                    product.Name = position.Product.Name;
+                    product.Description = position.Product.Description;
+                    product.Value = position.Product.Value;
+                    await context.Set<Product>().AddAsync(product, cancellationToken);                    
                 }
                 if (position.ProductId is not null)
                 {
@@ -82,10 +84,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                 }
 
                 InvoicePosition invoicePosition = new()
-                {
-                    Name = product.Name,
-                    Description = product.Description,
-                    Value = product.Value,
+                {                    
                     Quantity = position.Quantity,
                     Product = product
                 };

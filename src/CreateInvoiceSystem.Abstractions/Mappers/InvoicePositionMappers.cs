@@ -13,10 +13,7 @@ public static class InvoicePositionMappers
             invoicePosition.InvoicePositionId, 
             invoicePosition.InvoiceId, 
             invoicePosition.ProductId, 
-            invoicePosition.Product?.ToDto(), 
-            invoicePosition.Description, 
-            invoicePosition.Name, 
-            invoicePosition.Value, 
+            invoicePosition.Product?.ToDto(),              
             invoicePosition.Quantity
             );
 
@@ -29,10 +26,7 @@ public static class InvoicePositionMappers
             InvoicePositionId = dto.InvoicePositionId,
             InvoiceId = dto.InvoiceId,            
             ProductId = dto.ProductId,
-            Product = dto.Product.ToEntity(),
-            Description = dto.Description,
-            Name = dto.Name,
-            Value = dto.Value,
+            Product = dto.Product.ToEntity(),            
             Quantity = dto.Quantity
         };
 
@@ -42,10 +36,7 @@ public static class InvoicePositionMappers
         :
          new() 
         {
-            ProductId = dto.ProductId,
-            Name = dto.Name,
-            Description = dto.Description,
-            Value = dto.Value,
+            ProductId = dto.ProductId,            
             Quantity = dto.Quantity           
         };
     

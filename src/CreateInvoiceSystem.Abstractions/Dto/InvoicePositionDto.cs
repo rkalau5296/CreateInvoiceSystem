@@ -7,9 +7,6 @@ public record InvoicePositionDto
     int InvoicePositionId,
     int InvoiceId,    
     int? ProductId,
-    ProductDto Product,
-    string Description,
-    string Name,
-    decimal? Value,
+    ProductDto Product,    
     int Quantity
 );

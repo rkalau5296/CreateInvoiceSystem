@@ -11,6 +11,8 @@ public record CreateInvoiceDto
     public int UserId { get; set; }
     public int? ClientId { get; set; }
     public CreateClientDto Client { get; set; }
+    public string ClientName { get; set; }
+    public string ClientAddress { get; set; }
+    public string ClientNip { get; set; }
     public List<InvoicePositionDto> InvoicePositions { get; set; }
 }
-

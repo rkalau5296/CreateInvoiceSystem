@@ -13,5 +13,8 @@ public class Invoice
     public Client Client { get; set; }
     public User User { get; set; }
     public string MethodOfPayment { get; set; }
+    public string ClientName { get; set; }
+    public string ClientAddress { get; set; }
+    public string ClientNip { get; set; }
     public ICollection<InvoicePosition> InvoicePositions { get; set; } = [];    
 }
