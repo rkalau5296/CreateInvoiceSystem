@@ -9,7 +9,17 @@ public static class InvoicePositionMappers
         invoicePosition == null
         ? throw new ArgumentNullException(nameof(invoicePosition), "InvoicePosition cannot be null when mapping to InvoicePositionDto.")
         :
-        new(invoicePosition.InvoicePositionId, invoicePosition.InvoiceId, invoicePosition.ProductId, invoicePosition.Product.ToDto(), invoicePosition.Description, invoicePosition.Name, invoicePosition.Value, invoicePosition.Quantity);
+        new(
+            invoicePosition.InvoicePositionId, 
+            invoicePosition.InvoiceId, 
+            invoicePosition.ProductId, 
+            invoicePosition.Product?.ToDto(), 
+            invoicePosition.Description, 
+            invoicePosition.Name, 
+            invoicePosition.Value, 
+            invoicePosition.Quantity
+            );
+
     public static InvoicePosition ToEntity(this InvoicePositionDto dto) =>
         dto == null
         ? throw new ArgumentNullException(nameof(dto), "InvoicePositionDto cannot be null when mapping to InvoicePosition.")
@@ -19,7 +29,7 @@ public static class InvoicePositionMappers
             InvoicePositionId = dto.InvoicePositionId,
             InvoiceId = dto.InvoiceId,            
             ProductId = dto.ProductId,
-            Product = dto.ProductDto.ToEntity(),
+            Product = dto.Product.ToEntity(),
             Description = dto.Description,
             Name = dto.Name,
             Value = dto.Value,

@@ -12,5 +12,5 @@ public record InvoiceDto(
     int? ClientId,
     int UserId,
     string MethodOfPayment,
-    ICollection<InvoicePositionDto> InvoicePositionsDto
+    ICollection<InvoicePositionDto> InvoicePositions
     );

@@ -30,7 +30,7 @@ public static class InvoiceMappers
             ClientId = dto.ClientId,
             UserId = dto.UserId,
             MethodOfPayment = dto.MethodOfPayment,
-            InvoicePositions = dto.InvoicePositionsDto.Select(ipDto => ipDto.ToEntity()).ToList()
+            InvoicePositions = dto.InvoicePositions.Select(ipDto => ipDto.ToEntity()).ToList()
         };
 
     public static Invoice ToInvoiceIfClientIdIsNull(this CreateInvoiceDto dto, Client client) =>
