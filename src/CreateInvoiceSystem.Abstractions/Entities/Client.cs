@@ -9,4 +9,5 @@ public class Client
     public Address Address { get; set; }    
     public int UserId { get; set; }
     public User User { get; set; }
+    public bool IsDeleted { get; set; }
 }

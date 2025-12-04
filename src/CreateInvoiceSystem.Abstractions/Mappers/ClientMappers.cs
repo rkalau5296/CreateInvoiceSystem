@@ -10,7 +10,7 @@ public static class ClientMappers
          client == null
         ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to ClientDto.")
         :
-        new (client.ClientId, client.Name, client.Nip, client.Address?.ToDto(), client.UserId);
+        new (client.ClientId, client.Name, client.Nip, client.Address?.ToDto(), client.UserId, client.IsDeleted);
 
     public static UpdateClientDto ToUpdateDto(this Client client) =>
         client == null
@@ -28,7 +28,8 @@ public static class ClientMappers
             Name = dto.Name,
             Nip = dto.Nip,           
             Address = dto.Address.ToEntity(),            
-            UserId = dto.UserId,            
+            UserId = dto.UserId,
+            IsDeleted = dto.IsDeleted
         };
 
     public static Client ToEntity(this CreateClientDto dto) =>
@@ -41,6 +42,7 @@ public static class ClientMappers
             Nip = dto.Nip,
             Address = dto.Address.ToEntity(),            
             UserId = dto.UserId,
+            IsDeleted = dto.IsDeleted
         };
 
     public static List<ClientDto> ToDtoList(this IEnumerable<Client> clients) =>
