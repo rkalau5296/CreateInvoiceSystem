@@ -41,10 +41,6 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         RuleFor(x => x.Invoice.MethodOfPayment)
             .NotEmpty().WithMessage("MethodOfPayment is required.")
-            .MaximumLength(10).WithMessage("MethodOfPayment can have maximum 10 characters.");
-
-        //RuleFor(x => x.Invoice.InvoicePositions)
-        //    .NotEmpty().WithMessage("Product is required.")
-        //    .MaximumLength(100).WithMessage("Product can have maximum 10 characters.");
+            .MaximumLength(10).WithMessage("MethodOfPayment can have maximum 10 characters.");        
     }
 }

@@ -27,7 +27,8 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         {            
             client = ClientMappers.ToEntity(this.Parametr.Client);
             client.UserId = this.Parametr.UserId;
-            entity = InvoiceMappers.ToInvoiceIfClientIdIsNull(this.Parametr, client);            
+            entity = InvoiceMappers.ToInvoiceIfClientIdIsNull(this.Parametr, client);
+            await context.Set<Client>().AddAsync(client, cancellationToken);
 
             foreach (var position in this.Parametr.InvoicePositions)
             {                
@@ -61,6 +62,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         else if (this.Parametr.ClientId is not null)
         {
             entity = InvoiceMappers.ToInvoiceIfClientIdIsNotNull(this.Parametr);
+            entity.Client = await context.Set<Client>().FirstOrDefaultAsync(c => c.ClientId == this.Parametr.ClientId, cancellationToken: cancellationToken)
+                        ?? throw new InvalidOperationException($"Product with ID {this.Parametr.ClientId} not found.");
+
             foreach (var position in this.Parametr.InvoicePositions)
             {
                 if (position.ProductId is null)
@@ -82,15 +86,14 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                     Name = product.Name,
                     Description = product.Description,
                     Value = product.Value,
-                    Quantity = position.Quantity,
-                    ProductId = product.ProductId
+                    Quantity = position.Quantity                    
                 };
                 entity.InvoicePositions.Add(invoicePosition);
                 await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
             }
         }
 
-        await context.Set<Client>().AddAsync(client, cancellationToken);
+        
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 

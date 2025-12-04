@@ -10,7 +10,7 @@ using System.Threading;
 public static class InvoiceMappers
 {
     public static InvoiceDto ToDto(this Invoice invoice) =>
-        new(invoice.InvoiceId, invoice.Title, invoice.TotalAmount, invoice.PaymentDate, invoice.CreatedDate, invoice.Comments, invoice.ClientId, invoice.UserId, /*invoice.Client.ToDto(), invoice.User.ToDto(),*/ invoice.MethodOfPayment, invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList());
+        new(invoice.InvoiceId, invoice.Title, invoice.TotalAmount, invoice.PaymentDate, invoice.CreatedDate, invoice.Comments, invoice.ClientId, invoice.UserId, invoice.MethodOfPayment, invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList());
 
     public static Invoice ToEntity(this InvoiceDto dto) =>
         new()
@@ -22,9 +22,7 @@ public static class InvoiceMappers
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
             ClientId = dto.ClientId,
-            UserId = dto.UserId,            
-            //Client = dto.Client.ToEntity(),
-            //User = dto.User.ToEntity(),
+            UserId = dto.UserId,
             MethodOfPayment = dto.MethodOfPayment,
             InvoicePositions = dto.InvoicePositionsDto.Select(ipDto => ipDto.ToEntity()).ToList()
         };

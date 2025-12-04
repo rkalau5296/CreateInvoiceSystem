@@ -10,8 +10,7 @@ public record CreateInvoiceDto
     public DateTime CreatedDate { get; set; }
     public int UserId { get; set; }
     public int? ClientId { get; set; }
-    public CreateClientDto Client { get; set; }    
-
+    public CreateClientDto Client { get; set; }
     public List<InvoicePositionDto> InvoicePositions { get; set; }
 }
 

@@ -6,13 +6,12 @@ using CreateInvoiceSystem.Abstractions.Entities;
 public static class InvoicePositionMappers
 {    
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
-        new(invoicePosition.InvoicePositionId, invoicePosition.InvoiceId, /*invoicePosition.Invoice,*/ invoicePosition.ProductId, invoicePosition.Product.ToDto(), invoicePosition.Description, invoicePosition.Name, invoicePosition.Value, invoicePosition.Quantity);
+        new(invoicePosition.InvoicePositionId, invoicePosition.InvoiceId, invoicePosition.ProductId, invoicePosition.Product.ToDto(), invoicePosition.Description, invoicePosition.Name, invoicePosition.Value, invoicePosition.Quantity);
     public static InvoicePosition ToEntity(this InvoicePositionDto dto) =>
         new()
         {
             InvoicePositionId = dto.InvoicePositionId,
-            InvoiceId = dto.InvoiceId,
-            //Invoice = dto.Invoice,
+            InvoiceId = dto.InvoiceId,            
             ProductId = dto.ProductId,
             Product = dto.ProductDto.ToEntity(),
             Description = dto.Description,
@@ -29,8 +28,7 @@ public static class InvoicePositionMappers
             Name = dto.Name,
             Description = dto.Description,
             Value = dto.Value,
-            Quantity = dto.Quantity
-            // Product obiekt powiązujesz w serwisie/db gdy ProductId != null
+            Quantity = dto.Quantity           
         };
     }
     public static List<InvoicePositionDto> ToDtoList(this IEnumerable<InvoicePosition> invoicePositions) =>
