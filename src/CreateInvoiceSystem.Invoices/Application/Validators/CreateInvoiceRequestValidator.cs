@@ -1,8 +1,9 @@
 ﻿namespace CreateInvoiceSystem.Invoices.Application.Validators;
 
-using CreateInvoiceSystem.Invoices.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Abstractions.DecimalHelper;
+using CreateInvoiceSystem.Invoices.Application.RequestsResponses.CreateInvoice;
 using FluentValidation;
+using System;
 
 
 public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequest>
@@ -17,7 +18,7 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         RuleFor(x => x.Invoice.CreatedDate)
             .NotEmpty().WithMessage("CreatedDate is required.")
-            .LessThanOrEqualTo(DateTime.Now).WithMessage("CreatedDate cannot be in the future.");
+            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("CreatedDate cannot be in the future.");
 
         RuleFor(x => x.Invoice.PaymentDate)
             .NotEmpty().WithMessage("PaymentDate is required.")
@@ -25,7 +26,7 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         RuleFor(x => x.Invoice.CreatedDate)
             .NotEmpty().WithMessage("CreatedDate is required.")
-            .LessThanOrEqualTo(DateTime.Now).WithMessage("CreatedDate cannot be in the future.");
+            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("CreatedDate cannot be in the future.");
 
         RuleFor(x => x.Invoice.Comments)
             .MaximumLength(500).WithMessage("Comments can have maximum 500 characters.");

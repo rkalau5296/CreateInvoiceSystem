@@ -52,7 +52,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                     Description = product.Description,
                     Value = product.Value,
                     Quantity = position.Quantity,
-                    Product = product
+                    Product = product                    
                 };
                 entity.InvoicePositions.Add(invoicePosition);
                 await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
@@ -63,7 +63,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         {
             entity = InvoiceMappers.ToInvoiceIfClientIdIsNotNull(this.Parametr);
             entity.Client = await context.Set<Client>().FirstOrDefaultAsync(c => c.ClientId == this.Parametr.ClientId, cancellationToken: cancellationToken)
-                        ?? throw new InvalidOperationException($"Product with ID {this.Parametr.ClientId} not found.");
+                        ?? throw new InvalidOperationException($"Client with ID {this.Parametr.ClientId} not found.");
 
             foreach (var position in this.Parametr.InvoicePositions)
             {
@@ -86,13 +86,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                     Name = product.Name,
                     Description = product.Description,
                     Value = product.Value,
-                    Quantity = position.Quantity                    
+                    Quantity = position.Quantity,
+                    Product = product
                 };
                 entity.InvoicePositions.Add(invoicePosition);
                 await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
             }
         }
-
         
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);

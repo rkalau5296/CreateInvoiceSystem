@@ -19,7 +19,7 @@ public class InvoiceController : ApiControllerBase
         logger.LogInformation("This is InvoiceController");
     }
 
-    [HttpGet("{InvoiceId}")]
+    [HttpGet("{invoiceId}")]
     [ProducesResponseType(typeof(GetInvoiceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public Task<IActionResult> GetInvoiceAsync([FromRoute] int invoiceId, CancellationToken cancellationToken)
