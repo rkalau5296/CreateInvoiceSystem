@@ -47,9 +47,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                 }
 
                 InvoicePosition invoicePosition = new()
-                {                    
+                {
                     Quantity = position.Quantity,
-                    Product = product                    
+                    Product = product,
+                    ProductId = product.ProductId,
+                    ProductName = product.Name,
+                    ProductDescription = product.Description,
+                    ProductValue = product.Value
                 };
                 entity.InvoicePositions.Add(invoicePosition);
                 await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);                
@@ -84,9 +88,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                 }
 
                 InvoicePosition invoicePosition = new()
-                {                    
+                {
                     Quantity = position.Quantity,
-                    Product = product
+                    Product = product,
+                    ProductId = product.ProductId,
+                    ProductName = product.Name,
+                    ProductDescription = product.Description,
+                    ProductValue = product.Value
                 };
                 entity.InvoicePositions.Add(invoicePosition);
                 await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);

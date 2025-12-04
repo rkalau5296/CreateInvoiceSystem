@@ -11,6 +11,7 @@ public class GetClientQuery(int id) : QueryBase<Client>
     {
         return await context.Set<Client>()
             .Include(c => c.Address)
+            .Where(c => !c.IsDeleted)
             .FirstOrDefaultAsync(c => c.ClientId == id, cancellationToken: cancellationToken) 
             ?? throw new InvalidOperationException($"Client with ID {id} not found.");
     }

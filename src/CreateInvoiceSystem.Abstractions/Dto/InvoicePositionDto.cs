@@ -10,6 +10,6 @@ public record InvoicePositionDto
     ProductDto Product,
     string ProductName,
     string ProductDescription,
-    decimal ProductValue,
+    decimal? ProductValue,
     int Quantity
 );

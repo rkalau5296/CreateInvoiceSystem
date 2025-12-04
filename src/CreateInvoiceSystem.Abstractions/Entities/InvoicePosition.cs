@@ -9,6 +9,6 @@ public class InvoicePosition
     public Product Product { get; set; }
     public string ProductName { get; set; }
     public string ProductDescription { get; set; }
-    public decimal ProductValue { get; set; }
+    public decimal? ProductValue { get; set; }
     public int Quantity { get; set; }
 }

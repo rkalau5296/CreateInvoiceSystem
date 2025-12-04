@@ -11,7 +11,8 @@ public class GetClientsQuery : QueryBase<List<Client>>
     {
         return await context.Set<Client>()
             .Include(c => c.Address)
+            .Where(c => !c.IsDeleted)
             .ToListAsync(cancellationToken: cancellationToken) 
-            ?? throw new InvalidOperationException($"List of addresses is empty.");
+            ?? throw new InvalidOperationException($"List of clients is empty.");
     }
 }
