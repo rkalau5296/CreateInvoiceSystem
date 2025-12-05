@@ -12,29 +12,38 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
 {
     public override async Task<CreateInvoiceDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        var param = this.Parametr ?? throw new ArgumentNullException(nameof(Parametr));
-
-        if (this.Parametr.InvoicePositions is null || this.Parametr.InvoicePositions.Count == 0)throw new InvalidOperationException("Invoice must contain at least one position.");       
-
-        if(this.Parametr.ClientId is null && this.Parametr.Client is null)
-            throw new InvalidOperationException("Invoice must contain clientId or Client details.");      
+        ValidateInvoiceParametr(this.Parametr);
 
         Invoice entity;       
 
-        Client client = param.ClientId is null
-            ? await GetOrCreateClientAsync(param, context, cancellationToken)
-            : await GetClientByIdAsync(param.ClientId.Value, context, cancellationToken);
+        Client client = this.Parametr.ClientId is null
+            ? await GetOrCreateClientAsync(this.Parametr, context, cancellationToken)
+            : await GetClientByIdAsync(this.Parametr.ClientId.Value, context, cancellationToken);
 
-        entity = param.ClientId is null
-            ? InvoiceMappers.ToInvoiceWithNewClient(param, client)
-            : InvoiceMappers.ToInvoiceWithExistingClient(param, client);
+        entity = this.Parametr.ClientId is null
+            ? InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client)
+            : InvoiceMappers.ToInvoiceWithExistingClient(this.Parametr, client);
 
-        await AddProductsToInvoicePositionsAsync(param, entity, context, cancellationToken);
+        await AddProductsToInvoicePositionsAsync(this.Parametr, entity, context, cancellationToken);
 
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         return this.Parametr;
+    }
+
+    private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)
+    {
+        ArgumentNullException.ThrowIfNull(parametr);
+
+        if (parametr.InvoicePositions is null || parametr.InvoicePositions.Count == 0)
+            throw new InvalidOperationException("Invoice must contain at least one position.");
+
+        if (parametr.ClientId is null && parametr.Client is null)
+            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
+
+        if (parametr.InvoicePositions.Any(ip => ip.Product is null && ip.ProductId is null))
+            throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
     }
 
     private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IDbContext context, CancellationToken cancellationToken)
