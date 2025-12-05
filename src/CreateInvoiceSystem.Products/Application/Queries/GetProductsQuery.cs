@@ -9,7 +9,8 @@ public class GetProductsQuery : QueryBase<List<Product>>
 {
     public override async Task<List<Product>> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        return await context.Set<Product>()            
+        return await context.Set<Product>()
+            .Where(c => !c.IsDeleted)
             .ToListAsync(cancellationToken: cancellationToken) 
             ?? throw new InvalidOperationException($"List of addresses is empty.");
     }

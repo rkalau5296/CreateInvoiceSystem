@@ -16,11 +16,21 @@ public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductD
 
         var product = await context.Set<Product>()            
             .FirstOrDefaultAsync(c => c.ProductId == Parametr.ProductId, cancellationToken: cancellationToken)            
-            ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");        
+            ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
 
-        product.Name = this.Parametr.Name ?? product.Name; 
-        product.Description = this.Parametr.Description ?? product.Description;
-        product.Value = this.Parametr.Value ?? product.Value;        
+        bool isUsed = await context.Set<InvoicePosition>()
+            .AnyAsync(i => i.ProductId == Parametr.ProductId, cancellationToken);
+
+        if (!isUsed)
+        {
+            product.Name = this.Parametr.Name ?? product.Name;
+            product.Description = this.Parametr.Description ?? product.Description;
+            product.Value = this.Parametr.Value ?? product.Value;
+        }
+        else
+        {
+            throw new InvalidOperationException("The product cannot be edited because it has already been used in documents. Please update data on a new product or create a new client.");
+        }
 
         await context.SaveChangesAsync(cancellationToken);        
         return this. Parametr;

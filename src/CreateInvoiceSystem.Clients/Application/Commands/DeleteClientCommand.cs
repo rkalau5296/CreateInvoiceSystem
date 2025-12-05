@@ -25,7 +25,7 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto>
         bool isUsed = await context.Set<Invoice>()
             .AnyAsync(i => i.ClientId == Parametr.ClientId, cancellationToken);
 
-        if (isUsed)
+        if (!isUsed)
         {
             var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
             context.Set<Client>().Remove(clientEntity);

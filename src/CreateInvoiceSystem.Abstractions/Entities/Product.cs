@@ -7,5 +7,6 @@ public class Product
     public string Description { get; set; }
     public decimal? Value { get; set; }
     public int UserId { get; set; }
-    public User User { get; set; }    
+    public User User { get; set; } 
+    public bool IsDeleted { get; set; }
 }

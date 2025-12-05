@@ -18,7 +18,8 @@ public static class InvoicePositionMappers
                     invoicePosition.Product.Name,
                     invoicePosition.Product.Description,
                     invoicePosition.Product.Value,
-                    invoicePosition.Product.UserId
+                    invoicePosition.Product.UserId,
+                    invoicePosition.Product.IsDeleted
                   )
                 : null,
             invoicePosition.ProductName,

@@ -13,7 +13,8 @@ public static class ProductMappers
         product.Name,
         product.Description,
         product.Value,
-        product.UserId
+        product.UserId,
+        product.IsDeleted
         );
 
     public static Product ToEntity(this ProductDto dto) =>

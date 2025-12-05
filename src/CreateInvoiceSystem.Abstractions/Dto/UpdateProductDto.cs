@@ -4,5 +4,6 @@ public record UpdateProductDto(
     int ProductId,
     string Name,
     string Description,
-    decimal? Value
+    decimal? Value,
+    bool IsDeleted 
 );
