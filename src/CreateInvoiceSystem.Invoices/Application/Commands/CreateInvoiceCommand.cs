@@ -19,80 +19,64 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         if(this.Parametr.ClientId is null && this.Parametr.Client is null)
             throw new InvalidOperationException("Invoice must contain clientId or Client details.");      
 
-        Invoice entity = new();
-        
-        if (this.Parametr.ClientId is null)
-        {
-            Client client = new();
-            Client existingClient = await CheckWhetherClientExists(this.Parametr, context, cancellationToken);
+        Invoice entity;       
 
-            if (existingClient is null)
-            {
-                client = ClientMappers.ToEntity(this.Parametr.Client);                
-                entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client);
-                await context.Set<Client>().AddAsync(client, cancellationToken);
-            }
-            else
-            {                
-                entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, existingClient);
-            }                
+        Client client = param.ClientId is null
+            ? await GetOrCreateClientAsync(param, context, cancellationToken)
+            : await GetClientByIdAsync(param.ClientId.Value, context, cancellationToken);
 
-            await AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
-        }
-        else if (this.Parametr.ClientId is not null)
-        {
-            Client client = new();            
-            client = await context.Set<Client>()
-                .Include(c =>c.Address)
-                .FirstOrDefaultAsync(c => c.ClientId == this.Parametr.ClientId, cancellationToken: cancellationToken)
-                        ?? throw new InvalidOperationException($"Client with ID {this.Parametr.ClientId} not found.");
-            entity = InvoiceMappers.ToInvoiceWithExistingClient(this.Parametr, client);
+        entity = param.ClientId is null
+            ? InvoiceMappers.ToInvoiceWithNewClient(param, client)
+            : InvoiceMappers.ToInvoiceWithExistingClient(param, client);
 
-            await AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
-        }
-        
+        await AddProductsToInvoicePositionsAsync(param, entity, context, cancellationToken);
+
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         return this.Parametr;
-    } 
-    
-    private static async Task AddProductToInvoicePosition(CreateInvoiceDto parametr, Invoice entity, IDbContext context, CancellationToken cancellationToken)
+    }
+
+    private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IDbContext context, CancellationToken cancellationToken)
     {
-        foreach (var position in parametr.InvoicePositions)
+        var client = await context.Set<Client>()
+            .Include(c => c.Address)
+            .FirstOrDefaultAsync(c =>
+                c.Nip == param.Client.Nip &&
+                c.Name == param.Client.Name &&
+                c.IsDeleted == false &&
+                c.Address.Street == param.Client.Address.Street &&
+                c.Address.Number == param.Client.Address.Number &&
+                c.Address.City == param.Client.Address.City &&
+                c.Address.PostalCode == param.Client.Address.PostalCode &&
+                c.Address.Country == param.Client.Address.Country, cancellationToken);
+
+        if (client is not null)
+            return client;
+
+        var newClient = ClientMappers.ToEntity(param.Client);
+        newClient.UserId = param.UserId;
+        await context.Set<Client>().AddAsync(newClient, cancellationToken);
+        return newClient;
+    }
+
+    private static async Task<Client> GetClientByIdAsync(int clientId, IDbContext context, CancellationToken cancellationToken)
+    {
+        return await context.Set<Client>()
+            .Include(c => c.Address)
+            .FirstOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
+    }
+
+    private static async Task AddProductsToInvoicePositionsAsync(CreateInvoiceDto param, Invoice entity, IDbContext context, CancellationToken cancellationToken)
+    {
+        foreach (var position in param.InvoicePositions)
         {
-            Product product = new();
-            if (position.ProductId is null)
-            {                
-                var existingProduct = await context.Set<Product>().FirstOrDefaultAsync(p =>
-                    p.Name == position.Product.Name &&
-                    p.Description == position.Product.Description &&
-                    p.Value == position.Product.Value &&
-                    p.UserId == parametr.UserId, cancellationToken);
+            var product = position.ProductId is null
+                ? await GetOrCreateProductAsync(position, param.UserId, context, cancellationToken)
+                : await GetProductByIdAsync(position.ProductId.Value, context, cancellationToken);
 
-                if (existingProduct is null)
-                {
-                    product = new Product
-                    {
-                        UserId = parametr.UserId,
-                        Name = position.Product.Name,
-                        Description = position.Product.Description,
-                        Value = position.Product.Value
-                    };
-                    await context.Set<Product>().AddAsync(product, cancellationToken);
-                }
-                else
-                {
-                    product = existingProduct;
-                }
-            }
-            else
-            {
-                product = await context.Set<Product>().FirstOrDefaultAsync(c => c.ProductId == position.ProductId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Product with ID {position.ProductId} not found.");
-            }
-
-            InvoicePosition invoicePosition = new()
+            var invoicePosition = new InvoicePosition
             {
                 Quantity = position.Quantity,
                 Product = product,
@@ -106,19 +90,31 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         }
     }
 
-    private static async Task<Client> CheckWhetherClientExists(CreateInvoiceDto dto, IDbContext context, CancellationToken cancellationToken)
+    private static async Task<Product> GetOrCreateProductAsync(InvoicePositionDto position, int userId, IDbContext context, CancellationToken cancellationToken)
     {
-         return await context.Set<Client>()
-                .Include(c => c.Address)
-                .FirstOrDefaultAsync(c =>
-            c.Nip == dto.Client.Nip &&
-            c.Name == dto.Client.Name &&
-            c.IsDeleted == false &&
-            c.Address.Street == dto.Client.Address.Street &&
-            c.Address.Number == dto.Client.Address.Number &&
-            c.Address.City == dto.Client.Address.City &&
-            c.Address.PostalCode == dto.Client.Address.PostalCode &&
-            c.Address.Country == dto.Client.Address.Country,            
-            cancellationToken);
+        var existing = await context.Set<Product>().FirstOrDefaultAsync(p =>
+            p.Name == position.Product.Name &&
+            p.Description == position.Product.Description &&
+            p.Value == position.Product.Value &&
+            p.UserId == userId, cancellationToken);
+
+        if (existing is not null) return existing;
+
+        var newProduct = new Product
+        {
+            UserId = userId,
+            Name = position.Product.Name,
+            Description = position.Product.Description,
+            Value = position.Product.Value
+        };
+        await context.Set<Product>().AddAsync(newProduct, cancellationToken);
+        return newProduct;
     }
+    
+    private static async Task<Product> GetProductByIdAsync(int productId, IDbContext context, CancellationToken cancellationToken)
+    {
+        return await context.Set<Product>()
+            .FirstOrDefaultAsync(p => p.ProductId == productId, cancellationToken)
+            ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
+    }    
 }
