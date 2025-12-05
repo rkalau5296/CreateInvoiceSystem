@@ -6,6 +6,7 @@ using CreateInvoiceSystem.Abstractions.Dto;
 using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceDto>
 {
@@ -19,17 +20,30 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
             throw new InvalidOperationException("Invoice must contain at least one position.");
         }
 
-        Invoice entity = new();
+        if(this.Parametr.ClientId is null && this.Parametr.Client is null)
+        {
+            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
+        }
 
+        Invoice entity = new();
+        
         if (this.Parametr.ClientId is null)
         {
             Client client = new();
-            client = ClientMappers.ToEntity(this.Parametr.Client);
-            client.UserId = this.Parametr.UserId;
-            entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client);
-            await context.Set<Client>().AddAsync(client, cancellationToken);
+            Client existingClient = await CheckWhetherClientExists(this.Parametr, context, cancellationToken);
 
-            AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
+            if (existingClient is null)
+            {
+                client = ClientMappers.ToEntity(this.Parametr.Client);                
+                entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client);
+                await context.Set<Client>().AddAsync(client, cancellationToken);
+            }
+            else
+            {                
+                entity = InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, existingClient);
+            }                
+
+            await AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
         }
         else if (this.Parametr.ClientId is not null)
         {
@@ -40,7 +54,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
                         ?? throw new InvalidOperationException($"Client with ID {this.Parametr.ClientId} not found.");
             entity = InvoiceMappers.ToInvoiceWithExistingClient(this.Parametr, client);
 
-            AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
+            await AddProductToInvoicePosition(this.Parametr, entity, context, cancellationToken);
         }
         
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
@@ -49,7 +63,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         return this.Parametr;
     } 
     
-    private async void AddProductToInvoicePosition(CreateInvoiceDto parametr, Invoice entity, IDbContext context, CancellationToken cancellationToken)
+    private async Task AddProductToInvoicePosition(CreateInvoiceDto parametr, Invoice entity, IDbContext context, CancellationToken cancellationToken)
     {
         foreach (var position in parametr.InvoicePositions)
         {
@@ -80,5 +94,21 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
             entity.InvoicePositions.Add(invoicePosition);
             await context.Set<InvoicePosition>().AddAsync(invoicePosition, cancellationToken);
         }
+    }
+
+    private static async Task<Client> CheckWhetherClientExists(CreateInvoiceDto dto, IDbContext context, CancellationToken cancellationToken)
+    {
+         return await context.Set<Client>()
+                .Include(c => c.Address)
+                .FirstOrDefaultAsync(c =>
+            c.Nip == dto.Client.Nip &&
+            c.Name == dto.Client.Name &&
+            c.IsDeleted == false &&
+            c.Address.Street == dto.Client.Address.Street &&
+            c.Address.Number == dto.Client.Address.Number &&
+            c.Address.City == dto.Client.Address.City &&
+            c.Address.PostalCode == dto.Client.Address.PostalCode &&
+            c.Address.Country == dto.Client.Address.Country,            
+            cancellationToken);
     }
 }
