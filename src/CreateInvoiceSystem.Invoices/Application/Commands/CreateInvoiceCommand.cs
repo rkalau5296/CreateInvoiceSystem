@@ -12,18 +12,12 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
 {
     public override async Task<CreateInvoiceDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(context));
+        var param = this.Parametr ?? throw new ArgumentNullException(nameof(Parametr));
 
-        if (this.Parametr.InvoicePositions == null || this.Parametr.InvoicePositions.Count == 0)
-        {
-            throw new InvalidOperationException("Invoice must contain at least one position.");
-        }
+        if (this.Parametr.InvoicePositions is null || this.Parametr.InvoicePositions.Count == 0)throw new InvalidOperationException("Invoice must contain at least one position.");       
 
         if(this.Parametr.ClientId is null && this.Parametr.Client is null)
-        {
-            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
-        }
+            throw new InvalidOperationException("Invoice must contain clientId or Client details.");      
 
         Invoice entity = new();
         
@@ -63,22 +57,38 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         return this.Parametr;
     } 
     
-    private async Task AddProductToInvoicePosition(CreateInvoiceDto parametr, Invoice entity, IDbContext context, CancellationToken cancellationToken)
+    private static async Task AddProductToInvoicePosition(CreateInvoiceDto parametr, Invoice entity, IDbContext context, CancellationToken cancellationToken)
     {
         foreach (var position in parametr.InvoicePositions)
         {
             Product product = new();
             if (position.ProductId is null)
-            {
-                product.UserId = this.Parametr.UserId;
-                product.Name = position.Product.Name;
-                product.Description = position.Product.Description;
-                product.Value = position.Product.Value;
-                await context.Set<Product>().AddAsync(product, cancellationToken);
+            {                
+                var existingProduct = await context.Set<Product>().FirstOrDefaultAsync(p =>
+                    p.Name == position.Product.Name &&
+                    p.Description == position.Product.Description &&
+                    p.Value == position.Product.Value &&
+                    p.UserId == parametr.UserId, cancellationToken);
+
+                if (existingProduct is null)
+                {
+                    product = new Product
+                    {
+                        UserId = parametr.UserId,
+                        Name = position.Product.Name,
+                        Description = position.Product.Description,
+                        Value = position.Product.Value
+                    };
+                    await context.Set<Product>().AddAsync(product, cancellationToken);
+                }
+                else
+                {
+                    product = existingProduct;
+                }
             }
-            if (position.ProductId is not null)
+            else
             {
-                product = await context.Set<Product>().FirstOrDefaultAsync(c => c.ProductId == position.ProductId, cancellationToken: cancellationToken)
+                product = await context.Set<Product>().FirstOrDefaultAsync(c => c.ProductId == position.ProductId, cancellationToken)
                     ?? throw new InvalidOperationException($"Product with ID {position.ProductId} not found.");
             }
 
