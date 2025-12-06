@@ -13,7 +13,21 @@ public static class InvoiceMappers
         invoice == null
         ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null when mapping to InvoiceDto.")
         :
-        new(invoice.InvoiceId, invoice.Title, invoice.TotalAmount, invoice.PaymentDate, invoice.CreatedDate, invoice.Comments, invoice.ClientId, invoice.UserId, invoice.MethodOfPayment, invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList());
+        new(
+            invoice.InvoiceId, 
+            invoice.Title, 
+            invoice.TotalAmount, 
+            invoice.PaymentDate, 
+            invoice.CreatedDate, 
+            invoice.Comments, 
+            invoice.ClientId,
+            invoice.UserId, 
+            invoice.MethodOfPayment, 
+            invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList(),
+            invoice.ClientName,
+            invoice.ClientNip,
+            invoice.ClientAddress
+            );
 
     public static Invoice ToEntity(this InvoiceDto dto) =>
         dto == null

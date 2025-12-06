@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.API.Middleware;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace CreateInvoiceSystem.API.Middleware;
 
 public class ValidationExceptionMiddleware(RequestDelegate next)
 {
@@ -56,13 +58,22 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
                 error = ex.Message
             });
         }
-        catch(Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        catch(DbUpdateException ex)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             context.Response.ContentType = "application/json";
+            static string GetInnermostMessage(Exception exception)
+            {
+                while (exception.InnerException != null)
+                    exception = exception.InnerException;
+                return exception.Message;
+            }
+
+            var detailedMessage = GetInnermostMessage(ex);
+
             await context.Response.WriteAsJsonAsync(new
             {
-                error = ex.Message
+                error = detailedMessage
             });
         }
         catch (Exception ex)

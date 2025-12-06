@@ -39,21 +39,6 @@ public static class InvoicePositionMappers
             ProductId = dto.ProductId,
             Product = dto.Product.ToEntity(),
             Quantity = dto.Quantity
-        };
-
-    public static InvoicePosition MapToInvoicePosition(InvoicePositionDto dto) =>
-        dto == null
-        ? throw new ArgumentNullException(nameof(dto), "InvoicePositionDto cannot be null when mapping to InvoicePosition.")
-        :
-         new()
-         {
-             ProductId = dto.ProductId,
-             Quantity = dto.Quantity
-         };
-
-    public static List<InvoicePositionDto> ToDtoList(this IEnumerable<InvoicePosition> invoicePositions) =>
-        invoicePositions == null
-        ? throw new ArgumentNullException(nameof(invoicePositions), "InvoicePositions lis cannot be null when mapping to InvoicePositionDto's list.")
-        :
-         [.. invoicePositions.Select(a => a.ToDto())];
+        };   
+    
 }

@@ -41,7 +41,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .HasForeignKey(c => c.AddressId)
             .OnDelete(DeleteBehavior.NoAction);
         modelBuilder.Entity<Client>()
-            .HasIndex(c => c.Nip)
+            .HasIndex(c => new { c.Nip, c.UserId })
             .IsUnique();
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Client)

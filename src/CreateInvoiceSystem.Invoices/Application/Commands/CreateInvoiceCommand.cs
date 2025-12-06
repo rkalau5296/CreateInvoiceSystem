@@ -8,9 +8,9 @@ using CreateInvoiceSystem.Abstractions.Mappers;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 
-public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceDto>
+public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto>
 {
-    public override async Task<CreateInvoiceDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
+    public override async Task<InvoiceDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         ValidateInvoiceParametr(this.Parametr);
 
@@ -29,7 +29,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, CreateInvoiceD
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return this.Parametr;
+        return InvoiceMappers.ToDto(entity);
     }
 
     private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)
