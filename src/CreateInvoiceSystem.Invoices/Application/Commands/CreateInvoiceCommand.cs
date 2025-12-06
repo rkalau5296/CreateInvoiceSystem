@@ -39,11 +39,30 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto>
         if (parametr.InvoicePositions is null || parametr.InvoicePositions.Count == 0)
             throw new InvalidOperationException("Invoice must contain at least one position.");
 
-        if (parametr.ClientId is null && parametr.Client is null)
-            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
+        if (parametr.ClientId is null && (parametr.Client is null || IsClientDtoEmpty(parametr.Client)))
+            throw new InvalidOperationException("Invoice must contain clientId or Client details.");       
 
         if (parametr.InvoicePositions.Any(ip => ip.Product is null && ip.ProductId is null))
             throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
+    }
+
+    private static bool IsClientDtoEmpty(CreateClientDto client)
+    {
+        if (client == null)
+            return true;
+
+        return string.IsNullOrEmpty(client.Name)
+            && string.IsNullOrEmpty(client.Nip)
+            && (
+                client.Address == null ||
+                (
+                    string.IsNullOrEmpty(client.Address.Street) &&
+                    string.IsNullOrEmpty(client.Address.Number) &&
+                    string.IsNullOrEmpty(client.Address.City) &&
+                    string.IsNullOrEmpty(client.Address.PostalCode) &&
+                    string.IsNullOrEmpty(client.Address.Country)
+                )
+            );
     }
 
     private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IDbContext context, CancellationToken cancellationToken)
