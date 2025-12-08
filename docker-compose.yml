@@ -1,0 +1,17 @@
+﻿version: '3.8'
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SuperSecretPass!234
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+#    networks:
+#      - backend
+#networks:
+#  backend:
+#    driver: bridge
+
