@@ -27,13 +27,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.BuildTe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.gitignore = .gitignore
+		.github\workflows\ci.yml = .github\workflows\ci.yml
 		docker-compose.yml = docker-compose.yml
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Users", "src\CreateInvoiceSystem.Users\CreateInvoiceSystem.Users.csproj", "{EAD4E50B-3554-F2FB-0BA8-96E1E247D217}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Persistence.Seed.Mock", "src\CreateInvoiceSystem.Persistence.Seed.Mock\CreateInvoiceSystem.Persistence.Seed.Mock.csproj", "{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -165,6 +167,18 @@ Global
 		{EAD4E50B-3554-F2FB-0BA8-96E1E247D217}.Release|x64.Build.0 = Release|Any CPU
 		{EAD4E50B-3554-F2FB-0BA8-96E1E247D217}.Release|x86.ActiveCfg = Release|Any CPU
 		{EAD4E50B-3554-F2FB-0BA8-96E1E247D217}.Release|x86.Build.0 = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|x64.Build.0 = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Debug|x86.Build.0 = Debug|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|x64.ActiveCfg = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|x64.Build.0 = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|x86.ActiveCfg = Release|Any CPU
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -180,6 +194,7 @@ Global
 		{7E5EB82B-63E5-54CD-207F-92BF5E477F13} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{0735F4FE-5604-9BA1-DD88-05631C1EE9F4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{EAD4E50B-3554-F2FB-0BA8-96E1E247D217} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{137D5DE4-7D8A-FE8D-804E-9537B940C3A9} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B0B660D-CCA3-49AF-9023-8C1BC503EE00}
