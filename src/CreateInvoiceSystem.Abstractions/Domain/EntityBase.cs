@@ -1,6 +1,6 @@
-﻿namespace CreateInvoiceSystem.SharedKernel.Domain;
+﻿using System.ComponentModel.DataAnnotations;
 
-using System.ComponentModel.DataAnnotations;
+namespace CreateInvoiceSystem.Abstractions.Domain;
 
 public abstract class EntityBase
 {

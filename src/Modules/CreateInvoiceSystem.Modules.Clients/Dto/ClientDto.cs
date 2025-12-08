@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Abstractions.Dto;
+﻿using CreateInvoiceSystem.Abstractions.Dto;
+
+namespace CreateInvoiceSystem.Modules.Clients.Dto;
 
 public record ClientDto(
     int ClientId,   

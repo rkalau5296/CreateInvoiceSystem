@@ -11,7 +11,7 @@ public class BuildVerificationTests
         {
             @"..\..\..\..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj",
+            @"..\..\..\..\..\src\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj",
             @"..\..\..\..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",            
             @"..\..\..\..\..\src\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj",

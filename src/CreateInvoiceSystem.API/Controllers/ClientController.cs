@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.API.Controllers;
+﻿using CreateInvoiceSystem.Modules.Clients.Dto;
+
+namespace CreateInvoiceSystem.API.Controllers;
 
 using CreateInvoiceSystem.Abstractions.ControllerBase;
 using CreateInvoiceSystem.Abstractions.Dto;

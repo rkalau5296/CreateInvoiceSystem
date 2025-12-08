@@ -1,13 +1,20 @@
-﻿namespace CreateInvoiceSystem.Persistence;
+﻿using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Clients.Persistence;
+
+namespace CreateInvoiceSystem.Persistence;
 
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IDbContext
+public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : 
+    DbContext(options),
+    IClientDbContext,
+    IDbContext
 {
+    public DbSet<Client> Clients { get; set; }
+    
     public DbSet<Address> Addresses => Set<Address>();
-    public DbSet<Client> Clients => Set<Client>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
