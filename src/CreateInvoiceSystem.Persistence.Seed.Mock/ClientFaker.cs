@@ -17,7 +17,7 @@ public static class ClientFaker
     public static Client Generate(User user)
     {
         var client = Faker.Generate();
-        //client.User = user;
+        client.UserId = user.UserId;
         return client;
     }
     

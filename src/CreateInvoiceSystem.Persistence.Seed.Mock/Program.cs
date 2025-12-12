@@ -55,3 +55,19 @@ foreach (var user in users)
     dbContext.Clients.AddRange(clients);
     dbContext.SaveChanges();
 }
+Console.WriteLine("------------------------------------------------");
+Console.WriteLine("Create Products");
+
+foreach (var user in users)
+{
+    var products = ProductFaker.Generate(25, user).ToList();
+    dbContext.Products.AddRange(products);
+    dbContext.SaveChanges();
+
+    
+    foreach (var product in products)
+    {
+        var productJson = JsonSerializer.Serialize(product, jsonOptions);
+        Console.WriteLine(productJson);
+    }
+}
