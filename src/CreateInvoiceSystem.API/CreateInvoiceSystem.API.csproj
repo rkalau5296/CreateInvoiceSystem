@@ -23,8 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
-    <ProjectReference Include="..\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />    
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />    
   </ItemGroup>
 </Project>
