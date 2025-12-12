@@ -32,7 +32,7 @@ Plik ten nie jest wersjonowany i należy go utworzyć samodzielnie.
 Aby wykonać migracje na bazie danych uruchomionej w kontenerze, przejdź do katalogu `src` i użyj polecenia:
 
 ```
-dotnet ef database update --project ./CreateInvoiceSystem.Persistence --startup-project ./CreateInvoiceSystem.API
+dotnet ef database update --project src/CreateInvoiceSystem.Persistence/CreateInvoiceSystem.Persistence.csproj --startup-project src/CreateInvoiceSystem.API/CreateInvoiceSystem.API.csproj
 ```
 
 Upewnij się, że masz zainstalowane narzędzie `dotnet-ef`:
@@ -47,7 +47,7 @@ Aby zapełnić bazę przykładowymi danymi, uruchom projekt `CreateInvoiceSystem
 
 Przykład:
 ```
-dotnet run --project ./CreateInvoiceSystem.Persistence.Seed.Mock -cs "Server=localhost,1433;Database=CreateInvoiceSystemDb;User Id=sa;Password=SuperSecretPass!234;TrustServerCertificate=True;"
+dotnet run --project ./src/CreateInvoiceSystem.Persistence.Seed.Mock -cs "Server=localhost,1433;Database=CreateInvoiceSystemDb;User Id=sa;Password=SuperSecretPass!234;TrustServerCertificate=True;"
 ```
 
 Argument `connectionString` powinien zawierać pełny connection string do Twojej bazy danych SQL Server.
