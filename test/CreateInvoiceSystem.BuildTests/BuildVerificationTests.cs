@@ -7,27 +7,40 @@ public class BuildVerificationTests
     [Fact]
     public void AllProjects_Should_Build_Successfully()
     {
-        var projectsToBuild = new[]
-        {
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",            
-        };
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+        var src = Path.Combine(root, "src");
+        
+        var allCsproj = Directory.GetFiles(src, "*.csproj", SearchOption.AllDirectories);
+        
+        var projectsToBuild = allCsproj
+            .Where(p =>
+            {
+                var fileName = Path.GetFileName(p);
+                var inModules = p.Contains(Path.Combine("src", "Modules") + Path.DirectorySeparatorChar);
+                var isCreateInvoiceSystem = fileName.StartsWith("CreateInvoiceSystem.", StringComparison.OrdinalIgnoreCase);
+                
+                return isCreateInvoiceSystem || inModules;
+            })
+            .OrderBy(p => p)
+            .ToArray();
+
+        Assert.True(projectsToBuild.Length > 0, "Nie znaleziono żadnych plików .csproj do zbudowania w katalogu src/.");
 
         foreach (var project in projectsToBuild)
         {
-            var process = new Process();
-            process.StartInfo.FileName = "dotnet";
-            process.StartInfo.Arguments = $"build \"{project}\"";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
+            var process = new Process
+            {
+                StartInfo =
+                {
+                    FileName = "dotnet",
+                    Arguments = $"build \"{project}\" --nologo",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = root
+                }
+            };
 
             process.Start();
             string output = process.StandardOutput.ReadToEnd();
