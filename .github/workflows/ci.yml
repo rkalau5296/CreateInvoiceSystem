@@ -3,8 +3,8 @@
 on:
   push:
     branches:
-      - master
-  workflow_dispatch:  # pozwala uruchomić ręcznie
+      - '*'
+  workflow_dispatch:  
 
 jobs:
   build:
