@@ -1,6 +1,4 @@
-﻿namespace CreateInvoiceSystem.API.Controllers;
-
-using CreateInvoiceSystem.Abstractions.ControllerBase;
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.CreateProduct;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProduct;
@@ -8,7 +6,12 @@ using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProd
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.UpdateProduct;
 using CreateInvoiceSystem.Modules.Products.Dto;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+namespace CreateInvoiceSystem.Modules.Products.Controllers;
+
 
 [ApiController]
 [Route("[controller]")]

@@ -6,9 +6,11 @@ using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
 using CreateInvoiceSystem.Modules.Users.Dto;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-namespace CreateInvoiceSystem.API.Controllers;
+namespace CreateInvoiceSystem.Modules.Users.Controllers;
 
 
 [ApiController]

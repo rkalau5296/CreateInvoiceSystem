@@ -1,12 +1,13 @@
-﻿namespace CreateInvoiceSystem.API.Controllers;
-
-using CreateInvoiceSystem.Abstractions.ControllerBase;
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRate;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+namespace CreateInvoiceSystem.Modules.Nbp.Controllers;
 
 public class CurrencyRatesController: ApiControllerBase
 {

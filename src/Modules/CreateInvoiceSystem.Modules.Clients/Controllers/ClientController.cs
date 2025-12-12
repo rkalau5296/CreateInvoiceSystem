@@ -1,7 +1,4 @@
 ﻿using CreateInvoiceSystem.Modules.Clients.Dto;
-
-namespace CreateInvoiceSystem.API.Controllers;
-
 using CreateInvoiceSystem.Abstractions.ControllerBase;
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.DeleteClient;
@@ -10,6 +7,11 @@ using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClien
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+
+namespace CreateInvoiceSystem.Modules.Clients.Controllers;
+
 
 [ApiController]
 [Route("[controller]")]
