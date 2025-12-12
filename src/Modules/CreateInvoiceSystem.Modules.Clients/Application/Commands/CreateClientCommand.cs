@@ -1,31 +1,23 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Dto;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Mappers;
-using CreateInvoiceSystem.Modules.Clients.Persistence;
-using Microsoft.Extensions.Logging;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;
 
-public class CreateClientCommand
+public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto>
 {
-    private readonly IClientDbContext _dbContext;
-    private readonly ILogger<CreateClientCommand> _logger;
-
-    public CreateClientCommand(IClientDbContext dbContext, ILogger<CreateClientCommand> logger)
+    public override async Task<CreateClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
+        if (this.Parametr is null)
+            throw new ArgumentNullException(nameof(context));
 
-    public async Task<ClientDto> Execute(CreateClientDto parametr, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(parametr);
+        var entity = ClientMappers.ToEntity(this.Parametr);
 
-        var entity = parametr.ToEntity();
+        await context.Set<Client>().AddAsync(entity, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
-        await _dbContext.Clients.AddAsync(entity, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        
-        return entity.ToDto();
+        return this.Parametr;
     }
 }
