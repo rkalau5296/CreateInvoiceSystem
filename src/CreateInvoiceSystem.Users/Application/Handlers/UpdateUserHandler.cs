@@ -1,8 +1,8 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Users.Application.Commands;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.UpdateUser;
+using CreateInvoiceSystem.Modules.Users.Application.Commands;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
 using MediatR;
 
 

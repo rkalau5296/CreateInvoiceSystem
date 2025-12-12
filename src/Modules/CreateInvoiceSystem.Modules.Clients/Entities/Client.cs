@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Entities;
+﻿using CreateInvoiceSystem.Modules.Addresses.Entities;
 
 namespace CreateInvoiceSystem.Modules.Clients.Entities;
 
@@ -9,7 +9,6 @@ public class Client
     public string Nip { get; set; }
     public int AddressId { get; set; }    
     public Address Address { get; set; }    
-    public int UserId { get; set; }
-    public User User { get; set; }
+    public int UserId { get; set; }    
     public bool IsDeleted { get; set; }
 }

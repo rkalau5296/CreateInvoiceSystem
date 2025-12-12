@@ -3,12 +3,11 @@
 namespace CreateInvoiceSystem.API.Controllers;
 
 using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Abstractions.Dto;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.CreateClient;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.DeleteClient;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClient;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.DeleteClient;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClient;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

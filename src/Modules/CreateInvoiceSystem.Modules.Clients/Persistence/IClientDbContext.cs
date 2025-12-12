@@ -1,14 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Entities;
+﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Clients.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Modules.Clients.Persistence;
 
-public interface IClientDbContext : IDbContext
+public interface IClientDbContext : ISaveChangesContext
 {
     public DbSet<Client> Clients { get; set; }
-}
-
-public interface IDbContext
-{
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

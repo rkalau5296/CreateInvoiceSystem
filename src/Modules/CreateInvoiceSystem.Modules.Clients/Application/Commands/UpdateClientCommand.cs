@@ -1,14 +1,14 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Mappers;
+using CreateInvoiceSystem.Modules.Clients.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;
 
-public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto>
+public class UpdateClientCommand(IInvoiceReadService invoiceRead) : CommandBase<UpdateClientDto, UpdateClientDto>
 {
     public override async Task<UpdateClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
@@ -16,13 +16,11 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto>
             throw new ArgumentNullException(nameof(context));
 
         var client = await context.Set<Client>()
-            .Include(c => c.Address)
-            .Include(u => u.User)
+            .Include(c => c.Address)            
             .FirstOrDefaultAsync(c => c.ClientId == Parametr.ClientId, cancellationToken: cancellationToken)     
             ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
 
-        bool isUsed = await context.Set<Invoice>()
-            .AnyAsync(i => i.ClientId == Parametr.ClientId, cancellationToken);
+        var isUsed = await invoiceRead.IsClientUsedAsync(Parametr.ClientId, cancellationToken);
 
         if (!isUsed)
         {

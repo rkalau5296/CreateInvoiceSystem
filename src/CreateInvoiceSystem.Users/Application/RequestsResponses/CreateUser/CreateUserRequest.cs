@@ -1,6 +1,6 @@
-﻿namespace CreateInvoiceSystem.Users.Application.RequestsResponses.CreateUser;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
 
-using CreateInvoiceSystem.Abstractions.Dto;
+using CreateInvoiceSystem.Modules.Users.Dto;
 using MediatR;
 
 public class CreateUserRequest(CreateUserDto UserDto) : IRequest<CreateUserResponse>

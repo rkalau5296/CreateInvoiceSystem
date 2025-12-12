@@ -1,11 +1,10 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Users.Application.Commands;
-using CreateInvoiceSystem.Abstractions.Mappers;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.DeleteUser;
-using CreateInvoiceSystem.Abstractions.Entities;
 using MediatR;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Application.Commands;
 
 public class DeleteUserHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteUserRequest, DeleteUserResponse>
 {

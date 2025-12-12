@@ -1,5 +1,5 @@
 ﻿using Bogus;
-using CreateInvoiceSystem.Abstractions.Entities;
+using CreateInvoiceSystem.Modules.Addresses.Entities;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 

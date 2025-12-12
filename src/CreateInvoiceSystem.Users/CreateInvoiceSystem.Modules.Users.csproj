@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.0" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.11" />
+    <PackageReference Include="NLog" Version="6.0.6" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Addresses\CreateInvoiceSystem.Modules.Addresses.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.InvoicePositions\CreateInvoiceSystem.Modules.InvoicePositions.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices\CreateInvoiceSystem.Modules.Invoices.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products\CreateInvoiceSystem.Modules.Products.csproj" />    
+  </ItemGroup>
+</Project>

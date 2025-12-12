@@ -1,15 +1,16 @@
 ﻿using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Clients.Application.Commands;
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Modules.Clients.Services;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 
-public class UpdateClientHandler(ICommandExecutor commandExecutor) : IRequestHandler<UpdateClientRequest, UpdateClientResponse>
+public class UpdateClientHandler(ICommandExecutor commandExecutor, IInvoiceReadService readService) : IRequestHandler<UpdateClientRequest, UpdateClientResponse>
 {    
     public async Task<UpdateClientResponse> Handle(UpdateClientRequest request, CancellationToken cancellationToken)
     {        
-        var command = new UpdateClientCommand() { Parametr = request.Client };
+        var command = new UpdateClientCommand(readService) { Parametr = request.Client };
         
         var client = await commandExecutor.Execute(command, cancellationToken);        
 

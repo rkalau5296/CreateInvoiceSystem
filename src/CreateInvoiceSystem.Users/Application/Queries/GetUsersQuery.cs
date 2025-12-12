@@ -1,8 +1,8 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Queries;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Queries;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Abstractions.Entities;
+using CreateInvoiceSystem.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class GetUsersQuery : QueryBase<List<User>>

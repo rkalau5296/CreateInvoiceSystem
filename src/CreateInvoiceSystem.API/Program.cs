@@ -2,17 +2,21 @@ using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.ValidationBehavior;
-using CreateInvoiceSystem.Clients.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Clients.Application.Validators;
-using CreateInvoiceSystem.Invoices.Application.RequestsResponses.GetInvoices;
-using CreateInvoiceSystem.Invoices.Application.Validators;
-using CreateInvoiceSystem.Nbp.Application.Options;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Services;
+using CreateInvoiceSystem.Modules.InvoicePositions.Services;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
+using CreateInvoiceSystem.Modules.Invoices.Services;
+using CreateInvoiceSystem.Modules.Nbp.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
+using CreateInvoiceSystem.Modules.Products.Application.Validators;
+using CreateInvoiceSystem.Modules.Products.Services;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Application.Validators;
 using CreateInvoiceSystem.Persistence;
-using CreateInvoiceSystem.Products.Application.RequestsResponses.GetProducts;
-using CreateInvoiceSystem.Products.Application.Validators;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUsers;
-using CreateInvoiceSystem.Users.Application.Validators;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +46,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidator>();
-
+builder.Services.AddScoped<IInvoicePositionReadService, InvoicePositionReadService>();
+builder.Services.AddScoped<IInvoiceReadService, InvoiceReadService>();
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

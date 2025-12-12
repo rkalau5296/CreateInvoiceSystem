@@ -1,10 +1,11 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Commands;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Commands;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Abstractions.Dto;
-using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Abstractions.Mappers;
+using CreateInvoiceSystem.Modules.Addresses.Entities;
+using CreateInvoiceSystem.Modules.Users.Dto;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 public class DeleteUserCommand : CommandBase<User, UserDto>

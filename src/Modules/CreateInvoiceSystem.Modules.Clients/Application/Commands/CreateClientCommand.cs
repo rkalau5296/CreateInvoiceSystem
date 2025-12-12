@@ -8,25 +8,18 @@ namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;
 
 public class CreateClientCommand
 {
-    private IClientDbContext _dbContext;
-    private ILogger<CreateClientCommand> _logger;
+    private readonly IClientDbContext _dbContext;
+    private readonly ILogger<CreateClientCommand> _logger;
 
-    public CreateClientCommand(
-        IClientDbContext dbContext, 
-        ILogger<CreateClientCommand> logger
-    )
+    public CreateClientCommand(IClientDbContext dbContext, ILogger<CreateClientCommand> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task<ClientDto> Execute(
-        CreateClientDto parametr,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<ClientDto> Execute(CreateClientDto parametr, CancellationToken cancellationToken = default)
     {
-        if (parametr is null)
-            throw new ArgumentNullException(nameof(parametr));
+        ArgumentNullException.ThrowIfNull(parametr);
 
         var entity = parametr.ToEntity();
 

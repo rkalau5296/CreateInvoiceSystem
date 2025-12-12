@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Mappers;
+﻿using CreateInvoiceSystem.Modules.Addresses.Mappers;
 using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
 
@@ -27,7 +27,7 @@ public static class ClientMappers
             ClientId = dto.ClientId,
             Name = dto.Name,
             Nip = dto.Nip,           
-            Address = dto.Address.ToEntity(),            
+            Address = dto.AddressDto.ToEntity(),            
             UserId = dto.UserId,
             IsDeleted = dto.IsDeleted
         };

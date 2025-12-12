@@ -1,10 +1,8 @@
-﻿using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Modules.Clients.Entities;
-
-namespace CreateInvoiceSystem.Modules.Clients.Configuration;
-
+﻿using CreateInvoiceSystem.Modules.Clients.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CreateInvoiceSystem.Modules.Clients.Configuration;
 
 public class ClientConfiguration : IEntityTypeConfiguration<Client>
 {

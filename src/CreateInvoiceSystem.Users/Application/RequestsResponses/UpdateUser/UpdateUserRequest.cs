@@ -1,6 +1,6 @@
-﻿namespace CreateInvoiceSystem.Users.Application.RequestsResponses.UpdateUser;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
 
-using CreateInvoiceSystem.Abstractions.Dto;
+using CreateInvoiceSystem.Modules.Users.Dto;
 using MediatR;
 
 public class UpdateUserRequest(UpdateUserDto updateUser, int id) : IRequest<UpdateUserResponse>

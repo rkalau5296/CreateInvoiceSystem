@@ -17,8 +17,10 @@
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup>    
     <ProjectReference Include="..\..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    
+    <ProjectReference Include="..\CreateInvoiceSystem.Modules.Addresses\CreateInvoiceSystem.Modules.Addresses.csproj" />
   </ItemGroup>
 
 </Project>

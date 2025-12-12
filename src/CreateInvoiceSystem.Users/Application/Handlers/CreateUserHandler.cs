@@ -1,8 +1,8 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Users.Application.Commands;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.CreateUser;
+using CreateInvoiceSystem.Modules.Users.Application.Commands;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
 using MediatR;
 
 public class CreateUserHandler(ICommandExecutor commandExecutor) : IRequestHandler<CreateUserRequest, CreateUserResponse>

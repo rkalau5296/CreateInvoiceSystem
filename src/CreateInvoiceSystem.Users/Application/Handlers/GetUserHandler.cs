@@ -1,9 +1,9 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Abstractions.Mappers;
-using CreateInvoiceSystem.Users.Application.Queries;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUser;
+using CreateInvoiceSystem.Modules.Users.Application.Queries;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUser;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;

@@ -1,8 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
+﻿namespace CreateInvoiceSystem.Modules.Clients.Application.Validators;
 
-namespace CreateInvoiceSystem.Modules.Clients.Application.Validators;
-
-using CreateInvoiceSystem.Abstractions.Entities;
 using Clients.Application.RequestsResponses.CreateClient;
 using FluentValidation;
 

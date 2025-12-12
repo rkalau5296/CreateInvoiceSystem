@@ -1,10 +1,10 @@
 ﻿namespace CreateInvoiceSystem.API.Controllers;
 
 using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRate;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse.ActualRates;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse.PreviousDatesRate;
-using CreateInvoiceSystem.Nbp.Application.RequestResponse.PreviousDatesRates;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRate;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

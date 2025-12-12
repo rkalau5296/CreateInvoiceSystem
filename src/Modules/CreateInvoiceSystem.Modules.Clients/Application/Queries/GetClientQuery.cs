@@ -4,7 +4,6 @@ namespace CreateInvoiceSystem.Modules.Clients.Application.Queries;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 
 public class GetClientQuery(int id) : QueryBase<Client>

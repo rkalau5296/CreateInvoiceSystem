@@ -1,0 +1,23 @@
+﻿namespace CreateInvoiceSystem.Modules.Nbp.Application.Handlers;
+
+using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.Modules.Nbp.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.Application.Queries;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
+using MediatR;
+using Microsoft.Extensions.Options;
+
+public class GetSeriesCurrencyRateFromToHandler(IQueryExecutor queryExecutor, IOptions<NbpApiOptions> options) : IRequestHandler<GetSeriesCurrencyRateFromToRequest, GetSeriesCurrencyRateFromToResponse>
+{
+    public async Task<GetSeriesCurrencyRateFromToResponse> Handle(GetSeriesCurrencyRateFromToRequest request, CancellationToken cancellationToken)
+    {
+        GetSeriesCurrencyRateFromToQuery query = new(request.TableName, request.CurrencyCode, request.DateFrom, request.DateTo, options.Value.BaseUrl);
+
+        var addresses = await queryExecutor.Execute(query);
+
+        return new GetSeriesCurrencyRateFromToResponse
+        {
+            Data = addresses
+        };
+    }
+}

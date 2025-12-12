@@ -1,7 +1,7 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Validators;
-
-using CreateInvoiceSystem.Users.Application.RequestsResponses.UpdateUser;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
 using FluentValidation;
+
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 {

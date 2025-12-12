@@ -1,6 +1,6 @@
 ﻿using Bogus;
-using CreateInvoiceSystem.Abstractions.Entities;
 using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Users.Entities;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 
@@ -17,7 +17,7 @@ public static class ClientFaker
     public static Client Generate(User user)
     {
         var client = Faker.Generate();
-        client.User = user;
+        //client.User = user;
         return client;
     }
     

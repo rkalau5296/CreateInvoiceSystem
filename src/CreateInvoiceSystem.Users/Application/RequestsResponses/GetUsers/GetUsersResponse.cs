@@ -1,7 +1,7 @@
-﻿namespace CreateInvoiceSystem.Users.Application.RequestsResponses.GetUsers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.Dto;
+using CreateInvoiceSystem.Modules.Users.Dto;
 
 public class GetUsersResponse : ResponseBase<List<UserDto>>
 {    

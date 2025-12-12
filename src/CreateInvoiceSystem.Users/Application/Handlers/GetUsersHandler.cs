@@ -1,11 +1,11 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Handlers;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Abstractions.Entities;
-using CreateInvoiceSystem.Users.Application.Queries;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.GetUsers;
 using MediatR;
-using CreateInvoiceSystem.Abstractions.Mappers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Mappers;
+using CreateInvoiceSystem.Modules.Users.Application.Queries;
 
 public class GetUsersHandler(IQueryExecutor queryExecutor) : IRequestHandler<GetUsersRequest, GetUsersResponse>
 {

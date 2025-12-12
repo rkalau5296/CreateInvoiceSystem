@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Users.Application.RequestsResponses.DeleteUser;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
 
 using MediatR;
 

@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Abstractions.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Reflection.Emit;
 
-namespace CreateInvoiceSystem.Users.Configuration;
+
+namespace CreateInvoiceSystem.Modules.Users.Configuration;
 
 public class UserConfiguration: IEntityTypeConfiguration<User>
 {
@@ -21,14 +21,14 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
         
-        builder.HasMany(u => u.Clients)
-            .WithOne(c => c.User)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.NoAction);
-        builder.HasMany(u => u.Products)
-            .WithOne(p => p.User)
-            .HasForeignKey(p => p.UserId)
-            .OnDelete(DeleteBehavior.NoAction);
+        //builder.HasMany(u => u.Clients)
+        //    .WithOne(c => c.User)
+        //    .HasForeignKey(c => c.UserId)
+        //    .OnDelete(DeleteBehavior.NoAction);
+        //builder.HasMany(u => u.Products)
+        //    .WithOne(p => p.User)
+        //    .HasForeignKey(p => p.UserId)
+        //    .OnDelete(DeleteBehavior.NoAction);
 
         //builder.HasMany(u => u.Invoices)
         //        .WithOne(i => i.User)

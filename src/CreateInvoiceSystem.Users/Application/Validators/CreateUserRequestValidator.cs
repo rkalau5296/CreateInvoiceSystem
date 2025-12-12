@@ -1,8 +1,7 @@
-﻿namespace CreateInvoiceSystem.Users.Application.Validators;
-
-using CreateInvoiceSystem.Users.Application.RequestsResponses;
-using CreateInvoiceSystem.Users.Application.RequestsResponses.CreateUser;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
 using FluentValidation;
+
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {

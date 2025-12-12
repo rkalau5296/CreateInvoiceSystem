@@ -1,0 +1,22 @@
+﻿using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.InvoicePositions.Entities;
+
+namespace CreateInvoiceSystem.Modules.Invoices.Entities;
+
+public class Invoice
+{    
+    public int InvoiceId { get; set; }    
+    public string Title { get; set; }
+    public decimal TotalAmount { get; set; }        
+    public DateTime PaymentDate { get; set; }    
+    public DateTime CreatedDate { get; set; }    
+    public string Comments { get; set; }    
+    public int? ClientId { get; set; }    
+    public int UserId { get; set; }   
+    public Client Client { get; set; }    
+    public string MethodOfPayment { get; set; }
+    public string ClientName { get; set; }
+    public string ClientAddress { get; set; }
+    public string ClientNip { get; set; }
+    public ICollection<InvoicePosition> InvoicePositions { get; set; } = [];    
+}

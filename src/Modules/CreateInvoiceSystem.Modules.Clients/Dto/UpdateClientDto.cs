@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Dto;
+﻿using CreateInvoiceSystem.Modules.Addresses.Dto;
 
 namespace CreateInvoiceSystem.Modules.Clients.Dto;
 

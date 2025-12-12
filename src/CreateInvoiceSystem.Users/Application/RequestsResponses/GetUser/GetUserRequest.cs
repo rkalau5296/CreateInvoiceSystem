@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Users.Application.RequestsResponses.GetUser;
+﻿namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUser;
 
 using MediatR;
 
