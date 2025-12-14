@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251214124741_ClientNipUnique")]
+    partial class ClientNipUnique
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,6 +103,9 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("ProductDescription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ProductName")
                         .HasColumnType("nvarchar(max)");
 
@@ -112,6 +118,8 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasKey("InvoicePositionId");
 
                     b.HasIndex("InvoiceId");
+
+                    b.HasIndex("ProductId");
 
                     b.ToTable("InvoicePositions");
                 });
@@ -127,6 +135,9 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("ClientAddress")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ClientName")
                         .HasColumnType("nvarchar(max)");
 
@@ -137,13 +148,13 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("date");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MethodOfPayment")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("date");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
@@ -155,6 +166,8 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("InvoiceId");
+
+                    b.HasIndex("ClientId");
 
                     b.HasIndex("UserId");
 
@@ -252,15 +265,29 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("CreateInvoiceSystem.Modules.Products.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Invoices.Entities.Invoice", b =>
                 {
+                    b.HasOne("CreateInvoiceSystem.Modules.Clients.Entities.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("CreateInvoiceSystem.Modules.Users.Entities.User", null)
                         .WithMany("Invoices")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Products.Entities.Product", b =>
