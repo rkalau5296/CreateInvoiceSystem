@@ -3,12 +3,11 @@ using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Mappers;
-using CreateInvoiceSystem.Modules.Clients.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;
 
-public class UpdateClientCommand(IInvoiceReadService invoiceRead) : CommandBase<UpdateClientDto, UpdateClientDto>
+public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto>
 {
     public override async Task<UpdateClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
