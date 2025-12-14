@@ -14,24 +14,17 @@ public class UpdateProductCommand(IInvoicePositionReadService invoicePosRead) : 
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(context));
 
-        var product = await context.Set<Product>()            
-            .FirstOrDefaultAsync(c => c.ProductId == Parametr.ProductId, cancellationToken: cancellationToken)            
+        var product = await context.Set<Product>()
+            .FirstOrDefaultAsync(c => c.ProductId == Parametr.ProductId, cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
 
-        var isUsed = await invoicePosRead.IsProductUsedAsync(Parametr.ProductId, cancellationToken);        
 
-        if (!isUsed)
-        {
-            product.Name = this.Parametr.Name ?? product.Name;
-            product.Description = this.Parametr.Description ?? product.Description;
-            product.Value = this.Parametr.Value ?? product.Value;
-        }
-        else
-        {
-            throw new InvalidOperationException("The product cannot be edited because it has already been used in documents. Please update data on a new product or create a new client.");
-        }
+        product.Name = this.Parametr.Name ?? product.Name;
+        product.Description = this.Parametr.Description ?? product.Description;
+        product.Value = this.Parametr.Value ?? product.Value;
 
-        await context.SaveChangesAsync(cancellationToken);        
-        return this. Parametr;
+
+        await context.SaveChangesAsync(cancellationToken);
+        return this.Parametr;
     }
 }
