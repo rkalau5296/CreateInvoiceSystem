@@ -12,11 +12,10 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
            .NotEmpty().WithMessage("Name is required.")
            .MaximumLength(100);
         RuleFor(x => x.Invoice.ClientId)
-            .GreaterThan(0).WithMessage("ClientId is required.");        
+            .GreaterThan(0).WithMessage("ClientId is required.");
 
         RuleFor(x => x.Invoice.CreatedDate)
-            .NotEmpty().WithMessage("CreatedDate is required.")
-            .LessThanOrEqualTo(DateTime.Now).WithMessage("CreatedDate cannot be in the future.");
+            .NotEmpty().WithMessage("CreatedDate is required.");            
 
         RuleFor(x => x.Invoice.PaymentDate)
             .NotEmpty().WithMessage("PaymentDate is required.")

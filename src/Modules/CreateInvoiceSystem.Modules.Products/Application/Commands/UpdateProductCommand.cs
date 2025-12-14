@@ -22,7 +22,6 @@ public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductD
         product.Description = this.Parametr.Description ?? product.Description;
         product.Value = this.Parametr.Value ?? product.Value;
 
-
         await context.SaveChangesAsync(cancellationToken);
         return this.Parametr;
     }

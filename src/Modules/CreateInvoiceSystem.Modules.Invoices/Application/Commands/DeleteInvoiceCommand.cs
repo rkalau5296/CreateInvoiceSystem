@@ -14,16 +14,15 @@ public class DeleteInvoiceCommand : CommandBase<Invoice, InvoiceDto>
         if (Parametr is null)
             throw new ArgumentNullException(nameof(context)); 
 
-        var invoiceEntity = await context.Set<Invoice>()
-            //.Include(c => c.Invoice) 
+        var invoiceEntity = await context.Set<Invoice>()            
             .FirstOrDefaultAsync(a => a.InvoiceId == Parametr.InvoiceId, cancellationToken: cancellationToken) ??
                               throw new InvalidOperationException($"Invoice with ID {Parametr.InvoiceId} not found.");
 
-        var InvoiceDto = InvoiceMappers.ToDto(invoiceEntity);        
+        var invoiceDto = InvoiceMappers.ToDto(invoiceEntity);        
         
         context.Set<Invoice>().Remove(invoiceEntity);
         await context.SaveChangesAsync(cancellationToken);
 
-        return InvoiceDto;
+        return invoiceDto;
     }
 }

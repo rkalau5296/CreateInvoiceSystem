@@ -8,13 +8,13 @@ using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 
-public class DeleteClientHandler(ICommandExecutor commandExecutor, IInvoiceReadService readService) : IRequestHandler<DeleteClientRequest, DeleteClientResponse>
+public class DeleteClientHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteClientRequest, DeleteClientResponse>
 {
     public async Task<DeleteClientResponse> Handle(DeleteClientRequest request, CancellationToken cancellationToken)
     {
         var client = new Client { ClientId = request.Id };
 
-        var command = new DeleteClientCommand(readService) { Parametr = client };
+        var command = new DeleteClientCommand() { Parametr = client };
         await commandExecutor.Execute(command, cancellationToken);
 
         return new DeleteClientResponse()

@@ -9,35 +9,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;
 
-public class DeleteClientCommand(IInvoiceReadService invoiceRead) : CommandBase<Client, ClientDto>
+public class DeleteClientCommand : CommandBase<Client, ClientDto>
 {
     public override async Task<ClientDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
         if (Parametr is null)
-            throw new ArgumentNullException(nameof(context)); 
+            throw new ArgumentNullException(nameof(context));
 
         var clientEntity = await context.Set<Client>()
-            .Include(c => c.Address)            
+            .Include(c => c.Address)
             .FirstOrDefaultAsync(a => a.ClientId == Parametr.ClientId, cancellationToken: cancellationToken) ??
-                              throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
+                              throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");        
 
-        var clientDto = ClientMappers.ToDto(clientEntity);
+        context.Set<Client>().Remove(clientEntity);
+        context.Set<Address>().Remove(clientEntity.Address);
 
-        var isUsed = await invoiceRead.IsClientUsedAsync(Parametr.ClientId, cancellationToken);
-
-        if (!isUsed)
-        {
-            var clientAddress = clientEntity.Address ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
-            context.Set<Client>().Remove(clientEntity);
-            context.Set<Address>().Remove(clientEntity.Address);
-        }
-        else
-        {
-            clientEntity.IsDeleted = true;
-            context.Set<Client>().Update(clientEntity);
-        }
         await context.SaveChangesAsync(cancellationToken);
 
-        return clientDto;
+        return ClientMappers.ToDto(clientEntity); ;
     }
 }
