@@ -52,7 +52,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto>
             !string.Equals(oldCountry, persisted.Address?.Country, StringComparison.Ordinal)
         );
 
-        return persisted is not null
+        return hasChanged
             ? ClientMappers.ToUpdateDto(persisted)
             : throw new InvalidOperationException($"No changes were saved for client with ID {Parametr.ClientId}.");
     }

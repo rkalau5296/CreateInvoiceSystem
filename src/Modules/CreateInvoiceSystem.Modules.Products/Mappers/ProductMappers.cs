@@ -52,6 +52,17 @@ public static class ProductMappers
             UserId = dto.UserId
         };
 
+    public static UpdateProductDto ToUpdatedDto(this Product product) =>
+    product == null
+        ? throw new ArgumentNullException(nameof(product), "Product cannot be null when mapping to UpdateProductDto.")
+        : new UpdateProductDto(
+            product.ProductId,
+            product.Name,
+            product.Description,
+            product.Value,
+            product.IsDeleted
+        );
+
     public static List<ProductDto> ToDtoList(this IEnumerable<Product> products) =>
         products == null
         ? throw new ArgumentNullException(nameof(products), "Products cannot be null when mapping to ProductDto.")

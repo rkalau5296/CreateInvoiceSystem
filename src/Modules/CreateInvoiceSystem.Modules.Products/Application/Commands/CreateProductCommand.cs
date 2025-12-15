@@ -29,6 +29,12 @@ public class CreateProductCommand : CommandBase<CreateProductDto, CreateProductD
         await context.Set<Product>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return this.Parametr;
+        var persisted = await context.Set<Product>()
+            .AsNoTracking()            
+            .SingleOrDefaultAsync(c => c.ProductId == entity.ProductId, cancellationToken);
+
+        return persisted is not null
+            ? ProductMappers.ToCreateDto(entity)
+            : throw new InvalidOperationException("Product was saved but could not be reloaded.");
     }
 }
