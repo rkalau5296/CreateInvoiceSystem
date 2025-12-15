@@ -11,22 +11,8 @@ public class BuildVerificationTests
         var src = Path.Combine(root, "src");
         
         var allCsproj = Directory.GetFiles(src, "*.csproj", SearchOption.AllDirectories);
-        
-        var projectsToBuild = allCsproj
-            .Where(p =>
-            {
-                var fileName = Path.GetFileName(p);
-                var inModules = p.Contains(Path.Combine("src", "Modules") + Path.DirectorySeparatorChar);
-                var isCreateInvoiceSystem = fileName.StartsWith("CreateInvoiceSystem.", StringComparison.OrdinalIgnoreCase);
-                
-                return isCreateInvoiceSystem || inModules;
-            })
-            .OrderBy(p => p)
-            .ToArray();
 
-        Assert.True(projectsToBuild.Length > 0, "Nie znaleziono żadnych plików .csproj do zbudowania w katalogu src/.");
-
-        foreach (var project in projectsToBuild)
+        foreach (var project in allCsproj)
         {
             var process = new Process
             {

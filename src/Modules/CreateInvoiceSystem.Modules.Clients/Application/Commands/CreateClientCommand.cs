@@ -17,7 +17,8 @@ public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto>
             throw new ArgumentNullException(nameof(this.Parametr.Address));
 
         var exists = await context.Set<Client>()
-            .AsNoTracking()
+            
+
             .AnyAsync(c =>
                 c.Name == this.Parametr.Name &&
                 c.Address != null &&

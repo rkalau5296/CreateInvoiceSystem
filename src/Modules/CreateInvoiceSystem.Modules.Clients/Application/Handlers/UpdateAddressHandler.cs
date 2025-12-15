@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Clients.Application.Commands;
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
-using CreateInvoiceSystem.Modules.Clients.Services;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;

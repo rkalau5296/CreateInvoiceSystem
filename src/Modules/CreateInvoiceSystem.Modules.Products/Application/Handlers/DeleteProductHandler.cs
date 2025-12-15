@@ -1,12 +1,11 @@
-﻿namespace CreateInvoiceSystem.Modules.Products.Application.Handlers;
-
-using CreateInvoiceSystem.Abstractions.Executors;
+﻿using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Products.Application.Commands;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 using CreateInvoiceSystem.Modules.Products.Entities;
 using CreateInvoiceSystem.Modules.Products.Mappers;
-using CreateInvoiceSystem.Modules.Products.Services;
 using MediatR;
+
+namespace CreateInvoiceSystem.Modules.Products.Application.Handlers;
 
 public class DeleteProductHandler(ICommandExecutor commandExecutor) : IRequestHandler<DeleteProductRequest, DeleteProductResponse>
 {

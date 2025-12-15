@@ -4,7 +4,6 @@ using CreateInvoiceSystem.Modules.Addresses.Entities;
 using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Mappers;
-using CreateInvoiceSystem.Modules.Clients.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Modules.Clients.Application.Commands;

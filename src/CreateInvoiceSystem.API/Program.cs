@@ -4,16 +4,12 @@ using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Modules.Clients.Application.Validators;
-using CreateInvoiceSystem.Modules.Clients.Services;
-using CreateInvoiceSystem.Modules.InvoicePositions.Services;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
-using CreateInvoiceSystem.Modules.Invoices.Services;
 using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
 using CreateInvoiceSystem.Modules.Products.Application.Validators;
-using CreateInvoiceSystem.Modules.Products.Services;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
 using CreateInvoiceSystem.Modules.Users.Application.Validators;
 using CreateInvoiceSystem.Persistence;
@@ -46,8 +42,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidator>();
-builder.Services.AddScoped<IInvoicePositionReadService, InvoicePositionReadService>();
-builder.Services.AddScoped<IInvoiceReadService, InvoiceReadService>();
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

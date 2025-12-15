@@ -1,12 +1,11 @@
-﻿namespace CreateInvoiceSystem.Modules.Products.Application.Commands;
-
-using CreateInvoiceSystem.Abstractions.CQRS;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Modules.Products.Dto;
 using CreateInvoiceSystem.Modules.Products.Entities;
 using CreateInvoiceSystem.Modules.Products.Mappers;
-using CreateInvoiceSystem.Modules.Products.Services;
 using Microsoft.EntityFrameworkCore;
+
+namespace CreateInvoiceSystem.Modules.Products.Application.Commands;
 
 public class DeleteProductCommand : CommandBase<Product, ProductDto>
 {
