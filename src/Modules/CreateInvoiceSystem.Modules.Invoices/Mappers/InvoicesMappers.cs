@@ -1,6 +1,7 @@
 ﻿using CreateInvoiceSystem.Modules.Addresses.Dto;
 using CreateInvoiceSystem.Modules.Addresses.Entities;
 using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.InvoicePositions.Dto;
 using CreateInvoiceSystem.Modules.InvoicePositions.Mappers;
 using CreateInvoiceSystem.Modules.Invoices.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Entities;
@@ -114,5 +115,31 @@ public static class InvoiceMappers
         :
          [.. Invoices.Select(a => a.ToDto())];
 
-
+    public static UpdateInvoiceDto ToUpdateDto(this Invoice invoice) =>
+    invoice is null
+        ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null when mapping to UpdateInvoiceDto.")
+        : new UpdateInvoiceDto(
+            invoice.InvoiceId,
+            invoice.Title,
+            invoice.TotalAmount,
+            invoice.PaymentDate,
+            invoice.CreatedDate,
+            invoice.Comments,
+            invoice.ClientId,
+            invoice.UserId,
+            invoice.MethodOfPayment,
+            invoice.InvoicePositions?
+                .Select(ip => new UpdateInvoicePositionDto(
+                    ip.InvoicePositionId,
+                    ip.InvoiceId,
+                    ip.ProductName,
+                    ip.ProductDescription,
+                    ip.ProductValue,
+                    ip.Quantity
+                ))
+                .ToList() ?? [],
+            invoice.ClientName,
+            invoice.ClientNip,
+            invoice.ClientAddress
+        );
 }

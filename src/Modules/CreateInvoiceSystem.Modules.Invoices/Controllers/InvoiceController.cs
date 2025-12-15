@@ -47,9 +47,9 @@ public class InvoiceController : ApiControllerBase
 
     [HttpPut]
     [Route("update/id")]
-    public async Task<IActionResult> UpdateInvoiceAsync(int id, [FromBody] InvoiceDto InvoiceDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateInvoiceAsync(int id, [FromBody] UpdateInvoiceDto updateInvoiceDto, CancellationToken cancellationToken)
     {
-        UpdateInvoiceRequest request = new(id, InvoiceDto);
+        UpdateInvoiceRequest request = new(id, updateInvoiceDto);
         return await this.HandleRequest<UpdateInvoiceRequest, UpdateInvoiceResponse>(request, cancellationToken);
     }
 

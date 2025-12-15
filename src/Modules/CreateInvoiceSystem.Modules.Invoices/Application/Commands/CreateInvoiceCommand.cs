@@ -18,15 +18,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto>
 {
     public override async Task<InvoiceDto> Execute(IDbContext context, CancellationToken cancellationToken = default)
     {
-        ValidateInvoiceParametr(this.Parametr);
-
-        Invoice entity;       
+        ValidateInvoiceParametr(this.Parametr);               
 
         Client client = this.Parametr.ClientId is null
             ? await GetOrCreateClientAsync(this.Parametr, context, cancellationToken)
             : await GetClientByIdAsync(this.Parametr.ClientId.Value, context, cancellationToken);
 
-        entity = this.Parametr.ClientId is null
+        Invoice entity = this.Parametr.ClientId is null
             ? InvoiceMappers.ToInvoiceWithNewClient(this.Parametr, client)
             : InvoiceMappers.ToInvoiceWithExistingClient(this.Parametr, client);
 
@@ -35,7 +33,21 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto>
         await context.Set<Invoice>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return InvoiceMappers.ToDto(entity);
+        var persisted = await context.Set<Invoice>()
+            .AsNoTracking()
+            .Include(i => i.Client)
+            .ThenInclude(c => c.Address)
+            .Include(i => i.InvoicePositions)
+            .ThenInclude(p => p.Product)
+            .SingleOrDefaultAsync(i => i.InvoiceId == entity.InvoiceId, cancellationToken);
+
+        bool added = persisted is not null
+            && persisted.Client is not null
+            && persisted.InvoicePositions is not null;
+
+        return added 
+            ? InvoiceMappers.ToDto(entity)
+            : throw new InvalidOperationException("User was saved but could not be reloaded.");      
     }
 
     private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)

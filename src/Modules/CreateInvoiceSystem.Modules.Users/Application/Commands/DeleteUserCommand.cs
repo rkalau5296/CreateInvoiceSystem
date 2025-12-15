@@ -28,15 +28,15 @@ public class DeleteUserCommand : CommandBase<User, UserDto>
 
         await context.SaveChangesAsync(cancellationToken);
 
-        var addrExists = await context.Set<Address>()
+        bool addrExists = await context.Set<Address>()
             .AsNoTracking()
             .AnyAsync(a => a.AddressId == userEntity.Address.AddressId, cancellationToken);
 
-        var stillExists = await context.Set<User>()
+        bool userExists = await context.Set<User>()
             .AsNoTracking()
             .AnyAsync(c => c.UserId == userEntity.UserId, cancellationToken);
 
-        return !stillExists || !addrExists
+        return (!userExists && !addrExists)
             ? UserMappers.ToDto(userEntity)
             : throw new InvalidOperationException($"Failed to delete User or User address with ID {Parametr.UserId}.");
     }

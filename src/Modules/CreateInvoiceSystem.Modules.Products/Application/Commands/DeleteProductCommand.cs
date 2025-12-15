@@ -22,14 +22,13 @@ public class DeleteProductCommand : CommandBase<Product, ProductDto>
 
         context.Set<Product>().Remove(productEntity);
 
-        await context.SaveChangesAsync(cancellationToken);
-        
+        await context.SaveChangesAsync(cancellationToken);        
 
-        var stillExists = await context.Set<Product>()
+        bool prodExists = await context.Set<Product>()
             .AsNoTracking()
             .AnyAsync(c => c.ProductId == productEntity.ProductId, cancellationToken);
 
-        return !stillExists 
+        return !prodExists
             ? ProductMappers.ToDto(productEntity)
             : throw new InvalidOperationException($"Failed to delete Product with ID {Parametr.ProductId}.");
     }

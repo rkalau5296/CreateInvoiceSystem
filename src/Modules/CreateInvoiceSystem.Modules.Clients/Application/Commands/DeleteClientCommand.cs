@@ -18,24 +18,24 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto>
         var clientEntity = await context.Set<Client>()
             .Include(c => c.Address)
             .FirstOrDefaultAsync(a => a.ClientId == Parametr.ClientId, cancellationToken: cancellationToken) ??
-                              throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");        
-
-        context.Set<Client>().Remove(clientEntity);
+                              throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
 
         if (clientEntity.Address is not null)
             context.Set<Address>().Remove(clientEntity.Address);
 
-        await context.SaveChangesAsync(cancellationToken);
+        context.Set<Client>().Remove(clientEntity);        
 
-        var addrExists = await context.Set<Address>()
-            .AsNoTracking()
-            .AnyAsync(a => a.AddressId == clientEntity.Address.AddressId, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         var stillExists = await context.Set<Client>()
             .AsNoTracking()
             .AnyAsync(c => c.ClientId == clientEntity.ClientId, cancellationToken);
 
-        return !stillExists || !addrExists
+        var addrExists = await context.Set<Address>()
+            .AsNoTracking()
+            .AnyAsync(a => a.AddressId == clientEntity.Address.AddressId, cancellationToken);        
+
+        return (!stillExists && !addrExists)
             ? ClientMappers.ToDto(clientEntity)
             : throw new InvalidOperationException($"Failed to delete Client or Client address with ID {Parametr.ClientId}.");
     }

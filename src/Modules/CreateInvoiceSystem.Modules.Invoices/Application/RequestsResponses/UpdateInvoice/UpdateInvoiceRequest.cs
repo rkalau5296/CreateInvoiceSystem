@@ -3,9 +3,9 @@
 using CreateInvoiceSystem.Modules.Invoices.Dto;
 using MediatR;
 
-public class UpdateInvoiceRequest(int id, InvoiceDto invoiceDto) : IRequest<UpdateInvoiceResponse>
+public class UpdateInvoiceRequest(int id, UpdateInvoiceDto updateInvoiceDto) : IRequest<UpdateInvoiceResponse>
 {
-    public InvoiceDto Invoice { get; } = invoiceDto with { InvoiceId = id };
+    public UpdateInvoiceDto Invoice { get; } = updateInvoiceDto with { InvoiceId = id };
     public int Id { get; set; } = id;
 
 }
