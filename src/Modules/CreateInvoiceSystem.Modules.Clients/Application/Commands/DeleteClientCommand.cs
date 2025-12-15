@@ -21,6 +21,7 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto>
                               throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");        
 
         context.Set<Client>().Remove(clientEntity);
+
         if (clientEntity.Address is not null)
             context.Set<Address>().Remove(clientEntity.Address);
 

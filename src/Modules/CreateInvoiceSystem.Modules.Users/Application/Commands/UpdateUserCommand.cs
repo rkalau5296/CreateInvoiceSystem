@@ -19,6 +19,17 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto>
             .FirstOrDefaultAsync(c => c.UserId == Parametr.UserId, cancellationToken: cancellationToken)            
             ?? throw new InvalidOperationException($"User with ID {Parametr.UserId} not found.");
         
+        string oldName = user.Name;
+        string oldCompanyName = user.CompanyName;
+        string oldEmail = user.Email;
+        string oldPassword = user.Password;
+        string oldNip = user.Nip;
+        string oldStreet = user.Address?.Street;
+        string oldNumber = user.Address?.Number;
+        string oldCity = user.Address?.City;
+        string oldPostal = user.Address?.PostalCode;
+        string oldCountry = user.Address?.Country;
+
         user.Name = this.Parametr.Name ?? user.Name;
         user.CompanyName = this.Parametr.CompanyName ?? user.CompanyName;
         user.Email = this.Parametr.Email ?? user.Email;
@@ -32,6 +43,27 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto>
         user.Address.Country = this.Parametr.Address?.Country ?? user.Address.Country;    
 
         await context.SaveChangesAsync(cancellationToken);
-        return UserMappers.ToUpdateUserDto(user);
+
+        var persisted = await context.Set<User>()
+            .AsNoTracking()
+            .Include(u => u.Address)
+            .SingleOrDefaultAsync(u => u.UserId == user.UserId, cancellationToken);
+
+        bool hasChanged = persisted is not null && (
+            !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
+            !string.Equals(oldCompanyName, persisted.CompanyName, StringComparison.Ordinal) ||
+            !string.Equals(oldEmail, persisted.Email, StringComparison.Ordinal) ||
+            !string.Equals(oldPassword, persisted.Password, StringComparison.Ordinal) ||
+            !string.Equals(oldNip, persisted.Nip, StringComparison.Ordinal) ||
+            !string.Equals(oldStreet, persisted.Address?.Street, StringComparison.Ordinal) ||
+            !string.Equals(oldNumber, persisted.Address?.Number, StringComparison.Ordinal) ||
+            !string.Equals(oldCity, persisted.Address?.City, StringComparison.Ordinal) ||
+            !string.Equals(oldPostal, persisted.Address?.PostalCode, StringComparison.Ordinal) ||
+            !string.Equals(oldCountry, persisted.Address?.Country, StringComparison.Ordinal)
+        );
+
+        return hasChanged
+            ? UserMappers.ToUpdateUserDto(persisted!)
+            : throw new InvalidOperationException($"No changes were saved for user with ID {Parametr.UserId}.");
     }
 }
