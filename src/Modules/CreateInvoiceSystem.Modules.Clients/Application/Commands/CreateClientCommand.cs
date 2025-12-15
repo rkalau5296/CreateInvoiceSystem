@@ -17,8 +17,6 @@ public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto>
             throw new ArgumentNullException(nameof(this.Parametr.Address));
 
         var exists = await context.Set<Client>()
-            
-
             .AnyAsync(c =>
                 c.Name == this.Parametr.Name &&
                 c.Address != null &&
@@ -38,6 +36,13 @@ public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto>
         await context.Set<Client>().AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return this.Parametr;
+        var persisted = await context.Set<Client>()
+            .AsNoTracking()
+            .Include(c => c.Address)
+            .SingleOrDefaultAsync(c => c.ClientId == entity.ClientId, cancellationToken);
+        
+        return persisted is not null
+            ? ClientMappers.ToCreateDto(entity)
+            : throw new InvalidOperationException("Client was saved but could not be reloaded.");
     }
 }

@@ -1,6 +1,8 @@
-﻿using CreateInvoiceSystem.Modules.Addresses.Mappers;
+﻿using CreateInvoiceSystem.Modules.Addresses.Entities;
+using CreateInvoiceSystem.Modules.Addresses.Mappers;
 using CreateInvoiceSystem.Modules.Clients.Dto;
 using CreateInvoiceSystem.Modules.Clients.Entities;
+using System.Xml.Linq;
 
 namespace CreateInvoiceSystem.Modules.Clients.Mappers;
 
@@ -44,6 +46,18 @@ public static class ClientMappers
             UserId = dto.UserId,
             IsDeleted = dto.IsDeleted
         };
+
+    public static CreateClientDto ToCreateDto(this Client client) =>
+    client == null
+        ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to CreateClientDto.")
+        : new CreateClientDto(
+            client.Name,
+            client.Nip,
+            client.Address?.ToDto(), 
+            client.UserId,
+            client.IsDeleted
+        );
+
 
     public static List<ClientDto> ToDtoList(this IEnumerable<Client> clients) =>
         clients == null
