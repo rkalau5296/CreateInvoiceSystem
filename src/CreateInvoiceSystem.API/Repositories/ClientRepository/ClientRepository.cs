@@ -1,6 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.ClientRepository;
@@ -24,11 +26,35 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
     public async Task<Client> GetByIdAsync(int clientId, bool includeAddress, CancellationToken cancellationToken)
     {
-        var query = _db.Set<Client>().AsNoTracking();
-        if (includeAddress)
-            query = query.Include(c => c.Address);
+        IQueryable<ClientEntity> clientQuery = _db.Set<ClientEntity>()
+            .AsNoTracking();
 
-        return await query.SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken);
+        var client = await clientQuery.SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
+
+        IQueryable<AddressEntity> addressQuery = _db.Set<AddressEntity>()
+            .AsNoTracking();
+
+        var address = await addressQuery.SingleOrDefaultAsync(a => a.AddressId == client.AddressId, cancellationToken)
+            ?? throw new InvalidOperationException($"Address with ID {client.AddressId} not found.");
+
+        return new Client
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Nip = client.Nip,
+            AddressId = client.AddressId,
+            UserId = client.UserId,
+            Address = new Address
+            {
+                AddressId = address.AddressId,
+                Street = address.Street,
+                Number = address.Number,
+                City = address.City,
+                PostalCode = address.PostalCode,
+                Country = address.Country
+            },
+        };
     }
 
     public async Task<List<Client>> GetAllAsync(bool includeAddress, bool excludeDeleted, CancellationToken cancellationToken)

@@ -133,8 +133,8 @@ builder.Services.AddScoped<IProductDbContext>(sp => sp.GetRequiredService<Create
 builder.Services.AddScoped<IInvoicePosistionDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IInvoiceDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IUserDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
-builder.Services.AddScoped<CreateInvoiceSystemDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
+
 
 // Logging
 builder.Logging.ClearProviders();
@@ -146,27 +146,14 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
-// Jeœli to middleware modyfikuje odpowiedzi Swaggera, w³¹cz po weryfikacji
-// app.UseMiddleware<ValidationExceptionMiddleware>();
+app.UseMiddleware<ValidationExceptionMiddleware>();
 app.UseAuthorization();
-
-// Swagger (domyœlna œcie¿ka /swagger/v1/swagger.json) + UI pod /swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
     c.RoutePrefix = "swagger";
 });
-
-// Diagnostyczna lista tras (mo¿esz usun¹æ po debugowaniu)
-app.MapGet("/__routes", (IEnumerable<EndpointDataSource> sources) =>
-{
-    var routes = sources.SelectMany(s => s.Endpoints)
-                        .Select(e => e.DisplayName)
-                        .OrderBy(x => x)
-                        .ToArray();
-    return Results.Json(routes);
-}).ExcludeFromDescription();
 
 app.MapControllers();
 app.Run();
