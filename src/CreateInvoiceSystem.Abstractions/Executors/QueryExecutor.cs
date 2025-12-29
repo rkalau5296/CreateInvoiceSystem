@@ -3,12 +3,13 @@ using CreateInvoiceSystem.Abstractions.DbContext;
 
 namespace CreateInvoiceSystem.Abstractions.Executors;
 
-public class QueryExecutor(IDbContext invoiceContext) : IQueryExecutor
+public class QueryExecutor : IQueryExecutor
 {
-    private readonly IDbContext invoiceContext = invoiceContext;
-
-    public Task<TResult> Execute<TResult>(QueryBase<TResult> query)
+    public Task<TResult> Execute<TResult, TDependency>(
+        QueryBase<TResult, TDependency> query,
+        TDependency dependency,
+        CancellationToken cancellationToken = default)
     {
-        return query.Execute(invoiceContext);
+        return query.Execute(dependency, cancellationToken);
     }
 }

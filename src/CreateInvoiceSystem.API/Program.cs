@@ -1,17 +1,19 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.API.Middleware;
+using CreateInvoiceSystem.API.Repositories.ClientRepository;
 using CreateInvoiceSystem.API.ValidationBehavior;
-using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Application.Validators;
-using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
-using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
-using CreateInvoiceSystem.Modules.Nbp.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
-using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
-using CreateInvoiceSystem.Modules.Products.Application.Validators;
-using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
-using CreateInvoiceSystem.Modules.Users.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
+using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
 using MediatR;
@@ -32,7 +34,6 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPr
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetUsersRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetActualCurrencyRatesRequest).Assembly));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetInvoicesRequest).Assembly));
-
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateClientRequestValidator>();
@@ -42,7 +43,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidator>();
-
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -60,15 +60,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-
+builder.Services.AddTransient<IClientRepository, ClientRepository>();
 builder.Services.AddTransient<ICommandExecutor, CommandExecutor>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(options =>
+builder.Services.AddDbContext<ICreateInvoiceSystemDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), options => options.EnableRetryOnFailure()));
-builder.Services.AddScoped<IDbContext, CreateInvoiceSystemDbContext>();
+builder.Services.AddScoped<IDbContext, ICreateInvoiceSystemDbContext>();
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();

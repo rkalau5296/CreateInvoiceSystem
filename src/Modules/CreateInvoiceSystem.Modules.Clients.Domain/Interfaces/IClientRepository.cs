@@ -1,0 +1,18 @@
+﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
+
+namespace CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+public interface IClientRepository : ISaveChangesContext
+{
+    Task<bool> ExistsAsync(string name, string street, string number, string city, string postalCode,
+        string country, int userId, CancellationToken cancellationToken);    
+    Task<List<Client>> GetAllAsync(bool includeAddress, bool excludeDeleted, CancellationToken cancellationToken);
+    Task<Client> GetByIdAsync(int clientId, bool includeAddress, CancellationToken cancellationToken);
+    Task AddAsync(Client entity, CancellationToken cancellationToken);
+    Task UpdateAsync(Client entity, CancellationToken cancellationToken);    
+    Task RemoveAsync(Client entity, CancellationToken cancellationToken);
+    Task RemoveAddressAsync(Address address, CancellationToken cancellationToken);
+    Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken);
+    Task<bool> AddressExistsByIdAsync(int addressId, CancellationToken cancellationToken);
+      
+}

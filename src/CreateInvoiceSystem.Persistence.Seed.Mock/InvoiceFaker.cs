@@ -1,10 +1,12 @@
-﻿using Bogus;
-using CreateInvoiceSystem.Modules.Addresses.Entities;
-using CreateInvoiceSystem.Modules.Clients.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Entities;
-using CreateInvoiceSystem.Modules.Products.Entities;
-using CreateInvoiceSystem.Modules.Users.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Bogus;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 
@@ -20,38 +22,49 @@ public static class InvoiceFaker
 {
     private static readonly string[] PaymentMethods = { "Przelew", "Gotówka", "BLIK", "Karta" };
 
-    private static Faker<Invoice> BaseFaker => new Faker<Invoice>("pl")
+    private static Faker<InvoiceEntity> BaseFaker => new Faker<InvoiceEntity>("pl")
         .RuleFor(i => i.Title, f => $"Faktura {f.Random.Int(1000, 9999)}")
         .RuleFor(i => i.Comments, f => f.Lorem.Sentence())
         .RuleFor(i => i.CreatedDate, f => f.Date.Recent())
         .RuleFor(i => i.PaymentDate, f => f.Date.Soon(30))
         .RuleFor(i => i.MethodOfPayment, f => f.PickRandom(PaymentMethods))
-        .RuleFor(i => i.TotalAmount, _ => 0m); 
+        .RuleFor(i => i.TotalAmount, _ => 0m);
 
-    public static Invoice Generate(
-        User user,
+    // Prosty faker adresu na potrzeby snapshotu na fakturze
+    private static Faker<AddressEntity> AddressFaker => new Faker<AddressEntity>("pl")
+        .RuleFor(a => a.Street, f => f.Address.StreetName())
+        .RuleFor(a => a.Number, f => f.Address.BuildingNumber())
+        .RuleFor(a => a.City, f => f.Address.City())
+        .RuleFor(a => a.PostalCode, f => f.Address.ZipCode())
+        .RuleFor(a => a.Country, f => "Polska");
+
+    public static InvoiceEntity Generate(
+        UserEntity user,
         InvoiceScenario scenario,
-        Client? dbClient = null,
-        IReadOnlyList<Product>? dbProducts = null)
+        ClientEntity? dbClient = null,
+        AddressEntity? dbClientAddress = null,
+        IReadOnlyList<ProductEntity>? dbProducts = null)
     {
         if (user == null) throw new ArgumentNullException(nameof(user));
 
         var invoice = BaseFaker.Generate();
         invoice.UserId = user.UserId;
-        invoice.InvoicePositions = new List<InvoicePosition>();
 
-        // Klient
+        // Klient (snapshot danych klienta na fakturze)
         switch (scenario)
         {
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.NewClient_ProductsFromDb:
                 {
                     var client = ClientFaker.Generate(user);
-                    invoice.Client = client;
+
                     invoice.ClientId = null;
                     invoice.ClientName = client.Name;
                     invoice.ClientNip = client.Nip;
-                    invoice.ClientAddress = FormatAddress(client.Address);
+
+                    // ClientEntity nie ma nawigacji Address, więc generujemy adres niezależnie dla snapshotu
+                    var address = AddressFaker.Generate();
+                    invoice.ClientAddress = FormatAddress(address);
                     break;
                 }
 
@@ -61,27 +74,28 @@ public static class InvoiceFaker
                     if (dbClient == null)
                         throw new ArgumentNullException(nameof(dbClient), "Wariant wymaga istniejącego klienta z bazy.");
 
-                    invoice.Client = dbClient;
                     invoice.ClientId = dbClient.ClientId;
                     invoice.ClientName = dbClient.Name;
                     invoice.ClientNip = dbClient.Nip;
-                    invoice.ClientAddress = FormatAddress(dbClient.Address);
+
+                    // Snapshot adresu z bazy — przekaż AddressEntity osobno (brak nawigacji w ClientEntity)
+                    invoice.ClientAddress = FormatAddress(dbClientAddress);
                     break;
                 }
         }
 
-        // Produkty / pozycje
+        // Produkty → wyliczenie sumy (InvoiceEntity nie ma pozycji, więc tylko suma)
+        decimal total = 0m;
         switch (scenario)
         {
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.ExistingClient_NewProducts:
                 {
-                    // dwa produkty ad-hoc ("z palca") — bez FK do Product
                     var p1 = ProductFaker.Generate(user);
                     var p2 = ProductFaker.Generate(user);
 
-                    invoice.InvoicePositions.Add(CreatePositionFromAdHoc(p1, qty: RandomQuantity()));
-                    invoice.InvoicePositions.Add(CreatePositionFromAdHoc(p2, qty: RandomQuantity()));
+                    total += (p1.Value ?? 0m) * RandomQuantity();
+                    total += (p2.Value ?? 0m) * RandomQuantity();
                     break;
                 }
 
@@ -92,44 +106,19 @@ public static class InvoiceFaker
                         throw new ArgumentException("Wariant wymaga co najmniej dwóch produktów z bazy.", nameof(dbProducts));
 
                     var chosen = new Faker().PickRandom(dbProducts, 2).ToArray();
-                    invoice.InvoicePositions.Add(CreatePositionFromProduct(chosen[0], qty: RandomQuantity()));
-                    invoice.InvoicePositions.Add(CreatePositionFromProduct(chosen[1], qty: RandomQuantity()));
+                    total += (chosen[0].Value ?? 0m) * RandomQuantity();
+                    total += (chosen[1].Value ?? 0m) * RandomQuantity();
                     break;
                 }
         }
 
-        // Suma z pozycji
-        invoice.TotalAmount = invoice.InvoicePositions
-            .Sum(pos => (pos.ProductValue ?? 0m) * pos.Quantity);
-
+        invoice.TotalAmount = total;
         return invoice;
     }
 
-    private static InvoicePosition CreatePositionFromProduct(Product product, int qty) =>
-        new()
-        {
-            ProductId = product.ProductId,
-            Product = product,
-            ProductName = product.Name,
-            ProductDescription = product.Description,
-            ProductValue = product.Value,
-            Quantity = qty
-        };
-
-    private static InvoicePosition CreatePositionFromAdHoc(Product sourceLikeProduct, int qty) =>
-        new()
-        {
-            ProductId = null,       // brak powiązania FK
-            Product = null!,        // nawigacja nieużywana w tym wariancie
-            ProductName = sourceLikeProduct.Name,
-            ProductDescription = sourceLikeProduct.Description,
-            ProductValue = sourceLikeProduct.Value,
-            Quantity = qty
-        };
-
     private static int RandomQuantity() => new Faker().Random.Int(1, 10);
 
-    private static string? FormatAddress(Address address) =>
+    private static string? FormatAddress(AddressEntity? address) =>
         address == null ? null :
         $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 }

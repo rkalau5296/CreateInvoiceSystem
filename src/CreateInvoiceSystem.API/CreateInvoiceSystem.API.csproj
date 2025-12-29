@@ -20,14 +20,17 @@
     <PackageReference Include="NLog" Version="6.0.6" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />    
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />    
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp.Domain\CreateInvoiceSystem.Modules.Nbp.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Product.Domain\CreateInvoiceSystem.Modules.Products.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users.Domain\CreateInvoiceSystem.Modules.Users.Domain.csproj" />
   </ItemGroup>
 </Project>

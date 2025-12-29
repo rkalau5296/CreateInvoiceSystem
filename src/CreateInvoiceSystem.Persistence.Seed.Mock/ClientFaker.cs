@@ -1,26 +1,25 @@
 ﻿using Bogus;
-using CreateInvoiceSystem.Modules.Clients.Entities;
-using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 
 public static class ClientFaker
 {
-    private static Faker<Client> Faker => new Faker<Client>()
+    private static Faker<ClientEntity> Faker => new Faker<ClientEntity>()
         .RuleFor(c => c.Name, f => f.Company.CompanyName())
-        .RuleFor(c => c.Nip, f => f.Random.ReplaceNumbers("##########"))
-        .RuleFor(c => c.Address, f => AddressFaker.Generate())
-        .RuleFor(c => c.IsDeleted, f => false)
-        .FinishWith((f, u) => u.AddressId = u.Address.AddressId)
+        .RuleFor(c => c.Nip, f => f.Random.ReplaceNumbers("##########"))        
+        .RuleFor(c => c.IsDeleted, f => false)        
     ;
-    
-    public static Client Generate(User user)
+
+    public static ClientEntity Generate(UserEntity user)
     {
         var client = Faker.Generate();
         client.UserId = user.UserId;
         return client;
     }
     
-    public static IEnumerable<Client> Generate(int count, User user) => 
+    public static IEnumerable<ClientEntity> Generate(int count, UserEntity user) => 
         Enumerable.Range(0, count).Select(_ => Generate(user)).ToList();
 }

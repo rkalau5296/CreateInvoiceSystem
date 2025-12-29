@@ -1,96 +1,77 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Entities;
-using CreateInvoiceSystem.Modules.Clients.Persistence;
-using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Modules.Addresses.Entities;
-using CreateInvoiceSystem.Modules.Addresses.Persistence;
-using CreateInvoiceSystem.Modules.InvoicePositions.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence;
-using CreateInvoiceSystem.Modules.Invoices.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persisstence;
-using CreateInvoiceSystem.Modules.Products.Entities;
-using CreateInvoiceSystem.Modules.Products.Persistence;
-using CreateInvoiceSystem.Modules.Users.Persistence;
+﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Configuration;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Configuration;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Clients.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
+using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Products.Persistence.Configuration;
+using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
 using Microsoft.EntityFrameworkCore;
-using CreateInvoiceSystem.Modules.Users.Entities;
-
 
 namespace CreateInvoiceSystem.Persistence;
 
-public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : 
-    DbContext(options), IClientDbContext, IAddressDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
+public class ICreateInvoiceSystemDbContext(DbContextOptions<ICreateInvoiceSystemDbContext> options) : DbContext(options), IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
 {
-    public DbSet<Client> Clients { get; set; }
-    public DbSet<Product> Products { get; set; }    
-    public DbSet<InvoicePosition> InvoicePositions { get; set; }
-    public DbSet<Invoice> Invoices { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<Address> Addresses { get; set; }
+    public DbSet<AddressEntity> Addresses { get; set; }
+    public DbSet<ClientEntity> Clients { get; set; }
+    public DbSet<ProductEntity> Products { get; set; }
+    public DbSet<InvoicePositionEntity> InvoicePositions { get; set; }
+    public DbSet<InvoiceEntity> Invoices { get; set; }
+    public DbSet<UserEntity> Users { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {        
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.Address)
+        var user = modelBuilder.Entity<UserEntity>();
+        user.HasOne<AddressEntity>()
             .WithMany()
             .HasForeignKey(u => u.AddressId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Invoices)
+        
+        user.HasMany<InvoiceEntity>()
             .WithOne()
             .HasForeignKey(i => i.UserId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Clients)
+        user.HasMany<ClientEntity>()
             .WithOne()
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Products)
+        user.HasMany<ProductEntity>()
             .WithOne()
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<User>()
-            .HasIndex(u => u.Nip)
-            .IsUnique();
         
-        modelBuilder.Entity<Client>()
-            .HasOne(c => c.Address)
-            .WithMany()
-            .HasForeignKey(c => c.AddressId)
-            .OnDelete(DeleteBehavior.NoAction);
+        var client = modelBuilder.Entity<ClientEntity>();
+        client.HasOne<AddressEntity>()
+              .WithOne()
+              .HasForeignKey<ClientEntity>(c => c.AddressId)
+              .OnDelete(DeleteBehavior.NoAction);
         
-        modelBuilder.Entity<Client>()
-            .HasIndex(c => c.Nip)
-            .IsUnique();
+        var position = modelBuilder.Entity<InvoicePositionEntity>();
+        position.HasOne<InvoiceEntity>()
+                .WithMany() 
+                .HasForeignKey(p => p.InvoiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+        position.HasOne<ProductEntity>()
+                .WithMany() 
+                .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
         
-        modelBuilder.Entity<Invoice>()
-            .Ignore(i => i.ClientId);
-
-        modelBuilder.Entity<Invoice>()
-            .Ignore(i => i.Client);
-
-        modelBuilder.Entity<Invoice>()
-            .HasMany(i => i.InvoicePositions)
-            .WithOne()
-            .HasForeignKey(pos => pos.InvoiceId)
-            .OnDelete(DeleteBehavior.NoAction);
-        modelBuilder.Entity<Invoice>()
-            .Property(i => i.PaymentDate)
-            .HasColumnType("date");
-
-        modelBuilder.Entity<Invoice>()
-            .Property(i => i.CreatedDate)
-            .HasColumnType("date");
-
-        modelBuilder.Entity<InvoicePosition>()
-            .Ignore(ip => ip.ProductId);
-        modelBuilder.Entity<InvoicePosition>()
-            .Ignore(ip => ip.Product);
+        position.HasIndex(p => new { p.InvoiceId, p.ProductId });
 
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductEntityConfiguration());        
     }
 }
-

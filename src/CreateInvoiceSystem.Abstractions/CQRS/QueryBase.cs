@@ -1,8 +1,6 @@
-﻿using CreateInvoiceSystem.Abstractions.DbContext;
+﻿namespace CreateInvoiceSystem.Abstractions.CQRS;
 
-namespace CreateInvoiceSystem.Abstractions.CQRS;
-
-public abstract class QueryBase<TResult>
+public abstract class QueryBase<TResult, TDependency>
 {
-    public abstract Task<TResult> Execute(IDbContext context, CancellationToken cancellationToken=default);
+    public abstract Task<TResult> Execute(TDependency dependency, CancellationToken cancellationToken=default);
 }

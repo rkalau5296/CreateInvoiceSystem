@@ -1,14 +1,14 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.DbContext;
 
 namespace CreateInvoiceSystem.Abstractions.Executors;
 
-public class CommandExecutor(IDbContext context) : ICommandExecutor
+public class CommandExecutor : ICommandExecutor
 {
-    private readonly IDbContext context = context;
-
-    public Task<TResult> Execute<TParameters, TResult>(CommandBase<TParameters, TResult> command, CancellationToken cancellationToken = default)
+    public Task<TResult> Execute<TParam, TResult, TDependency>(
+        CommandBase<TParam, TResult, TDependency> command,
+        TDependency dependency,
+        CancellationToken cancellationToken = default)
     {
-        return command.Execute(context, cancellationToken);
+        return command.Execute(dependency, cancellationToken);
     }
 }

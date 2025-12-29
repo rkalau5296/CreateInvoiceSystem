@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
-    [DbContext(typeof(CreateInvoiceSystemDbContext))]
+    [DbContext(typeof(ICreateInvoiceSystemDbContext))]
     partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
