@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
-    [DbContext(typeof(ICreateInvoiceSystemDbContext))]
+    [DbContext(typeof(CreateInvoiceSystemDbContext))]
     [Migration("20251214220641_RemovingTimeFromDateTime")]
     partial class RemovingTimeFromDateTime
     {

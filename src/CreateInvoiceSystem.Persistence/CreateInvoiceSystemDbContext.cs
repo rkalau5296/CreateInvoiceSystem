@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Persistence;
 
-public class ICreateInvoiceSystemDbContext(DbContextOptions<ICreateInvoiceSystemDbContext> options) : DbContext(options), IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
+public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
 {
     public DbSet<AddressEntity> Addresses { get; set; }
     public DbSet<ClientEntity> Clients { get; set; }

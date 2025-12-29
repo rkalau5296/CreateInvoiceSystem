@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
-    [DbContext(typeof(ICreateInvoiceSystemDbContext))]
+    [DbContext(typeof(CreateInvoiceSystemDbContext))]
     [Migration("20251205235411_ChangeClientNIPUniqueToNipUserId")]
     partial class ChangeClientNIPUniqueToNipUserId
     {

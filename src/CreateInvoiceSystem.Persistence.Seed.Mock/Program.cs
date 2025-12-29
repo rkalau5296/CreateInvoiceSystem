@@ -27,10 +27,10 @@ if (string.IsNullOrWhiteSpace(connectionString))
     return;
 }
 
-var optionsBuilder = new DbContextOptionsBuilder<ICreateInvoiceSystemDbContext>();
+var optionsBuilder = new DbContextOptionsBuilder<CreateInvoiceSystemDbContext>();
 optionsBuilder.UseSqlServer(connectionString);
 
-using var dbContext = new ICreateInvoiceSystemDbContext(optionsBuilder.Options);
+using var dbContext = new CreateInvoiceSystemDbContext(optionsBuilder.Options);
 
 var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 var faker = new Faker("pl");
@@ -265,7 +265,7 @@ static IReadOnlyList<ProductEntity> PickTwo(List<ProductEntity> products)
     return new List<ProductEntity> { chosen[0], chosen[1] };
 }
 
-static void UpdateInvoiceTotal(ICreateInvoiceSystemDbContext ctx, int invoiceId)
+static void UpdateInvoiceTotal(CreateInvoiceSystemDbContext ctx, int invoiceId)
 {
     var sum = ctx.InvoicePositions
         .Where(p => p.InvoiceId == invoiceId)
