@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Inerfaces;
+using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 
 namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
 public class GetSeriesCurrencyRateFromToQuery(string table, string currencyCode, DateTime dateFrom, DateTime dateTo, string baseUrl) : QueryBase<CurrencyRatesTable, INbpApiRestService>

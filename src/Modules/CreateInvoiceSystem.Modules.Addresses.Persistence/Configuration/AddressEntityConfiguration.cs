@@ -30,6 +30,6 @@ public class AddressEntityConfiguration : IEntityTypeConfiguration<AddressEntity
 
         builder.Property(a => a.Country)
             .IsRequired()
-            .HasMaxLength(20);
+            .HasMaxLength(100);
     }
 }

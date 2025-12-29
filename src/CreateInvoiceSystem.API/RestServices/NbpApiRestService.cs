@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Inerfaces;
+using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RestSharp;

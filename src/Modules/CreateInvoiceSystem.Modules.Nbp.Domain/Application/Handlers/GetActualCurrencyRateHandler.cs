@@ -2,7 +2,7 @@
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRate;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Inerfaces;
+using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Options;
 

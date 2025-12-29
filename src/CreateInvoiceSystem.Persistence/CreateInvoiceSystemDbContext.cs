@@ -30,6 +30,8 @@ public class ICreateInvoiceSystemDbContext(DbContextOptions<ICreateInvoiceSystem
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {        
         var user = modelBuilder.Entity<UserEntity>();
+        user.HasKey(u => u.UserId);
+        user.Property(u => u.UserId).ValueGeneratedOnAdd();
         user.HasOne<AddressEntity>()
             .WithMany()
             .HasForeignKey(u => u.AddressId)
@@ -57,6 +59,10 @@ public class ICreateInvoiceSystemDbContext(DbContextOptions<ICreateInvoiceSystem
               .OnDelete(DeleteBehavior.NoAction);
         
         var position = modelBuilder.Entity<InvoicePositionEntity>();
+        position.HasKey(p => p.InvoicePositionId);
+        position.Property(p => p.InvoicePositionId).ValueGeneratedOnAdd();
+        position.HasIndex(p => new { p.InvoiceId, p.ProductId });
+
         position.HasOne<InvoiceEntity>()
                 .WithMany() 
                 .HasForeignKey(p => p.InvoiceId)
@@ -68,6 +74,10 @@ public class ICreateInvoiceSystemDbContext(DbContextOptions<ICreateInvoiceSystem
                 .OnDelete(DeleteBehavior.NoAction);
         
         position.HasIndex(p => new { p.InvoiceId, p.ProductId });
+
+        var invoice = modelBuilder.Entity<InvoiceEntity>();
+        invoice.HasKey(i => i.InvoiceId);
+        invoice.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
 
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
