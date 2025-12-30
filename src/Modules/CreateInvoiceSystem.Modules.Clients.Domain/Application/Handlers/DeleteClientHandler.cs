@@ -14,11 +14,11 @@ public class DeleteClientHandler(ICommandExecutor commandExecutor, IClientReposi
         var client = new Client { ClientId = request.Id };
 
         var command = new DeleteClientCommand() { Parametr = client };
-        await commandExecutor.Execute(command, _clientRepository, cancellationToken);
+        var clientDto = await commandExecutor.Execute(command, _clientRepository, cancellationToken);
 
         return new DeleteClientResponse()
         {
-            Data = client.ToDto()
+            Data = clientDto
         };
     }
 }

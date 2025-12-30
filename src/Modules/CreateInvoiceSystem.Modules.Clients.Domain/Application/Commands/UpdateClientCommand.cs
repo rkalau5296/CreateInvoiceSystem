@@ -46,10 +46,10 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
             client.Address.Country = Parametr.Address?.Country ?? client.Address.Country;
         }
 
-        await _clientRepository.UpdateAsync(client, cancellationToken);
+        var updatedClient = await _clientRepository.UpdateAsync(client, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(client.ClientId, cancellationToken);
+        var persisted = await _clientRepository.GetByIdAsync(updatedClient.ClientId, cancellationToken);
 
         bool hasChanged = persisted is not null && (
             !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||

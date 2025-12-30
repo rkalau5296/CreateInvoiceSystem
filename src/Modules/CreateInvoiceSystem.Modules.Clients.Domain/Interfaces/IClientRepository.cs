@@ -9,9 +9,9 @@ public interface IClientRepository : ISaveChangesContext
     Task<List<Client>> GetAllAsync(CancellationToken cancellationToken);
     Task<Client> GetByIdAsync(int clientId, CancellationToken cancellationToken);
     Task<Client> AddAsync(Client entity, CancellationToken cancellationToken);
-    Task UpdateAsync(Client entity, CancellationToken cancellationToken);    
-    Task RemoveAsync(Client entity, CancellationToken cancellationToken);
-    Task RemoveAddressAsync(Address address, CancellationToken cancellationToken);
+    Task<Client> UpdateAsync(Client entity, CancellationToken cancellationToken);    
+    Task RemoveAsync(int clientId, CancellationToken cancellationToken);
+    Task RemoveAddressAsync(int addressId, CancellationToken cancellationToken);
     Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken);
     Task<bool> AddressExistsByIdAsync(int addressId, CancellationToken cancellationToken);
       
