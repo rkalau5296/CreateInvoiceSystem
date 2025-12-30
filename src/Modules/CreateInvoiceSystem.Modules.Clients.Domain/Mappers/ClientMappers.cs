@@ -8,7 +8,7 @@ public static class ClientMappers
          client == null
         ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to ClientDto.")
         :
-        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.UserId, client.IsDeleted);
+        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(),  client.UserId, client.IsDeleted);
 
     public static UpdateClientDto ToUpdateDto(this Client client) =>
         client == null

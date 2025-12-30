@@ -9,7 +9,7 @@ public class GetClientQuery(int id) : QueryBase<Client, IClientRepository>
 
     public override async Task<Client> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
     {
-        return await _clientRepository.GetByIdAsync(Id, includeAddress: true, cancellationToken: cancellationToken)
+        return await _clientRepository.GetByIdAsync(Id, cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"Client with ID {Id} not found.");
     }
 }

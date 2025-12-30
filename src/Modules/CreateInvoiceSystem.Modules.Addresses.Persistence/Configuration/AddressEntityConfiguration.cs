@@ -11,7 +11,11 @@ public class AddressEntityConfiguration : IEntityTypeConfiguration<AddressEntity
         builder.ToTable("Addresses");
 
         builder.HasKey(a => a.AddressId);
+        builder.Property(a => a.AddressId).UseIdentityColumn();
 
+        builder.Property(a => a.AddressId)
+               .ValueGeneratedOnAdd();
+        
         builder.Property(a => a.Street)
             .IsRequired()
             .HasMaxLength(200);

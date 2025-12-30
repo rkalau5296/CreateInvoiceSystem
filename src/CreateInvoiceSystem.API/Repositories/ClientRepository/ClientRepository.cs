@@ -13,18 +13,22 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
     public Task<bool> ExistsAsync(string name, string street, string number, string city, string postalCode, string country, int userId, CancellationToken cancellationToken)        
     {
-        return _db.Set<Client>().AnyAsync(c =>
-            c.Name == name &&
-            c.Address != null &&
-            c.Address.Street == street &&
-            c.Address.Number == number &&
-            c.Address.City == city &&
-            c.Address.PostalCode == postalCode &&
-            c.Address.Country == country &&
-            c.UserId == userId, cancellationToken);
+        return _db.Set<ClientEntity>()
+            .AsNoTracking()
+            .AnyAsync(c =>
+                c.UserId == userId &&                
+                c.Name == name &&
+                _db.Set<AddressEntity>().Any(a =>                    
+                    a.Street == street &&
+                    a.Number == number &&
+                    a.City == city &&
+                    a.PostalCode == postalCode &&
+                    a.Country == country
+                ),
+                cancellationToken);
     }
 
-    public async Task<Client> GetByIdAsync(int clientId, bool includeAddress, CancellationToken cancellationToken)
+    public async Task<Client> GetByIdAsync(int clientId, CancellationToken cancellationToken)
     {
         IQueryable<ClientEntity> clientQuery = _db.Set<ClientEntity>()
             .AsNoTracking();
@@ -57,47 +61,134 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
     }
 
-    public async Task<List<Client>> GetAllAsync(bool includeAddress, bool excludeDeleted, CancellationToken cancellationToken)
+    public async Task<List<Client>> GetAllAsync(CancellationToken cancellationToken)
     {
-        IQueryable<Client> query = _db.Set<Client>().AsNoTracking();
+        IQueryable<ClientEntity> clientQuery = _db.Set<ClientEntity>().AsNoTracking();
+        IQueryable<AddressEntity> addressQuery = _db.Set<AddressEntity>()
+            .AsNoTracking();
 
-        query = includeAddress
-            ? query.Include(c => c.Address)
-            : query;
+        var clients = await clientQuery.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No clients found.");
 
-        query = excludeDeleted
-            ? query.Where(c => !c.IsDeleted)
-            : query;
+        var addresses = await addressQuery.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No addresses found.");
 
-        return await query.ToListAsync(cancellationToken);
+        return [.. clients.Select(c => new Client
+        {
+            ClientId = c.ClientId,
+            Name = c.Name,
+            Nip = c.Nip,
+            AddressId = c.AddressId,
+            UserId = c.UserId,
+            Address = addresses.SingleOrDefault(a => a.AddressId == c.AddressId) is AddressEntity address
+                ? new Address
+                {
+                    AddressId = address.AddressId,
+                    Street = address.Street,
+                    Number = address.Number,
+                    City = address.City,
+                    PostalCode = address.PostalCode,
+                    Country = address.Country
+                }
+                : null
+        })];
     }
 
-    public Task AddAsync(Client entity, CancellationToken cancellationToken) =>
-        _db.Set<Client>().AddAsync(entity, cancellationToken).AsTask();
+    public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken) 
+    {
+        var address = new AddressEntity
+        {
+            Street = entity.Address.Street,
+            Number = entity.Address.Number,
+            City = entity.Address.City,
+            PostalCode = entity.Address.PostalCode,
+            Country = entity.Address.Country
+        };
+
+        _db.Set<AddressEntity>().Add(address);
+        await _db.SaveChangesAsync(cancellationToken); 
+
+        int addressId = address.AddressId;
+        
+        var client = new ClientEntity
+        {
+            Name = entity.Name,
+            Nip = entity.Nip,
+            AddressId = addressId,
+            UserId = entity.UserId,
+            IsDeleted = false
+        };
+
+        _db.Set<ClientEntity>().Add(client);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return new Client
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Nip = client.Nip,
+            AddressId = client.AddressId,
+            UserId = client.UserId,
+            IsDeleted = client.IsDeleted,
+            Address = new Address
+            {
+                AddressId = address.AddressId,
+                Street = address.Street,
+                Number = address.Number,
+                City = address.City,
+                PostalCode = address.PostalCode,
+                Country = address.Country
+            } 
+        };
+    }        
 
     public async Task UpdateAsync(Client entity, CancellationToken cancellationToken)
     {
-        _db.Set<Client>().Update(entity);
+        ClientEntity client = new()
+        {
+            ClientId = entity.ClientId,
+            Name = entity.Name,
+            Nip = entity.Nip,
+            AddressId = entity.AddressId,
+            UserId = entity.UserId,
+        };
+        
+        _db.Set<ClientEntity>().Update(client);        
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(Client entity, CancellationToken cancellationToken)
     {
-        _db.Set<Client>().Remove(entity);
+        ClientEntity client = new()
+        {
+            ClientId = entity.ClientId,
+            Name = entity.Name,
+            Nip = entity.Nip,
+            AddressId = entity.AddressId,
+            UserId = entity.UserId,
+        };
+        _db.Set<ClientEntity>().Remove(client);
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAddressAsync(Address address, CancellationToken cancellationToken)
     {
-        _db.Set<Address>().Remove(address);
+        AddressEntity addressEntity = new()
+        {
+            AddressId = address.AddressId,
+            Street = address.Street,
+            Number = address.Number,
+            City = address.City,
+            PostalCode = address.PostalCode,
+            Country = address.Country
+        };
+        _db.Set<AddressEntity>().Remove(addressEntity);
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken) =>
-        _db.Set<Client>().AsNoTracking().AnyAsync(c => c.ClientId == clientId, cancellationToken);
+        _db.Set<ClientEntity>().AsNoTracking().AnyAsync(c => c.ClientId == clientId, cancellationToken);
 
     public Task<bool> AddressExistsByIdAsync(int addressId, CancellationToken cancellationToken) =>
-        _db.Set<Address>().AsNoTracking().AnyAsync(a => a.AddressId == addressId, cancellationToken);    
+        _db.Set<AddressEntity>().AsNoTracking().AnyAsync(a => a.AddressId == addressId, cancellationToken);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             _db.SaveChangesAsync(cancellationToken);

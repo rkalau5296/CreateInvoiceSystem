@@ -12,7 +12,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         if (Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));
 
-        var client = await _clientRepository.GetByIdAsync(Parametr.ClientId, includeAddress: true, cancellationToken)
+        var client = await _clientRepository.GetByIdAsync(Parametr.ClientId, cancellationToken)
             ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
         
         string oldName = client.Name;
@@ -49,7 +49,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         await _clientRepository.UpdateAsync(client, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(client.ClientId, includeAddress: true, cancellationToken);
+        var persisted = await _clientRepository.GetByIdAsync(client.ClientId, cancellationToken);
 
         bool hasChanged = persisted is not null && (
             !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||

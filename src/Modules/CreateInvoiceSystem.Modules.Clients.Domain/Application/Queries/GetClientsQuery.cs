@@ -7,7 +7,7 @@ public class GetClientsQuery : QueryBase<List<Client>, IClientRepository>
 {
     public override async Task<List<Client>> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
     {
-        var clients = await _clientRepository.GetAllAsync(includeAddress: true, excludeDeleted: true, cancellationToken: cancellationToken);
+        var clients = await _clientRepository.GetAllAsync(cancellationToken: cancellationToken);
         return clients.Count == 0 || clients is null
             ? throw new InvalidOperationException("List of clients is empty.")
             : clients;

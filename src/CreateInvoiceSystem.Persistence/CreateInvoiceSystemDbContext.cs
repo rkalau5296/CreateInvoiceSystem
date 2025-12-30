@@ -28,7 +28,12 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<UserEntity> Users { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {        
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);        
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClientEntityConfiguration).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AddressEntityConfiguration).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);  
+
         var user = modelBuilder.Entity<UserEntity>();
         user.HasKey(u => u.UserId);
         user.Property(u => u.UserId).ValueGeneratedOnAdd();

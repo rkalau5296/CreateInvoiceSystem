@@ -9,6 +9,9 @@ public class ProductEntityConfiguration : IEntityTypeConfiguration<ProductEntity
     {
         builder.ToTable("Products");
         builder.HasKey(p => p.ProductId);
+        builder.Property(p => p.ProductId).UseIdentityColumn();
+        builder.Property(p => p.ProductId)
+               .ValueGeneratedOnAdd();
 
         builder.Property(p => p.Name)
             .IsRequired()

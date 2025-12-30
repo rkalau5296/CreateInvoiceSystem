@@ -4,9 +4,9 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
-public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto, IClientRepository>
+public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClientRepository>
 {    
-    public override async Task<CreateClientDto> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
+    public override async Task<ClientDto> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(_clientRepository));
@@ -26,15 +26,15 @@ public class CreateClientCommand : CommandBase<CreateClientDto, CreateClientDto,
         if (exists)
             throw new InvalidOperationException("A client with the same name and address already exists.");
 
-        var entity = ClientMappers.ToEntity(this.Parametr);
+        var domainModel = ClientMappers.ToEntity(this.Parametr);
 
-        await _clientRepository.AddAsync(entity, cancellationToken);
+        var savedClient = await _clientRepository.AddAsync(domainModel, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(entity.ClientId, true, cancellationToken);
+        var persisted = await _clientRepository.GetByIdAsync(savedClient.ClientId, cancellationToken);
 
         return persisted is not null
-            ? entity.ToCreateDto()
+            ? savedClient.ToDto()
             : throw new InvalidOperationException("Client was saved but could not be reloaded.");
     }
 }          

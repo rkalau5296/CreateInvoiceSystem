@@ -10,6 +10,10 @@ public class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
     {        
         builder.ToTable("Clients");
         builder.HasKey(c => c.ClientId);
+        builder.Property(c => c.ClientId).UseIdentityColumn();
+
+        builder.Property(c => c.ClientId)
+               .ValueGeneratedOnAdd();
 
         builder.Property(c => c.Name)
             .IsRequired()

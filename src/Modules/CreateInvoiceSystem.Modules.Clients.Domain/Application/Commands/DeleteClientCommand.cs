@@ -13,8 +13,7 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto, IClientReposit
             throw new ArgumentNullException(nameof(Parametr));
 
         var clientEntity = await _clientRepository.GetByIdAsync(
-            Parametr.ClientId,
-            includeAddress: true,
+            Parametr.ClientId,            
             cancellationToken) ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
 
         if (clientEntity.Address is not null)

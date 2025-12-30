@@ -3,7 +3,7 @@ public record ClientDto(
     int ClientId,   
     string Name,
     string Nip,
-    AddressDto AddressDto,
+    AddressDto AddressDto,    
     int UserId,
     bool IsDeleted
 );
