@@ -4,7 +4,6 @@ using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Commands;
 using MediatR;
-using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 
@@ -15,11 +14,11 @@ public class DeleteProductHandler(ICommandExecutor commandExecutor, IProductRepo
         var Product = new Product { ProductId = request.Id };
 
         var command = new DeleteProductCommand() { Parametr = Product };
-        await commandExecutor.Execute(command, _productRepository, cancellationToken);
+        var deletedProduct = await commandExecutor.Execute(command, _productRepository, cancellationToken);
 
         return new DeleteProductResponse()
         {
-            Data = ProductMappers.ToDto(Product)
+            Data = deletedProduct
         };
     }
 }

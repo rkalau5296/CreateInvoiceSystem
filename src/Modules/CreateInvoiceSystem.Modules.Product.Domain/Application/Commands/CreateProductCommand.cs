@@ -11,20 +11,17 @@ public class CreateProductCommand : CommandBase<CreateProductDto, CreateProductD
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(_productRepository));
 
-        var exists = await _productRepository.ExistsAsync(
-           name: Parametr.Name,
-           userId: Parametr.UserId,
-           cancellationToken: cancellationToken);
+        var exists = await _productRepository.ExistsAsync(Parametr.Name, Parametr.UserId, cancellationToken);
 
         if (exists)
             throw new InvalidOperationException("The product with the same name already exists.");
 
         var entity = ProductMappers.ToEntity(Parametr);
 
-        await _productRepository.AddAsync(entity, cancellationToken);
+        var savedProduct = await _productRepository.AddAsync(entity, cancellationToken);
         await _productRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _productRepository.GetByIdAsync(entity.ProductId, cancellationToken);
+        var persisted = await _productRepository.GetByIdAsync(savedProduct.ProductId, cancellationToken);
 
         return persisted is not null
             ? ProductMappers.ToCreateDto(persisted)

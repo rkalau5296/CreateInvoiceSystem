@@ -12,9 +12,9 @@ public class DeleteClientCommand : CommandBase<Client, ClientDto, IClientReposit
         if (Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));
 
-        var clientEntity = await _clientRepository.GetByIdAsync(
-            Parametr.ClientId,            
+        var clientEntity = await _clientRepository.GetByIdAsync(Parametr.ClientId,
             cancellationToken) ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
+
         var clientDto = ClientMappers.ToDto(clientEntity);
 
         await _clientRepository.RemoveAsync(clientEntity.ClientId, cancellationToken);

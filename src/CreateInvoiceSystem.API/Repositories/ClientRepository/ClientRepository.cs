@@ -11,14 +11,14 @@ public class ClientRepository(IDbContext db) : IClientRepository
 {
     private readonly IDbContext _db = db;
 
-    public Task<bool> ExistsAsync(string name, string street, string number, string city, string postalCode, string country, int userId, CancellationToken cancellationToken)        
+    public Task<bool> ExistsAsync(string name, string street, string number, string city, string postalCode, string country, int userId, CancellationToken cancellationToken)
     {
         return _db.Set<ClientEntity>()
             .AsNoTracking()
             .AnyAsync(c =>
-                c.UserId == userId &&                
+                c.UserId == userId &&
                 c.Name == name &&
-                _db.Set<AddressEntity>().Any(a =>                    
+                _db.Set<AddressEntity>().Any(a =>
                     a.Street == street &&
                     a.Number == number &&
                     a.City == city &&
@@ -30,16 +30,12 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
     public async Task<Client> GetByIdAsync(int clientId, CancellationToken cancellationToken)
     {
-        IQueryable<ClientEntity> clientQuery = _db.Set<ClientEntity>()
-            .AsNoTracking();
-
-        var client = await clientQuery.SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
+        var client = await _db.Set<ClientEntity>()
+            .AsNoTracking().SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
             ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
 
-        IQueryable<AddressEntity> addressQuery = _db.Set<AddressEntity>()
-            .AsNoTracking();
-
-        var address = await addressQuery.SingleOrDefaultAsync(a => a.AddressId == client.AddressId, cancellationToken)
+        var address = await _db.Set<AddressEntity>()
+            .AsNoTracking().SingleOrDefaultAsync(a => a.AddressId == client.AddressId, cancellationToken)
             ?? throw new InvalidOperationException($"Address with ID {client.AddressId} not found.");
 
         return new Client
@@ -63,13 +59,10 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
     public async Task<List<Client>> GetAllAsync(CancellationToken cancellationToken)
     {
-        IQueryable<ClientEntity> clientQuery = _db.Set<ClientEntity>().AsNoTracking();
-        IQueryable<AddressEntity> addressQuery = _db.Set<AddressEntity>()
-            .AsNoTracking();
-
-        var clients = await clientQuery.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No clients found.");
-
-        var addresses = await addressQuery.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No addresses found.");
+        var clients = await _db.Set<ClientEntity>().AsNoTracking().ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No clients found.");
+        ;
+        var addresses = await _db.Set<AddressEntity>()
+            .AsNoTracking().ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No addresses found.");
 
         return [.. clients.Select(c => new Client
         {
@@ -92,7 +85,7 @@ public class ClientRepository(IDbContext db) : IClientRepository
         })];
     }
 
-    public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken) 
+    public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken)
     {
         var address = new AddressEntity
         {
@@ -104,10 +97,10 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
 
         _db.Set<AddressEntity>().Add(address);
-        await _db.SaveChangesAsync(cancellationToken); 
+        await _db.SaveChangesAsync(cancellationToken);
 
         int addressId = address.AddressId;
-        
+
         var client = new ClientEntity
         {
             Name = entity.Name,
@@ -136,13 +129,13 @@ public class ClientRepository(IDbContext db) : IClientRepository
                 City = address.City,
                 PostalCode = address.PostalCode,
                 Country = address.Country
-            } 
+            }
         };
-    }        
+    }
 
     public async Task<Client> UpdateAsync(Client entity, CancellationToken cancellationToken)
     {
-        AddressEntity address = new() 
+        AddressEntity address = new()
         {
             AddressId = entity.Address.AddressId,
             Street = entity.Address.Street,
@@ -153,7 +146,7 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
 
         _db.Set<AddressEntity>().Update(address);
-        await _db.SaveChangesAsync(cancellationToken);        
+        await _db.SaveChangesAsync(cancellationToken);
 
         ClientEntity client = new()
         {
@@ -163,8 +156,8 @@ public class ClientRepository(IDbContext db) : IClientRepository
             AddressId = entity.AddressId,
             UserId = entity.UserId,
         };
-        
-        _db.Set<ClientEntity>().Update(client);        
+
+        _db.Set<ClientEntity>().Update(client);
         await _db.SaveChangesAsync(cancellationToken);
 
         return new Client
@@ -189,24 +182,22 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
     public async Task RemoveAsync(int clientId, CancellationToken cancellationToken)
     {
-        var clientEntity = await _db.Set<ClientEntity>().SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken);
+        var clientEntity = await _db.Set<ClientEntity>()
+            .SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
 
-        if (clientEntity is not null)
-        {
-            _db.Set<ClientEntity>().Remove(clientEntity);
-            await _db.SaveChangesAsync(cancellationToken);
-        }
+        _db.Set<ClientEntity>().Remove(clientEntity);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAddressAsync(int addressId, CancellationToken cancellationToken)
     {
-        var addressEntity = await _db.Set<AddressEntity>().SingleOrDefaultAsync(a => a.AddressId == addressId, cancellationToken);
+        var addressEntity = await _db.Set<AddressEntity>()
+            .SingleOrDefaultAsync(a => a.AddressId == addressId, cancellationToken)
+            ?? throw new InvalidOperationException($"Address with ID {addressId} not found.");
 
-        if (addressEntity is not null)
-        {
-            _db.Set<AddressEntity>().Remove(addressEntity);
-            await _db.SaveChangesAsync(cancellationToken);
-        }
+        _db.Set<AddressEntity>().Remove(addressEntity);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken) =>

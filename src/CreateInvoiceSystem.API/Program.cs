@@ -33,10 +33,8 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using NLog.Web;
-using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +48,7 @@ builder.Services.AddControllers(options =>
     options.ReturnHttpNotAcceptable = false;
 }).AddJsonOptions(_ => { });
 
-// Swagger — pojedyncza rejestracja + unikalne ID schematów
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -58,13 +56,11 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "CreateInvoiceSystem API",
         Version = "v1"
-    });
-
-    // Kluczowe: unikaj kolizji nazw schematów (te same nazwy DTO w ró¿nych namespace'ach)
+    });    
     c.CustomSchemaIds(t => t.FullName!.Replace('+', '.'));
 });
 
-// MediatR — jedna, skonsolidowana rejestracja
+// MediatR 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(GetClientsRequest).Assembly,
     typeof(GetProductsRequest).Assembly,
@@ -91,15 +87,9 @@ builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// NBP options + typed HttpClient
+// NBP options 
 builder.Services.Configure<NbpApiOptions>(builder.Configuration.GetSection("NbpApi"));
-builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((sp, client) =>
-{
-    var opts = sp.GetRequiredService<IOptions<NbpApiOptions>>().Value;
-    client.BaseAddress = new Uri(opts.BaseUrl);
-    client.DefaultRequestHeaders.Accept.Clear();
-    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-});
+builder.Services.AddScoped<INbpApiRestService, NbpApiRestService>();
 
 // API behavior
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -122,7 +112,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddTransient<ICommandExecutor, CommandExecutor>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 
-// DbContext: rejestruj KONKRETN¥ klasê, a interfejsy mapuj do tej samej instancji
+// DbContext
 builder.Services.AddDbContext<CreateInvoiceSystemDbContext>(db =>
     db.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sql => sql.EnableRetryOnFailure()));
@@ -152,7 +142,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
-    c.RoutePrefix = "swagger";
+    c.RoutePrefix = string.Empty;
 });
 
 app.MapControllers();

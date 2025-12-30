@@ -10,14 +10,14 @@ public class DeleteProductCommand : CommandBase<Product, ProductDto, IProductRep
     public override async Task<ProductDto> Execute(IProductRepository _productRepository, CancellationToken cancellationToken = default)
     {
         if (Parametr is null)
-            throw new ArgumentNullException(nameof(_productRepository));
+            throw new ArgumentNullException(nameof(Parametr));
 
         var productEntity = await _productRepository.GetByIdAsync(Parametr.ProductId, cancellationToken)
             ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
 
         var productDto = ProductMappers.ToDto(productEntity);
 
-        await _productRepository.RemoveAsync(productEntity, cancellationToken);
+        await _productRepository.RemoveAsync(productEntity.ProductId, cancellationToken);
         await _productRepository.SaveChangesAsync(cancellationToken);
 
         var prodExists = await _productRepository.ExistsByIdAsync(productEntity.ProductId, cancellationToken);

@@ -9,7 +9,7 @@ public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductD
     public override async Task<UpdateProductDto> Execute(IProductRepository _productRepository, CancellationToken cancellationToken = default)
     {
         if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(_productRepository));
+            throw new ArgumentNullException(nameof(Parametr));
 
         var product = await _productRepository.GetByIdAsync(Parametr.ProductId, cancellationToken)
             ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
@@ -22,10 +22,10 @@ public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductD
         product.Description = Parametr.Description ?? product.Description;
         product.Value = Parametr.Value ?? product.Value;
 
-        await _productRepository.UpdateAsync(product, cancellationToken);
+        var updatedProduct = await _productRepository.UpdateAsync(product, cancellationToken);
         await _productRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _productRepository.GetByIdAsync(product.ProductId, cancellationToken);
+        var persisted = await _productRepository.GetByIdAsync(updatedProduct.ProductId, cancellationToken);
 
         bool hasChanged = persisted is not null && (
             !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
@@ -34,7 +34,7 @@ public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductD
         );
 
         return hasChanged
-            ? ProductMappers.ToUpdatedDto(persisted!)
+            ? ProductMappers.ToUpdatedDto(persisted)
             : throw new InvalidOperationException($"No new data for product with ID {Parametr.ProductId}.");
     }
 }

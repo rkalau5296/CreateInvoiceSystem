@@ -11,9 +11,9 @@ namespace CreateInvoiceSystem.API.RestServices
     public class NbpApiRestService : INbpApiRestService
     {
         private readonly RestClient _client;
-        public NbpApiRestService(IOptions<NbpApiOptions> options, Exception argumentNullException)
+        public NbpApiRestService(IOptions<NbpApiOptions> options)
         {
-            var baseUrl = options.Value.BaseUrl ?? throw argumentNullException;
+            var baseUrl = options.Value.BaseUrl ?? throw new ArgumentNullException(nameof(options));
             _client = new RestClient(baseUrl);
         }
 
