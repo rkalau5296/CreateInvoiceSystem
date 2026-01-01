@@ -13,5 +13,6 @@ public class InvoiceEntity
     public string MethodOfPayment { get; set; }
     public string ClientName { get; set; }
     public string ClientAddress { get; set; }
-    public string ClientNip { get; set; }    
+    public string ClientNip { get; set; }
+    public IEnumerable<object> InvoicePositions { get; set; } = [];
 }

@@ -1,5 +1,4 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;

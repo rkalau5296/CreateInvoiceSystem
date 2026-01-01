@@ -21,15 +21,11 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         await AddProductsToInvoicePositionsAsync(Parametr, entity, _invoiceRepository, cancellationToken);
 
-        await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
-        await _invoiceRepository.SaveChangesAsync(cancellationToken);        
+        var createdInvoice = await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
+        await _invoiceRepository.SaveChangesAsync(cancellationToken);
 
         var persisted = await _invoiceRepository.GetInvoiceByIdAsync(
-            entity.InvoiceId,
-            includeClient: true,
-            includeClientAddress: true,
-            includePositions: true,
-            includeProducts: true,
+            createdInvoice.InvoiceId,            
             cancellationToken);
 
         bool added = persisted is not null
@@ -98,7 +94,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
     private static async Task<Client> GetClientByIdAsync(int clientId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
     {       
-        return await _invoiceRepository.GetClientByIdAsync(clientId, true, cancellationToken) ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
+        return await _invoiceRepository.GetClientByIdAsync(clientId, cancellationToken) ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
     }
 
     private static async Task AddProductsToInvoicePositionsAsync(CreateInvoiceDto param, Invoice entity, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
@@ -120,7 +116,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             };
             entity.InvoicePositions.Add(invoicePosition);
            
-            await _invoiceRepository.AddInvoicePositionAsync(invoicePosition, cancellationToken);
+            //await _invoiceRepository.AddInvoicePositionAsync(entity.InvoicePositions, cancellationToken);
         }
     }
 

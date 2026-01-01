@@ -105,12 +105,12 @@ public static class InvoiceMappers
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
             UserId = dto.UserId,
-            ClientId = null, 
+            ClientId = client.ClientId, 
             Client = client,
-            MethodOfPayment = dto.MethodOfPayment,            
-            ClientName = dto.Client.Name,
-            ClientNip = dto.Client.Nip,
-            ClientAddress = FormatAddress(dto.Client.Address),            
+            MethodOfPayment = dto.MethodOfPayment,
+            ClientName = client.Name,
+            ClientNip = client.Nip,
+            ClientAddress = FormatAddress(client.Address),
             InvoicePositions = []
         };
     }

@@ -84,6 +84,8 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         invoice.HasKey(i => i.InvoiceId);
         invoice.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
 
+        invoice.Ignore(i => i.InvoicePositions);
+
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());

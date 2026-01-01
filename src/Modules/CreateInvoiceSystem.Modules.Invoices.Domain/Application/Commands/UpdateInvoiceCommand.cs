@@ -14,11 +14,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             throw new ArgumentNullException(nameof(_invoiceRepository));        
 
         var invoice = await _invoiceRepository.GetInvoiceByIdAsync(
-            this.Parametr.InvoiceId,
-            includeClient: false,
-            includeClientAddress: false,
-            includePositions: true,
-            includeProducts: false,
+            this.Parametr.InvoiceId,            
             cancellationToken) 
             ?? throw new InvalidOperationException($"Invoice with ID {this.Parametr.InvoiceId} not found.");
 
@@ -102,18 +98,14 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                     Quantity = inovoicePositionToAdd.Quantity
                 };                
                 
-                await _invoiceRepository.AddInvoicePositionAsync(newInovicePosition, cancellationToken);
+                //await _invoiceRepository.AddInvoicePositionAsync(newInovicePosition, cancellationToken);
             }
         }
 
         await _invoiceRepository.SaveChangesAsync(cancellationToken);
 
         var persisted = await _invoiceRepository.GetInvoiceByIdAsync(
-            invoice.InvoiceId,
-            includeClient: false,
-            includeClientAddress: false,
-            includePositions: true,
-            includeProducts: false,
+            invoice.InvoiceId,            
             cancellationToken);
 
         bool headerChanged =

@@ -13,11 +13,7 @@ public class DeleteInvoiceCommand : CommandBase<Invoice, InvoiceDto, IInvoiceRep
             throw new ArgumentNullException(nameof(_invoiceRepository));        
 
         var invoiceEntity = await _invoiceRepository.GetInvoiceByIdAsync(
-            Parametr.InvoiceId,
-            includeClient: false,
-            includeClientAddress: false,
-            includePositions: true,
-            includeProducts: false,
+            Parametr.InvoiceId,            
             cancellationToken) 
             ?? throw new InvalidOperationException($"Invoice with ID {Parametr.InvoiceId} not found.");        
 
