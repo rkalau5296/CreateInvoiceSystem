@@ -173,8 +173,11 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             };
         }
 
-        public async Task<Client> GetClientByIdAsync(int clientId, CancellationToken cancellationToken)
+        public async Task<Client> GetClientByIdAsync(int? clientId, CancellationToken cancellationToken)
         {
+            if (clientId == null)
+                throw new ArgumentNullException(nameof(clientId));
+
             var client = await _db.Set<ClientEntity>()
                 .AsNoTracking().SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
                 ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
@@ -419,6 +422,84 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 .FirstOrDefaultAsync(ip => ip.InvoicePositionId == invoicePosition.InvoicePositionId, CancellationToken.None)
                 ?? throw new InvalidOperationException($"InvoicePosition with ID {invoicePosition.InvoicePositionId} not found.");
             _db.Set<InvoicePositionEntity>().Remove(invoicePos);            
+        }
+
+        public async Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken)
+        {
+            int? finalClientId = invoice.ClientId;
+
+            if (invoice.ClientId == 0 && invoice.Client != null)
+            {
+                var addressEntity = new AddressEntity
+                {
+                    Street = invoice.Client.Address.Street,
+                    Number = invoice.Client.Address.Number,
+                    City = invoice.Client.Address.City,
+                    PostalCode = invoice.Client.Address.PostalCode,
+                    Country = invoice.Client.Address.Country
+                };
+
+                await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
+                await _db.SaveChangesAsync(cancellationToken);
+
+                var newClient = new ClientEntity
+                {
+                    Name = invoice.Client.Name,
+                    Nip = invoice.Client.Nip,
+                    AddressId = addressEntity.AddressId,
+                    UserId = invoice.UserId
+                };
+
+                await _db.Set<ClientEntity>().AddAsync(newClient, cancellationToken);
+                await _db.SaveChangesAsync(cancellationToken);
+
+                finalClientId = newClient.ClientId;
+            }
+
+            var entity = new InvoiceEntity
+            {
+                InvoiceId = invoice.InvoiceId,
+                Title = invoice.Title,
+                TotalAmount = invoice.TotalAmount,
+                PaymentDate = invoice.PaymentDate,
+                CreatedDate = invoice.CreatedDate,
+                Comments = invoice.Comments,
+                ClientId = finalClientId,
+                UserId = invoice.UserId,
+                MethodOfPayment = invoice.MethodOfPayment,
+                ClientName = invoice.ClientName,
+                ClientAddress = invoice.ClientAddress,
+                ClientNip = invoice.ClientNip
+            };
+
+            _db.Set<InvoiceEntity>().Update(entity);
+
+            var incomingPositions = invoice.InvoicePositions.ToList();
+
+            foreach (var ip in incomingPositions)
+            {
+                var posEntity = new InvoicePositionEntity
+                {
+                    InvoicePositionId = ip.InvoicePositionId,
+                    InvoiceId = invoice.InvoiceId,
+                    ProductId = ip.ProductId > 0 ? ip.ProductId : null,
+                    ProductName = ip.ProductName,
+                    ProductDescription = ip.ProductDescription,
+                    ProductValue = ip.ProductValue,
+                    Quantity = ip.Quantity
+                };
+
+                if (posEntity.InvoicePositionId == 0)
+                {
+                    await _db.Set<InvoicePositionEntity>().AddAsync(posEntity, cancellationToken);
+                }
+                else
+                {
+                    _db.Set<InvoicePositionEntity>().Update(posEntity);
+                }
+            }
+
+            await _db.SaveChangesAsync(cancellationToken);
         }
 
         public async Task RemoveRangeAsync(IEnumerable<InvoicePosition> invoicePositions, CancellationToken cancellationToken)

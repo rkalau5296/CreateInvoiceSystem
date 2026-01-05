@@ -159,7 +159,7 @@ public static class InvoiceMappers
 
     public static UpdateInvoiceDto ToUpdateDto(this Invoice invoice) =>
     invoice is null
-        ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null when mapping to UpdateInvoiceDto.")
+        ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null.")
         : new UpdateInvoiceDto(
             invoice.InvoiceId,
             invoice.Title,
@@ -169,6 +169,21 @@ public static class InvoiceMappers
             invoice.Comments,
             invoice.ClientId,
             invoice.UserId,
+            invoice.Client != null ? new UpdateClientDto(
+                invoice.Client.ClientId,
+                invoice.Client.Name,
+                invoice.Client.Nip,
+                invoice.Client.Address != null ? new AddressDto(
+                    invoice.Client.Address.AddressId,
+                    invoice.Client.Address.Street,
+                    invoice.Client.Address.Number,
+                    invoice.Client.Address.City,
+                    invoice.Client.Address.PostalCode,
+                    invoice.Client.Address.Country
+                ) : null,
+                invoice.Client.UserId,
+                false
+            ) : null,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
                 .Select(ip => new UpdateInvoicePositionDto(
@@ -178,8 +193,7 @@ public static class InvoiceMappers
                     ip.ProductDescription,
                     ip.ProductValue,
                     ip.Quantity
-                ))
-                .ToList() ?? [],
+                )).ToList() ?? [],
             invoice.ClientName,
             invoice.ClientNip,
             invoice.ClientAddress
