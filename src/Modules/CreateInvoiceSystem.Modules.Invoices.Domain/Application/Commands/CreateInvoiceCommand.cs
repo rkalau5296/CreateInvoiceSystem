@@ -115,8 +115,6 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
                 ProductValue = product.Value
             };
             entity.InvoicePositions.Add(invoicePosition);
-           
-            //await _invoiceRepository.AddInvoicePositionAsync(entity.InvoicePositions, cancellationToken);
         }
     }
 

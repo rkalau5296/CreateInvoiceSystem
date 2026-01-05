@@ -10,7 +10,7 @@ public class DeleteInvoiceCommand : CommandBase<Invoice, InvoiceDto, IInvoiceRep
     public override async Task<InvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
     {
         if (Parametr is null)
-            throw new ArgumentNullException(nameof(_invoiceRepository));        
+            throw new ArgumentNullException(nameof(this.Parametr));        
 
         var invoiceEntity = await _invoiceRepository.GetInvoiceByIdAsync(
             Parametr.InvoiceId,            
@@ -27,7 +27,6 @@ public class DeleteInvoiceCommand : CommandBase<Invoice, InvoiceDto, IInvoiceRep
 
         bool invExists = await _invoiceRepository.InvoiceExistsAsync(Parametr.InvoiceId, cancellationToken);
         bool posExists = await _invoiceRepository.InvoicePositionExistsAsync(Parametr.InvoiceId, cancellationToken);
-
 
         return !invExists && !posExists
             ? InvoiceMappers.ToDto(invoiceEntity)

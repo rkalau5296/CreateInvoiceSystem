@@ -132,32 +132,13 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 IsDeleted = product.IsDeleted
             };
 
-            await _db.Set<ProductEntity>().AddAsync(entity, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
+            await _db.Set<ProductEntity>().AddAsync(entity, cancellationToken);            
 
             product.ProductId = entity.ProductId;
         }
 
         public async Task<Client> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, CancellationToken cancellationToken)
-        {
-            //var addressEntity = await _db.Set<AddressEntity>()
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync(a =>
-            //        a.Street == street &&
-            //        a.Number == number &&
-            //        a.City == city &&
-            //        a.PostalCode == postalCode &&
-            //        a.Country == country,
-            //        cancellationToken);
-
-
-            //var clientEntity = await _db.Set<ClientEntity>()
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync(c =>
-            //        c.Name == name &&
-            //        c.UserId == userId &&
-            //        c.AddressId == addressEntity.AddressId,
-            //        cancellationToken);
+        {            
             var clientEntity = await (from client in _db.Set<ClientEntity>().AsNoTracking()
                                 join address in _db.Set<AddressEntity>().AsNoTracking()
                                 on client.AddressId equals address.AddressId
@@ -409,32 +390,44 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             };
         }
 
-        public Task<bool> InvoiceExistsAsync(int invoiceId, CancellationToken cancellationToken) =>
-                _db.Set<Invoice>()
+        public Task<bool> InvoiceExistsAsync(int invoiceId, CancellationToken cancellationToken)
+        {
+            var exists = _db.Set<InvoiceEntity>()
                 .AsNoTracking()
                 .AnyAsync(i => i.InvoiceId == invoiceId, cancellationToken);
+            return exists;
+        }
 
         public Task<bool> InvoicePositionExistsAsync(int invoiceId, CancellationToken cancellationToken) =>
              _db.Set<InvoicePosition>()
             .AsNoTracking()
             .AnyAsync(ip => ip.InvoiceId == invoiceId, cancellationToken);
 
-        public async Task RemoveAsync(Invoice invoiceEntity)
+        public async Task RemoveAsync(Invoice invoice)
         {
-            _db.Set<Invoice>().Remove(invoiceEntity);
-            await _db.SaveChangesAsync(CancellationToken.None);
+            var invoiceEntity = await _db.Set<InvoiceEntity>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId, CancellationToken.None)
+                ?? throw new InvalidOperationException($"Invoice with ID {invoice.InvoiceId} not found.");
+            _db.Set<InvoiceEntity>().Remove(invoiceEntity);
         }
 
         public async Task RemoveInvoicePositionsAsync(InvoicePosition invoicePosition)
         {
-            _db.Set<InvoicePosition>().Remove(invoicePosition);
-            await _db.SaveChangesAsync(CancellationToken.None);
+            var invoicePos = await _db.Set<InvoicePositionEntity>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ip => ip.InvoicePositionId == invoicePosition.InvoicePositionId, CancellationToken.None)
+                ?? throw new InvalidOperationException($"InvoicePosition with ID {invoicePosition.InvoicePositionId} not found.");
+            _db.Set<InvoicePositionEntity>().Remove(invoicePos);            
         }
 
         public async Task RemoveRangeAsync(IEnumerable<InvoicePosition> invoicePositions, CancellationToken cancellationToken)
         {
-            _db.Set<InvoicePosition>().RemoveRange(invoicePositions);
-            await _db.SaveChangesAsync(cancellationToken);
+            var invoicePosIds = invoicePositions.Select(ip => ip.InvoicePositionId).ToList();
+            var invoicePosEntities = await _db.Set<InvoicePositionEntity>()
+                .Where(ip => invoicePosIds.Contains(ip.InvoicePositionId))
+                .ToListAsync(cancellationToken);
+            _db.Set<InvoicePositionEntity>().RemoveRange(invoicePosEntities);            
         }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
