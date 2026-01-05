@@ -427,7 +427,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
         public async Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken)
         {
             int? finalClientId = invoice.ClientId;
-
+            
             if (invoice.ClientId == 0 && invoice.Client != null)
             {
                 var addressEntity = new AddressEntity
@@ -455,8 +455,8 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
                 finalClientId = newClient.ClientId;
             }
-
-            var entity = new InvoiceEntity
+            
+            var invoiceEntity = new InvoiceEntity
             {
                 InvoiceId = invoice.InvoiceId,
                 Title = invoice.Title,
@@ -471,34 +471,32 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 ClientAddress = invoice.ClientAddress,
                 ClientNip = invoice.ClientNip
             };
-
-            _db.Set<InvoiceEntity>().Update(entity);
-
-            var incomingPositions = invoice.InvoicePositions.ToList();
-
-            foreach (var ip in incomingPositions)
+            
+            _db.Set<InvoiceEntity>().Update(invoiceEntity);
+            await _db.SaveChangesAsync(cancellationToken);
+            
+            var positionsToProcess = invoice.InvoicePositions.Select(ip => new InvoicePositionEntity
             {
-                var posEntity = new InvoicePositionEntity
-                {
-                    InvoicePositionId = ip.InvoicePositionId,
-                    InvoiceId = invoice.InvoiceId,
-                    ProductId = ip.ProductId > 0 ? ip.ProductId : null,
-                    ProductName = ip.ProductName,
-                    ProductDescription = ip.ProductDescription,
-                    ProductValue = ip.ProductValue,
-                    Quantity = ip.Quantity
-                };
+                InvoicePositionId = ip.InvoicePositionId,
+                InvoiceId = invoiceEntity.InvoiceId, 
+                ProductId = ip.ProductId > 0 ? ip.ProductId : null,
+                ProductName = ip.ProductName,
+                ProductDescription = ip.ProductDescription,
+                ProductValue = ip.ProductValue,
+                Quantity = ip.Quantity
+            }).ToList();
 
+            foreach (var posEntity in positionsToProcess)
+            {
                 if (posEntity.InvoicePositionId == 0)
-                {
+                {                    
                     await _db.Set<InvoicePositionEntity>().AddAsync(posEntity, cancellationToken);
                 }
                 else
-                {
+                {                    
                     _db.Set<InvoicePositionEntity>().Update(posEntity);
                 }
-            }
-
+            }            
             await _db.SaveChangesAsync(cancellationToken);
         }
 
