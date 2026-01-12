@@ -21,9 +21,36 @@ public class UserRepository : IUserRepository
         _db = db;
     }
 
-    public async Task AddAsync(User entity, CancellationToken cancellationToken)
+    public async Task AddAsync(User user, CancellationToken cancellationToken)
     {
-        await _db.Set<User>().AddAsync(entity, cancellationToken).AsTask();
+        var addressEntity = new AddressEntity
+        {
+            Street = user.Address.Street,
+            Number = user.Address.Number,
+            City = user.Address.City,
+            PostalCode = user.Address.PostalCode,
+            Country = user.Address.Country
+        };
+        
+        
+        await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        user.AddressId = addressEntity.AddressId;
+
+        var userEntity = new UserEntity
+        {
+            UserId = user.UserId,
+            Name = user.Name,
+            CompanyName = user.CompanyName,
+            Email = user.Email,
+            Password = user.Password,
+            Nip = user.Nip,
+            AddressId = user.AddressId
+        };
+
+        await _db.Set<UserEntity>().AddAsync(userEntity, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);        
     }
 
     public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
@@ -266,5 +293,32 @@ public class UserRepository : IUserRepository
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken)
+    {
+        var userEntity = await _db.Set<UserEntity>()
+            .SingleOrDefaultAsync(u => u.UserId == user.UserId, cancellationToken);
+
+        var addressEntity = await _db.Set<AddressEntity>()
+            .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
+
+
+        if (userEntity == null) return;
+
+        userEntity.Name = user.Name;
+        userEntity.CompanyName = user.CompanyName;
+        userEntity.Email = user.Email;
+        userEntity.Password = user.Password;
+        userEntity.Nip = user.Nip;
+
+        if (addressEntity != null && user.Address != null)
+        {
+            addressEntity.Street = user.Address.Street;
+            addressEntity.Number = user.Address.Number;
+            addressEntity.City = user.Address.City;
+            addressEntity.PostalCode = user.Address.PostalCode;
+            addressEntity.Country = user.Address.Country;
+        }
     }
 }

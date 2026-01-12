@@ -34,8 +34,9 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto, IUser
         user.Address.Number = Parametr.Address?.Number ?? user.Address.Number;
         user.Address.City = Parametr.Address?.City ?? user.Address.City;
         user.Address.PostalCode = Parametr.Address?.PostalCode ?? user.Address.PostalCode;
-        user.Address.Country = Parametr.Address?.Country ?? user.Address.Country;    
+        user.Address.Country = Parametr.Address?.Country ?? user.Address.Country;
 
+        await _userRepository.UpdateAsync(user, cancellationToken);
         await _userRepository.SaveChangesAsync(cancellationToken);
 
         var persisted = await _userRepository.GetUserByIdAsync(user.UserId, cancellationToken);

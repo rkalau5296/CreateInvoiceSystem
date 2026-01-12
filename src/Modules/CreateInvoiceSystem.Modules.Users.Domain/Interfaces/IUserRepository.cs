@@ -10,6 +10,7 @@ public interface IUserRepository : ISaveChangesContext
     Task RemoveAddress(Address address, CancellationToken cancellationToken);
     Task<bool> IsUserExists(int userId, CancellationToken cancellationToken);
     Task<bool> IsAddressExists(int addressId, CancellationToken cancellationToken);
-    Task AddAsync(User entity, CancellationToken cancellationToken);
+    Task AddAsync(User user, CancellationToken cancellationToken);
     Task<List<User>> GetUsersAsync(CancellationToken cancellationToken);
+    Task UpdateAsync(User user, CancellationToken cancellationToken);
 }
