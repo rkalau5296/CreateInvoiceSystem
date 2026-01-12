@@ -28,9 +28,113 @@ public class UserRepository : IUserRepository
 
     public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
     {
-        return await _db.Set<User>().AsNoTracking()
-            .Include(c => c.Address)
-            .SingleOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+        var baseData = await (from user in _db.Set<UserEntity>().AsNoTracking()
+                              join addr in _db.Set<AddressEntity>().AsNoTracking()
+                              on user.AddressId equals addr.AddressId
+                              where user.UserId == userId
+                              select new { user, addr })
+                          .SingleOrDefaultAsync(cancellationToken);
+        if (baseData == null) return null;
+        var invoices = await _db.Set<InvoiceEntity>()
+        .Where(i => i.UserId == userId)
+        .AsNoTracking()
+        .ToListAsync(cancellationToken);
+
+        var invoiceIds = invoices.Select(i => i.InvoiceId).ToList();
+        var invoicePositions = await _db.Set<InvoicePositionEntity>()
+            .Where(ip => invoiceIds.Contains(ip.InvoiceId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var products = await _db.Set<ProductEntity>()
+            .Where(p => p.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var clients = await _db.Set<ClientEntity>()
+            .Where(c => c.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var clientAddressIds = clients.Select(c => c.AddressId).ToList();
+        var clientAddresses = await _db.Set<AddressEntity>()
+            .Where(a => clientAddressIds.Contains(a.AddressId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        
+        return new User
+        {
+            UserId = baseData.user.UserId,
+            Name = baseData.user.Name,
+            CompanyName = baseData.user.CompanyName,
+            Email = baseData.user.Email,
+            Nip = baseData.user.Nip,
+            AddressId = baseData.user.AddressId,
+            Address = new Address
+            {
+                AddressId = baseData.addr.AddressId,
+                Street = baseData.addr.Street,
+                Number = baseData.addr.Number,
+                City = baseData.addr.City,
+                PostalCode = baseData.addr.PostalCode,
+                Country = baseData.addr.Country,
+            },
+            Invoices = invoices.Select(i => new Invoice
+            {
+                InvoiceId = i.InvoiceId,
+                Title = i.Title,
+                TotalAmount = i.TotalAmount,
+                PaymentDate = i.PaymentDate,
+                CreatedDate = i.CreatedDate,
+                Comments = i.Comments,
+                ClientId = i.ClientId,
+                UserId = i.UserId,
+                MethodOfPayment = i.MethodOfPayment,
+                ClientName = i.ClientName,
+                ClientAddress = i.ClientAddress,
+                ClientNip = i.ClientNip,
+                InvoicePositions = invoicePositions
+                    .Where(ip => ip.InvoiceId == i.InvoiceId)
+                    .Select(ip => new InvoicePosition
+                    {
+                        InvoicePositionId = ip.InvoicePositionId,
+                        InvoiceId = ip.InvoiceId,
+                        ProductId = ip.ProductId,
+                        Quantity = ip.Quantity,
+                        ProductDescription = ip.ProductDescription,
+                        ProductName = ip.ProductName,
+                        ProductValue = ip.ProductValue
+                    }).ToList()
+            }).ToList(),
+            Products = products.Select(p => new Product
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                Value = p.Value,
+                UserId = p.UserId
+            }).ToList(),
+            Clients = clients.Select(c =>
+            {
+                var clientAddr = clientAddresses.FirstOrDefault(a => a.AddressId == c.AddressId);
+                return new Client
+                {
+                    ClientId = c.ClientId,
+                    Name = c.Name,
+                    Nip = c.Nip,
+                    UserId = c.UserId,
+                    Address = clientAddr != null ? new Address
+                    {
+                        AddressId = clientAddr.AddressId,
+                        Street = clientAddr.Street,
+                        Number = clientAddr.Number,
+                        City = clientAddr.City,
+                        PostalCode = clientAddr.PostalCode,
+                        Country = clientAddr.Country
+                    } : null
+                };
+            }).ToList()
+        };
     }
 
     public async Task<List<User>> GetUsersAsync(CancellationToken cancellationToken)
