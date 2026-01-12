@@ -266,27 +266,46 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> IsAddressExists(int addressId, CancellationToken cancellationToken)
     {
-        return await _db.Set<Address>()
+        return await _db.Set<AddressEntity>()
             .AsNoTracking()
             .AnyAsync(a => a.AddressId == addressId, cancellationToken);
     }
 
     public async Task<bool> IsUserExists(int userId, CancellationToken cancellationToken)
     {
-        return await _db.Set<User>()
+        return await _db.Set<UserEntity>()
             .AsNoTracking()
             .AnyAsync(c => c.UserId == userId, cancellationToken);
     }
 
     public async Task RemoveAddress(Address address, CancellationToken cancellationToken)
     {
-        _db.Set<Address>().Remove(address);
+        var addressEntity = new AddressEntity
+        {
+            AddressId = address.AddressId,
+            Street = address.Street,
+            Number = address.Number,
+            City = address.City,
+            PostalCode = address.PostalCode,
+            Country = address.Country
+        };
+        _db.Set<AddressEntity>().Remove(addressEntity);
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(User user, CancellationToken cancellationToken)
     {
-        _db.Set<User>().Remove(user);
+        var userEntity = new UserEntity
+        {
+            UserId = user.UserId,
+            Name = user.Name,
+            CompanyName = user.CompanyName,
+            Email = user.Email,
+            Password = user.Password,
+            Nip = user.Nip,
+            AddressId = user.AddressId
+        };
+        _db.Set<UserEntity>().Remove(userEntity);
         await _db.SaveChangesAsync(cancellationToken);
     }
 
