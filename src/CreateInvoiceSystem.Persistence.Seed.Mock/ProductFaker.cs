@@ -15,7 +15,7 @@ public static class ProductFaker
     public static ProductEntity Generate(UserEntity user)
     {
         var product = Faker.Generate();        
-        product.UserId = user.UserId;       
+        product.UserId = user.Id;       
 
         return product;
     }

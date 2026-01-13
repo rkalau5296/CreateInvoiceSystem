@@ -9,7 +9,7 @@ public static class UserMappers
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip,  user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
 
     public static UpdateUserDto ToUpdateUserDto(this User user) =>
         user == null
@@ -27,7 +27,7 @@ public static class UserMappers
             Name = dto.Name,
             Email = dto.Email,
             Password = dto.Password,
-            Nip = dto.Nip,            
+            Nip = dto.Nip,
             Address = dto.Address.ToEntity(),
             Invoices = [.. dto.Invoices.Select(i => i.ToEntity())],
             Clients = [.. dto.Clients.Select(c => c.ToEntity())],
@@ -43,7 +43,7 @@ public static class UserMappers
     public static User ToEntity(CreateUserDto dto) =>
         dto == null
         ? throw new ArgumentNullException(nameof(dto), "UserDto cannot be null when mapping to User.")
-        : new() 
+        : new()
         {
             Name = dto.Name,
             CompanyName = dto.CompanyName,
@@ -77,19 +77,46 @@ public static class UserMappers
             invoice.ClientName,
             invoice.ClientNip,
             invoice.ClientAddress
-            );    
+            );
 
-    //public static Address ToEntity(this AddressDto dto) =>
-    //    dto == null
-    //    ? throw new ArgumentNullException(nameof(dto), "Address cannot be null when mapping to Address.")
-    //    :
-    //    new()
-    //    {
-    //        AddressId = dto.AddressId,
-    //        Street = dto.Street,
-    //        Number = dto.Number,
-    //        City = dto.City,
-    //        PostalCode = dto.PostalCode,
-    //        Country = dto.Country
-    //    };
+    public static User ToEntity(RegisterUserDto dto) =>
+        dto == null
+        ? throw new ArgumentNullException(nameof(dto), "User cannot be null when mapping to UserDto.")
+        :
+        new User
+        {
+            Email = dto.Email,
+            Name = dto.Name,
+            CompanyName = dto.CompanyName,
+            Nip = dto.Nip,
+
+            Address = new Address
+            {
+                Street = dto.Address.Street,
+                Number = dto.Address.Number,
+                City = dto.Address.City,
+                PostalCode = dto.Address.PostalCode,
+                Country = dto.Address.Country
+            }
+        };
+
+    public static RegisterUserDto ToRegisterUserDto(this User entity) =>
+        entity == null
+        ? throw new ArgumentNullException(nameof(entity), "User cannot be null when mapping to UserDto.")
+        :
+        new RegisterUserDto
+        {
+            Email = entity.Email,
+            Name = entity.Name,
+            CompanyName = entity.CompanyName,
+            Nip = entity.Nip,
+            Address = new RegisterAddressDto
+            {
+                Street = entity.Address?.Street ?? string.Empty,
+                Number = entity.Address?.Number ?? string.Empty,
+                City = entity.Address?.City ?? string.Empty,
+                PostalCode = entity.Address?.PostalCode ?? string.Empty,
+                Country = entity.Address?.Country ?? "Poland"
+            }
+        };
 }

@@ -94,7 +94,7 @@ Console.WriteLine("Create Invoices (and InvoicePositions via join entity)");
 foreach (var user in users)
 {
     var productsFromDb = dbContext.Products
-        .Where(p => p.UserId == user.UserId)
+        .Where(p => p.UserId == user.Id)
         .ToList();
 
     if (productsFromDb.Count < 2)
@@ -102,10 +102,10 @@ foreach (var user in users)
         var bootstrapProducts = ProductFaker.Generate(5, user).ToList();
         dbContext.Products.AddRange(bootstrapProducts);
         dbContext.SaveChanges();
-        productsFromDb = dbContext.Products.Where(p => p.UserId == user.UserId).ToList();
+        productsFromDb = dbContext.Products.Where(p => p.UserId == user.Id).ToList();
     }
 
-    var existingClient = dbContext.Clients.FirstOrDefault(c => c.UserId == user.UserId);
+    var existingClient = dbContext.Clients.FirstOrDefault(c => c.UserId == user.Id);
     if (existingClient == null)
     {
         // Utwórz klienta z adresem (ClientFaker nie ustawia AddressId — robimy to tutaj)

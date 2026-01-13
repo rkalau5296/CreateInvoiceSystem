@@ -32,6 +32,16 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             && persisted.Client is not null
             && persisted.InvoicePositions is not null;
 
+        //if (persisted.UserId != null && !string.IsNullOrEmpty(persisted.User.Email))
+        //{
+
+        //    await _mailService.SendInvoiceCreatedEmailAsync(
+        //        user.Email,
+        //        Parametr.Title,
+        //        Parametr.TotalAmount,
+        //        cancellationToken);
+        //}
+
         return added 
             ? entity.ToDto()
             : throw new InvalidOperationException("User was saved but could not be reloaded.");      

@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260113120211_AddIdentity")]
+    partial class AddIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,7 +257,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nip")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -286,10 +289,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
-
-                    b.HasIndex("Nip")
-                        .IsUnique()
-                        .HasFilter("[Nip] IS NOT NULL");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");

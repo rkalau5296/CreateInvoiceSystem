@@ -48,7 +48,7 @@ public static class InvoiceFaker
         if (user == null) throw new ArgumentNullException(nameof(user));
 
         var invoice = BaseFaker.Generate();
-        invoice.UserId = user.UserId;
+        invoice.UserId = user.Id;
 
         // Klient (snapshot danych klienta na fakturze)
         switch (scenario)

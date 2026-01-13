@@ -6,7 +6,10 @@ using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.API.RestServices;
+using CreateInvoiceSystem.API.UserTokenAdapter;
 using CreateInvoiceSystem.API.ValidationBehavior;
+using CreateInvoiceSystem.Identity.Interfaces;
+using CreateInvoiceSystem.Identity.Services;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
@@ -26,15 +29,21 @@ using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
 using CreateInvoiceSystem.Persistence;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using NLog.Web;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,7 +75,7 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(GetProductsRequest).Assembly,
     typeof(GetUsersRequest).Assembly,
     typeof(GetActualCurrencyRatesRequest).Assembly,
-    typeof(GetInvoicesRequest).Assembly
+    typeof(GetInvoicesRequest).Assembly    
 ));
 
 // Validators
@@ -125,6 +134,43 @@ builder.Services.AddScoped<IInvoiceDbContext>(sp => sp.GetRequiredService<Create
 builder.Services.AddScoped<IUserDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IUserTokenService, UserTokenAdapter>();
+
+builder.Services.AddIdentity<UserEntity, IdentityRole<int>>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<CreateInvoiceSystemDbContext>()
+.AddDefaultTokenProviders();
+
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 // Logging
 builder.Logging.ClearProviders();
@@ -137,6 +183,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
 app.UseMiddleware<ValidationExceptionMiddleware>();
+app.UseAuthentication(); 
 app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>

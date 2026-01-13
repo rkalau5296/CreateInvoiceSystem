@@ -6,8 +6,10 @@ using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.UserRepository;
@@ -15,10 +17,12 @@ namespace CreateInvoiceSystem.API.Repositories.UserRepository;
 public class UserRepository : IUserRepository
 {
     private readonly IDbContext _db;
+    private readonly UserManager<UserEntity> _userManager;
 
-    public UserRepository(IDbContext db)
+    public UserRepository(IDbContext db, UserManager<UserEntity> userManager)
     {
         _db = db;
+        _userManager = userManager;
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken)
@@ -39,12 +43,10 @@ public class UserRepository : IUserRepository
         user.AddressId = addressEntity.AddressId;
 
         var userEntity = new UserEntity
-        {
-            UserId = user.UserId,
+        {            
             Name = user.Name,
             CompanyName = user.CompanyName,
-            Email = user.Email,
-            Password = user.Password,
+            Email = user.Email,            
             Nip = user.Nip,
             AddressId = user.AddressId
         };
@@ -53,12 +55,43 @@ public class UserRepository : IUserRepository
         await _db.SaveChangesAsync(cancellationToken);        
     }
 
+    public async Task<IdentityResult> CreateWithPasswordAsync(User user, string password)
+    {
+        var addressEntity = new AddressEntity
+        {
+            City = user.Address.City,
+            Street = user.Address.Street,
+            Number = user.Address.Number,
+            PostalCode = user.Address.PostalCode,
+            Country = user.Address.Country
+        };
+
+        await _db.Set<AddressEntity>().AddAsync(addressEntity);
+        await _db.SaveChangesAsync();
+
+        user.AddressId = addressEntity.AddressId;
+
+        var userEntity = new UserEntity
+        {            
+            CompanyName = user.CompanyName,
+            Email = user.Email,            
+            Nip = user.Nip,
+            AddressId = user.AddressId,
+            UserName = user.Email,
+            Name = user.Name
+        };
+
+        user.Name = user.Email;
+
+        return await _userManager.CreateAsync(userEntity, password);
+    }
+
     public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
     {
         var baseData = await (from user in _db.Set<UserEntity>().AsNoTracking()
                               join addr in _db.Set<AddressEntity>().AsNoTracking()
                               on user.AddressId equals addr.AddressId
-                              where user.UserId == userId
+                              where user.Id == userId
                               select new { user, addr })
                           .SingleOrDefaultAsync(cancellationToken);
         if (baseData == null) return null;
@@ -91,7 +124,7 @@ public class UserRepository : IUserRepository
         
         return new User
         {
-            UserId = baseData.user.UserId,
+            UserId = baseData.user.Id,
             Name = baseData.user.Name,
             CompanyName = baseData.user.CompanyName,
             Email = baseData.user.Email,
@@ -180,7 +213,7 @@ public class UserRepository : IUserRepository
 
         return userBase.Select(x => new User
         {
-            UserId = x.user.UserId,
+            UserId = x.user.Id,
             Name = x.user.Name,
             CompanyName = x.user.CompanyName,
             Email = x.user.Email,
@@ -196,7 +229,7 @@ public class UserRepository : IUserRepository
             },
             Nip = x.user.Nip,
             Invoices = allInvoices
-                    .Where(i => i.UserId == x.user.UserId)
+                    .Where(i => i.UserId == x.user.Id)
                     .Select(i => new Invoice
                     {
                         InvoiceId = i.InvoiceId,
@@ -227,7 +260,7 @@ public class UserRepository : IUserRepository
                     })
                     .ToList(),
             Products = allProducts
-                    .Where(p => p.UserId == x.user.UserId)
+                    .Where(p => p.UserId == x.user.Id)
                     .Select(p => new Product
                     {
                         ProductId = p.ProductId,
@@ -238,7 +271,7 @@ public class UserRepository : IUserRepository
                     })
                     .ToList(),
             Clients = allClients
-                    .Where(c => c.UserId == x.user.UserId)
+                    .Where(c => c.UserId == x.user.Id)
                     .Select(c =>
                     {
                         var clientAddrEntity = allClientAddresses.FirstOrDefault(a => a.AddressId == c.AddressId);
@@ -275,7 +308,7 @@ public class UserRepository : IUserRepository
     {
         return await _db.Set<UserEntity>()
             .AsNoTracking()
-            .AnyAsync(c => c.UserId == userId, cancellationToken);
+            .AnyAsync(c => c.Id == userId, cancellationToken);
     }
 
     public async Task RemoveAddress(Address address, CancellationToken cancellationToken)
@@ -296,12 +329,9 @@ public class UserRepository : IUserRepository
     public async Task RemoveAsync(User user, CancellationToken cancellationToken)
     {
         var userEntity = new UserEntity
-        {
-            UserId = user.UserId,
+        {            
             Name = user.Name,
-            CompanyName = user.CompanyName,
-            Email = user.Email,
-            Password = user.Password,
+            CompanyName = user.CompanyName,            
             Nip = user.Nip,
             AddressId = user.AddressId
         };
@@ -317,7 +347,7 @@ public class UserRepository : IUserRepository
     public async Task UpdateAsync(User user, CancellationToken cancellationToken)
     {
         var userEntity = await _db.Set<UserEntity>()
-            .SingleOrDefaultAsync(u => u.UserId == user.UserId, cancellationToken);
+            .SingleOrDefaultAsync(u => u.Id == user.UserId, cancellationToken);
 
         var addressEntity = await _db.Set<AddressEntity>()
             .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
@@ -326,9 +356,7 @@ public class UserRepository : IUserRepository
         if (userEntity == null) return;
 
         userEntity.Name = user.Name;
-        userEntity.CompanyName = user.CompanyName;
-        userEntity.Email = user.Email;
-        userEntity.Password = user.Password;
+        userEntity.CompanyName = user.CompanyName;        
         userEntity.Nip = user.Nip;
 
         if (addressEntity != null && user.Address != null)
@@ -339,5 +367,45 @@ public class UserRepository : IUserRepository
             addressEntity.PostalCode = user.Address.PostalCode;
             addressEntity.Country = user.Address.Country;
         }
+    }
+    public async Task<User> CheckPasswordAsync(User user, string password)
+    {
+        var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());
+        return (userEntity != null && await _userManager.CheckPasswordAsync(userEntity, password))
+         ? new User
+         {
+             UserId = userEntity.Id,
+             Email = userEntity.Email,
+             CompanyName = userEntity.CompanyName,
+             Nip = userEntity.Nip,
+             AddressId = userEntity.AddressId
+         }
+         : null;
+    }
+
+    public async Task<User> FindByEmailAsync(string email)
+    {
+        var userEntity = await _userManager.FindByEmailAsync(email);
+        return userEntity != null
+            ? new User
+            {
+                UserId = userEntity.Id,
+                Email = userEntity.Email,
+                CompanyName = userEntity.CompanyName,
+                Nip = userEntity.Nip,
+                AddressId = userEntity.AddressId
+            }
+            : null;
+    }
+
+    public async Task<List<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
+
+        if (identityUser == null) return [];
+        
+        var roles = await _userManager.GetRolesAsync(identityUser);
+
+        return [.. roles];
     }
 }

@@ -14,29 +14,37 @@ using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.Persistence;
 
-public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options) : DbContext(options), IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
+public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options)
+    : IdentityDbContext<UserEntity, IdentityRole<int>, int>(options), 
+      IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
 {
     public DbSet<AddressEntity> Addresses { get; set; }
     public DbSet<ClientEntity> Clients { get; set; }
     public DbSet<ProductEntity> Products { get; set; }
     public DbSet<InvoicePositionEntity> InvoicePositions { get; set; }
-    public DbSet<InvoiceEntity> Invoices { get; set; }
-    public DbSet<UserEntity> Users { get; set; } = null!;
+    public DbSet<InvoiceEntity> Invoices { get; set; }    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);        
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClientEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AddressEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);  
 
         var user = modelBuilder.Entity<UserEntity>();
-        user.HasKey(u => u.UserId);
-        user.Property(u => u.UserId).ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<UserEntity>()
+        .HasIndex(u => u.Nip)
+        .IsUnique();
+
+        user.Property(u => u.Id).HasColumnName("UserId");
         user.HasOne<AddressEntity>()
             .WithMany()
             .HasForeignKey(u => u.AddressId)
@@ -85,8 +93,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         invoice.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
 
         invoice.Ignore(i => i.InvoicePositions);
-
-        base.OnModelCreating(modelBuilder);
+        
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ProductEntityConfiguration());        

@@ -9,8 +9,7 @@ public static class UserFaker
     private static Faker<UserEntity> BaseFaker => new Faker<UserEntity>("pl")
         .RuleFor(u => u.Name, f => $"{f.Name.FirstName()} {f.Name.LastName()}")
         .RuleFor(u => u.CompanyName, f => f.Company.CompanyName())
-        .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.Name))
-        .RuleFor(u => u.Password, f => f.Internet.Password())
+        .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.Name))        
         .RuleFor(u => u.Nip, f => f.Random.ReplaceNumbers("##########"));
 
     // Generuje użytkownika z podanym AddressId (bez nawigacji Address)

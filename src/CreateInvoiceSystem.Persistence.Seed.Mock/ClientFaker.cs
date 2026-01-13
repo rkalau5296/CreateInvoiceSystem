@@ -16,7 +16,7 @@ public static class ClientFaker
     public static ClientEntity Generate(UserEntity user)
     {
         var client = Faker.Generate();
-        client.UserId = user.UserId;
+        client.UserId = user.Id;
         return client;
     }
     

@@ -3,17 +3,22 @@ using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.Cre
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.UpdateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class UserController : ApiControllerBase
 {
     public UserController(IMediator mediator, ILogger<UserController> logger) : base(mediator)
@@ -55,10 +60,10 @@ public class UserController : ApiControllerBase
 
     [HttpDelete]
     [Route("id")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
     {
         DeleteUserRequest request = new(id);
         return await HandleRequest<DeleteUserRequest, DeleteUserResponse>(request, cancellationToken);
     }
-
 }
