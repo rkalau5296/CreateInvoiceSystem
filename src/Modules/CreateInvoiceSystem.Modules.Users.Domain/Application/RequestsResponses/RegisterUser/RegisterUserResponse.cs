@@ -6,5 +6,5 @@ public class RegisterUserResponse
 {        
     public RegisterUserDto? Data { get; set; }        
     public bool Success { get; set; } = true;
-    public string Message { get; set; } = "Użytkownik został zarejestrowany pomyślnie.";
+    public string Message { get; set; } = "User registered successfully.";
 }
