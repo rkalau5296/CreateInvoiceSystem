@@ -8,6 +8,7 @@ public record CreateInvoiceDto
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public int UserId { get; set; }
+    public string UserEmail { get; set; }
     public int? ClientId { get; set; }
     public CreateClientDto Client { get; set; }
     public string ClientName { get; set; }

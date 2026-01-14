@@ -9,6 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Controllers;
 
@@ -41,6 +42,7 @@ public class InvoiceController : ApiControllerBase
     [Route("create")]
     public async Task<IActionResult> CreateInvoicesAsync([FromBody] CreateInvoiceDto invoiceDto, CancellationToken cancellationToken)
     {
+        invoiceDto.UserEmail = User.FindFirstValue(ClaimTypes.Email);
         CreateInvoiceRequest request = new(invoiceDto);
         return await HandleRequest<CreateInvoiceRequest, CreateInvoiceResponse>(request, cancellationToken);
     }

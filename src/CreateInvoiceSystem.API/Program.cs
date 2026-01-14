@@ -1,15 +1,18 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.API.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.Repositories.ClientRepository;
 using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.API.RestServices;
+using CreateInvoiceSystem.API.UserEmailAdapter;
 using CreateInvoiceSystem.API.UserTokenAdapter;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Identity.Services;
+using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
@@ -136,7 +139,9 @@ builder.Services.AddScoped<IDbContext>(sp => sp.GetRequiredService<CreateInvoice
 
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IUserTokenService, UserTokenAdapter>();
-
+builder.Services.AddTransient<IEmailService, SmtpEmailService>();
+builder.Services.AddTransient<IUserEmailSender, UserEmailAdapter>();
+builder.Services.AddTransient<IInvoiceEmailSender, InvoiceEmailAdapter>();
 builder.Services.AddIdentity<UserEntity, IdentityRole<int>>(options =>
 {
     options.Password.RequireDigit = false;
@@ -171,6 +176,8 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+
+
 
 // Logging
 builder.Logging.ClearProviders();

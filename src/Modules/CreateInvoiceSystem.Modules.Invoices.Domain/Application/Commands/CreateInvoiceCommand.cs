@@ -7,6 +7,14 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
 public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>
 {
+    private readonly IInvoiceEmailSender _emailSender;
+    
+    public CreateInvoiceCommand(CreateInvoiceDto dto, IInvoiceEmailSender emailSender)
+    {
+        this.Parametr = dto;
+        _emailSender = emailSender;
+    }
+
     public override async Task<InvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
     {
         ValidateInvoiceParametr(Parametr);               
@@ -31,16 +39,12 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         bool added = persisted is not null
             && persisted.Client is not null
             && persisted.InvoicePositions is not null;
+        
 
-        //if (persisted.UserId != null && !string.IsNullOrEmpty(persisted.User.Email))
-        //{
-
-        //    await _mailService.SendInvoiceCreatedEmailAsync(
-        //        user.Email,
-        //        Parametr.Title,
-        //        Parametr.TotalAmount,
-        //        cancellationToken);
-        //}
+        if (!string.IsNullOrEmpty(Parametr.UserEmail))
+        {
+            await _emailSender.SendInvoiceCreatedEmailAsync(Parametr.UserEmail, entity.Title);
+        }
 
         return added 
             ? entity.ToDto()

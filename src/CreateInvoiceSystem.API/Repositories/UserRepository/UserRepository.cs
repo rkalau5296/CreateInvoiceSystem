@@ -408,4 +408,22 @@ public class UserRepository : IUserRepository
 
         return [.. roles];
     }
+
+    public async Task<string> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken)
+    {        
+        var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
+
+        if (identityUser == null) return string.Empty;
+     
+        return await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+    }
+
+    public async Task<bool> ResetPasswordAsync(User user, string token, string newPassword, CancellationToken cancellationToken)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
+        if (identityUser == null) return false;
+
+        var result = await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
+        return result.Succeeded;
+    }
 }

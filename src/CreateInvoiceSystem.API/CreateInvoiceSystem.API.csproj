@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
     <ProjectReference Include="..\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Mail\CreateInvoiceSystem.Mail.csproj" />
     <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
