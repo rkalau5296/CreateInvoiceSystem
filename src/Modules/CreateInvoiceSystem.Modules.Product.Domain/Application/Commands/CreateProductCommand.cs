@@ -21,7 +21,7 @@ public class CreateProductCommand : CommandBase<CreateProductDto, CreateProductD
         var savedProduct = await _productRepository.AddAsync(entity, cancellationToken);
         await _productRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _productRepository.GetByIdAsync(savedProduct.ProductId, cancellationToken);
+        var persisted = await _productRepository.GetByIdAsync(savedProduct.ProductId, savedProduct.UserId, cancellationToken);
 
         return persisted is not null
             ? ProductMappers.ToCreateDto(persisted)

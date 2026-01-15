@@ -28,14 +28,21 @@ public class ClientRepository(IDbContext db) : IClientRepository
                 cancellationToken);
     }
 
-    public async Task<Client> GetByIdAsync(int clientId, CancellationToken cancellationToken)
-    {
-        var client = await _db.Set<ClientEntity>()
-            .AsNoTracking().SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
-            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
-
+    public async Task<Client> GetByIdAsync(int clientId, int? userId, CancellationToken cancellationToken)
+    {        
+        var query = _db.Set<ClientEntity>().AsNoTracking();
+     
+        if (userId.HasValue)
+        {
+            query = query.Where(c => c.UserId == userId.Value);
+        }
+        
+        var client = await query.SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found or access denied.");
+        
         var address = await _db.Set<AddressEntity>()
-            .AsNoTracking().SingleOrDefaultAsync(a => a.AddressId == client.AddressId, cancellationToken)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(a => a.AddressId == client.AddressId, cancellationToken)
             ?? throw new InvalidOperationException($"Address with ID {client.AddressId} not found.");
 
         return new Client
@@ -57,14 +64,24 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
     }
 
-    public async Task<List<Client>> GetAllAsync(CancellationToken cancellationToken)
-    {
-        var clients = await _db.Set<ClientEntity>().AsNoTracking().ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No clients found.");
-        ;
+    public async Task<List<Client>> GetAllAsync(int? userId, CancellationToken cancellationToken)
+    {        
+        var query = _db.Set<ClientEntity>().AsNoTracking();
+        
+        if (userId.HasValue)
+        {
+            query = query.Where(c => c.UserId == userId.Value);
+        }
+        
+        var clients = await query.ToListAsync(cancellationToken);
+        
+        var clientAddressIds = clients.Select(c => c.AddressId).ToList();
         var addresses = await _db.Set<AddressEntity>()
-            .AsNoTracking().ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No addresses found.");
-
-        return [.. clients.Select(c => new Client
+            .AsNoTracking()
+            .Where(a => clientAddressIds.Contains(a.AddressId)) 
+            .ToListAsync(cancellationToken);
+        
+        return clients.Select(c => new Client
         {
             ClientId = c.ClientId,
             Name = c.Name,
@@ -82,7 +99,7 @@ public class ClientRepository(IDbContext db) : IClientRepository
                     Country = address.Country
                 }
                 : null
-        })];
+        }).ToList();
     }
 
     public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken)

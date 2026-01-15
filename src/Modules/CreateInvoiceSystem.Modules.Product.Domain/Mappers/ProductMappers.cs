@@ -59,6 +59,7 @@ public static class ProductMappers
             product.Name,
             product.Description,
             product.Value,
+            product.UserId,
             product.IsDeleted
         );
 

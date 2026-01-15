@@ -12,7 +12,7 @@ public class DeleteProductCommand : CommandBase<Product, ProductDto, IProductRep
         if (Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));
 
-        var productEntity = await _productRepository.GetByIdAsync(Parametr.ProductId, cancellationToken)
+        var productEntity = await _productRepository.GetByIdAsync(Parametr.ProductId, Parametr.UserId, cancellationToken)
             ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
 
         var productDto = ProductMappers.ToDto(productEntity);

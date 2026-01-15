@@ -47,11 +47,17 @@ public class ProductRepository(IDbContext db) : IProductRepository
         .AsNoTracking()
         .AnyAsync(p => p.ProductId == productId, cancellationToken);
 
-    public async Task<List<Product>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<List<Product>> GetAllAsync(int? userId, CancellationToken cancellationToken)
     {
-        var products = await _db.Set<ProductEntity>()
-            .AsNoTracking()
-            .ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No products found.");         
+        var query = _db.Set<ProductEntity>()
+            .AsNoTracking();
+        
+        if (userId.HasValue)
+        {
+            query = query.Where(p => p.UserId == userId.Value);
+        }
+
+        var products = await query.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No products found.");         
 
         return [.. products.Select(p => new Product
         {
@@ -62,9 +68,16 @@ public class ProductRepository(IDbContext db) : IProductRepository
         })];
     }
 
-    public async Task<Product> GetByIdAsync(int productId, CancellationToken cancellationToken)
+    public async Task<Product> GetByIdAsync(int productId, int? userId, CancellationToken cancellationToken)
     {
-        var product = await _db.Set<ProductEntity>().AsNoTracking().SingleOrDefaultAsync(p => p.ProductId == productId, cancellationToken) ?? throw new InvalidOperationException($"Product with ID {productId} not found.");            
+        var query = _db.Set<ProductEntity>().AsNoTracking();
+
+        if (userId.HasValue)
+        {
+            query = query.Where(p => p.UserId == userId.Value);
+        }
+
+        var product = await query.SingleOrDefaultAsync(p => p.ProductId == productId, cancellationToken) ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
 
         return new Product
         {
@@ -72,8 +85,7 @@ public class ProductRepository(IDbContext db) : IProductRepository
             Name = product.Name,
             Description = product.Description,
             Value = product.Value,
-            UserId = product.UserId,
-            IsDeleted = product.IsDeleted
+            UserId = product.UserId
         };
     }
 

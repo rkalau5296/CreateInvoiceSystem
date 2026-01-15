@@ -31,7 +31,7 @@ public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClie
         var savedClient = await _clientRepository.AddAsync(domainModel, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(savedClient.ClientId, cancellationToken);
+        var persisted = await _clientRepository.GetByIdAsync(savedClient.ClientId, savedClient.UserId, cancellationToken);
 
         return persisted is not null
             ? savedClient.ToDto()

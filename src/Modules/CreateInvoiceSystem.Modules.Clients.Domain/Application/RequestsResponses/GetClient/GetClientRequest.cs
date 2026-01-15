@@ -1,8 +1,22 @@
 ﻿using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClient;
-public record GetClientRequest(int Id) : IRequest<GetClientResponse>
+public class GetClientRequest : IRequest<GetClientResponse>
 {
-    public int Id { get; set; } = Id >= 1 ? Id
-            : throw new ArgumentOutOfRangeException(nameof(Id), "Id must be greater than or equal to 1.");
+    private int _id;
+    public int Id
+    {
+        get => _id;    
+        set => _id = value >= 1 ? value
+               : throw new ArgumentOutOfRangeException(nameof(Id), "Id must be greater than or equal to 1.");
+    }
+    
+    public int? UserId { get; set; }
+    
+    public GetClientRequest(int id)
+    {
+        Id = id;
+    }
+    
+    public GetClientRequest() { }
 }

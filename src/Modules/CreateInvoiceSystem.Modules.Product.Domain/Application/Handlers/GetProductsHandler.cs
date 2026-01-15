@@ -11,7 +11,7 @@ public class GetProductsHandler(IQueryExecutor queryExecutor, IProductRepository
 {
     public async Task<GetProductsResponse> Handle(GetProductsRequest request, CancellationToken cancellationToken)
     {
-        GetProductsQuery query = new();
+        GetProductsQuery query = new(request.UserId);
 
         List<Product> Products = await queryExecutor.Execute(query, _productRepository, cancellationToken);
 

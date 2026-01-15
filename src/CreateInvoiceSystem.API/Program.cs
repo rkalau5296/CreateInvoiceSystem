@@ -136,7 +136,7 @@ builder.Services.AddScoped<IInvoicePosistionDbContext>(sp => sp.GetRequiredServi
 builder.Services.AddScoped<IInvoiceDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IUserDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 builder.Services.AddScoped<IDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IUserTokenService, UserTokenAdapter>();
 builder.Services.AddTransient<IEmailService, SmtpEmailService>();
@@ -176,9 +176,6 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
-
-
-
 // Logging
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);

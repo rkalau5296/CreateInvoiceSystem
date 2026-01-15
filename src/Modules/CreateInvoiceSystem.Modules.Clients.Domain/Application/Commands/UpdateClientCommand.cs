@@ -12,16 +12,16 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         if (Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));
 
-        var client = await _clientRepository.GetByIdAsync(Parametr.ClientId, cancellationToken)
+        var client = await _clientRepository.GetByIdAsync(Parametr.ClientId, Parametr.UserId, cancellationToken)
             ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
         
         string oldName = client.Name;
         string oldNip = client.Nip;
-        string oldStreet = client.Address.Street;
-        string oldNumber = client.Address.Number;
-        string oldCity = client.Address.City;
-        string oldPostal = client.Address.PostalCode;
-        string oldCountry = client.Address.Country;
+        string oldStreet = client.Address?.Street;
+        string oldNumber = client.Address?.Number;
+        string oldCity = client.Address?.City;
+        string oldPostal = client.Address?.PostalCode;
+        string oldCountry = client.Address?.Country;
 
         client.Name = Parametr.Name ?? client.Name;
         client.Nip = Parametr.Nip ?? client.Nip;
@@ -49,7 +49,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         var updatedClient = await _clientRepository.UpdateAsync(client, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(updatedClient.ClientId, cancellationToken);
+        var persisted = await _clientRepository.GetByIdAsync(updatedClient.ClientId, updatedClient.UserId, cancellationToken);
 
         bool hasChanged = persisted is not null && (
             !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
@@ -62,7 +62,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         );
 
         return hasChanged
-            ? ClientMappers.ToUpdateDto(persisted!)
-            : throw new InvalidOperationException($"No changes were saved for client with ID {Parametr.ClientId}.");
+            ? ClientMappers.ToUpdateDto(persisted)
+            : ClientMappers.ToUpdateDto(persisted);
     }
 }

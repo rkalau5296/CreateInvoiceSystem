@@ -6,4 +6,5 @@ namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsRespon
 
 public class GetProductsRequest : IRequest<GetProductsResponse>
 {
+    public int? UserId { get; set; }
 }

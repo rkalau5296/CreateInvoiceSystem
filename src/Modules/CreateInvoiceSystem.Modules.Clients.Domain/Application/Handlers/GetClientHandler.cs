@@ -10,7 +10,7 @@ public class GetClientHandler(IQueryExecutor queryExecutor, IClientRepository _c
 {
     public async Task<GetClientResponse> Handle(GetClientRequest request, CancellationToken cancellationToken)
     {
-        GetClientQuery query = new(request.Id);
+        GetClientQuery query = new(request.Id, request.UserId);
         var client = await queryExecutor.Execute(query, _clientRepository, cancellationToken);
 
         return new GetClientResponse

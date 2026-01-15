@@ -84,7 +84,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         position.HasOne<ProductEntity>()
                 .WithMany() 
                 .HasForeignKey(p => p.ProductId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
         
         position.HasIndex(p => new { p.InvoiceId, p.ProductId });
 

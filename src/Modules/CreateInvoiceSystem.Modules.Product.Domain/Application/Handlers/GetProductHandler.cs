@@ -10,7 +10,7 @@ public class GetProductHandler(IQueryExecutor queryExecutor, IProductRepository 
 {
     public async Task<GetProductResponse> Handle(GetProductRequest request, CancellationToken cancellationToken)
     {
-        GetProductQuery query = new(request.Id);
+        GetProductQuery query = new(request.Id, request.UserId);
         var Product = await queryExecutor.Execute(query, _productRepository, cancellationToken);
 
         return new GetProductResponse
