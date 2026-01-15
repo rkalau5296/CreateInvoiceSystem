@@ -12,7 +12,7 @@ public class GetInvoicesHandler(IQueryExecutor queryExecutor, IInvoiceRepository
 {
     public async Task<GetInvoicesResponse> Handle(GetInvoicesRequest request, CancellationToken cancellationToken)
     {
-        GetInvoicesQuery query = new();
+        GetInvoicesQuery query = new(request.UserId);
 
         List<Invoice> invoice = await queryExecutor.Execute(query, _invoiceRepository, cancellationToken);
 

@@ -11,7 +11,7 @@ public class GetInvoiceHandler(IQueryExecutor queryExecutor, IInvoiceRepository 
 {
     public async Task<GetInvoiceResponse> Handle(GetInvoiceRequest request, CancellationToken cancellationToken)
     {
-        GetInvoiceQuery query = new(request.Id);
+        GetInvoiceQuery query = new(request.UserId,request.Id);
         var invoice = await queryExecutor.Execute(query, _invoiceRepository, cancellationToken);
 
         return new GetInvoiceResponse

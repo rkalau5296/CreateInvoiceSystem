@@ -33,6 +33,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         await _invoiceRepository.SaveChangesAsync(cancellationToken);
 
         var persisted = await _invoiceRepository.GetInvoiceByIdAsync(
+            createdInvoice.UserId,
             createdInvoice.InvoiceId,            
             cancellationToken);
 

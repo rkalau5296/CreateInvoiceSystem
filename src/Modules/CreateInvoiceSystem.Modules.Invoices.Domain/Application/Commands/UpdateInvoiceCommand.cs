@@ -10,26 +10,27 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
 {
     public override async Task<UpdateInvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null) 
+        if (this.Parametr is null)
             throw new ArgumentNullException(nameof(Parametr));
 
-        var beforeUpdate = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.InvoiceId, cancellationToken)
+        var beforeUpdate = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
             ?? throw new InvalidOperationException($"Invoice {this.Parametr.InvoiceId} not found.");
 
-        var invoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.InvoiceId, cancellationToken)
+        var invoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
             ?? throw new InvalidOperationException($"Invoice {this.Parametr.InvoiceId} not found.");
-        
+
         UpdateBasicInformation(invoice);
-        
+
         await HandleClientUpdate(invoice, _invoiceRepository, cancellationToken);
-        
+
         if (this.Parametr.InvoicePositions != null)
         {
             await SyncInvoicePositions(invoice, _invoiceRepository, cancellationToken);
-        }        
+        }
+
         await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
 
-        var updatedInvoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.InvoiceId, cancellationToken)
+        var updatedInvoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
             ?? throw new InvalidOperationException("Invoice not found after update.");
 
         return HasChanges(beforeUpdate, updatedInvoice)
@@ -48,9 +49,9 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
     }
 
     private async Task HandleClientUpdate(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {        
+    {
         if (Parametr.Client != null)
-        {            
+        {
             var existingClient = await _invoiceRepository.GetClientAsync(
                 Parametr.Client.Name,
                 Parametr.Client.Address.Street,
@@ -67,18 +68,17 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 invoice.ClientId = existingClient.ClientId;
             }
             else
-            {                
+            {
                 var newClient = MapToNewClient(Parametr.Client, invoice.UserId);
                 await _invoiceRepository.AddClientAsync(newClient, cancellationToken);
                 invoice.Client = newClient;
                 invoice.ClientId = newClient.ClientId;
             }
-            
+
             invoice.ClientName = Parametr.Client.Name;
             invoice.ClientNip = Parametr.Client.Nip;
             invoice.ClientAddress = FormatAddress(Parametr.Client.Address);
         }
-        
         else if (Parametr.ClientId.HasValue && Parametr.ClientId.Value > 0)
         {
             var existing = await _invoiceRepository.GetClientByIdAsync(Parametr.ClientId.Value, cancellationToken)
@@ -96,7 +96,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
     {
         var incoming = Parametr.InvoicePositions;
         var incomingIds = incoming.Where(p => p.InvoicePositionId > 0).Select(p => p.InvoicePositionId).ToHashSet();
-        
+
         var toDelete = invoice.InvoicePositions
             .Where(ip => !incomingIds.Contains(ip.InvoicePositionId))
             .ToList();
@@ -106,14 +106,14 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             invoice.InvoicePositions.Remove(pos);
             await _invoiceRepository.RemoveInvoicePositionsAsync(pos);
         }
-        
+
         foreach (var dto in incoming)
         {
             if (dto.InvoicePositionId > 0)
-            {                
+            {
                 var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == dto.InvoicePositionId);
                 if (existing != null)
-                {                    
+                {
                     var product = await GetOrCreateProductAsync(dto.ProductName, dto.ProductDescription, dto.ProductValue, invoice.UserId, _invoiceRepository, cancellationToken);
 
                     existing.ProductId = product.ProductId;
@@ -124,7 +124,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 }
             }
             else
-            {                
+            {
                 var product = await GetOrCreateProductAsync(dto.ProductName, dto.ProductDescription, dto.ProductValue, invoice.UserId, _invoiceRepository, cancellationToken);
 
                 invoice.InvoicePositions.Add(new InvoicePosition
@@ -147,11 +147,11 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                before.PaymentDate != after.PaymentDate ||
                before.ClientName != after.ClientName ||
                before.ClientId != after.ClientId ||
-               before.InvoicePositions.Count != after.InvoicePositions.Count ||               
-               !before.InvoicePositions.Select(p => p.ProductName + p.Quantity).SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity));
+               before.InvoicePositions.Count != after.InvoicePositions.Count ||
+               !before.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue).SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue));
     }
 
-    private static string FormatAddress(dynamic addr) => addr == null ? "" : $"{addr.Street} {addr.Number}, {addr.PostalCode} {addr.City}, {addr.Country}";   
+    private static string FormatAddress(dynamic addr) => addr == null ? "" : $"{addr.Street} {addr.Number}, {addr.PostalCode} {addr.City}, {addr.Country}";
 
     private static Client MapToNewClient(UpdateClientDto dto, int userId) => new()
     {

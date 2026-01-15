@@ -62,5 +62,4 @@ public class InvoiceController : ApiControllerBase
         DeleteInvoiceRequest request = new(id);
         return await HandleRequest<DeleteInvoiceRequest, DeleteInvoiceResponse>(request, cancellationToken);
     }
-
 }

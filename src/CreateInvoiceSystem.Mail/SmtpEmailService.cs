@@ -45,7 +45,7 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
         message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
-        // Tutaj Twoje dane do serwera SMTP
+        
         await client.ConnectAsync("smtp.twoj-serwer.pl", 587, SecureSocketOptions.StartTls);
         await client.AuthenticateAsync("login", "haslo");
 

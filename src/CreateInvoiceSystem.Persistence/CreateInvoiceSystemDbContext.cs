@@ -93,7 +93,12 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         invoice.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
 
         invoice.Ignore(i => i.InvoicePositions);
-        
+
+        invoice.HasOne<ClientEntity>()
+               .WithMany()
+               .HasForeignKey(i => i.ClientId)
+               .OnDelete(DeleteBehavior.SetNull);
+
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ProductEntityConfiguration());        

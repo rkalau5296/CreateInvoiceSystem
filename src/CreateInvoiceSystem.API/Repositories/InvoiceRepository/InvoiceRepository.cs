@@ -205,19 +205,29 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             };
         }
 
-        public async Task<Invoice> GetInvoiceByIdAsync(int invoiceId, CancellationToken cancellationToken)
+        public async Task<Invoice> GetInvoiceByIdAsync(int? user, int invoiceId, CancellationToken cancellationToken)
         {
             var invoiceEntity = await _db.Set<InvoiceEntity>()
                 .AsNoTracking()
-                .SingleOrDefaultAsync(i => i.InvoiceId == invoiceId, cancellationToken)
+                .SingleOrDefaultAsync(i => i.InvoiceId == invoiceId && i.UserId == user, cancellationToken)
                 ?? throw new InvalidOperationException($"Invoice with ID {invoiceId} not found.");
 
-            var clientEntity = await _db.Set<ClientEntity>().AsNoTracking()
-                .SingleOrDefaultAsync(c => c.ClientId == invoiceEntity.ClientId, cancellationToken) ?? throw new InvalidOperationException($"Client with ID {invoiceEntity.ClientId} not found.");
+            ClientEntity? clientEntity = null;
+            AddressEntity? addressEntity = null;
 
-            var addressEntity = clientEntity != null
-                ? await _db.Set<AddressEntity>().AsNoTracking().SingleOrDefaultAsync(a => a.AddressId == clientEntity.AddressId, cancellationToken)
-                : null;
+            if (invoiceEntity.ClientId.HasValue)
+            {
+                clientEntity = await _db.Set<ClientEntity>()
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(c => c.ClientId == invoiceEntity.ClientId, cancellationToken);
+
+                if (clientEntity != null)
+                {
+                    addressEntity = await _db.Set<AddressEntity>()
+                        .AsNoTracking()
+                        .SingleOrDefaultAsync(a => a.AddressId == clientEntity.AddressId, cancellationToken);
+                }
+            }
 
             var invoicePositionsEntity = await _db.Set<InvoicePositionEntity>()
                 .AsNoTracking()
@@ -227,6 +237,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             var productIds = invoicePositionsEntity
                 .Select(p => p.ProductId)
                 .Where(id => id.HasValue)
+                .Cast<int>()
                 .Distinct()
                 .ToList();
 
@@ -268,39 +279,45 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 },
 
                 InvoicePositions = [.. invoicePositionsEntity.Select(ip => new InvoicePosition
+        {
+            InvoicePositionId = ip.InvoicePositionId,
+            InvoiceId = ip.InvoiceId,
+            ProductId = ip.ProductId,
+            Quantity = ip.Quantity,
+            ProductName = ip.ProductName,
+            ProductDescription = ip.ProductDescription,
+            ProductValue = ip.ProductValue,
+            Product = (ip.ProductId.HasValue && productsMap.TryGetValue(ip.ProductId.Value, out var prod))
+                ? new Product
                 {
-                    InvoicePositionId = ip.InvoicePositionId,
-                    InvoiceId = ip.InvoiceId,
-                    ProductId = ip.ProductId,
-                    Quantity = ip.Quantity,
-                    ProductName = ip.ProductName,
-                    ProductDescription = ip.ProductDescription,
-                    ProductValue = ip.ProductValue,
-                    Product = (ip.ProductId.HasValue && productsMap.TryGetValue(ip.ProductId.Value, out var prod))
-                        ? new Product
-                        {
-                            ProductId = prod.ProductId,
-                            Name = prod.Name,
-                            Description = prod.Description,
-                            Value = prod.Value,
-                            UserId = prod.UserId,
-                            IsDeleted = prod.IsDeleted
-                        }
-                        : null
+                    ProductId = prod.ProductId,
+                    Name = prod.Name,
+                    Description = prod.Description,
+                    Value = prod.Value,
+                    UserId = prod.UserId,
+                    IsDeleted = prod.IsDeleted
+                }
+                : null
                 })]
             };
         }
 
-        public async Task<List<Invoice>> GetInvoicesAsync(CancellationToken cancellationToken)
+        public async Task<List<Invoice>> GetInvoicesAsync(int? userId, CancellationToken cancellationToken)
         {
             var invoiceEntities = await _db.Set<InvoiceEntity>()
                 .AsNoTracking()
+                .Where(i => i.UserId == userId)
                 .ToListAsync(cancellationToken);
 
-            if (invoiceEntities.Count == 0 || invoiceEntities is null) return [];
+            if (invoiceEntities.Count == 0) return [];
 
             var invoiceIds = invoiceEntities.Select(i => i.InvoiceId).ToList();
-            var clientIds = invoiceEntities.Select(i => i.ClientId).Where(id => id.HasValue).Distinct().ToList();
+            var clientIds = invoiceEntities
+                    .Select(i => i.ClientId)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value) //cast from int? to int
+                    .Distinct()
+                    .ToList();
 
             var allPositions = await _db.Set<InvoicePositionEntity>()
                 .AsNoTracking()

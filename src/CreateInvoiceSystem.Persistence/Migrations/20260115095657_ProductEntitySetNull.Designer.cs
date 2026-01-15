@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115095657_ProductEntitySetNull")]
+    partial class ProductEntitySetNull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -177,8 +180,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("InvoiceId");
-
-                    b.HasIndex("ClientId");
 
                     b.HasIndex("UserId");
 
@@ -468,11 +469,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Invoices.Persistence.Entities.InvoiceEntity", b =>
                 {
-                    b.HasOne("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
