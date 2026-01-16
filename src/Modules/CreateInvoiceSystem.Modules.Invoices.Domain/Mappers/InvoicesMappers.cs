@@ -189,10 +189,12 @@ public static class InvoiceMappers
                 .Select(ip => new UpdateInvoicePositionDto(
                     ip.InvoicePositionId,
                     ip.InvoiceId,
+                    ip.ProductId, 
                     ip.ProductName,
                     ip.ProductDescription,
                     ip.ProductValue,
-                    ip.Quantity
+                    ip.Quantity,
+                    null
                 )).ToList() ?? [],
             invoice.ClientName,
             invoice.ClientNip,

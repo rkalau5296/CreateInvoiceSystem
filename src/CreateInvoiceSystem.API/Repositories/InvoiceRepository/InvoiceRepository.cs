@@ -6,6 +6,7 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
@@ -522,5 +523,13 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             _db.SaveChangesAsync(cancellationToken);
+
+        public async Task<string> GetUserEmailByIdAsync(int userId, CancellationToken ct)
+        {
+            return await _db.Set<UserEntity>()
+                .Where(u => u.Id == userId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync(ct);
+        }
     }
 }

@@ -3,8 +3,10 @@ public record UpdateInvoicePositionDto
 (
     int InvoicePositionId,
     int InvoiceId,
+    int? ProductId, 
     string ProductName,
-    string ProductDescription,
+    string? ProductDescription,
     decimal? ProductValue,
-    int Quantity
+    int Quantity,
+    ProductDto? Product
 );

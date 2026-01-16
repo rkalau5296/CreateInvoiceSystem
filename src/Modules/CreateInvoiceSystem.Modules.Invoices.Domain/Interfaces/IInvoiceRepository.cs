@@ -1,5 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 public interface IInvoiceRepository : ISaveChangesContext
@@ -21,4 +22,5 @@ public interface IInvoiceRepository : ISaveChangesContext
     Task RemoveInvoicePositionsAsync(InvoicePosition invoicePosition);
     Task<bool> InvoiceExistsAsync(int invoiceId, CancellationToken cancellationToken);
     Task<bool> InvoicePositionExistsAsync(int invoiceId, CancellationToken cancellationToken);
+    Task<string> GetUserEmailByIdAsync(int userId, CancellationToken ct);
 }

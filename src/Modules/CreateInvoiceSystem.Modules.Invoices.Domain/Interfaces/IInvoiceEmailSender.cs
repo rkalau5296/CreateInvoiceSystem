@@ -2,5 +2,5 @@
 
 public interface IInvoiceEmailSender
 {
-    Task SendInvoiceCreatedEmailAsync(string email, string invoiceNumber);
+    Task SendInvoiceCreatedEmailAsync(string email, string invoiceNumber, CancellationToken cancellationToken);
 }

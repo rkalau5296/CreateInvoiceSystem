@@ -32,20 +32,21 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         var createdInvoice = await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
         await _invoiceRepository.SaveChangesAsync(cancellationToken);
 
+        var userEmail = await _invoiceRepository.GetUserEmailByIdAsync(Parametr.UserId, cancellationToken);
+
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            await _emailSender.SendInvoiceCreatedEmailAsync(userEmail, entity.Title, cancellationToken);
+        }
+
         var persisted = await _invoiceRepository.GetInvoiceByIdAsync(
             createdInvoice.UserId,
-            createdInvoice.InvoiceId,            
+            createdInvoice.InvoiceId,
             cancellationToken);
 
         bool added = persisted is not null
             && persisted.Client is not null
             && persisted.InvoicePositions is not null;
-        
-
-        if (!string.IsNullOrEmpty(Parametr.UserEmail))
-        {
-            await _emailSender.SendInvoiceCreatedEmailAsync(Parametr.UserEmail, entity.Title);
-        }
 
         return added 
             ? persisted.ToDto()

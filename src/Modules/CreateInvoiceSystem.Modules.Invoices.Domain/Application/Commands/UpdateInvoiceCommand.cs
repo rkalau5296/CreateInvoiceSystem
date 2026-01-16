@@ -108,15 +108,19 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         }
 
         foreach (var dto in incoming)
-        {
+        {            
+            var nameToUse = dto.Product?.Name ?? dto.ProductName;
+            var descToUse = dto.Product?.Description ?? dto.ProductDescription;
+            var valToUse = dto.Product?.Value ?? dto.ProductValue;
+            
+            var product = await GetOrCreateProductAsync(nameToUse, descToUse, valToUse, invoice.UserId, _invoiceRepository, cancellationToken);
+
             if (dto.InvoicePositionId > 0)
-            {
+            {                
                 var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == dto.InvoicePositionId);
                 if (existing != null)
                 {
-                    var product = await GetOrCreateProductAsync(dto.ProductName, dto.ProductDescription, dto.ProductValue, invoice.UserId, _invoiceRepository, cancellationToken);
-
-                    existing.ProductId = product.ProductId;
+                    existing.ProductId = product.ProductId; 
                     existing.ProductName = product.Name;
                     existing.ProductDescription = product.Description;
                     existing.ProductValue = product.Value;
@@ -124,9 +128,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 }
             }
             else
-            {
-                var product = await GetOrCreateProductAsync(dto.ProductName, dto.ProductDescription, dto.ProductValue, invoice.UserId, _invoiceRepository, cancellationToken);
-
+            {                
                 invoice.InvoicePositions.Add(new InvoicePosition
                 {
                     InvoiceId = invoice.InvoiceId,
@@ -139,6 +141,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             }
         }
     }
+    
 
     private static bool HasChanges(Invoice before, Invoice after)
     {

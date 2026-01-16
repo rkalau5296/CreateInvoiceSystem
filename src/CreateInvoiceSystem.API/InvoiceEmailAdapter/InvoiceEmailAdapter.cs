@@ -5,7 +5,7 @@ namespace CreateInvoiceSystem.API.InvoiceEmailAdapter;
 
 public class InvoiceEmailAdapter(IEmailService emailService) : IInvoiceEmailSender
 {
-    public async Task SendInvoiceCreatedEmailAsync(string email, string invoiceNumber)
+    public async Task SendInvoiceCreatedEmailAsync(string email, string invoiceNumber, CancellationToken cancellationToken)
     {
         string subject = $"Potwierdzenie: Faktura {invoiceNumber}";
         string body = $@"
@@ -17,6 +17,6 @@ public class InvoiceEmailAdapter(IEmailService emailService) : IInvoiceEmailSend
                 </body>
             </html>";
 
-        await emailService.SendEmailAsync(email, subject, body);
+        await emailService.SendEmailAsync(email, subject, body, cancellationToken);
     }
 }
