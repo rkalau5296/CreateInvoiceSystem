@@ -17,10 +17,12 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
         message.Body = new TextPart("plain")
         {
             Text = $"Aby zresetować hasło, kliknij w poniższy link:\n\n{resetLink}\n\n" +
-               $"Link jest ważny przez 2 godziny."
+                   $"Link jest ważny przez 2 godziny."
         };
 
         using var client = new SmtpClient();
+        
+        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
             configuration["Smtp:Host"],

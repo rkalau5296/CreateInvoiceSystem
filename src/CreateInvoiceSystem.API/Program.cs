@@ -1,5 +1,6 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.API.CsvDataAdapter;
 using CreateInvoiceSystem.API.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.Repositories.ClientRepository;
@@ -10,6 +11,8 @@ using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.UserEmailAdapter;
 using CreateInvoiceSystem.API.UserTokenAdapter;
 using CreateInvoiceSystem.API.ValidationBehavior;
+using CreateInvoiceSystem.Csv.Interfaces;
+using CreateInvoiceSystem.Csv.Services;
 using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Identity.Services;
 using CreateInvoiceSystem.Mail;
@@ -21,6 +24,7 @@ using CreateInvoiceSystem.Modules.Clients.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
@@ -37,6 +41,7 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Csv.Controllers;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,9 +49,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using NLog.Web;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +63,8 @@ builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, relo
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = false;
-}).AddJsonOptions(_ => { });
+}).AddJsonOptions(_ => { })
+.AddApplicationPart(typeof(ExportController).Assembly);
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -68,8 +74,33 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "CreateInvoiceSystem API",
         Version = "v1"
-    });    
+    });
+    
     c.CustomSchemaIds(t => t.FullName!.Replace('+', '.'));
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Wklej token JWT: Bearer {twój_token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // MediatR 
@@ -180,6 +211,10 @@ builder.Services.AddAuthentication(options =>
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
+
+
+builder.Services.AddScoped<ICsvExportService, CsvExportService>();
+builder.Services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
 
 var app = builder.Build();
 

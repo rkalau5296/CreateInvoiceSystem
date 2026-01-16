@@ -5,7 +5,7 @@ using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 
-public class ForgotPasswordCommandHandler(IUserRepository _userRepository, IUserEmailSender emailSender) : IRequestHandler<ForgotPasswordRequest, ForgotPasswordResponse>
+public class ForgotPasswordHandler(IUserRepository _userRepository, IUserEmailSender emailSender) : IRequestHandler<ForgotPasswordRequest, ForgotPasswordResponse>
 {
     public async Task<ForgotPasswordResponse> Handle(ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
