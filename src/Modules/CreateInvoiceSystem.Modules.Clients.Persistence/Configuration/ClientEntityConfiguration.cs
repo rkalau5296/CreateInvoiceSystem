@@ -22,7 +22,7 @@ public class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
         builder.Property(c => c.Nip)
             .HasMaxLength(10);
 
-        builder.HasIndex(x => x.Nip)
+        builder.HasIndex(c => new { c.Nip, c.UserId })
                .IsUnique();
 
         builder.Property(c => c.AddressId)

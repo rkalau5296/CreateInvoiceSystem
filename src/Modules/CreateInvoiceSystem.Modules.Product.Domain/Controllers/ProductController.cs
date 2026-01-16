@@ -6,13 +6,14 @@ using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.UpdateProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace CreateInvoiceSystem.Modules.Products.Domain.Controllers;
 
-
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProductController : ApiControllerBase
@@ -25,16 +26,24 @@ public class ProductController : ApiControllerBase
     [HttpGet("{ProductId}")]
     [ProducesResponseType(typeof(GetProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<IActionResult> GetProductAsync([FromRoute] int ProductId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetProductAsync([FromRoute] int ProductId, CancellationToken cancellationToken)
     {
-        GetProductRequest request = new(ProductId);
-        return HandleRequest<GetProductRequest, GetProductResponse>(request, cancellationToken);
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        GetProductRequest request = new(ProductId) { UserId = actualUserId };
+        return await HandleRequest<GetProductRequest, GetProductResponse>(request, cancellationToken);
     }
 
     [HttpGet()]
     [Route("/Products")]
     public async Task<IActionResult> GetProductsAsync([FromQuery] GetProductsRequest request, CancellationToken cancellationToken)
     {
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        request.UserId = actualUserId;
+
         return await HandleRequest<GetProductsRequest, GetProductsResponse>(request, cancellationToken);
     }
 
@@ -42,23 +51,36 @@ public class ProductController : ApiControllerBase
     [Route("create")]
     public async Task<IActionResult> CreateProductsAsync([FromBody] CreateProductDto productDto, CancellationToken cancellationToken)
     {
-        CreateProductRequest request = new(productDto);
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        var secureDto = productDto with { UserId = actualUserId };
+
+        CreateProductRequest request = new(secureDto) { UserId = actualUserId };
         return await HandleRequest<CreateProductRequest, CreateProductResponse>(request, cancellationToken);
     }
 
     [HttpPut]
-    [Route("update/id")]
+    [Route("update/{id}")]
     public async Task<IActionResult> UpdateProductAsync(int id, [FromBody] UpdateProductDto productDto, CancellationToken cancellationToken)
     {
-        UpdateProductRequest request = new(id, productDto);
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        var secureDto = productDto with { UserId = actualUserId };
+
+        UpdateProductRequest request = new(id, secureDto) { UserId = actualUserId };
         return await HandleRequest<UpdateProductRequest, UpdateProductResponse>(request, cancellationToken);
     }
 
     [HttpDelete]
-    [Route("id")]
+    [Route("{id}")]
     public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
     {
-        DeleteProductRequest request = new(id);
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        DeleteProductRequest request = new(id) { UserId = actualUserId };
         return await HandleRequest<DeleteProductRequest, DeleteProductResponse>(request, cancellationToken);
     }
 }

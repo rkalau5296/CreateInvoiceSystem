@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClient;
 public class GetClientRequest : IRequest<GetClientResponse>
@@ -10,7 +11,7 @@ public class GetClientRequest : IRequest<GetClientResponse>
         set => _id = value >= 1 ? value
                : throw new ArgumentOutOfRangeException(nameof(Id), "Id must be greater than or equal to 1.");
     }
-    
+    [JsonIgnore]
     public int? UserId { get; set; }
     
     public GetClientRequest(int id)

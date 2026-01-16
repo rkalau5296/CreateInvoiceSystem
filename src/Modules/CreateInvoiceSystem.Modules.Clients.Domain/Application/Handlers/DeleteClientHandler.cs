@@ -11,7 +11,11 @@ public class DeleteClientHandler(ICommandExecutor commandExecutor, IClientReposi
 {
     public async Task<DeleteClientResponse> Handle(DeleteClientRequest request, CancellationToken cancellationToken)
     {
-        var client = new Client { ClientId = request.Id };
+        var client = new Client 
+        { 
+            ClientId = request.Id,
+            UserId = request.UserId,
+        };
 
         var command = new DeleteClientCommand() { Parametr = client };
         var clientDto = await commandExecutor.Execute(command, _clientRepository, cancellationToken);

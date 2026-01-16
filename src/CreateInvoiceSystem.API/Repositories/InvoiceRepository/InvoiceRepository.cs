@@ -56,32 +56,26 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 MethodOfPayment = invoice.MethodOfPayment,
                 ClientName = invoice.ClientName,
                 ClientAddress = invoice.ClientAddress,
-                ClientNip = invoice.ClientNip,
-                
-                InvoicePositions = invoice.InvoicePositions.Select(ip => new InvoicePositionEntity
-                {
-                    ProductId = ip.ProductId,
-                    ProductName = ip.ProductName,
-                    ProductDescription = ip.ProductDescription,
-                    ProductValue = ip.ProductValue,
-                    Quantity = ip.Quantity
-                }).ToList()
+                ClientNip = invoice.ClientNip
             };
-            
+
             await _db.Set<InvoiceEntity>().AddAsync(invoiceEntity, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
             
-            var positionsToSave = invoiceEntity.InvoicePositions
-                .Cast<InvoicePositionEntity>()
-                .Select(pe =>
-                {
-                    pe.InvoiceId = invoiceEntity.InvoiceId;
-                    return pe;
-                }).ToList();
-            
+            var positionsToSave = invoice.InvoicePositions.Select(ip => new InvoicePositionEntity
+            {
+                InvoiceId = invoiceEntity.InvoiceId,
+                ProductId = ip.ProductId,
+                ProductName = ip.ProductName,
+                ProductDescription = ip.ProductDescription,
+                ProductValue = ip.ProductValue,
+                Quantity = ip.Quantity
+            }).ToList();
+
             await _db.Set<InvoicePositionEntity>().AddRangeAsync(positionsToSave, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
-            
+
+            // 3. Mapujemy wszystko z powrotem do obiektu domenowego Invoice
             return new Invoice
             {
                 InvoiceId = invoiceEntity.InvoiceId,
@@ -95,8 +89,8 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 MethodOfPayment = invoiceEntity.MethodOfPayment,
                 ClientName = invoiceEntity.ClientName,
                 ClientAddress = invoiceEntity.ClientAddress,
-                ClientNip = invoiceEntity.ClientNip,                
-                InvoicePositions = [.. positionsToSave.Select(pe => new InvoicePosition
+                ClientNip = invoiceEntity.ClientNip,
+                InvoicePositions = positionsToSave.Select(pe => new InvoicePosition
                 {
                     InvoicePositionId = pe.InvoicePositionId,
                     InvoiceId = pe.InvoiceId,
@@ -105,7 +99,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                     ProductDescription = pe.ProductDescription,
                     ProductValue = pe.ProductValue,
                     Quantity = pe.Quantity
-                })]
+                }).ToList()
             };
         }
 
@@ -132,8 +126,8 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 IsDeleted = product.IsDeleted
             };
 
-            await _db.Set<ProductEntity>().AddAsync(entity, cancellationToken);            
-
+            await _db.Set<ProductEntity>().AddAsync(entity, cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
             product.ProductId = entity.ProductId;
         }
 

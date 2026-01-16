@@ -1,5 +1,6 @@
 ﻿using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.UpdateProduct;
 
@@ -12,4 +13,7 @@ public class UpdateProductRequest(int id, UpdateProductDto productDto) : IReques
     public int Id { get; } =
     id >= 1 ? id
         : throw new ArgumentOutOfRangeException(nameof(id), "Id must be greater than or equal to 1.");
+
+    [JsonIgnore]
+    public int UserId { get; set; }
 }

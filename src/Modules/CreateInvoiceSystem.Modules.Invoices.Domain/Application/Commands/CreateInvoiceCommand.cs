@@ -48,7 +48,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         }
 
         return added 
-            ? entity.ToDto()
+            ? persisted.ToDto()
             : throw new InvalidOperationException("User was saved but could not be reloaded.");      
     }
 

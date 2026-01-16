@@ -11,9 +11,13 @@ public class DeleteProductHandler(ICommandExecutor commandExecutor, IProductRepo
 {
     public async Task<DeleteProductResponse> Handle(DeleteProductRequest request, CancellationToken cancellationToken)
     {
-        var Product = new Product { ProductId = request.Id };
+        var product = new Product 
+        { 
+            ProductId = request.Id,
+            UserId = request.UserId,
+        };
 
-        var command = new DeleteProductCommand() { Parametr = Product };
+        var command = new DeleteProductCommand() { Parametr = product };
         var deletedProduct = await commandExecutor.Execute(command, _productRepository, cancellationToken);
 
         return new DeleteProductResponse()

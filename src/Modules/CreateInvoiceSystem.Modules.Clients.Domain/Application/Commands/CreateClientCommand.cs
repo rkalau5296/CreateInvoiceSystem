@@ -28,6 +28,8 @@ public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClie
 
         var domainModel = ClientMappers.ToEntity(this.Parametr);
 
+        domainModel.UserId = this.Parametr.UserId;
+
         var savedClient = await _clientRepository.AddAsync(domainModel, cancellationToken);
         await _clientRepository.SaveChangesAsync(cancellationToken);
 
