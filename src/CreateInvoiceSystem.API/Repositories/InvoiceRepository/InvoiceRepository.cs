@@ -414,7 +414,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
         }
 
         public Task<bool> InvoicePositionExistsAsync(int invoiceId, CancellationToken cancellationToken) =>
-             _db.Set<InvoicePosition>()
+             _db.Set<InvoicePositionEntity>()
             .AsNoTracking()
             .AnyAsync(ip => ip.InvoiceId == invoiceId, cancellationToken);
 

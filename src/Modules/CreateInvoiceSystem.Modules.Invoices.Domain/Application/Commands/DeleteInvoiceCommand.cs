@@ -18,7 +18,7 @@ public class DeleteInvoiceCommand : CommandBase<Invoice, InvoiceDto, IInvoiceRep
             cancellationToken) 
             ?? throw new InvalidOperationException($"Invoice with ID {Parametr.InvoiceId} not found.");        
 
-        if (invoiceEntity.InvoicePositions is not null && invoiceEntity.InvoicePositions.Any())
+        if (invoiceEntity.InvoicePositions is not null && invoiceEntity.InvoicePositions.Count != 0)
         {
             await _invoiceRepository.RemoveRangeAsync(invoiceEntity.InvoicePositions, cancellationToken);
         }

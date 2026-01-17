@@ -11,7 +11,11 @@ public class DeleteInvoiceHandler(ICommandExecutor commandExecutor, IInvoiceRepo
 {
     public async Task<DeleteInvoiceResponse> Handle(DeleteInvoiceRequest request, CancellationToken cancellationToken)
     {
-        var invoice = new Invoice { InvoiceId = request.Id };
+        var invoice = new Invoice
+        {
+            InvoiceId = request.Id,
+            UserId = request.UserId
+        };
 
         var command = new DeleteInvoiceCommand { Parametr = invoice };
         await commandExecutor.Execute(command, _invoiceRepository, cancellationToken);

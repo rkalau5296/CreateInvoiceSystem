@@ -80,7 +80,7 @@ public class InvoiceController : ApiControllerBase
     [Route("id")]
     public async Task<IActionResult> DeleteInvoice(int id, CancellationToken cancellationToken)
     {
-        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
 
         DeleteInvoiceRequest request = new(id) { UserId = actualUserId };
