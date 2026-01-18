@@ -2,7 +2,7 @@
 using CreateInvoiceSystem.Identity.Models;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
-namespace CreateInvoiceSystem.API.UserTokenAdapter
+namespace CreateInvoiceSystem.API.Adapters.UserTokenAdapter
 {
     public class UserTokenAdapter(IJwtProvider jwtProvider) : IUserTokenService
     {

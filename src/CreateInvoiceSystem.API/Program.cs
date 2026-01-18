@@ -1,15 +1,12 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.API.CsvDataAdapter;
-using CreateInvoiceSystem.API.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.Repositories.ClientRepository;
 using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.API.RestServices;
-using CreateInvoiceSystem.API.UserEmailAdapter;
-using CreateInvoiceSystem.API.UserTokenAdapter;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Csv.Interfaces;
 using CreateInvoiceSystem.Csv.Services;
@@ -52,6 +49,9 @@ using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using CreateInvoiceSystem.API.Adapters.UserTokenAdapter;
+using CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
+using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 
 var builder = WebApplication.CreateBuilder(args);
 

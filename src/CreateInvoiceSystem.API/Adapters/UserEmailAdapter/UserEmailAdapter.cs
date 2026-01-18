@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
-namespace CreateInvoiceSystem.API.UserEmailAdapter;
+namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 
 public class UserEmailAdapter(IEmailService emailService) : IUserEmailSender
 {
