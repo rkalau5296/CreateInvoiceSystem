@@ -42,9 +42,6 @@
   
   <ItemGroup>
     <Folder Include="Invoices\" />
-    <Folder Include="Products\Commands\" />
-    <Folder Include="Products\Validators\" />
-    <Folder Include="Products\Queries\" />
   </ItemGroup>
 
 </Project>
