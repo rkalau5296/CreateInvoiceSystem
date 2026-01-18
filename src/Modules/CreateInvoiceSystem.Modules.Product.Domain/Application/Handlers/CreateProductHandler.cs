@@ -11,11 +11,11 @@ public class CreateProductHandler(ICommandExecutor commandExecutor, IProductRepo
     {
         var command = new CreateProductCommand() { Parametr = request.Product };
 
-        var ProductFromDb = await commandExecutor.Execute(command, _productRepository, cancellationToken);
+        var productFromDb = await commandExecutor.Execute(command, _productRepository, cancellationToken);
 
         return new CreateProductResponse()
         {
-            Data = ProductFromDb
+            Data = productFromDb
         };
     }
 }
