@@ -17,8 +17,7 @@ public class CsvExportService : ICsvExportService
         using var memoryStream = new MemoryStream();
         using (var writer = new StreamWriter(memoryStream, Encoding.UTF8))
         using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
-        {
-            // CsvHelper sam sprawdzi co jest w środku tych obiektów i zrobi nagłówki
+        {            
             csv.WriteRecords(data);
             writer.Flush();
         }
