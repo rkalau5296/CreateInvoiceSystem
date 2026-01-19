@@ -3,7 +3,7 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 
-namespace CreateInvoiceSystem.API.CsvDataAdapter
+namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
 {
     public class InvoiceExportDataProvider(IInvoiceRepository _invoiceRepository, IProductRepository _productRepository, IClientRepository _clientRepository) : IExportDataProvider
     {

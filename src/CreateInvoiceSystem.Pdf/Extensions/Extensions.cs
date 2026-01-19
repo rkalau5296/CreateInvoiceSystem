@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Pdf.Infrastructure;
-using CreateInvoiceSystem.Pdf.Interfaces;
+﻿using CreateInvoiceSystem.Pdf.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using QuestPDF.Infrastructure;
 

@@ -3,8 +3,9 @@ using CreateInvoiceSystem.Pdf.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.Linq;
 
-namespace CreateInvoiceSystem.Modules.Pdf.Infrastructure;
+namespace CreateInvoiceSystem.Pdf;
 
 public class QuestPdfGenerator : IPdfGenerator
 {
@@ -16,13 +17,16 @@ public class QuestPdfGenerator : IPdfGenerator
         static IContainer RowStyle(IContainer c) =>
             c.PaddingVertical(5).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2);
 
+        var allRows = request.Sections.SelectMany(x => x.Rows).ToList();
+        var totalGross = allRows.Sum(x => x.TotalPrice);
+
         return Document.Create(container =>
         {
             container.Page(page =>
             {
                 page.Margin(50);
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Verdana));
-               
+                
                 page.Header().Column(col =>
                 {
                     col.Item().Row(row =>
@@ -55,14 +59,18 @@ public class QuestPdfGenerator : IPdfGenerator
                 
                 page.Content().PaddingVertical(20).Column(col =>
                 {
+                
                     foreach (var section in request.Sections)
                     {
                         col.Item().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(30);
+                                columns.ConstantColumn(25);
                                 columns.RelativeColumn(3);
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
@@ -73,8 +81,11 @@ public class QuestPdfGenerator : IPdfGenerator
                                 header.Cell().Element(HeaderStyle).Text("Lp.");
                                 header.Cell().Element(HeaderStyle).Text("Nazwa");
                                 header.Cell().Element(HeaderStyle).AlignRight().Text("Ilość");
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("Cena");
-                                header.Cell().Element(HeaderStyle).AlignRight().Text("Suma");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Cena netto");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Wartość netto");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("VAT");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Wartość VAT");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Wartość brutto");
                             });
 
                             int index = 1;
@@ -84,12 +95,84 @@ public class QuestPdfGenerator : IPdfGenerator
                                 table.Cell().Element(RowStyle).Text(row.Name ?? string.Empty);
                                 table.Cell().Element(RowStyle).AlignRight().Text(row.Quantity.ToString());
                                 table.Cell().Element(RowStyle).AlignRight().Text(row.UnitPrice.ToString("N2"));
+                                table.Cell().Element(RowStyle).AlignRight().Text(row.NetValue.ToString("N2"));
+                                table.Cell().Element(RowStyle).AlignRight().Text($"{row.VatRate}%");
+                                table.Cell().Element(RowStyle).AlignRight().Text(row.VatValue.ToString("N2"));
                                 table.Cell().Element(RowStyle).AlignRight().Text(row.TotalPrice.ToString("N2"));
 
                                 index++;
                             }
                         });
                     }
+
+                    
+                    col.Item().PaddingTop(20).Row(row =>
+                    {
+                    
+                        row.RelativeItem().Column(payCol =>
+                        {
+                            payCol.Item().Text("Dane płatności:").SemiBold().Underline();
+                            payCol.Item().Text($"Forma płatności: {request.PaymentMethod}");
+                            payCol.Item().Text($"Termin płatności: {request.PaymentDueDate:yyyy-MM-dd}");
+                            payCol.Item().PaddingTop(5).Text("Numer konta:");
+                            payCol.Item().Text(request.BankAccountNumber).Bold();
+                        });
+                        
+                        row.RelativeItem().Column(totalCol =>
+                        {
+                            totalCol.Item().Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Element(HeaderStyle).Text("Stawka");
+                                    header.Cell().Element(HeaderStyle).AlignRight().Text("Netto");
+                                    header.Cell().Element(HeaderStyle).AlignRight().Text("VAT");
+                                    header.Cell().Element(HeaderStyle).AlignRight().Text("Brutto");
+                                });
+
+                                var vatGroups = allRows.GroupBy(x => x.VatRate);
+                                foreach (var group in vatGroups)
+                                {
+                                    table.Cell().Element(RowStyle).Text($"{group.Key}%");
+                                    table.Cell().Element(RowStyle).AlignRight().Text(group.Sum(x => x.NetValue).ToString("N2"));
+                                    table.Cell().Element(RowStyle).AlignRight().Text(group.Sum(x => x.VatValue).ToString("N2"));
+                                    table.Cell().Element(RowStyle).AlignRight().Text(group.Sum(x => x.TotalPrice).ToString("N2"));
+                                }
+                            });
+
+                            totalCol.Item().PaddingTop(10).AlignRight().Text(x =>
+                            {
+                                x.Span("RAZEM: ").FontSize(12).SemiBold();
+                                x.Span($"{totalGross:N2} zł").FontSize(14).Bold().FontColor(Colors.Blue.Medium);
+                            });
+                        });
+                    });
+
+                    
+                    col.Item().PaddingTop(50).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().PaddingHorizontal(20).LineHorizontal(0.5f);
+                            c.Item().AlignCenter().Text("Osoba upoważniona do odbioru").FontSize(8);
+                        });
+
+                        row.ConstantItem(50); 
+
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().PaddingHorizontal(20).LineHorizontal(0.5f);
+                            c.Item().AlignCenter().Text("Osoba upoważniona do wystawienia").FontSize(8);
+                        });
+                    });
                 });
                 
                 page.Footer().Column(col =>
