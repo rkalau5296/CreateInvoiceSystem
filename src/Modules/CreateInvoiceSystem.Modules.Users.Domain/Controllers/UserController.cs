@@ -51,10 +51,15 @@ public class UserController : ApiControllerBase
     }
 
     [HttpPut]
-    [Route("update/id")]
+    [Route("update/{id}")]
     public async Task<IActionResult> UpdateUserAsync(int id, [FromBody] UpdateUserDto userDto, CancellationToken cancellationToken)
     {
-        UpdateUserRequest request = new(userDto, id);
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();      
+        
+        var secureDto = userDto with { UserId = actualUserId };
+
+        UpdateUserRequest request = new(secureDto, id);
         return await HandleRequest<UpdateUserRequest, UpdateUserResponse>(request, cancellationToken);
     }
 

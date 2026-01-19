@@ -153,6 +153,7 @@ public class QuestPdfGenerator : IPdfGenerator
                                 x.Span("RAZEM: ").FontSize(12).SemiBold();
                                 x.Span($"{totalGross:N2} zł").FontSize(14).Bold().FontColor(Colors.Blue.Medium);
                             });
+                            totalCol.Item().AlignRight().Text($"Słownie: {request.TotalInWords}").FontSize(8).Italic();
                         });
                     });
 

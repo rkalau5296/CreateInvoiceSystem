@@ -19,7 +19,8 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
         builder.Property(u => u.Password)
             .IsRequired()
             .HasMaxLength(100);
-        
+        builder.Property(x => x.BankAccountNumber)
+            .HasMaxLength(34);
         //builder.HasMany(u => u.Clients)
         //    .WithOne(c => c.User)
         //    .HasForeignKey(c => c.UserId)

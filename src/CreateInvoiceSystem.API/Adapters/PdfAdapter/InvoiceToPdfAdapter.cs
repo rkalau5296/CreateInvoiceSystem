@@ -1,6 +1,7 @@
 ﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Pdf.Interfaces;
 using CreateInvoiceSystem.Pdf.Models;
 
@@ -13,9 +14,9 @@ namespace CreateInvoiceSystem.API.Adapters.PdfAdapter
             var user = await _userRepository.GetUserByIdAsync(userId, cancellationToken) ?? throw new Exception($"Błąd: Nie znaleziono danych sprzedawcy o ID: {userId}");
 
             string formattedUserAddress = user.Address != null
-                ? $"{user.Address.Street}, {user.Address.PostalCode} {user.Address.City}"
+                ? $"{user.Address.Street} {user.Address.Number}, {user.Address.PostalCode} {user.Address.City}"
                 : "Brak adresu";
-           
+
             var rows = invoice.InvoicePositions.Select(pos =>
             {
                 decimal unitPrice = pos.ProductValue ?? 0;
@@ -35,21 +36,24 @@ namespace CreateInvoiceSystem.API.Adapters.PdfAdapter
                 );
             }).ToList();
 
+            decimal totalGross = rows.Sum(x => x.TotalPrice);
+
             var pdfRequest = new PdfDocumentRequest(
-                Title: $"Faktura nr {invoice.Title}",
-                Subtitle: $"Data wystawienia: {DateTime.Now:dd.MM.yyyy}",
-                ClientName: invoice.ClientName ?? "Brak danych",
-                ClientAddress: invoice.ClientAddress ?? "Brak adresu",
-                ClientNip: invoice.ClientNip ?? "-",
-                UserName: user.CompanyName ?? user.Name,
-                UserAddress: formattedUserAddress,
-                UserNip: user.Nip ?? "-",
-                Sections: new List<PdfTableSection> { new PdfTableSection(rows) },
-                FooterText: "Dziękujemy za współpracę!",
-                PaymentMethod: "Przelew", 
-                PaymentDueDate: DateTime.Now.AddDays(14), 
-                BankAccountNumber: "PL 00 0000 0000 0000 0000 0000 0000" 
-            );
+            Title: $"Faktura nr {invoice.Title}",
+            Subtitle: $"Data wystawienia: {invoice.CreatedDate:dd.MM.yyyy}",
+            ClientName: invoice.ClientName ?? "Brak danych",
+            ClientAddress: invoice.ClientAddress ?? "Brak adresu",
+            ClientNip: invoice.ClientNip ?? "-",
+            UserName: user.CompanyName ?? user.Name,
+            UserAddress: formattedUserAddress,
+            UserNip: user.Nip ?? "-",
+            Sections: new List<PdfTableSection> { new PdfTableSection(rows) },
+            FooterText: "Dziękujemy za współpracę!",
+            PaymentMethod: invoice.MethodOfPayment ?? "Przelew",
+            PaymentDueDate: invoice.PaymentDate == default ? DateTime.Now.AddDays(14) : invoice.PaymentDate,
+            BankAccountNumber: user.BankAccountNumber ?? "Brak numeru konta w profilu",
+            TotalInWords: NumberToWordsConverter.Convert(totalGross) 
+        );
 
             return _pdfGenerator.Create(pdfRequest);
         }

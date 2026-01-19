@@ -9,6 +9,7 @@ public class UserEntity : IdentityUser<int>
     public string CompanyName { get; set; }
     public string Nip { get; set; }    
     public int AddressId { get; set; }
+    public string? BankAccountNumber { get; set; }
 
     [NotMapped]
     public IEnumerable<object> Invoices { get; set; } = [];

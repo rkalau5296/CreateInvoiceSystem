@@ -7,6 +7,7 @@ public class RegisterUserDto
     public string Name { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     public string Nip { get; set; } = string.Empty;
+    public string? BankAccountNumber { get; set; } = string.Empty;
     public RegisterAddressDto Address { get; set; } = new();
 }
 public class RegisterAddressDto

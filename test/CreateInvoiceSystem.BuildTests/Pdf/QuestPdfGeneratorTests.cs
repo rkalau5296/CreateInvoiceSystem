@@ -17,24 +17,24 @@ public class QuestPdfGeneratorTests
     {
         // Arrange
         var generator = new QuestPdfGenerator();
-        
+
         var rows = new List<PdfRow>
-        {
-            new PdfRow(
-                Name: "Produkt testowy",
-                Quantity: 1,
-                UnitPrice: 100m,
-                NetValue: 100m,
-                VatRate: 23,
-                VatValue: 23m,
-                TotalPrice: 123m)
-        };
+    {
+        new PdfRow(
+            Name: "Produkt testowy",
+            Quantity: 1,
+            UnitPrice: 100m,
+            NetValue: 100m,
+            VatRate: 23,
+            VatValue: 23m,
+            TotalPrice: 123m)
+    };
 
         var sections = new List<PdfTableSection>
-        {
-            new PdfTableSection(rows)
-        };
-        
+    {
+        new PdfTableSection(rows)
+    };
+
         var request = new PdfDocumentRequest(
             Title: "Test PDF",
             Subtitle: "Podtytuł testowy",
@@ -48,7 +48,8 @@ public class QuestPdfGeneratorTests
             FooterText: "Stopka testowa",
             PaymentMethod: "Przelew",
             PaymentDueDate: DateTime.Now.AddDays(7),
-            BankAccountNumber: "12 3456 7890 1234 5678 9012 3456"
+            BankAccountNumber: "12 3456 7890 1234 5678 9012 3456",
+            TotalInWords: "sto dwadzieścia trzy złote 00/100 gr" 
         );
 
         // Act
@@ -56,6 +57,6 @@ public class QuestPdfGeneratorTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Length.Should().BeGreaterThan(0);        
+        result.Length.Should().BeGreaterThan(0);
     }
 }

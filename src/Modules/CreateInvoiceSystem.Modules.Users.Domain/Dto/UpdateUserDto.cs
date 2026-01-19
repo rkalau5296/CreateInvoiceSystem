@@ -4,8 +4,8 @@ public record UpdateUserDto(
     int UserId,
     string Name,
     string CompanyName,
-    string Email,
-    string Password,
+    string Email,    
     string Nip,
+    string BankAccountNumber,
     UpdateAddressDto Address
 );

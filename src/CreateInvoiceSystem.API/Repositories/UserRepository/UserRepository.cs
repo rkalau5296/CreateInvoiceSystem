@@ -129,6 +129,7 @@ public class UserRepository : IUserRepository
             CompanyName = baseData.user.CompanyName,
             Email = baseData.user.Email,
             Nip = baseData.user.Nip,
+            BankAccountNumber = baseData.user.BankAccountNumber,
             AddressId = baseData.user.AddressId,
             Address = new Address
             {
@@ -345,19 +346,20 @@ public class UserRepository : IUserRepository
     }
 
     public async Task UpdateAsync(User user, CancellationToken cancellationToken)
-    {
+    {        
         var userEntity = await _db.Set<UserEntity>()
             .SingleOrDefaultAsync(u => u.Id == user.UserId, cancellationToken);
 
         var addressEntity = await _db.Set<AddressEntity>()
             .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
 
-
         if (userEntity == null) return;
 
         userEntity.Name = user.Name;
         userEntity.CompanyName = user.CompanyName;        
         userEntity.Nip = user.Nip;
+        userEntity.Email = user.Email;
+        userEntity.BankAccountNumber = user.BankAccountNumber;
 
         if (addressEntity != null && user.Address != null)
         {
@@ -367,6 +369,7 @@ public class UserRepository : IUserRepository
             addressEntity.PostalCode = user.Address.PostalCode;
             addressEntity.Country = user.Address.Country;
         }
+        await _db.SaveChangesAsync(cancellationToken);
     }
     public async Task<User> CheckPasswordAsync(User user, string password)
     {

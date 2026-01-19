@@ -9,13 +9,24 @@ public static class UserMappers
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address.ToDto(), user.Invoices.Select(i => i.ToDto()), user.Clients.Select(c => c.ToDto()), user.Products.Select(p => p.ToDto()));
+        new(
+            user.UserId, 
+            user.Name, 
+            user.CompanyName, 
+            user.Email, 
+            user.Password,
+            user.Nip, 
+            user.Address.ToDto(),
+            user.BankAccountNumber,
+            user.Invoices.Select(i => i.ToDto()), 
+            user.Clients.Select(c => c.ToDto()), 
+            user.Products.Select(p => p.ToDto()));
 
     public static UpdateUserDto ToUpdateUserDto(this User user) =>
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address.ToUpdateAddressDto());
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Nip, user.BankAccountNumber, user.Address.ToUpdateAddressDto());
 
     public static User ToEntity(this UserDto dto) =>
         dto == null
@@ -28,6 +39,8 @@ public static class UserMappers
             Email = dto.Email,
             Password = dto.Password,
             Nip = dto.Nip,
+            CompanyName = dto.CompanyName,
+            BankAccountNumber = dto.BankAccountNumber,
             Address = dto.Address.ToEntity(),
             Invoices = [.. dto.Invoices.Select(i => i.ToEntity())],
             Clients = [.. dto.Clients.Select(c => c.ToEntity())],
@@ -89,7 +102,7 @@ public static class UserMappers
             Name = dto.Name,
             CompanyName = dto.CompanyName,
             Nip = dto.Nip,
-
+            BankAccountNumber = dto.BankAccountNumber,
             Address = new Address
             {
                 Street = dto.Address.Street,
@@ -110,6 +123,7 @@ public static class UserMappers
             Name = entity.Name,
             CompanyName = entity.CompanyName,
             Nip = entity.Nip,
+            BankAccountNumber = entity.BankAccountNumber,
             Address = new RegisterAddressDto
             {
                 Street = entity.Address?.Street ?? string.Empty,

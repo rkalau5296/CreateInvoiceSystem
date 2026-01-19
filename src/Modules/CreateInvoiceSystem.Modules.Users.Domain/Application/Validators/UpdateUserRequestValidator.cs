@@ -25,12 +25,7 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
             .NotEmpty().WithMessage("Email is required.")
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
             .WithMessage("Invalid email address.")
-            .When(x => x.User.Email != null);
-
-        RuleFor(x => x.User.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6)
-            .When(x => x.User.Password != null);
+            .When(x => x.User.Email != null);        
 
         When(x => x.User.Address != null, () =>
         {

@@ -8,6 +8,7 @@ public record UserDto(
     string Password,
     string Nip,    
     AddressDto Address,
+    string BankAccountNumber,
     IEnumerable<InvoiceDto> Invoices,
     IEnumerable<ClientDto> Clients,
     IEnumerable<ProductDto> Products

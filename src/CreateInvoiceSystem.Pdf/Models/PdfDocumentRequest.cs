@@ -13,6 +13,7 @@ public record PdfDocumentRequest(
     string FooterText,
     string PaymentMethod,      
     DateTime PaymentDueDate,   
-    string BankAccountNumber   
+    string BankAccountNumber,
+    string TotalInWords
 );
 
