@@ -1,5 +1,9 @@
 using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
+using CreateInvoiceSystem.API.Adapters.PdfAdapter;
+using CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
+using CreateInvoiceSystem.API.Adapters.UserTokenAdapter;
 using CreateInvoiceSystem.API.CsvDataAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.Repositories.ClientRepository;
@@ -8,6 +12,7 @@ using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.ValidationBehavior;
+using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.Interfaces;
 using CreateInvoiceSystem.Csv.Services;
 using CreateInvoiceSystem.Identity.Interfaces;
@@ -37,8 +42,8 @@ using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
+using CreateInvoiceSystem.Pdf.Extensions;
 using CreateInvoiceSystem.Persistence;
-using CreateInvoiceSystem.Csv.Controllers;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -46,12 +51,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NLog.Web;
 using System.Text;
-using Microsoft.OpenApi.Models;
-using CreateInvoiceSystem.API.Adapters.UserTokenAdapter;
-using CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
-using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -207,14 +209,20 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+
 // Logging
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
 
-
+//csv
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
+
+//pdf
+builder.Services.AddPdfModule();
+builder.Services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
+
 
 var app = builder.Build();
 

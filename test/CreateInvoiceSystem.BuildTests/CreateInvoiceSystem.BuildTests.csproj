@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Csv\CreateInvoiceSystem.Csv.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj" />
+    <ProjectReference Include="..\..\src\CreateInvoiceSystem.Pdf\CreateInvoiceSystem.Pdf.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />

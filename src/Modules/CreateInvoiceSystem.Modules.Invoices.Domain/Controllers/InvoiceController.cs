@@ -3,6 +3,7 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using MediatR;
@@ -85,5 +86,21 @@ public class InvoiceController : ApiControllerBase
 
         DeleteInvoiceRequest request = new(id) { UserId = actualUserId };
         return await HandleRequest<DeleteInvoiceRequest, DeleteInvoiceResponse>(request, cancellationToken);
+    }
+
+    [HttpGet("{invoiceId}/pdf")]
+    public async Task<IActionResult> GetInvoicePdfAsync([FromRoute] int invoiceId, CancellationToken cancellationToken)
+    {
+        var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        var request = new GetInvoicePdfRequest(invoiceId, actualUserId);
+        
+        return await HandleFileRequest<GetInvoicePdfRequest, GetInvoicePdfResponse>(
+            request,
+            "application/pdf",
+            $"Faktura_{invoiceId}.pdf",
+            res => res.PdfContent,
+            cancellationToken);
     }
 }

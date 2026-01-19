@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
 {
     protected async Task<IActionResult> HandleRequest<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken)
-        where TRequest : IRequest<TResponse>        
+        where TRequest : IRequest<TResponse>
     {
         if (!this.ModelState.IsValid)
         {
@@ -18,8 +18,18 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
                         errors = x.Value.Errors
                     }));
         }
-        var response = await _mediator.Send(request, cancellationToken);        
+        var response = await _mediator.Send(request, cancellationToken);
 
         return this.Ok(response);
-    }    
+    }
+
+    protected async Task<IActionResult> HandleFileRequest<TRequest, TResponse>(
+        TRequest request, string contentType, string fileName, Func<TResponse, byte[]> fileSelector, CancellationToken cancellationToken)
+        where TRequest : IRequest<TResponse>
+    {
+        var response = await _mediator.Send(request, cancellationToken);
+        if (response == null) return NotFound();
+
+        return File(fileSelector(response), contentType, fileName);
+    }
 }
