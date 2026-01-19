@@ -9,22 +9,47 @@ namespace CreateInvoiceSystem.Modules.Pdf.Infrastructure;
 public class QuestPdfGenerator : IPdfGenerator
 {
     public byte[] Create(PdfDocumentRequest request)
-    {        
-        QuestPDF.Settings.License = LicenseType.Community;
+    {
+        static IContainer HeaderStyle(IContainer c) =>
+            c.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Black);
+
+        static IContainer RowStyle(IContainer c) =>
+            c.PaddingVertical(5).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2);
 
         return Document.Create(container =>
         {
             container.Page(page =>
             {
-                page.Margin(40);
-                page.DefaultTextStyle(x => x.FontSize(11).FontFamily(Fonts.Verdana));
-                
-                page.Header().Row(row =>
+                page.Margin(50);
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Verdana));
+               
+                page.Header().Column(col =>
                 {
-                    row.RelativeItem().Column(col =>
+                    col.Item().Row(row =>
                     {
-                        col.Item().Text(request.Title).FontSize(22).SemiBold().FontColor(Colors.Blue.Medium);
-                        col.Item().Text(request.Subtitle).FontSize(14).Italic();
+                        row.RelativeItem().Text(request.Title).FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
+                        row.RelativeItem().AlignRight().Text(request.Subtitle).FontSize(10).Italic();
+                    });
+
+                    col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
+
+                    col.Item().PaddingTop(10).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("Sprzedawca:").Bold();
+                            c.Item().Text(request.UserName);
+                            c.Item().Text(request.UserAddress);
+                            c.Item().Text($"NIP: {request.UserNip}");
+                        });
+
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().AlignRight().Text("Nabywca:").Bold();
+                            c.Item().AlignRight().Text(request.ClientName);
+                            c.Item().AlignRight().Text(request.ClientAddress);
+                            c.Item().AlignRight().Text($"NIP: {request.ClientNip}");
+                        });
                     });
                 });
                 
@@ -32,35 +57,50 @@ public class QuestPdfGenerator : IPdfGenerator
                 {
                     foreach (var section in request.Sections)
                     {
-                        col.Item().PaddingTop(10).PaddingBottom(5).Text(section.Name).SemiBold();
-
                         col.Item().Table(table =>
-                        {                            
+                        {
                             table.ColumnsDefinition(columns =>
                             {
-                                for (int i = 0; i < section.Headers.Length; i++)
-                                    columns.RelativeColumn();
+                                columns.ConstantColumn(30);
+                                columns.RelativeColumn(3);
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
                             });
-                            
+
                             table.Header(header =>
                             {
-                                foreach (var h in section.Headers)
-                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text(h).SemiBold();
+                                header.Cell().Element(HeaderStyle).Text("Lp.");
+                                header.Cell().Element(HeaderStyle).Text("Nazwa");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Ilość");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Cena");
+                                header.Cell().Element(HeaderStyle).AlignRight().Text("Suma");
                             });
-                            
-                            foreach (var rowData in section.Rows)
+
+                            int index = 1;
+                            foreach (var row in section.Rows)
                             {
-                                foreach (var cellValue in rowData)
-                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten4).Padding(5).Text(cellValue);
+                                table.Cell().Element(RowStyle).Text(index.ToString());
+                                table.Cell().Element(RowStyle).Text(row.Name ?? string.Empty);
+                                table.Cell().Element(RowStyle).AlignRight().Text(row.Quantity.ToString());
+                                table.Cell().Element(RowStyle).AlignRight().Text(row.UnitPrice.ToString("N2"));
+                                table.Cell().Element(RowStyle).AlignRight().Text(row.TotalPrice.ToString("N2"));
+
+                                index++;
                             }
                         });
                     }
                 });
                 
-                page.Footer().AlignCenter().Text(x =>
+                page.Footer().Column(col =>
                 {
-                    x.Span($"{request.FooterText} | Strona ");
-                    x.CurrentPageNumber();
+                    col.Item().PaddingTop(10).LineHorizontal(0.5f);
+                    col.Item().PaddingTop(5).Text(request.FooterText).FontSize(9).Italic();
+                    col.Item().AlignRight().Text(x =>
+                    {
+                        x.Span("Strona ");
+                        x.CurrentPageNumber();
+                    });
                 });
             });
         }).GeneratePdf();

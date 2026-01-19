@@ -53,6 +53,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog.Web;
+using QuestPDF.Infrastructure;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -222,7 +223,6 @@ builder.Services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
 //pdf
 builder.Services.AddPdfModule();
 builder.Services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
-
 
 var app = builder.Build();
 

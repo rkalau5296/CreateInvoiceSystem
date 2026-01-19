@@ -4,11 +4,6 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
 {
@@ -18,7 +13,7 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
     IInvoiceExportService exportService) : IRequestHandler<GetInvoicePdfRequest, GetInvoicePdfResponse>
     {
         public async Task<GetInvoicePdfResponse> Handle(GetInvoicePdfRequest request, CancellationToken cancellationToken)
-        {            
+        {
             GetInvoiceQuery query = new(request.UserId, request.InvoiceId);
             var invoice = await queryExecutor.Execute(query, invoiceRepository, cancellationToken);
 
@@ -26,11 +21,11 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
             {
                 return null;
             }
-            
+
             var invoiceDto = InvoiceMappers.ToDto(invoice);
-            
-            var pdfBytes = exportService.ExportToPdf(invoiceDto);
-            
+
+            var pdfBytes = await exportService.ExportToPdfAsync(invoiceDto, request.UserId, cancellationToken);
+
             return new GetInvoicePdfResponse(
                 PdfContent: pdfBytes,
                 InvoiceNumber: invoiceDto.Title,

@@ -6,23 +6,38 @@ namespace CreateInvoiceSystem.BuildTests.Pdf;
 
 public class QuestPdfGeneratorTests
 {
+    public QuestPdfGeneratorTests()
+    {        
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+    }
+
     [Fact]
     public void Create_ShouldReturnNonEmptyByteArray_WhenRequestIsValid()
     {
         // Arrange
         var generator = new QuestPdfGenerator();
+
+        var rows = new List<PdfRow>
+        {
+            new PdfRow("Produkt testowy", 1, 100m, 100m)
+        };
+
+        var sections = new List<PdfTableSection>
+        {
+            new PdfTableSection(rows)
+        };
+
         var request = new PdfDocumentRequest(
             Title: "Test PDF",
             Subtitle: "Podtytuł testowy",
-            Sections: new List<PdfTableSection>
-            {
-                new PdfTableSection(
-                    Name: "Sekcja testowa",
-                    Headers: new[] { "Nagłówek 1", "Nagłówek 2" },
-                    Rows: new List<string[]> { new[] { "Komórka 1", "Komórka 2" } }
-                )
-            },
-            FooterText: "Stopka"
+            ClientName: "Klient Testowy",
+            ClientAddress: "Adres 1",
+            ClientNip: "123",
+            UserName: "User Test",
+            UserAddress: "Adres 2",
+            UserNip: "456",
+            Sections: sections,
+            FooterText: "Stopka testowa"
         );
 
         // Act

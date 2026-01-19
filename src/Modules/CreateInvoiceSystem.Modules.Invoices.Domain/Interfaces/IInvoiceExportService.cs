@@ -4,5 +4,5 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 
 public interface IInvoiceExportService
 {
-    byte[] ExportToPdf(InvoiceDto invoice);
+    Task<byte[]> ExportToPdfAsync(InvoiceDto invoice, int userId, CancellationToken cancellationToken);
 }

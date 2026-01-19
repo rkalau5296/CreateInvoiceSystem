@@ -7,7 +7,6 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using Moq;
 
-
 namespace CreateInvoiceSystem.BuildTests.Pdf.Handlers;
 
 public class GetInvoicePdfHandlerTests
@@ -37,7 +36,7 @@ public class GetInvoicePdfHandlerTests
         var invoiceId = 1;
         var userId = 100;
         var request = new GetInvoicePdfRequest(invoiceId, userId);
-        
+
         var invoiceEntity = new Invoice
         {
             InvoiceId = invoiceId,
@@ -50,24 +49,26 @@ public class GetInvoicePdfHandlerTests
                 new() { ProductId = 1, Quantity = 5 }
             }
         };
-                
+
         _queryExecutorMock
             .Setup(x => x.Execute(It.IsAny<GetInvoiceQuery>(), _invoiceRepositoryMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync(invoiceEntity);
+
+        var expectedPdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 };
         
-        var expectedPdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 }; 
         _exportServiceMock
-            .Setup(x => x.ExportToPdf(It.IsAny<InvoiceDto>()))
-            .Returns(expectedPdfBytes);
+            .Setup(x => x.ExportToPdfAsync(It.IsAny<InvoiceDto>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedPdfBytes);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(expectedPdfBytes, result.PdfContent);        
-        Assert.Equal("Faktura_FV_2026_001.pdf", result.FileName);        
-        _exportServiceMock.Verify(x => x.ExportToPdf(It.IsAny<InvoiceDto>()), Times.Once);
+        Assert.Equal(expectedPdfBytes, result.PdfContent);
+        Assert.Equal("Faktura_FV_2026_001.pdf", result.FileName);
+
+        _exportServiceMock.Verify(x => x.ExportToPdfAsync(It.IsAny<InvoiceDto>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
