@@ -37,15 +37,10 @@
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Nbp.Domain\CreateInvoiceSystem.Modules.Nbp.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Product.Domain\CreateInvoiceSystem.Modules.Products.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />
     
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Invoices\Commands\" />
-    <Folder Include="Invoices\Validators\" />
-    <Folder Include="Invoices\Queries\" />
   </ItemGroup>
 
 </Project>
