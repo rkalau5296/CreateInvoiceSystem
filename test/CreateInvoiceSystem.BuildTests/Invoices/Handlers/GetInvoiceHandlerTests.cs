@@ -2,14 +2,11 @@
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Invoices.Handlers;
 

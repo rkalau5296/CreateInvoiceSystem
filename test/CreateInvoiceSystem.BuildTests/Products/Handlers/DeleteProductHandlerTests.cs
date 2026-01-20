@@ -3,11 +3,10 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Dto;
-using CreateInvoiceSystem.Modules.Products.Domain.Entities; 
+using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Products.Handlers;
 

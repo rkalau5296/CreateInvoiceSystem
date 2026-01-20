@@ -2,5 +2,5 @@
 
 public interface IUserTokenService
 {
-    string CreateToken(int userId, string email, string company, string nip, List<string> roles);
+    (string AccessToken, Guid RefreshToken) CreateToken(int userId, string email, string company, string nip, List<string> roles);
 }

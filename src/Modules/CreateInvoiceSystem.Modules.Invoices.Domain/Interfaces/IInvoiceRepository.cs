@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 public interface IInvoiceRepository : ISaveChangesContext

@@ -3,13 +3,11 @@ using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRate;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.NbpRates.Handlers;
 

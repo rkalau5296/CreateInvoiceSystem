@@ -7,7 +7,6 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Products.Handlers;
 

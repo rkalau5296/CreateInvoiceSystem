@@ -3,13 +3,10 @@ using CreateInvoiceSystem.BuildTests.Base;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Clients.Handlers;
 

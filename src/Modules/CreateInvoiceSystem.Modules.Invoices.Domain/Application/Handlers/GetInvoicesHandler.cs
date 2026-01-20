@@ -8,7 +8,6 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 using MediatR;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class GetInvoicesHandler(IQueryExecutor queryExecutor, IInvoiceRepository _invoiceRepository) : IRequestHandler<GetInvoicesRequest, GetInvoicesResponse>
 {

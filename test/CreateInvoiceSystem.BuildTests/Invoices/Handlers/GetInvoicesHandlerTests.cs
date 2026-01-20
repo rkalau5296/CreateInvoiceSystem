@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.Executors;
+﻿using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;

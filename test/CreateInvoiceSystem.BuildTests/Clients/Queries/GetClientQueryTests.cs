@@ -3,7 +3,6 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Clients.Queries;
 

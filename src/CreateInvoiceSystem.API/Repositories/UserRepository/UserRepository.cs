@@ -6,9 +6,7 @@ using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
-using CreateInvoiceSystem.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -428,5 +426,47 @@ public class UserRepository : IUserRepository
 
         var result = await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
         return result.Succeeded;
+    }
+
+    public async Task AddSessionAsync(UserSession session, CancellationToken cancellationToken)
+    {
+        var entity = new UserSessionEntity
+        {
+            UserId = session.UserId,
+            RefreshToken = session.RefreshToken,
+            LastActivityAt = session.LastActivityAt,
+            IsRevoked = session.IsRevoked
+        };
+        
+        await _db.Set<UserSessionEntity>().AddAsync(entity, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken)
+    {        
+        var entity = await _db.Set<UserSessionEntity>()
+            .FirstOrDefaultAsync(s => s.RefreshToken == session.RefreshToken, cancellationToken);
+
+        if (entity is not null)
+        {            
+            entity.LastActivityAt = DateTime.UtcNow;            
+            session.LastActivityAt = entity.LastActivityAt;            
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+    }
+    public async Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken)
+    {        
+        var entity = await _db.Set<UserSessionEntity>()
+            .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken, cancellationToken);
+     
+        if (entity is null) return null;
+        
+        return new UserSession
+        {
+            UserId = entity.UserId,
+            RefreshToken = entity.RefreshToken,
+            LastActivityAt = entity.LastActivityAt,
+            IsRevoked = entity.IsRevoked
+        };
     }
 }

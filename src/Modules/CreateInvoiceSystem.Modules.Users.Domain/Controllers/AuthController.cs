@@ -3,12 +3,10 @@ using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.For
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 

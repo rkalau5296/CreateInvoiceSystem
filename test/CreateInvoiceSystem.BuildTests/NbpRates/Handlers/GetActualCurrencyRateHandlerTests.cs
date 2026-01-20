@@ -1,6 +1,5 @@
 ﻿using Moq;
 using FluentAssertions;
-using Xunit;
 using Microsoft.Extensions.Options;
 using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;

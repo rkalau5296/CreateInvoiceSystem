@@ -6,10 +6,13 @@ namespace CreateInvoiceSystem.API.Adapters.UserTokenAdapter
 {
     public class UserTokenAdapter(IJwtProvider jwtProvider) : IUserTokenService
     {
-        public string CreateToken(int userId, string email, string company, string nip, List<string> roles)
-        {            
+        public (string AccessToken, Guid RefreshToken) CreateToken(int userId, string email, string company, string nip, List<string> roles)
+        {
             var model = new IdentityUserModel(userId, email, company, nip, roles);
-            return jwtProvider.Generate(model);
+            
+            var identityResult = jwtProvider.Generate(model);
+            
+            return (identityResult.AccessToken, identityResult.RefreshToken);
         }
     }
 }

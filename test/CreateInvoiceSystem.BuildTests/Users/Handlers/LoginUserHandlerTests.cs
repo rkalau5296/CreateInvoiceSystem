@@ -6,7 +6,6 @@ using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Users.Handlers;
 
@@ -35,20 +34,23 @@ public class LoginUserHandlerTests
         // Arrange
         var dto = new LoginUserDto("test@example.com", "Password123!");
         var request = new LoginUserRequest(dto);
-        var expectedToken = "generated-jwt-token";
-        
+        var expectedAccessToken = "generated-jwt-token";
+        var expectedRefreshToken = Guid.NewGuid();
+        var expectedResult = new UserTokenResult(expectedAccessToken, expectedRefreshToken);
+
         _commandExecutorMock.Setup(x => x.Execute(
                 It.IsAny<LoginUserCommand>(),
                 _userRepositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedToken);
+            .ReturnsAsync(expectedResult);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Token.Should().Be(expectedToken);
+        result.Token.Should().Be(expectedAccessToken);
+        result.RefreshToken.Should().Be(expectedRefreshToken);
         result.IsSuccess.Should().BeTrue();
 
         _commandExecutorMock.Verify(x => x.Execute(
@@ -62,20 +64,21 @@ public class LoginUserHandlerTests
     {
         // Arrange
         var request = new LoginUserRequest(new LoginUserDto("wrong@test.com", "wrong"));
-        string? nullToken = null;
+        var emptyResult = new UserTokenResult(string.Empty, Guid.Empty);
 
         _commandExecutorMock.Setup(x => x.Execute(
                 It.IsAny<LoginUserCommand>(),
                 _userRepositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(nullToken);
+            .ReturnsAsync(emptyResult);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Token.Should().BeNullOrEmpty();
+        result.Token.Should().BeEmpty();
+        result.RefreshToken.Should().Be(Guid.Empty);
     }
 
     [Fact]

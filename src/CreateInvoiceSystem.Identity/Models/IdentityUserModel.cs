@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace CreateInvoiceSystem.Identity.Models;
+﻿namespace CreateInvoiceSystem.Identity.Models;
 
 public record IdentityUserModel(
 int UserId,

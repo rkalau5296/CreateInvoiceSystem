@@ -5,7 +5,6 @@ using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Users.Handlers;
 

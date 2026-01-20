@@ -1,11 +1,8 @@
 ﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Clients.Commands;
 

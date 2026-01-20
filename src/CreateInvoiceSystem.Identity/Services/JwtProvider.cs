@@ -11,7 +11,7 @@ namespace CreateInvoiceSystem.Identity.Services;
 
 public class JwtProvider(IConfiguration configuration) : IJwtProvider
 {
-    public string Generate(IdentityUserModel userModel)
+    public TokenResponse Generate(IdentityUserModel userModel)
     {
         var claims = new List<Claim>
         {
@@ -20,7 +20,7 @@ public class JwtProvider(IConfiguration configuration) : IJwtProvider
             new("company_name", userModel.CompanyName),
             new("nip", userModel.Nip)
         };
-        
+
         foreach (var role in userModel.Roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
@@ -31,15 +31,20 @@ public class JwtProvider(IConfiguration configuration) : IJwtProvider
 
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
         
+        var expiryMinutes = configuration.GetValue<double>("Jwt:ExpiryMinutes");
+
         var token = new JwtSecurityToken(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
             claims,
             null,
-            DateTime.UtcNow.AddMinutes(double.Parse(configuration["Jwt:ExpiryMinutes"]!)),
+            DateTime.UtcNow.AddMinutes(expiryMinutes),
             credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshToken = Guid.NewGuid();
+
+        return new TokenResponse(accessToken, refreshToken);
     }
 }
 

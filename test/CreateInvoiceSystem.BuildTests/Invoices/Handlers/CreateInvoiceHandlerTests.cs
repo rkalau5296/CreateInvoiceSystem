@@ -5,7 +5,6 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
 using Moq;
-using Xunit;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
 
 namespace CreateInvoiceSystem.BuildTests.Invoices.Handlers;

@@ -1,6 +1,5 @@
 ﻿using Bogus;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;

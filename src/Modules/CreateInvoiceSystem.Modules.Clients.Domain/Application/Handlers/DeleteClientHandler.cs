@@ -3,7 +3,6 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.DeleteClient;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;

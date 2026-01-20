@@ -28,7 +28,8 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<ClientEntity> Clients { get; set; }
     public DbSet<ProductEntity> Products { get; set; }
     public DbSet<InvoicePositionEntity> InvoicePositions { get; set; }
-    public DbSet<InvoiceEntity> Invoices { get; set; }    
+    public DbSet<InvoiceEntity> Invoices { get; set; }
+    public DbSet<UserSessionEntity> UserSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,18 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
                .WithMany()
                .HasForeignKey(i => i.ClientId)
                .OnDelete(DeleteBehavior.SetNull);
+
+        var session = modelBuilder.Entity<UserSessionEntity>();
+        session.HasKey(s => s.Id);
+        session.Property(s => s.Id).ValueGeneratedOnAdd();
+        session.Property(s => s.RefreshToken).IsRequired();
+        
+        session.HasOne<UserEntity>()
+               .WithMany()
+               .HasForeignKey(s => s.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+        
+        session.HasIndex(s => s.RefreshToken).IsUnique();
 
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());

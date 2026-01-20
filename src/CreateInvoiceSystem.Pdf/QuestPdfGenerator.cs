@@ -3,7 +3,6 @@ using CreateInvoiceSystem.Pdf.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Linq;
 
 namespace CreateInvoiceSystem.Pdf;
 

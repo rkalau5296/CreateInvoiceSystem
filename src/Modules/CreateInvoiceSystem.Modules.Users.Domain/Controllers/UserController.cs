@@ -3,16 +3,14 @@ using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.Cre
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.UpdateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 
@@ -70,5 +68,13 @@ public class UserController : ApiControllerBase
     {
         DeleteUserRequest request = new(id);
         return await HandleRequest<DeleteUserRequest, DeleteUserResponse>(request, cancellationToken);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] Guid refreshToken, CancellationToken cancellationToken)
+    {        
+        RefreshTokenRequest request = new(refreshToken);
+
+        return await HandleRequest<RefreshTokenRequest, AuthResponse>(request, cancellationToken);
     }
 }

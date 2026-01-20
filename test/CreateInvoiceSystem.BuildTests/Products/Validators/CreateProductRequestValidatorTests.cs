@@ -2,7 +2,6 @@
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 using FluentValidation.TestHelper;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Products.Validators;
 

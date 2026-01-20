@@ -1,8 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using MediatR;
 
@@ -15,11 +13,15 @@ public class LoginUserHandler(ICommandExecutor commandExecutor, IUserRepository 
     {
         var command = new LoginUserCommand(request.Dto, _tokenService);
 
-        var token = await commandExecutor.Execute(
+        var result = await commandExecutor.Execute(
             command,
             _userRepository,
             cancellationToken);
-
-        return new LoginUserResponse(token, !string.IsNullOrEmpty(token));
+        
+        return new LoginUserResponse(
+            result.AccessToken,
+            !string.IsNullOrEmpty(result.AccessToken),
+            result.RefreshToken,
+            "Login successful");
     }
 }

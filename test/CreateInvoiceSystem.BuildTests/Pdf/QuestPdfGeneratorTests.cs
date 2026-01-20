@@ -1,7 +1,6 @@
-﻿using CreateInvoiceSystem.Pdf; 
+﻿using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Pdf.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Pdf;
 

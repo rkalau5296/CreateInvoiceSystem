@@ -4,5 +4,5 @@ namespace CreateInvoiceSystem.Identity.Interfaces;
 
 public interface IJwtProvider
 {
-    string Generate(IdentityUserModel userModel);
+    TokenResponse Generate(IdentityUserModel userModel);
 }

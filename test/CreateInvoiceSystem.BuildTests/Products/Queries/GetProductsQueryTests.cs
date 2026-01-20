@@ -1,11 +1,9 @@
-﻿using CreateInvoiceSystem.Abstractions;
-using CreateInvoiceSystem.Abstractions.Pagination;
+﻿using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Products.Queries;
 

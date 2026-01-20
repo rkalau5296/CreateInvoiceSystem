@@ -1,13 +1,11 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.CreateProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Products.Handlers;
 

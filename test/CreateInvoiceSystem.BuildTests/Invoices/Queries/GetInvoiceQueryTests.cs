@@ -1,6 +1,5 @@
 ﻿using Moq;
 using FluentAssertions;
-using Xunit;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;

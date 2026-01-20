@@ -1,10 +1,9 @@
 ﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword; 
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Users.Handlers;
 
