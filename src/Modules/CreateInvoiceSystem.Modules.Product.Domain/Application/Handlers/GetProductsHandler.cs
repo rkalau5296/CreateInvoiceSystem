@@ -7,17 +7,17 @@ using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
-public class GetProductsHandler(IQueryExecutor queryExecutor, IProductRepository _productRepository) : IRequestHandler<GetProductsRequest, GetProductsResponse>
+public class GetProductsHandler(IQueryExecutor _queryExecutor, IProductRepository _productRepository) : IRequestHandler<GetProductsRequest, GetProductsResponse>
 {
     public async Task<GetProductsResponse> Handle(GetProductsRequest request, CancellationToken cancellationToken)
     {
-        GetProductsQuery query = new(request.UserId);
+        GetProductsQuery query = new(request.UserId, request.PageNumber, request.PageSize);
 
-        List<Product> Products = await queryExecutor.Execute(query, _productRepository, cancellationToken);
+       var products = await _queryExecutor.Execute(query, _productRepository, cancellationToken);
 
         return new GetProductsResponse
         {
-            Data = ProductMappers.ToDtoList(Products)
-        }; 
+            Data = ProductMappers.ToDtoList(products.Items)
+        };
     }
 }

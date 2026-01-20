@@ -1,4 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
+﻿using CreateInvoiceSystem.Abstractions;
+using CreateInvoiceSystem.Abstractions.Pagination;
+using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
@@ -17,30 +19,35 @@ public class GetProductsQueryTests
     }
 
     [Fact]
-    public async Task Execute_ShouldReturnListOfProducts_WhenProductsExist()
+    public async Task Execute_ShouldReturnPagedResultOfProducts_WhenProductsExist()
     {
         // Arrange
         var userId = 123;
-        var query = new GetProductsQuery(userId);
-        var expectedProducts = new List<Product>
+        var pageNumber = 1;
+        var pageSize = 10;
+        var query = new GetProductsQuery(userId, pageNumber, pageSize);
+
+        var products = new List<Product>
         {
             new() { ProductId = 1, Name = "Produkt A", UserId = userId },
             new() { ProductId = 2, Name = "Produkt B", UserId = userId }
         };
+        var pagedResult = new PagedResult<Product>(products, 2, pageNumber, pageSize);
 
         _repositoryMock
-            .Setup(r => r.GetAllAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedProducts);
+            .Setup(r => r.GetAllAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await query.Execute(_repositoryMock.Object, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(expectedProducts);
+        result.Items.Should().HaveCount(2);
+        result.Items.Should().BeEquivalentTo(products);
+        result.TotalCount.Should().Be(2);
 
-        _repositoryMock.Verify(r => r.GetAllAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.GetAllAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -48,11 +55,11 @@ public class GetProductsQueryTests
     {
         // Arrange
         var userId = 1;
-        var query = new GetProductsQuery(userId);
-        
+        var query = new GetProductsQuery(userId, 1, 10);
+
         _repositoryMock
-            .Setup(r => r.GetAllAsync(It.IsAny<int?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((List<Product>)null!);
+            .Setup(r => r.GetAllAsync(It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PagedResult<Product>)null!);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object, CancellationToken.None);
@@ -63,37 +70,22 @@ public class GetProductsQueryTests
     }
 
     [Fact]
-    public async Task Execute_ShouldReturnEmptyList_WhenRepositoryReturnsEmptyList()
-    {
-        // Arrange
-        var query = new GetProductsQuery(null);
-        var emptyList = new List<Product>();
-
-        _repositoryMock
-            .Setup(r => r.GetAllAsync(null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyList);
-
-        // Act
-        var result = await query.Execute(_repositoryMock.Object, CancellationToken.None);
-
-        // Assert        
-        result.Should().NotBeNull();
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task Execute_ShouldHandleNullUserId()
     {
         // Arrange
-        var query = new GetProductsQuery(null);
+        var pageNumber = 1;
+        var pageSize = 10;
+        var query = new GetProductsQuery(null, pageNumber, pageSize);
+        var pagedResult = new PagedResult<Product>(new List<Product> { new() { ProductId = 1 } }, 1, pageNumber, pageSize);
+
         _repositoryMock
-            .Setup(r => r.GetAllAsync(null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Product> { new() { ProductId = 1 } });
+            .Setup(r => r.GetAllAsync(null, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         await query.Execute(_repositoryMock.Object, CancellationToken.None);
 
         // Assert
-        _repositoryMock.Verify(r => r.GetAllAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.GetAllAsync(null, pageNumber, pageSize, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

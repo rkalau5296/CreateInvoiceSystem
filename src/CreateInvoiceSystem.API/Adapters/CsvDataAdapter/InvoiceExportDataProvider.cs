@@ -22,13 +22,14 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
             });
         }
         public async Task<IEnumerable<object>> GetProductsDataAsync(int userId)
-        {
-            var products = await _productRepository.GetAllAsync(userId, CancellationToken.None);
-            return products.Select(p => new
+        {            
+            var pagedResult = await _productRepository.GetAllAsync(userId, 1, 1000000, CancellationToken.None);
+         
+            return pagedResult.Items.Select(p => new
             {
                 Nazwa = p.Name,
                 Cena = p.Value,
-                Uzytkownik = p.UserId 
+                Uzytkownik = p.UserId
             });
         }
 

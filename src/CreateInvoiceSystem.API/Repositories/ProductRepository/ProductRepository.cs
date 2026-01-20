@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
@@ -47,25 +48,33 @@ public class ProductRepository(IDbContext db) : IProductRepository
         .AsNoTracking()
         .AnyAsync(p => p.ProductId == productId, cancellationToken);
 
-    public async Task<List<Product>> GetAllAsync(int? userId, CancellationToken cancellationToken)
+    public async Task<PagedResult<Product>> GetAllAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var query = _db.Set<ProductEntity>()
             .AsNoTracking();
-        
+
         if (userId.HasValue)
         {
             query = query.Where(p => p.UserId == userId.Value);
         }
 
-        var products = await query.ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No products found.");         
+        var totalCount = await query.CountAsync(cancellationToken);
 
-        return [.. products.Select(p => new Product
+        var products = await query
+            .OrderBy(p => p.Name)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken) ?? throw new InvalidOperationException($"No products found.");
+
+        var items = products.Select(p => new Product
         {
             ProductId = p.ProductId,
             Name = p.Name,
             Value = p.Value,
             UserId = p.UserId
-        })];
+        }).ToList();
+
+        return new PagedResult<Product>(items, totalCount, pageNumber, pageSize);
     }
 
     public async Task<Product> GetByIdAsync(int productId, int? userId, CancellationToken cancellationToken)
