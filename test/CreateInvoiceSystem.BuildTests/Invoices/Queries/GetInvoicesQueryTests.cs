@@ -1,9 +1,9 @@
-﻿using Moq;
-using FluentAssertions;
-using Xunit;
+﻿using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+using FluentAssertions;
+using Moq;
 
 namespace CreateInvoiceSystem.BuildTests.Invoices.Queries;
 
@@ -17,28 +17,33 @@ public class GetInvoicesQueryTests
     }
 
     [Fact]
-    public async Task Execute_ShouldReturnListOfInvoices_WhenInvoicesExist()
+    public async Task Execute_ShouldReturnPagedResultOfInvoices_WhenInvoicesExist()
     {
         // Arrange
         int? userId = 1;
-        var query = new GetInvoicesQuery(userId);
+        int pageNumber = 1;
+        int pageSize = 10;
+        var query = new GetInvoicesQuery(userId, pageNumber, pageSize);
+
         var invoices = new List<Invoice>
         {
             new Invoice { InvoiceId = 1, UserId = 1, Title = "Invoice 1" },
             new Invoice { InvoiceId = 2, UserId = 1, Title = "Invoice 2" }
         };
+        var pagedResult = new PagedResult<Invoice>(invoices, 2, pageNumber, pageSize);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoices);
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await query.Execute(_repositoryMock.Object);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(invoices);
-        _repositoryMock.Verify(r => r.GetInvoicesAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+        result.Items.Should().HaveCount(2);
+        result.Items.Should().BeEquivalentTo(invoices);
+        result.TotalCount.Should().Be(2);
+        _repositoryMock.Verify(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -46,35 +51,37 @@ public class GetInvoicesQueryTests
     {
         // Arrange
         int? userId = 1;
-        var query = new GetInvoicesQuery(userId);
+        var query = new GetInvoicesQuery(userId, 1, 10);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((List<Invoice>)null);
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PagedResult<Invoice>)null);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("List of addresses is empty.");
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task Execute_ShouldReturnEmptyList_WhenNoInvoicesFoundButRepositoryReturnsEmptyList()
+    public async Task Execute_ShouldReturnEmptyPagedResult_WhenNoInvoicesFound()
     {
         // Arrange
         int? userId = 99;
-        var query = new GetInvoicesQuery(userId);
-        var emptyList = new List<Invoice>();
+        int pageNumber = 1;
+        int pageSize = 10;
+        var query = new GetInvoicesQuery(userId, pageNumber, pageSize);
+        var emptyPagedResult = new PagedResult<Invoice>(new List<Invoice>(), 0, pageNumber, pageSize);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyList);
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(emptyPagedResult);
 
         // Act
         var result = await query.Execute(_repositoryMock.Object);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeEmpty();
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
     }
 }

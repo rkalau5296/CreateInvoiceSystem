@@ -1,15 +1,14 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using Xunit;
+
 
 namespace CreateInvoiceSystem.BuildTests.Invoices.Handlers;
 
@@ -31,20 +30,22 @@ public class GetInvoicesHandlerTests
     {
         // Arrange
         var userId = 10;
-        var request = new GetInvoicesRequest { UserId = userId };
+        var request = new GetInvoicesRequest { UserId = userId, PageNumber = 1, PageSize = 10 };
 
         var invoiceList = new List<Invoice>
-        {
-            new() { InvoiceId = 1, Title = "FV 1", UserId = userId },
-            new() { InvoiceId = 2, Title = "FV 2", UserId = userId }
-        };
+    {
+        new() { InvoiceId = 1, Title = "FV 1", UserId = userId },
+        new() { InvoiceId = 2, Title = "FV 2", UserId = userId }
+    };
         
+        var pagedResult = new PagedResult<Invoice>(invoiceList, 2, 1, 10);
+
         _queryExecutorMock
-            .Setup(x => x.Execute<List<Invoice>, IInvoiceRepository>(
-                It.IsAny<QueryBase<List<Invoice>, IInvoiceRepository>>(),
+            .Setup(x => x.Execute<PagedResult<Invoice>, IInvoiceRepository>(
+                It.IsAny<GetInvoicesQuery>(),
                 _repositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoiceList);
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -54,7 +55,7 @@ public class GetInvoicesHandlerTests
         result.Data.Should().NotBeNull();
         result.Data.Should().HaveCount(2);
 
-        _queryExecutorMock.Verify(x => x.Execute<List<Invoice>, IInvoiceRepository>(
+        _queryExecutorMock.Verify(x => x.Execute<PagedResult<Invoice>, IInvoiceRepository>(
             It.IsAny<GetInvoicesQuery>(),
             _repositoryMock.Object,
             It.IsAny<CancellationToken>()), Times.Once);
@@ -64,30 +65,35 @@ public class GetInvoicesHandlerTests
     public async Task Handle_ShouldReturnEmptyList_WhenNoInvoicesExist()
     {
         // Arrange
-        var request = new GetInvoicesRequest { UserId = 1 };
+        var request = new GetInvoicesRequest { UserId = 1, PageNumber = 1, PageSize = 10 };
+        
+        var emptyPagedResult = new PagedResult<Invoice>(new List<Invoice>(), 0, 1, 10);
+
         _queryExecutorMock
-            .Setup(x => x.Execute<List<Invoice>, IInvoiceRepository>(
-                It.IsAny<QueryBase<List<Invoice>, IInvoiceRepository>>(),
-                It.IsAny<IInvoiceRepository>(),
+            .Setup(x => x.Execute<PagedResult<Invoice>, IInvoiceRepository>(
+                It.IsAny<GetInvoicesQuery>(),
+                _repositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Invoice>());
+            .ReturnsAsync(emptyPagedResult);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
+        result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.Should().BeEmpty();
+        result.Data.Should().BeEmpty(); 
     }
 
     [Fact]
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var request = new GetInvoicesRequest();
+        var request = new GetInvoicesRequest { PageNumber = 1, PageSize = 10 };
+        
         _queryExecutorMock
-            .Setup(x => x.Execute<List<Invoice>, IInvoiceRepository>(
-                It.IsAny<QueryBase<List<Invoice>, IInvoiceRepository>>(),
+            .Setup(x => x.Execute<PagedResult<Invoice>, IInvoiceRepository>(
+                It.IsAny<GetInvoicesQuery>(),
                 _repositoryMock.Object,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection error"));

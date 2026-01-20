@@ -9,11 +9,12 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
     {
         public async Task<IEnumerable<object>> GetInvoicesDataAsync(int userId)
         {
-            var invoices = await _invoiceRepository.GetInvoicesAsync(userId, CancellationToken.None);
+            var pagedResult = await _invoiceRepository.GetInvoicesAsync(userId, 1, int.MaxValue, CancellationToken.None);
+            var invoices = pagedResult.Items;
 
             return invoices.Select(i => new
             {
-                Numer = i.Title, 
+                Numer = i.Title,
                 Kontrahent = i.ClientName,
                 Nip = i.ClientNip,
                 DataPlatnosci = i.PaymentDate.ToShortDateString(),

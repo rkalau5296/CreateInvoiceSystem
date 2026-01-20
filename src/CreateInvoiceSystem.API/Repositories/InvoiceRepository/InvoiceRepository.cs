@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
@@ -297,20 +298,28 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             };
         }
 
-        public async Task<List<Invoice>> GetInvoicesAsync(int? userId, CancellationToken cancellationToken)
+        public async Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
         {
-            var invoiceEntities = await _db.Set<InvoiceEntity>()
+            var baseQuery = _db.Set<InvoiceEntity>()
                 .AsNoTracking()
-                .Where(i => i.UserId == userId)
+                .Where(i => i.UserId == userId);
+
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+            var invoiceEntities = await baseQuery
+                .OrderByDescending(i => i.CreatedDate) // Ważne przy paginacji, by kolejność była stała
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
-            if (invoiceEntities.Count == 0) return [];
+            if (invoiceEntities.Count == 0)
+                return new PagedResult<Invoice>([], totalCount, pageNumber, pageSize);
 
             var invoiceIds = invoiceEntities.Select(i => i.InvoiceId).ToList();
             var clientIds = invoiceEntities
                     .Select(i => i.ClientId)
                     .Where(id => id.HasValue)
-                    .Select(id => id!.Value) //cast from int? to int
+                    .Select(id => id!.Value)
                     .Distinct()
                     .ToList();
 
@@ -327,7 +336,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             var positionsLookup = allPositions.ToLookup(p => p.InvoiceId);
             var clientsDict = allClients.ToDictionary(c => c.ClientId);
 
-            return [.. invoiceEntities.Select(i => new Invoice
+            var items = invoiceEntities.Select(i => new Invoice
             {
                 InvoiceId = i.InvoiceId,
                 Title = i.Title,
@@ -347,15 +356,17 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                     : null!,
 
                 InvoicePositions = [.. positionsLookup[i.InvoiceId].Select(ip => new InvoicePosition
-                {
-                    InvoicePositionId = ip.InvoicePositionId,
-                    InvoiceId = ip.InvoiceId,
-                    ProductId = ip.ProductId,
-                    ProductName = ip.ProductName,
-                    ProductValue = ip.ProductValue,
-                    Quantity = ip.Quantity
-                })]
-            })];
+        {
+            InvoicePositionId = ip.InvoicePositionId,
+            InvoiceId = ip.InvoiceId,
+            ProductId = ip.ProductId,
+            ProductName = ip.ProductName,
+            ProductValue = ip.ProductValue,
+            Quantity = ip.Quantity
+        })]
+            }).ToList();
+
+            return new PagedResult<Invoice>(items, totalCount, pageNumber, pageSize);
         }
 
         public async Task<Product> GetProductAsync(string name, string description, decimal? value, int userId, CancellationToken cancellationToken)
