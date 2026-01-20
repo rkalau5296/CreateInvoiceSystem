@@ -1,9 +1,10 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
+﻿using CreateInvoiceSystem.Abstractions;
+using CreateInvoiceSystem.Abstractions.Executors;
+using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.BuildTests.Base;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
@@ -20,7 +21,6 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
 
     public GetClientsHandlerTests()
     {
-        // Arrange
         _queryExecutorMock = new Mock<IQueryExecutor>();
         _sut = new GetClientsHandler(_queryExecutorMock.Object, RepositoryMock.Object);
     }
@@ -30,7 +30,7 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var userId = 100;
-        var request = new GetClientsRequest { UserId = userId };
+        var request = new GetClientsRequest { UserId = userId, PageNumber = 1, PageSize = 10 };
 
         var clients = new List<Client>
         {
@@ -47,12 +47,13 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
                 Address = new Address { Street = "S2", City = "C2", Number = "2", PostalCode = "00-002", Country = "PL" }
             }
         };
+        var pagedResult = new PagedResult<Client>(clients, 2, 1, 10);
 
-        _queryExecutorMock.Setup(q => q.Execute(
+        _queryExecutorMock.Setup(q => q.Execute<PagedResult<Client>, IClientRepository>(
                 It.IsAny<GetClientsQuery>(),
                 RepositoryMock.Object,
                 CancellationToken))
-            .ReturnsAsync(clients);
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await _sut.Handle(request, CancellationToken);
@@ -63,7 +64,7 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
         result.Data.Should().Contain(c => c.Name == "Client 1");
         result.Data.Should().Contain(c => c.Name == "Client 2");
 
-        _queryExecutorMock.Verify(q => q.Execute(
+        _queryExecutorMock.Verify(q => q.Execute<PagedResult<Client>, IClientRepository>(
             It.Is<GetClientsQuery>(query => query.UserId == userId),
             RepositoryMock.Object,
             CancellationToken), Times.Once);
@@ -73,9 +74,14 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
     public async Task Handle_ShouldReturnEmptyList_WhenNoClientsFound()
     {
         // Arrange
-        var request = new GetClientsRequest { UserId = 1 };
-        _queryExecutorMock.Setup(q => q.Execute(It.IsAny<GetClientsQuery>(), RepositoryMock.Object, CancellationToken))
-            .ReturnsAsync(new List<Client>());
+        var request = new GetClientsRequest { UserId = 1, PageNumber = 1, PageSize = 10 };
+        var emptyPagedResult = new PagedResult<Client>(new List<Client>(), 0, 1, 10);
+
+        _queryExecutorMock.Setup(q => q.Execute<PagedResult<Client>, IClientRepository>(
+                It.IsAny<GetClientsQuery>(),
+                RepositoryMock.Object,
+                CancellationToken))
+            .ReturnsAsync(emptyPagedResult);
 
         // Act
         var result = await _sut.Handle(request, CancellationToken);
@@ -89,17 +95,21 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
     public async Task Handle_ShouldPassCancellationTokenToQueryExecutor()
     {
         // Arrange
-        var request = new GetClientsRequest { UserId = 1 };
+        var request = new GetClientsRequest { UserId = 1, PageNumber = 1, PageSize = 10 };
         using var cts = new CancellationTokenSource();
+        var emptyPagedResult = new PagedResult<Client>(new List<Client>(), 0, 1, 10);
 
-        _queryExecutorMock.Setup(q => q.Execute(It.IsAny<GetClientsQuery>(), RepositoryMock.Object, cts.Token))
-            .ReturnsAsync(new List<Client>());
+        _queryExecutorMock.Setup(q => q.Execute<PagedResult<Client>, IClientRepository>(
+                It.IsAny<GetClientsQuery>(),
+                RepositoryMock.Object,
+                cts.Token))
+            .ReturnsAsync(emptyPagedResult);
 
         // Act
         await _sut.Handle(request, cts.Token);
 
         // Assert
-        _queryExecutorMock.Verify(q => q.Execute(
+        _queryExecutorMock.Verify(q => q.Execute<PagedResult<Client>, IClientRepository>(
             It.IsAny<GetClientsQuery>(),
             RepositoryMock.Object,
             cts.Token), Times.Once);
@@ -109,10 +119,10 @@ public class GetClientsHandlerTests : BaseTest<IClientRepository>
     public async Task Handle_ShouldPropagateException_WhenQueryExecutorThrows()
     {
         // Arrange
-        var request = new GetClientsRequest { UserId = 1 };
+        var request = new GetClientsRequest { UserId = 1, PageNumber = 1, PageSize = 10 };
         var errorMessage = "Database error";
 
-        _queryExecutorMock.Setup(q => q.Execute(
+        _queryExecutorMock.Setup(q => q.Execute<PagedResult<Client>, IClientRepository>(
                 It.IsAny<GetClientsQuery>(),
                 RepositoryMock.Object,
                 CancellationToken))

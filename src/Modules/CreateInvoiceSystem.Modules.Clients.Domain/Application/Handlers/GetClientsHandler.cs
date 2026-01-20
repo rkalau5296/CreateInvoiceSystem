@@ -11,13 +11,13 @@ public class GetClientsHandler(IQueryExecutor queryExecutor, IClientRepository _
 {
     public async Task<GetClientsResponse> Handle(GetClientsRequest request, CancellationToken cancellationToken)
     {
-        GetClientsQuery query = new(request.UserId);
+        GetClientsQuery query = new(request.UserId, request.PageNumber, request.PageSize);
 
-        List<Client> clients = await queryExecutor.Execute(query, _clientRepository, cancellationToken);
+        var clients = await queryExecutor.Execute(query, _clientRepository, cancellationToken);
 
         return new GetClientsResponse
         {
-            Data = clients.ToDtoList()
+            Data = clients.Items.ToDtoList()
         }; 
     }
 }

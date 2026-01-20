@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
@@ -64,24 +65,30 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
     }
 
-    public async Task<List<Client>> GetAllAsync(int? userId, CancellationToken cancellationToken)
-    {        
+    public async Task<PagedResult<Client>> GetAllAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
         var query = _db.Set<ClientEntity>().AsNoTracking();
-        
+
         if (userId.HasValue)
         {
             query = query.Where(c => c.UserId == userId.Value);
         }
-        
-        var clients = await query.ToListAsync(cancellationToken);
-        
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var clients = await query
+            .OrderBy(c => c.Name)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
         var clientAddressIds = clients.Select(c => c.AddressId).ToList();
         var addresses = await _db.Set<AddressEntity>()
             .AsNoTracking()
-            .Where(a => clientAddressIds.Contains(a.AddressId)) 
+            .Where(a => clientAddressIds.Contains(a.AddressId))
             .ToListAsync(cancellationToken);
-        
-        return clients.Select(c => new Client
+
+        var items = clients.Select(c => new Client
         {
             ClientId = c.ClientId,
             Name = c.Name,
@@ -100,6 +107,8 @@ public class ClientRepository(IDbContext db) : IClientRepository
                 }
                 : null
         }).ToList();
+
+        return new PagedResult<Client>(items, totalCount, pageNumber, pageSize);
     }
 
     public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken)

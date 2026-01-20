@@ -1,4 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.Queries;
+﻿using CreateInvoiceSystem.Abstractions;
+using CreateInvoiceSystem.Abstractions.Pagination;
+using CreateInvoiceSystem.Modules.Clients.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using FluentAssertions;
@@ -17,30 +19,38 @@ public class GetClientsQueryTests
     }
 
     [Fact]
-    public async Task Execute_ShouldReturnList_WhenClientsExist()
+    public async Task Execute_ShouldReturnPagedResult_WhenClientsExist()
     {
         // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
         var clients = new List<Client> { new() { ClientId = 1, Name = "Test" } };
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(clients);
+        var pagedResult = new PagedResult<Client>(clients, 1, pageNumber, pageSize);
 
-        var query = new GetClientsQuery(null);
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
+
+        var query = new GetClientsQuery(null, pageNumber, pageSize);
 
         // Act
         var result = await query.Execute(_repositoryMock.Object, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull().And.HaveCount(1);
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
     }
-    
+
     [Fact]
-    public async Task Execute_ShouldThrowInvalidOperationException_WhenListIsNull()
+    public async Task Execute_ShouldThrowInvalidOperationException_WhenResultIsNull()
     {
         // Arrange
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((List<Client>)null!);
+        var pageNumber = 1;
+        var pageSize = 10;
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PagedResult<Client>)null!);
 
-        var query = new GetClientsQuery(null);
+        var query = new GetClientsQuery(null, pageNumber, pageSize);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object, CancellationToken.None);
@@ -50,15 +60,18 @@ public class GetClientsQueryTests
             .WithMessage("List of clients is empty.");
     }
 
-    // TEST 2: Przypadek, gdy repozytorium zwraca pustą listę
     [Fact]
-    public async Task Execute_ShouldThrowInvalidOperationException_WhenListIsEmpty()
+    public async Task Execute_ShouldThrowInvalidOperationException_WhenTotalCountIsZero()
     {
         // Arrange
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Client>());
+        var pageNumber = 1;
+        var pageSize = 10;
+        var emptyPagedResult = new PagedResult<Client>(new List<Client>(), 0, pageNumber, pageSize);
 
-        var query = new GetClientsQuery(null);
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(emptyPagedResult);
+
+        var query = new GetClientsQuery(null, pageNumber, pageSize);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object, CancellationToken.None);

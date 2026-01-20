@@ -23,7 +23,7 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
         }
         public async Task<IEnumerable<object>> GetProductsDataAsync(int userId)
         {            
-            var pagedResult = await _productRepository.GetAllAsync(userId, 1, 1000000, CancellationToken.None);
+            var pagedResult = await _productRepository.GetAllAsync(userId, 1, int.MaxValue, CancellationToken.None);
          
             return pagedResult.Items.Select(p => new
             {
@@ -34,9 +34,10 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
         }
 
         public async Task<IEnumerable<object>> GetClientsDataAsync(int userId)
-        {
-            var clients = await _clientRepository.GetAllAsync(userId, CancellationToken.None);
-            return clients.Select(c => new
+        {            
+            var pagedResult = await _clientRepository.GetAllAsync(userId, 1, int.MaxValue, CancellationToken.None);
+            
+            return pagedResult.Items.Select(c => new
             {
                 NazwaFirmy = c.Name,
                 NIP = c.Nip,
