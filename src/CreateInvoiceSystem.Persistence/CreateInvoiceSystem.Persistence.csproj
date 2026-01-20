@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="9.0.11" />
@@ -20,11 +21,13 @@
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
   </ItemGroup>
 
-  <ItemGroup>    
-    <ProjectReference Include="..\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj" />    
-    <ProjectReference Include="..\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj" />    
-    <ProjectReference Include="..\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj" />    
-    <ProjectReference Include="..\CreateInvoiceSystem.Users\CreateInvoiceSystem.Users.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Addresses.Persistence\CreateInvoiceSystem.Modules.Addresses.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.InvoicePositions.Persistence\CreateInvoiceSystem.Modules.InvoicePositions.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />
   </ItemGroup>
-
+ 
 </Project>

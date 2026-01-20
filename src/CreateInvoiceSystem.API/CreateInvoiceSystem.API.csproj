@@ -2,13 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>    
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>    
+    <UserSecretsId>bf1126bf-c7d8-4f7f-8e88-42931a9af132</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.11" />
     
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
@@ -19,11 +21,22 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.11" />
     <PackageReference Include="NLog" Version="6.0.6" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />    
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Csv\CreateInvoiceSystem.Csv.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Mail\CreateInvoiceSystem.Mail.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Pdf\CreateInvoiceSystem.Pdf.csproj" />
     <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
-    <ProjectReference Include="..\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj" />    
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp.Domain\CreateInvoiceSystem.Modules.Nbp.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Product.Domain\CreateInvoiceSystem.Modules.Products.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users.Domain\CreateInvoiceSystem.Modules.Users.Domain.csproj" />
   </ItemGroup>
 </Project>

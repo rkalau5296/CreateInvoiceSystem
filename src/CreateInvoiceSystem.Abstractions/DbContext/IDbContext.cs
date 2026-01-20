@@ -2,9 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 
-public interface IDbContext
+public interface IDbContext : ISaveChangesContext
 {
     DbSet<T> Set<T>() where T : class;
-
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

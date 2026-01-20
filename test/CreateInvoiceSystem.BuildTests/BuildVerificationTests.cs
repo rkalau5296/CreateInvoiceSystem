@@ -7,27 +7,26 @@ public class BuildVerificationTests
     [Fact]
     public void AllProjects_Should_Build_Successfully()
     {
-        var projectsToBuild = new[]
-        {
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Clients\CreateInvoiceSystem.Clients.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Invoices\CreateInvoiceSystem.Invoices.csproj",            
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Nbp\CreateInvoiceSystem.Nbp.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj",
-            @"..\..\..\..\..\src\CreateInvoiceSystem.Products\CreateInvoiceSystem.Products.csproj",            
-        };
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+        var src = Path.Combine(root, "src");
+        
+        var allCsproj = Directory.GetFiles(src, "*.csproj", SearchOption.AllDirectories);
 
-        foreach (var project in projectsToBuild)
+        foreach (var project in allCsproj)
         {
-            var process = new Process();
-            process.StartInfo.FileName = "dotnet";
-            process.StartInfo.Arguments = $"build \"{project}\"";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
+            var process = new Process
+            {
+                StartInfo =
+                {
+                    FileName = "dotnet",
+                    Arguments = $"build \"{project}\" --nologo",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = root
+                }
+            };
 
             process.Start();
             string output = process.StandardOutput.ReadToEnd();
