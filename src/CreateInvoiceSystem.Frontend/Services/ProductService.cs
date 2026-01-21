@@ -76,5 +76,28 @@ namespace CreateInvoiceSystem.Frontend.Services
                 throw new Exception($"Nie udało się usunąć produktu: {error}");
             }
         }
+
+        public async Task UpdateProductAsync(ProductDto product)
+        {
+            await SetAuthHeader();
+            
+            var updateDto = new
+            {
+                product.ProductId,
+                product.Name,
+                product.Description,
+                product.Value,
+                product.UserId,
+                product.IsDeleted
+            };
+            
+            var response = await _http.PutAsJsonAsync($"Product/update/{product.ProductId}", updateDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"API zwróciło błąd: {error}");
+            }
+        }
     }
 }
