@@ -10,13 +10,14 @@ public class GetProductsHandler(IQueryExecutor _queryExecutor, IProductRepositor
 {
     public async Task<GetProductsResponse> Handle(GetProductsRequest request, CancellationToken cancellationToken)
     {
-        GetProductsQuery query = new(request.UserId, request.PageNumber, request.PageSize);
+        GetProductsQuery query = new(request.UserId, request.PageNumber, request.PageSize, request.SearchTerm);
 
        var products = await _queryExecutor.Execute(query, _productRepository, cancellationToken);
 
         return new GetProductsResponse
         {
-            Data = ProductMappers.ToDtoList(products.Items)
+            Data = ProductMappers.ToDtoList(products.Items),
+            TotalCount = products.TotalCount
         };
     }
 }

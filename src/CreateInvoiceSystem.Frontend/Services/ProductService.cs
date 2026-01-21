@@ -18,22 +18,28 @@ namespace CreateInvoiceSystem.Frontend.Services
             _js = js;
         }
 
-        public async Task<List<ProductDto>> GetProductsAsync()
+        public async Task<GetProductsResponse> GetProductsAsync(int pageNumber, int pageSize, string? searchTerm = null)
         {
             await SetAuthHeader();
             
-            await _http.GetStringAsync("Products");            
-            
-            var response = await _http.GetFromJsonAsync<GetProductsResponse>("Products");
+            var url = $"api/Product?PageNumber={pageNumber}&PageSize={pageSize}";
 
-            return response?.Value ?? new List<ProductDto>();
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                url += $"&SearchTerm={Uri.EscapeDataString(searchTerm)}";
+            }
+
+            var response = await _http.GetFromJsonAsync<GetProductsResponse>(url);
+
+            return response ?? new GetProductsResponse { Data = new List<ProductDto>(), TotalCount = 0 };
         }
 
         public class GetProductsResponse
         {
-            [JsonPropertyName("data")] 
-            public List<ProductDto> Value { get; set; } = new();
+            [JsonPropertyName("data")]
+            public List<ProductDto> Data { get; set; } = new();
 
+            public int TotalCount { get; set; } // Dodaj to pole
             public bool Success { get; set; }
         }
 
@@ -43,7 +49,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             
             product.UserId = await GetUserIdFromToken();
 
-            var response = await _http.PostAsJsonAsync("Product/create", product);
+            var response = await _http.PostAsJsonAsync("api/Product/create", product);
             response.EnsureSuccessStatusCode();
         }
 
@@ -68,7 +74,7 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task DeleteProductAsync(int productId)
         {
             await SetAuthHeader(); 
-            var response = await _http.DeleteAsync($"Product/{productId}");
+            var response = await _http.DeleteAsync($"api/Product/{productId}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -91,12 +97,24 @@ namespace CreateInvoiceSystem.Frontend.Services
                 product.IsDeleted
             };
             
-            var response = await _http.PutAsJsonAsync($"Product/update/{product.ProductId}", updateDto);
+            var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
 
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
                 throw new Exception($"API zwróciło błąd: {error}");
+            }
+        }
+        public async Task DownloadProductsCsvAsync()
+        {
+            await SetAuthHeader();            
+            var response = await _http.GetAsync("api/export/products");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                
+                await _js.InvokeVoidAsync("downloadFile", "produkty.csv", "text/csv", fileBytes);
             }
         }
     }

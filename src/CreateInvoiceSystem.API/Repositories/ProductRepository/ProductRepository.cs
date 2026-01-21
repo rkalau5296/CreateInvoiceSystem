@@ -48,18 +48,24 @@ public class ProductRepository(IDbContext db) : IProductRepository
         .AsNoTracking()
         .AnyAsync(p => p.ProductId == productId, cancellationToken);
 
-    public async Task<PagedResult<Product>> GetAllAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Product>> GetAllAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken)
     {
         var query = _db.Set<ProductEntity>()
             .AsNoTracking();
-
+        
         if (userId.HasValue)
         {
             query = query.Where(p => p.UserId == userId.Value);
         }
-
+        
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {            
+            query = query.Where(p => p.Name.Contains(searchTerm) ||
+                                    (p.Description != null && p.Description.Contains(searchTerm)));
+        }
+        
         var totalCount = await query.CountAsync(cancellationToken);
-
+        
         var products = await query
             .OrderBy(p => p.Name)
             .Skip((pageNumber - 1) * pageSize)

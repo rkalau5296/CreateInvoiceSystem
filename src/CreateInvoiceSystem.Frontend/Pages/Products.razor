@@ -6,31 +6,72 @@
 <div class="container-fluid">
     <h3 class="mb-4">Zarządzanie Produktami</h3>
 
-    <div class="card shadow-sm mb-5">
-        <div class="card-header bg-primary text-white">Dodaj nowy produkt</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Nazwa produktu</label>
-                    <input type="text" class="form-control" @bind="_newProduct.Name" placeholder="np. Kawa" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Opis</label>
-                    <input type="text" class="form-control" @bind="_newProduct.Description" placeholder="Opcjonalny opis..." />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Cena</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" class="form-control" @bind="_newProduct.Value" />
-                        <span class="input-group-text">PLN</span>
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Wyszukaj produkt</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text"
+                       class="form-control border-start-0"
+                       placeholder="Wpisz nazwę lub opis..."
+                       @bind="_searchTerm"
+                       @bind:event="oninput"
+                       @onkeyup="HandleSearch" />
+                @if (!string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <button class="btn btn-outline-secondary border-start-0" @onclick="ClearSearch">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6 text-end">  
+            <button class="btn btn-outline-secondary me-2" @onclick="ExportToCsv">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Eksportuj CSV
+            </button>
+            <button class="btn btn-primary" @onclick="OpenAddModal">
+                <i class="bi bi-plus-circle me-1"></i> Dodaj produkt
+            </button>
+        </div>
+    </div>
+    
+    @if (_isModalOpen)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog shadow-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Dodaj Nowy Produkt</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                     </div>
-                </div>
-                <div class="col-md-2 d-flex align-items-end justify-content-end">
-                    <button class="btn btn-success px-4" @onclick="HandleSave">Dodaj</button>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nazwa produktu</label>
+                            <input type="text" class="form-control" @bind="_newProduct.Name" placeholder="np. Kawa" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Opis</label>
+                            <textarea class="form-control" @bind="_newProduct.Description" placeholder="Opcjonalny opis..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cena</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" class="form-control" @bind="_newProduct.Value" />
+                                <span class="input-group-text">PLN</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
+                        <button type="button" class="btn btn-success px-4" @onclick="HandleSave">Zapisz produkt</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    }
 
     <div class="card shadow-sm">
         <div class="card-header bg-light">Twoja lista produktów</div>
@@ -51,43 +92,42 @@
                     }
                     else if (!_products.Any())
                     {
-                        <tr><td colspan="4" class="text-center p-4">Brak produktów w bazie. Dodaj pierwszy produkt powyżej.</td></tr>
+                        <tr><td colspan="4" class="text-center p-4">Brak produktów w bazie.</td></tr>
                     }
                     else
                     {
-                        @foreach (var p in _products.OrderBy(x => x.Name))
+                        @foreach (var p in _products)
                         {
                             <tr>
                                 @if (_editingProductId == p.ProductId)
                                 {
-                                    <td>
-                                        <input class="form-control form-control-sm" @bind="_editModel.Name" />
-                                    </td>
-                                    <td>
-                                        <input class="form-control form-control-sm" @bind="_editModel.Description" />
-                                    </td>
-                                    <td class="text-end">
-                                        <input type="number" step="0.01" class="form-control form-control-sm text-end" @bind="_editModel.Value" />
-                                    </td>
+                                    <td><input class="form-control form-control-sm" @bind="_editModel.Name" /></td>
+                                    <td><input class="form-control form-control-sm" @bind="_editModel.Description" /></td>
+                                    <td class="text-end"><input type="number" step="0.01" class="form-control form-control-sm text-end" @bind="_editModel.Value" /></td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-success shadow-sm" @onclick="SaveEdit">Zapisz</button>
-                                            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelEdit">Anuluj</button>
+                                            <button class="btn btn-sm btn-success px-3 shadow-sm" @onclick="SaveEdit">
+                                                <i class="bi bi-check-lg"></i> Zapisz
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
+                                                Anuluj
+                                            </button>
                                         </div>
                                     </td>
                                 }
                                 else
                                 {
-                                    <td><strong>@p.Name</strong></td>
-                                    <td>@p.Description</td>
-                                    <td class="text-end">@p.Value?.ToString("N2")</td>
-                                    <td class="text-center">
+                                    <td class="align-middle"><strong>@p.Name</strong></td>
+                                    <td class="align-middle">@p.Description</td>
+                                    <td class="align-middle text-end">@p.Value?.ToString("N2") PLN</td>
+                                    <td class="text-center align-middle">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-primary shadow-sm" @onclick="() => StartEdit(p)">
-                                                <i class="bi bi-pencil"></i> Edytuj
+                                            
+                                            <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => StartEdit(p)">
+                                                <i class="bi bi-pencil-square me-1"></i> Edytuj
                                             </button>
-                                            <button class="btn btn-sm btn-danger shadow-sm" @onclick="() => HandleDelete(p.ProductId)">
-                                                <i class="bi bi-trash"></i> Usuń
+                                            <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(p.ProductId)">
+                                                <i class="bi bi-trash me-1"></i> Usuń
                                             </button>
                                         </div>
                                     </td>
@@ -100,28 +140,68 @@
         </div>
     </div>
 </div>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
+        <div class="text-muted small">
+            Pokazuję <strong>@_products?.Count</strong> z <strong>@_totalCount</strong> produktów
+            <span class="mx-2">|</span>
+            Strona <strong>@_currentPage</strong> z <strong>@_totalPages</strong>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small text-nowrap fw-bold">Na stronie:</label>
+                <select class="form-select form-select-sm" style="width: 75px;" @onchange="ChangePageSize">
+                    <option value="10" selected="@(_pageSize == 10)">10</option>
+                    <option value="20" selected="@(_pageSize == 20)">20</option>
+                    <option value="50" selected="@(_pageSize == 50)">50</option>
+                </select>
+            </div>
+
+            <div class="btn-group">                
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage - 1)"
+                        disabled="@(_currentPage <= 1)">
+                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
+                </button>                
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage + 1)"
+                        disabled="@(_currentPage >= _totalPages)">
+                    Następna <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     private List<ProductDto>? _products;
     private int? _editingProductId;
     private ProductDto _newProduct = new();
     private ProductDto _editModel = new();
-
-    protected override async Task OnInitializedAsync()
+    private int _pageSize = 10;
+    private int _currentPage = 1;
+    private int _totalCount = 0;
+    private int _totalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+    private string _searchTerm = "";
+    private System.Timers.Timer? _searchTimer;
+    private bool _isModalOpen = false;
+    
+    private void OpenAddModal()
     {
-        await LoadData();
+        _newProduct = new ProductDto { Name = "", Value = 0, Description = "" };
+        _isModalOpen = true;
     }
+
+    private void CloseModal() => _isModalOpen = false;
 
     private async Task LoadData()
     {
-        try
-        {
-            _products = await ProductService.GetProductsAsync();
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Błąd ładowania: {ex.Message}");
-        }
+        var response = await ProductService.GetProductsAsync(_currentPage, _pageSize, _searchTerm);
+        _products = response.Data;
+        _totalCount = response.TotalCount;
+        StateHasChanged();
     }
 
     private async Task HandleSave()
@@ -131,7 +211,8 @@
         try
         {
             await ProductService.SaveProductAsync(_newProduct);
-            _newProduct = new ProductDto(); 
+            _isModalOpen = false; 
+            _newProduct = new ProductDto();
             await LoadData();
         }
         catch (Exception ex)
@@ -139,51 +220,70 @@
             Console.WriteLine($"Błąd zapisu: {ex.Message}");
         }
     }
+    
+    private void HandleSearch()
+    {
+        _searchTimer?.Stop();
+        _searchTimer?.Dispose();
+        _searchTimer = new System.Timers.Timer(400);
+        _searchTimer.Elapsed += async (s, e) =>
+        {
+            _searchTimer.Stop();
+            _currentPage = 1;
+            await InvokeAsync(LoadData);
+        };
+        _searchTimer.Start();
+    }
+
+    private async Task ClearSearch() { _searchTerm = ""; _currentPage = 1; await LoadData(); }
+    private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
+    private async Task ChangePageSize(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            _pageSize = newSize;
+            _currentPage = 1;
+            await LoadData();
+        }
+    }
+    protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task HandleDelete(int productId)
     {
-        try
-        {
-            await ProductService.DeleteProductAsync(productId);
-            await LoadData(); 
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Błąd podczas usuwania: {ex.Message}");
-        }
+        try { await ProductService.DeleteProductAsync(productId); await LoadData(); }
+        catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
     }
 
     private void StartEdit(ProductDto product)
     {
         _editingProductId = product.ProductId;
-        
         _editModel = new ProductDto
         {
             ProductId = product.ProductId,
             Name = product.Name,
             Description = product.Description,
             Value = product.Value,
-            UserId = product.UserId,
-            IsDeleted = product.IsDeleted
+            UserId = product.UserId
         };
     }
 
-    private void CancelEdit()
-    {
-        _editingProductId = null; 
-    }
+    private void CancelEdit() => _editingProductId = null;
 
     private async Task SaveEdit()
     {
+        try { await ProductService.UpdateProductAsync(_editModel); _editingProductId = null; await LoadData(); }
+        catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
+    }
+
+    private async Task ExportToCsv()
+    {
         try
         {
-            await ProductService.UpdateProductAsync(_editModel);
-            _editingProductId = null; 
-            await LoadData();        
+            await ProductService.DownloadProductsCsvAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+            Console.WriteLine($"Błąd eksportu: {ex.Message}");
         }
     }
 }

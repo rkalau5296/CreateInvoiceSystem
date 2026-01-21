@@ -15,7 +15,7 @@ namespace CreateInvoiceSystem.Modules.Products.Domain.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ProductController : ApiControllerBase
 {
     public ProductController(IMediator mediator, ILogger<ProductController> logger) : base(mediator)
@@ -35,8 +35,7 @@ public class ProductController : ApiControllerBase
         return await HandleRequest<GetProductRequest, GetProductResponse>(request, cancellationToken);
     }
 
-    [HttpGet()]
-    [Route("/Products")]
+    [HttpGet]    
     public async Task<IActionResult> GetProductsAsync([FromQuery] GetProductsRequest request, CancellationToken cancellationToken)
     {
         var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

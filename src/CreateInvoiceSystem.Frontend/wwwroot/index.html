@@ -27,6 +27,19 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.downloadFile = (fileName, contentType, content) => {
+            const file = new Blob([content], { type: contentType });
+            const exportUrl = URL.createObjectURL(file);
+            const a = document.createElement("a");
+            a.href = exportUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(exportUrl);
+            document.body.removeChild(a);
+        };
+    </script>
 </body>
 
 </html>

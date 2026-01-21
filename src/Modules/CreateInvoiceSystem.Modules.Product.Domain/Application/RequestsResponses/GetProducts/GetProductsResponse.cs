@@ -3,5 +3,6 @@ using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
 public class GetProductsResponse : ResponseBase<List<ProductDto>>
-{    
+{
+    public int TotalCount { get; set; }
 }

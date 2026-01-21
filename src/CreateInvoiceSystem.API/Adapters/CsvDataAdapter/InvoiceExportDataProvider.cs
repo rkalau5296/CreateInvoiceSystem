@@ -23,8 +23,8 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
         }
         public async Task<IEnumerable<object>> GetProductsDataAsync(int userId)
         {            
-            var pagedResult = await _productRepository.GetAllAsync(userId, 1, int.MaxValue, CancellationToken.None);
-         
+            var pagedResult = await _productRepository.GetAllAsync(userId, 1, int.MaxValue, null, CancellationToken.None);
+
             return pagedResult.Items.Select(p => new
             {
                 Nazwa = p.Name,
