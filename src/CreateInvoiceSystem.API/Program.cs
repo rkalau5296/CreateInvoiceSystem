@@ -223,11 +223,21 @@ builder.Services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
 builder.Services.AddPdfModule();
 builder.Services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazor", policy =>
+    {
+        policy.WithOrigins("https://localhost:7022", "http://localhost:5004")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors("AllowBlazor");
 app.UseMiddleware<ValidationExceptionMiddleware>();
 app.UseAuthentication(); 
 app.UseAuthorization();
@@ -237,6 +247,5 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
     c.RoutePrefix = string.Empty;
 });
-
 app.MapControllers();
 app.Run();

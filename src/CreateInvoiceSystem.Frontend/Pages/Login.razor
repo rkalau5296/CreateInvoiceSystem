@@ -1,0 +1,83 @@
+﻿@page "/login"
+@using CreateInvoiceSystem.Frontend.Dto
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center">Logowanie</h3>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Email:</label>
+                        <input type="email" class="form-control" @bind="_loginRequest.Dto.Email" placeholder="email@przyklad.pl" />
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Hasło:</label>
+                        <input type="password" class="form-control" @bind="_loginRequest.Dto.Password" />
+                    </div>
+
+                    <button class="btn btn-primary w-100" @onclick="HandleLogin">Zaloguj</button>
+
+                    @if (!string.IsNullOrEmpty(_statusMessage))
+                    {
+                        <div class="alert mt-3 @(_statusMessage.Contains("Błąd") ? "alert-danger" : "alert-info")">
+                            @_statusMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest _loginRequest = new LoginRequest { Dto = new LoginUserDto() };
+    private string _statusMessage = "";
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            _statusMessage = "Łączenie z serwerem...";
+            Console.WriteLine("KLIKNIĘTO: Start HandleLogin");
+
+            var result = await AuthService.LoginAsync(_loginRequest);
+
+            Console.WriteLine("SERWIS: Odebrano odpowiedź");
+
+            if (result != null && !string.IsNullOrEmpty(result.Token))
+            {                
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+
+                _statusMessage = "Zalogowano! Przekierowuję...";
+                Console.WriteLine("SUKCES: Token zapisany w LocalStorage.");
+                
+                await Task.Delay(500);
+                
+                Navigation.NavigateTo("/");
+            }
+            else if (result != null && !result.IsSuccess)
+            {
+                _statusMessage = $"Błąd: {result.Message}";
+                Console.WriteLine($"API zwróciło błąd: {result.Message}");
+            }
+            else
+            {
+                _statusMessage = "Błąd: Nieprawidłowa odpowiedź serwera (brak tokena).";
+                Console.WriteLine("BŁĄD: Result jest null lub Token jest pusty");
+            }
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Błąd krytyczny: {ex.Message}";
+            Console.WriteLine($"EXCEPTION: {ex.Message}");
+        }
+    }
+}

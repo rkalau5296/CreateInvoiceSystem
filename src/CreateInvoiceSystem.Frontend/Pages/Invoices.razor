@@ -1,0 +1,101 @@
+﻿@page "/invoices"
+@using CreateInvoiceSystem.Frontend.Models
+
+<div class="container-fluid">
+    <h3>Nowa Faktura</h3>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Dane ogólne</div>
+                <div class="card-body row">
+                    <div class="col-md-4">
+                        <label>Numer Faktury:</label>
+                        <input type="text" class="form-control" placeholder="np. 01/2026" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>Klient:</label>
+                        <select class="form-control">
+                            <option>Wybierz klienta...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Data wystawienia:</label>
+                        <input type="date" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">Pozycje faktury (Produkty)</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Produkt/Usługa:</label>
+                    <input type="text" class="form-control" @bind="_tempProductName" />
+                </div>
+                <div class="col-md-2">
+                    <label>Cena netto:</label>
+                    <input type="number" class="form-control" @bind="_tempValue" />
+                </div>
+                <div class="col-md-2">
+                    <label>Ilość:</label>
+                    <input type="number" class="form-control" @bind="_tempQuantity" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" @onclick="AddPosition">Dodaj produkt do listy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Cena</th>
+                <th>Ilość</th>
+                <th>Wartość</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in _positions)
+            {
+                <tr>
+                    <td>@p.ProductName</td>
+                    <td>@p.ProductValue</td>
+                    <td>@p.Quantity</td>
+                    <td>@(p.ProductValue* p.Quantity)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    // Twoja lista pozycji, którą będziesz wysyłać w komendzie do bazy
+    private List<InvoicePositionDto> _positions = new();
+
+    private string _tempProductName = "";
+    private decimal _tempValue = 0;
+    private int _tempQuantity = 1;
+
+    private void AddPosition()
+    {
+        if (string.IsNullOrEmpty(_tempProductName)) return;
+
+        _positions.Add(new InvoicePositionDto
+        {
+            ProductName = _tempProductName,
+            ProductValue = _tempValue,
+            Quantity = _tempQuantity
+        });
+
+        // Czyszczenie pól po dodaniu
+        _tempProductName = "";
+        _tempValue = 0;
+        _tempQuantity = 1;
+    }
+}

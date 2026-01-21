@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar" style="background: #2c3e50; color: white; min-width: 250px;">
+        <div class="top-row ps-3 navbar navbar-dark">
+            <a class="navbar-brand" href="">System Faktur</a>
+        </div>
+
+        <nav class="flex-column p-3">
+            <div class="nav-item px-3 mb-2">
+                <NavLink class="nav-link text-white" href="" Match="NavLinkMatch.All">
+                    🏠 Dashboard
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 mb-2">
+                <NavLink class="nav-link text-white" href="invoices">
+                    📄 Faktury
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 mb-2">
+                <NavLink class="nav-link text-white" href="clients">
+                    👥 Klienci
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 mb-2">
+                <NavLink class="nav-link text-white" href="products">
+                    📦 Produkty
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>

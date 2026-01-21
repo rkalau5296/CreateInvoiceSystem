@@ -70,6 +70,7 @@ public class ProductRepository(IDbContext db) : IProductRepository
         {
             ProductId = p.ProductId,
             Name = p.Name,
+            Description = p.Description,
             Value = p.Value,
             UserId = p.UserId
         }).ToList();

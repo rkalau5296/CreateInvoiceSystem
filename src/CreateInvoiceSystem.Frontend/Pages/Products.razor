@@ -1,0 +1,131 @@
+﻿@page "/products"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject ProductService ProductService
+
+<div class="container-fluid">
+    <h3 class="mb-4">Zarządzanie Produktami</h3>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-primary text-white">Dodaj nowy produkt</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nazwa produktu</label>
+                    <input type="text" class="form-control" @bind="_newProduct.Name" placeholder="np. Kawa" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Opis</label>
+                    <input type="text" class="form-control" @bind="_newProduct.Description" placeholder="Opcjonalny opis..." />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Cena</label>
+                    <div class="input-group">
+                        <input type="number" step="0.01" class="form-control" @bind="_newProduct.Value" />
+                        <span class="input-group-text">PLN</span>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end justify-content-end">
+                    <button class="btn btn-success px-4" @onclick="HandleSave">Dodaj</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">Twoja lista produktów</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>                        
+                        <th>Nazwa</th>
+                        <th>Opis</th>
+                        <th class="text-end">Cena</th>
+                        <th class="text-center">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_products == null)
+                    {
+                        <tr><td colspan="5" class="text-center p-4 italic text-muted">Ładowanie danych z serwera...</td></tr>
+                    }
+                    else if (!_products.Any())
+                    {
+                        <tr><td colspan="5" class="text-center p-4">Brak produktów w bazie. Dodaj pierwszy produkt powyżej.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var p in _products.OrderBy(x => x.Name))
+                        {
+                            <tr>
+                                <td><strong>@p.Name</strong></td>
+                                <td>@p.Description</td>
+                                <td class="text-end">@p.Value?.ToString("N2")</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-primary shadow-sm">
+                                        <i class="bi bi-pencil"></i> Edytuj
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(p.ProductId)">
+                                        <i class="bi bi-trash"></i> Usuń
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@code {
+    private List<ProductDto>? _products;
+   
+    private ProductDto _newProduct = new ProductDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _products = await ProductService.GetProductsAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd ładowania: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (string.IsNullOrWhiteSpace(_newProduct.Name)) return;
+
+        try
+        {
+            await ProductService.SaveProductAsync(_newProduct);
+            _newProduct = new ProductDto(); 
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(int productId)
+    {
+        try
+        {
+            await ProductService.DeleteProductAsync(productId);
+            await LoadData(); 
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas usuwania: {ex.Message}");
+        }
+    }
+}
