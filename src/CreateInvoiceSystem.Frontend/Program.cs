@@ -21,6 +21,7 @@ namespace CreateInvoiceSystem.Frontend
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<ClientService>();
             builder.Services.AddScoped<NbpService>();
+            builder.Services.AddScoped<InvoiceService>();
             await builder.Build().RunAsync();
         }
     }

@@ -4,7 +4,7 @@ namespace CreateInvoiceSystem.Frontend.Models
 {
     public class AuthResponse
     {
-        [JsonPropertyName("token")] // 
+        [JsonPropertyName("token")] 
         public string Token { get; set; } = string.Empty;
 
         [JsonPropertyName("isSuccess")]

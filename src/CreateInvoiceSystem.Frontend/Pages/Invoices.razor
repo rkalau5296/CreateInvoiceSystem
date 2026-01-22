@@ -1,101 +1,118 @@
 ﻿@page "/invoices"
 @using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject InvoiceService InvoiceService
+@inject NavigationManager Navigation
 
 <div class="container-fluid">
-    <h3>Nowa Faktura</h3>
+    <h3 class="mb-4">Zarządzanie Fakturami</h3>
 
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">Dane ogólne</div>
-                <div class="card-body row">
-                    <div class="col-md-4">
-                        <label>Numer Faktury:</label>
-                        <input type="text" class="form-control" placeholder="np. 01/2026" />
-                    </div>
-                    <div class="col-md-4">
-                        <label>Klient:</label>
-                        <select class="form-control">
-                            <option>Wybierz klienta...</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label>Data wystawienia:</label>
-                        <input type="date" class="form-control" />
-                    </div>
-                </div>
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Wyszukaj fakturę</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" placeholder="Numer faktury lub kontrahent..."
+                       @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearch" />
             </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/invoices/create")'>
+                <i class="bi bi-plus-circle me-1"></i> Wystaw nową fakturę
+            </button>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">Pozycje faktury (Produkty)</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label>Produkt/Usługa:</label>
-                    <input type="text" class="form-control" @bind="_tempProductName" />
-                </div>
-                <div class="col-md-2">
-                    <label>Cena netto:</label>
-                    <input type="number" class="form-control" @bind="_tempValue" />
-                </div>
-                <div class="col-md-2">
-                    <label>Ilość:</label>
-                    <input type="number" class="form-control" @bind="_tempQuantity" />
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button class="btn btn-outline-primary w-100" @onclick="AddPosition">Dodaj produkt do listy</button>
-                </div>
-            </div>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">Lista wystawionych faktur</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Numer/Tytuł</th>
+                        <th>Kontrahent</th>
+                        <th>Data wystawienia</th>
+                        <th class="text-end">Kwota brutto</th>
+                        <th class="text-center">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_invoices == null)
+                    {
+                        <tr><td colspan="5" class="text-center p-4">Ładowanie danych...</td></tr>
+                    }
+                    else if (!_invoices.Any())
+                    {
+                        <tr><td colspan="5" class="text-center p-4">Brak faktur spełniających kryteria.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var inv in _invoices)
+                        {
+                            <tr>
+                                <td class="align-middle"><strong>@inv.Title</strong></td>
+                                <td class="align-middle">@inv.ClientName</td>
+                                <td class="align-middle">@inv.CreatedDate.ToShortDateString()</td>
+                                <td class="align-middle text-end fw-bold">@inv.TotalAmount.ToString("N2") PLN</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick='() => Navigation.NavigateTo($"/invoices/view/{inv.InvoiceId}")'>
+                                        <i class="bi bi-eye"></i> Podgląd
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nazwa</th>
-                <th>Cena</th>
-                <th>Ilość</th>
-                <th>Wartość</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var p in _positions)
-            {
-                <tr>
-                    <td>@p.ProductName</td>
-                    <td>@p.ProductValue</td>
-                    <td>@p.Quantity</td>
-                    <td>@(p.ProductValue* p.Quantity)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @* Paginacja - identyczna jak w produktach *@
+    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
+        <div class="text-muted small">Pokazuję @_invoices?.Count z @_totalCount faktur</div>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" @onclick="() => ChangePage(_currentPage - 1)" disabled="@(_currentPage <= 1)">Poprzednia</button>
+            <button class="btn btn-sm btn-outline-primary" @onclick="() => ChangePage(_currentPage + 1)" disabled="@(_currentPage >= _totalPages)">Następna</button>
+        </div>
+    </div>
 </div>
 
 @code {
-    // Twoja lista pozycji, którą będziesz wysyłać w komendzie do bazy
-    private List<InvoicePositionDto> _positions = new();
+    private List<InvoiceDto>? _invoices;
+    private int _pageSize = 10;
+    private int _currentPage = 1;
+    private int _totalCount = 0;
+    private int _totalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+    private string _searchTerm = "";
+    private System.Timers.Timer? _searchTimer;
 
-    private string _tempProductName = "";
-    private decimal _tempValue = 0;
-    private int _tempQuantity = 1;
+    protected override async Task OnInitializedAsync() => await LoadData();
 
-    private void AddPosition()
+    private async Task LoadData()
     {
-        if (string.IsNullOrEmpty(_tempProductName)) return;
-
-        _positions.Add(new InvoicePositionDto
+        try
         {
-            ProductName = _tempProductName,
-            ProductValue = _tempValue,
-            Quantity = _tempQuantity
-        });
-
-        // Czyszczenie pól po dodaniu
-        _tempProductName = "";
-        _tempValue = 0;
-        _tempQuantity = 1;
+            // UŻYWAMY SERWISU - on sam doda nagłówek Authorization!
+            var response = await InvoiceService.GetInvoicesAsync(_currentPage, _pageSize, _searchTerm);
+            _invoices = response.Data;
+            _totalCount = response.TotalCount;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd ładowania: {ex.Message}");
+        }
     }
+
+    private void HandleSearch()
+    {
+        _searchTimer?.Stop();
+        _searchTimer = new System.Timers.Timer(400);
+        _searchTimer.Elapsed += async (s, e) => { _currentPage = 1; await InvokeAsync(LoadData); };
+        _searchTimer.Start();
+    }
+
+    private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
 }

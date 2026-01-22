@@ -17,7 +17,7 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class InvoiceController : ApiControllerBase
 {
     public InvoiceController(IMediator mediator, ILogger<InvoiceController> logger) : base(mediator)
@@ -37,8 +37,7 @@ public class InvoiceController : ApiControllerBase
         return await HandleRequest<GetInvoiceRequest, GetInvoiceResponse>(request, cancellationToken);
     }
 
-    [HttpGet()]
-    [Route("/Invoices")]
+    [HttpGet]    
     public async Task<IActionResult> GetInvoicesAsync([FromQuery] GetInvoicesRequest request, CancellationToken cancellationToken)
     {
         var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -56,7 +55,7 @@ public class InvoiceController : ApiControllerBase
         var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
 
-        var secureDto = invoiceDto with { UserId = actualUserId };
+        var secureDto = invoiceDto with { UserId = actualUserId, UserEmail = User.FindFirstValue(ClaimTypes.Email) };
 
         invoiceDto.UserEmail = User.FindFirstValue(ClaimTypes.Email);
         CreateInvoiceRequest request = new(secureDto) { UserId = actualUserId };
@@ -65,7 +64,7 @@ public class InvoiceController : ApiControllerBase
     }
 
     [HttpPut]
-    [Route("update/id")]
+    [Route("update/{id}")]
     public async Task<IActionResult> UpdateInvoiceAsync(int id, [FromBody] UpdateInvoiceDto updateInvoiceDto, CancellationToken cancellationToken)
     {
         var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -78,7 +77,7 @@ public class InvoiceController : ApiControllerBase
     }
 
     [HttpDelete]
-    [Route("id")]
+    [Route("{id}")]
     public async Task<IActionResult> DeleteInvoice(int id, CancellationToken cancellationToken)
     {
         var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

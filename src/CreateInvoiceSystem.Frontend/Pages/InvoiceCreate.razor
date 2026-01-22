@@ -1,0 +1,244 @@
+﻿@page "/invoices/create"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject InvoiceService InvoiceService
+@inject ClientService ClientService
+@inject ProductService ProductService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Nowa Faktura</h3>
+            <button class="btn btn-sm btn-outline-light" @onclick='() => Navigation.NavigateTo("/invoices")'>
+                <i class="bi bi-arrow-left"></i> Powrót do listy
+            </button>
+        </div>
+        <div class="card-body">
+            <EditForm Model="_invoice" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tytuł faktury</label>
+                        <InputText @bind-Value="_invoice.Title" class="form-control" placeholder="np. FV 01/2026" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Data wystawienia</label>
+                        <InputDate @bind-Value="_invoice.CreatedDate" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Termin płatności</label>
+                        <InputDate @bind-Value="_invoice.PaymentDate" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="card mb-4 bg-light border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-secondary">Dane Nabywcy</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Wybierz klienta</label>
+                                <input class="form-control"
+                                       list="clientOptions"
+                                       @bind="_invoice.ClientName"
+                                       @oninput="(e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
+                                       placeholder="Zacznij wpisywać nazwę..." />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">NIP</label>
+                                <InputText @bind-Value="_invoice.ClientNip" class="form-control" placeholder="NIP" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Adres (Snapshot)</label>
+                                <InputText @bind-Value="_invoice.ClientAddress" class="form-control" placeholder="Adres" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nazwa produktu / usługi</th>
+                                <th style="width: 120px">Ilość</th>
+                                <th style="width: 180px">Cena jedn.</th>
+                                <th style="width: 180px">Suma</th>
+                                <th style="width: 50px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pos in _invoice.InvoicePositions)
+                            {
+                                <tr>
+                                    <td>
+                                        <input class="form-control"
+                                               list="productOptions"
+                                               @bind="pos.ProductName"
+                                               @oninput="(e) => { pos.ProductName = e.Value?.ToString(); HandleProductChange(pos, pos.ProductName); }"
+                                               placeholder="Nazwa produktu..." />
+                                    </td>
+                                    <td><InputNumber @bind-Value="pos.Quantity" class="form-control" /></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <InputNumber @bind-Value="pos.ProductValue" class="form-control" />
+                                            <span class="input-group-text">PLN</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-end pe-3">
+                                        @((pos.Quantity * (pos.ProductValue ?? 0)).ToString("N2")) PLN
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-outline-danger btn-sm border-0" @onclick="() => RemovePosition(pos)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-4" @onclick="AddPosition">
+                    <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
+                </button>
+
+                <div class="row">
+                    <div class="col-md-12 text-end mb-4">
+                        <div class="p-3 bg-light rounded d-inline-block border">
+                            <h4 class="mb-0">Do zapłaty: <span class="text-primary fw-bold">@CalculateTotal().ToString("N2") PLN</span></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
+                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">
+                        <i class="bi bi-check-circle me-2"></i> Wystaw i zapisz fakturę
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@* Słowniki podpowiedzi *@
+<datalist id="productOptions">
+    @foreach (var p in _availableProducts)
+    {
+        <option value="@p.Name">@p.Value PLN</option>
+    }
+</datalist>
+
+<datalist id="clientOptions">
+    @foreach (var c in _availableClients)
+    {
+        <option value="@c.Name">NIP: @c.Nip</option>
+    }
+</datalist>
+
+@code {
+    private InvoiceDto _invoice = new()
+    {
+        CreatedDate = DateTime.Today,
+        PaymentDate = DateTime.Today.AddDays(14),
+        InvoicePositions = new List<InvoicePositionDto>()
+    };
+
+    private List<ProductDto> _availableProducts = new();
+    private List<ClientDto> _availableClients = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Pobieramy dane do list podpowiedzi (datalist)
+            var pResponse = await ProductService.GetProductsAsync(1, 1000);
+            var cResponse = await ClientService.GetClientsAsync(1, 1000);
+
+            _availableProducts = pResponse?.Data ?? new();
+            _availableClients = cResponse?.Data ?? new();
+
+            // Dodaj pierwszą pustą pozycję na start
+            if (!_invoice.InvoicePositions.Any()) AddPosition();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd inicjalizacji: {ex.Message}");
+        }
+    }
+
+    private void AddPosition()
+    {
+        _invoice.InvoicePositions.Add(new InvoicePositionDto
+        {
+            Quantity = 1,
+            ProductName = "",
+            ProductValue = 0
+        });
+    }
+
+    private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
+
+    private decimal CalculateTotal() => _invoice.InvoicePositions.Sum(p => p.Quantity * (p.ProductValue ?? 0));
+
+    private void HandleProductChange(InvoicePositionDto position, string? newValue)
+    {
+        if (string.IsNullOrWhiteSpace(newValue)) return;
+        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+        {
+            position.ProductId = match.ProductId;
+            position.ProductName = match.Name;
+            position.ProductValue = match.Value;
+            // Snapshot produktu - zachowuje dane nawet po zmianie w bazie produktów
+            position.Product = new ProductDto { Name = match.Name, Value = match.Value };
+        }
+    }
+
+    private void HandleClientChange(string? newValue)
+    {
+        if (string.IsNullOrWhiteSpace(newValue)) return;
+        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+        {
+            _invoice.ClientId = match.ClientId;
+            _invoice.ClientName = match.Name;
+            _invoice.ClientNip = match.Nip;
+            _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.City}";
+
+            // Snapshot klienta - zachowuje dane nabywcy na fakturze
+            _invoice.Client = new ClientDto
+            {
+                Name = match.Name,
+                Nip = match.Nip,
+                Address = match.Address,
+                UserId = match.UserId
+            };
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            _invoice.TotalAmount = CalculateTotal();
+
+            // Wysyłamy do API przez serwis
+            var result = await InvoiceService.SaveInvoiceAsync(_invoice);
+
+            if (result != null)
+            {
+                // Powrót do listy po sukcesie
+                Navigation.NavigateTo("/invoices");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+        }
+    }
+}

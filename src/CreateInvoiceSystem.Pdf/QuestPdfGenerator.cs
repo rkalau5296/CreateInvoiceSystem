@@ -103,11 +103,9 @@ public class QuestPdfGenerator : IPdfGenerator
                             }
                         });
                     }
-
                     
                     col.Item().PaddingTop(20).Row(row =>
-                    {
-                    
+                    {                    
                         row.RelativeItem().Column(payCol =>
                         {
                             payCol.Item().Text("Dane płatności:").SemiBold().Underline();

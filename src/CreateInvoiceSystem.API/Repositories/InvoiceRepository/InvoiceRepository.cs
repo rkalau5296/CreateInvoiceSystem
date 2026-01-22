@@ -76,8 +76,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
             await _db.Set<InvoicePositionEntity>().AddRangeAsync(positionsToSave, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
-
-            // 3. Mapujemy wszystko z powrotem do obiektu domenowego Invoice
+            
             return new Invoice
             {
                 InvoiceId = invoiceEntity.InvoiceId,
