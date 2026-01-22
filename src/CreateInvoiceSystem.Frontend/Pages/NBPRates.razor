@@ -1,21 +1,142 @@
 ﻿@page "/nbp-rates"
+@using CreateInvoiceSystem.Frontend.Services
+@using CreateInvoiceSystem.Frontend.Models
+@inject NbpService NbpService
 
-<PageTitle>Kursy Walut NBP</PageTitle>
-
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-currency-exchange me-2"></i>Aktualne Kursy NBP</h1>
-        <button class="btn btn-primary" @onclick="RefreshRates">
-            <i class="bi bi-arrow-clockwise me-1"></i> Odśwież kursy
-        </button>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+            <h5 class="card-title mb-4"><i class="bi bi-filter-square me-2"></i>Filtry wyszukiwania</h5>
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Tabela</label>
+                    <select class="form-select" @bind="_selectedTable">
+                        <option value="A">A (Średnie)</option>
+                        <option value="B">B (Rzadkie)</option>
+                        <option value="C">C (Kupno/Sprzedaż)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Kod waluty (opcjonalnie)</label>
+                    <input type="text" class="form-control" placeholder="np. USD" @bind="_currencyCode" maxlength="3" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Data od</label>
+                    <input type="date" class="form-control" @bind="_dateFrom" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Data do</label>
+                    <input type="date" class="form-control" @bind="_dateTo" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" @onclick="ExecuteSearch">
+                        <i class="bi bi-search me-1"></i> Szukaj
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <p>Tutaj pojawią się kursy walut pobrane z API NBP.</p>
+    @if (_isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Łączenie z Twoim API NBP...</p>
+        </div>
+    }
+    else if (_allTables != null && _allTables.Any())
+    {
+        <div class="mt-4">
+            <div class="alert alert-info py-2">
+                Wyniki dla: <strong>@_selectedTable</strong>
+                @(!string.IsNullOrEmpty(_currencyCode) ? $" | Waluta: {_currencyCode.ToUpper()}" : "")
+                | Zakres: @_dateFrom.ToShortDateString() - @_dateTo.ToShortDateString()
+                | Znaleziono dni: @_allTables.Count
+            </div>
+
+            @foreach (var table in _allTables)
+            {
+                <div class="card mb-3 border">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between py-1">
+                        <span>Tabela: @table.Table</span>
+                        <span>Data publikacji: @(string.IsNullOrEmpty(table.EffectiveDate) ? "Brak daty" : table.EffectiveDate)</span>
+                    </div>
+                    <table class="table table-hover mb-0 bg-white">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Waluta</th>
+                                <th>Kod</th>
+                                <th class="text-end">Kurs (Mid)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rate in table.Rates ?? new())
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrEmpty(rate.Currency) ? table.Currency : rate.Currency)</td>
+                                    <td><span class="badge bg-secondary">@(string.IsNullOrEmpty(rate.Code) ? table.Code : rate.Code)</span></td>
+                                    <td class="text-end fw-bold">@rate.Mid.ToString("F4")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 @code {
-    private async Task RefreshRates()
-    {        
-        await Task.CompletedTask;
+    private string _selectedTable = "A";
+    private string _currencyCode = "";
+    private DateTime _dateFrom = DateTime.Today;
+    private DateTime _dateTo = DateTime.Today;
+
+    // Zmieniamy na listę, aby obsłużyć wiele dni (zakres dat)
+    private List<CurrencyRatesTable> _allTables = new();
+    private bool _isLoading = false;
+
+    private async Task ExecuteSearch()
+    {
+        _isLoading = true;
+        _allTables.Clear();
+
+        bool isSpecificCurrency = !string.IsNullOrWhiteSpace(_currencyCode);
+        bool isDateRange = _dateFrom != _dateTo;
+
+        try
+        {
+            if (isSpecificCurrency)
+            {
+                CurrencyRatesTable? result;
+                if (isDateRange)
+                    result = await NbpService.GetSpecificCurrencyHistoryAsync(_selectedTable, _currencyCode, _dateFrom, _dateTo);
+                else
+                    result = await NbpService.GetSpecificCurrencyRateAsync(_selectedTable, _currencyCode);
+
+                if (result != null) _allTables.Add(result);
+            }
+            else
+            {
+                if (isDateRange)
+                {
+                    // Tutaj NbpService musi zwracać List<CurrencyRatesTable>
+                    _allTables = await NbpService.GetTableHistoryAsync(_selectedTable, _dateFrom, _dateTo);
+                }
+                else
+                {
+                    var result = await NbpService.GetCurrentTableAsync(_selectedTable);
+                    if (result != null) _allTables.Add(result);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 }
