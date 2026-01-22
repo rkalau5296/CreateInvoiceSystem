@@ -24,11 +24,11 @@ public class GetClientsQueryTests
         var pageSize = 10;
         var clients = new List<Client> { new() { ClientId = 1, Name = "Test" } };
         var pagedResult = new PagedResult<Client>(clients, 1, pageNumber, pageSize);
-
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+        
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
-        var query = new GetClientsQuery(null, pageNumber, pageSize);
+        var query = new GetClientsQuery(null, pageNumber, pageSize, null);
 
         // Act
         var result = await query.Execute(_repositoryMock.Object, CancellationToken.None);
@@ -44,11 +44,11 @@ public class GetClientsQueryTests
     {
         // Arrange
         var pageNumber = 1;
-        var pageSize = 10;
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+        var pageSize = 10;        
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PagedResult<Client>)null!);
 
-        var query = new GetClientsQuery(null, pageNumber, pageSize);
+        var query = new GetClientsQuery(null, pageNumber, pageSize, null);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object, CancellationToken.None);
@@ -65,11 +65,11 @@ public class GetClientsQueryTests
         var pageNumber = 1;
         var pageSize = 10;
         var emptyPagedResult = new PagedResult<Client>(new List<Client>(), 0, pageNumber, pageSize);
-
-        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<CancellationToken>()))
+        
+        _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(emptyPagedResult);
 
-        var query = new GetClientsQuery(null, pageNumber, pageSize);
+        var query = new GetClientsQuery(null, pageNumber, pageSize, null);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object, CancellationToken.None);

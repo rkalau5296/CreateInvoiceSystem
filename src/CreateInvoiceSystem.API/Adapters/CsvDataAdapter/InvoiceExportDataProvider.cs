@@ -35,7 +35,7 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
 
         public async Task<IEnumerable<object>> GetClientsDataAsync(int userId)
         {            
-            var pagedResult = await _clientRepository.GetAllAsync(userId, 1, int.MaxValue, CancellationToken.None);
+            var pagedResult = await _clientRepository.GetAllAsync(userId, 1, int.MaxValue, null, CancellationToken.None);
             
             return pagedResult.Items.Select(c => new
             {

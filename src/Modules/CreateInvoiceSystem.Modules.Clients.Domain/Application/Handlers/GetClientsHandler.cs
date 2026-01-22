@@ -10,13 +10,14 @@ public class GetClientsHandler(IQueryExecutor queryExecutor, IClientRepository _
 {
     public async Task<GetClientsResponse> Handle(GetClientsRequest request, CancellationToken cancellationToken)
     {
-        GetClientsQuery query = new(request.UserId, request.PageNumber, request.PageSize);
+        GetClientsQuery query = new(request.UserId, request.PageNumber, request.PageSize, request.SearchTerm);
 
         var clients = await queryExecutor.Execute(query, _clientRepository, cancellationToken);
 
         return new GetClientsResponse
         {
-            Data = clients.Items.ToDtoList()
-        }; 
+            Data = clients.Items.ToDtoList(),
+            TotalCount = clients.TotalCount
+        };
     }
 }

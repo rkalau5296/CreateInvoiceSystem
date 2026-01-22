@@ -19,6 +19,7 @@ namespace CreateInvoiceSystem.Frontend
 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<ProductService>();
+            builder.Services.AddScoped<ClientService>();
             await builder.Build().RunAsync();
         }
     }

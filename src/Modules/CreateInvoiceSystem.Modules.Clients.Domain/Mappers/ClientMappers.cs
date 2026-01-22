@@ -26,7 +26,7 @@ public static class ClientMappers
             ClientId = dto.ClientId,
             Name = dto.Name,
             Nip = dto.Nip,
-            Address = dto.AddressDto.ToEntity(),
+            Address = dto.Address.ToEntity(),
             UserId = dto.UserId,
             IsDeleted = dto.IsDeleted
         };

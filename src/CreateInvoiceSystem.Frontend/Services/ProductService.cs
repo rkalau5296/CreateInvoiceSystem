@@ -39,7 +39,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             [JsonPropertyName("data")]
             public List<ProductDto> Data { get; set; } = new();
 
-            public int TotalCount { get; set; } // Dodaj to pole
+            public int TotalCount { get; set; } 
             public bool Success { get; set; }
         }
 

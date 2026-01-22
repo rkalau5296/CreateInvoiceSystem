@@ -45,19 +45,16 @@
     {
         try
         {
-            _statusMessage = "Łączenie z serwerem...";
-            Console.WriteLine("KLIKNIĘTO: Start HandleLogin");
+            _statusMessage = "Łączenie z serwerem...";           
 
             var result = await AuthService.LoginAsync(_loginRequest);
-
-            Console.WriteLine("SERWIS: Odebrano odpowiedź");
+                       
 
             if (result != null && !string.IsNullOrEmpty(result.Token))
             {                
                 await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
 
-                _statusMessage = "Zalogowano! Przekierowuję...";
-                Console.WriteLine("SUKCES: Token zapisany w LocalStorage.");
+                _statusMessage = "Zalogowano! Przekierowuję...";            
                 
                 await Task.Delay(500);
                 
@@ -65,19 +62,17 @@
             }
             else if (result != null && !result.IsSuccess)
             {
-                _statusMessage = $"Błąd: {result.Message}";
-                Console.WriteLine($"API zwróciło błąd: {result.Message}");
+                _statusMessage = $"Błąd: {result.Message}";                
             }
             else
             {
-                _statusMessage = "Błąd: Nieprawidłowa odpowiedź serwera (brak tokena).";
-                Console.WriteLine("BŁĄD: Result jest null lub Token jest pusty");
+                _statusMessage = "Błąd: Nieprawidłowa odpowiedź serwera (brak tokena).";                
             }
         }
         catch (Exception ex)
         {
             _statusMessage = $"Błąd krytyczny: {ex.Message}";
-            Console.WriteLine($"EXCEPTION: {ex.Message}");
+            
         }
     }
 }

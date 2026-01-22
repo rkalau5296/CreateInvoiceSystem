@@ -1,0 +1,310 @@
+﻿@page "/clients"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject ClientService ClientService
+
+<div class="container-fluid">
+    <h3 class="mb-4">Kontrahenci</h3>
+
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Wyszukaj kontrahenta</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text"
+                       class="form-control border-start-0"
+                       placeholder="Szukaj po nazwie lub NIP..."
+                       @bind="_searchTerm"
+                       @bind:event="oninput"
+                       @onkeyup="HandleSearch" />
+                @if (!string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <button class="btn btn-outline-secondary border-start-0" @onclick="ClearSearch">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6 text-end">
+            <button class="btn btn-outline-secondary me-2" @onclick="ExportToCsv">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Eksportuj CSV
+            </button>
+            <button class="btn btn-primary" @onclick="OpenAddModal">
+                <i class="bi bi-person-plus-fill me-1"></i> Dodaj klienta
+            </button>
+        </div>
+    </div>
+
+    @if (_isModalOpen)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-lg shadow-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">@(_isEditMode ? "Edytuj Kontrahenta" : "Nowy Kontrahent")</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nazwa firmy</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Name" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">NIP</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Nip" />
+                            </div>
+                            <hr class="my-2 text-muted" />
+                            <div class="col-md-9">
+                                <label class="form-label fw-bold">Ulica</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Address.Street" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Numer</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Address.Number" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Kod pocztowy</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Address.PostalCode" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Miasto</label>
+                                <input type="text" class="form-control" @bind="_editingClient.Address.City" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
+                        <button class="btn btn-success px-4" @onclick="HandleSave">
+                            <i class="bi bi-check-circle me-1"></i> Zapisz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">Twoja lista kontrahentów</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nazwa</th>
+                        <th>NIP</th>
+                        <th>Adres</th>
+                        <th class="text-center">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_clients == null)
+                    {
+                        <tr><td colspan="4" class="text-center p-4 italic text-muted">Ładowanie danych z serwera...</td></tr>
+                    }
+                    else if (!_clients.Any())
+                    {
+                        <tr><td colspan="4" class="text-center p-4">Brak kontrahentów w bazie.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var c in _clients)
+                        {
+                            <tr>
+                                <td class="align-middle"><strong>@c.Name</strong></td>
+                                <td class="align-middle">@c.Nip</td>
+                                <td class="align-middle small">
+                                    @if (c.Address != null)
+                                    {
+                                        <span>@c.Address.Street @c.Address.Number, @c.Address.PostalCode @c.Address.City</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Brak adresu</span>
+                                    }
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => OpenEditModal(c)">
+                                            <i class="bi bi-pencil-square me-1"></i> Edytuj
+                                        </button>
+                                        <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(c.ClientId)">
+                                            <i class="bi bi-trash me-1"></i> Usuń
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
+        <div class="text-muted small">
+            Pokazuję <strong>@_clients?.Count</strong> z <strong>@_totalCount</strong> klientów
+            <span class="mx-2">|</span>
+            Strona <strong>@_currentPage</strong> z <strong>@_totalPages</strong>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small text-nowrap fw-bold">Na stronie:</label>
+                <select class="form-select form-select-sm" style="width: 75px;" @onchange="ChangePageSize">
+                    <option value="10" selected="@(_pageSize == 10)">10</option>
+                    <option value="20" selected="@(_pageSize == 20)">20</option>
+                    <option value="50" selected="@(_pageSize == 50)">50</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage - 1)"
+                        disabled="@(_currentPage <= 1)">
+                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
+                </button>
+
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage + 1)"
+                        disabled="@(_currentPage >= _totalPages)">
+                    Następna <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ClientDto>? _clients;
+    private ClientDto _editingClient = new() { Address = new AddressDto() };
+    private string _searchTerm = "";
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+    private int _totalCount = 0;
+    private int _totalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+    private bool _isModalOpen = false;
+    private bool _isEditMode = false;
+    private System.Timers.Timer? _searchTimer;
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        var response = await ClientService.GetClientsAsync(_currentPage, _pageSize, _searchTerm);
+        _clients = response.Data;
+        _totalCount = response.TotalCount;
+        
+        if (_clients != null)
+        {
+            foreach (var client in _clients.Where(c => c.Address == null))
+            {
+                client.Address = new AddressDto();
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private void HandleSearch()
+    {
+        _searchTimer?.Stop();
+        _searchTimer?.Dispose();
+        _searchTimer = new System.Timers.Timer(400);
+        _searchTimer.Elapsed += async (s, e) =>
+        {
+            _searchTimer.Stop();
+            _currentPage = 1;
+            await InvokeAsync(LoadData);
+        };
+        _searchTimer.Start();
+    }
+
+    private async Task ClearSearch()
+    {
+        _searchTerm = "";
+        _currentPage = 1;
+        await LoadData();
+    }
+  
+    private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
+
+    private async Task ChangePageSize(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            _pageSize = newSize;
+            _currentPage = 1;
+            await LoadData();
+        }
+    }
+
+    private void OpenAddModal()
+    {
+        _isEditMode = false;
+        _editingClient = new ClientDto { Address = new AddressDto() };
+        _isModalOpen = true;
+    }
+
+    private void OpenEditModal(ClientDto client)
+    {
+        _isEditMode = true;        
+        _editingClient = new ClientDto
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Nip = client.Nip,
+            UserId = client.UserId,
+            AddressId = client.Address?.AddressId ?? 0,
+            Address = new AddressDto
+            {
+                AddressId = client.Address?.AddressId ?? 0,
+                Street = client.Address?.Street ?? "",
+                Number = client.Address?.Number ?? "",
+                City = client.Address?.City ?? "",
+                PostalCode = client.Address?.PostalCode ?? "",
+                Country = client.Address?.Country ?? "Polska"
+            }
+        };
+        _isModalOpen = true;
+    }
+
+    private void CloseModal() => _isModalOpen = false;
+
+    private async Task HandleSave()
+    {
+        try
+        {
+            if (_isEditMode)
+                await ClientService.UpdateClientAsync(_editingClient);
+            else
+                await ClientService.SaveClientAsync(_editingClient);
+
+            _isModalOpen = false;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+        }
+    }
+
+    private async Task HandleDelete(int id)
+    {
+        try
+        {
+            await ClientService.DeleteClientAsync(id);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd usuwania: {ex.Message}");
+        }
+    }
+
+    private async Task ExportToCsv() => await ClientService.DownloadClientsCsvAsync();
+}

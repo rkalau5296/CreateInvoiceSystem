@@ -65,29 +65,34 @@ public class ClientRepository(IDbContext db) : IClientRepository
         };
     }
 
-    public async Task<PagedResult<Client>> GetAllAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Client>> GetAllAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken)
     {
         var query = _db.Set<ClientEntity>().AsNoTracking();
-
+        
         if (userId.HasValue)
         {
             query = query.Where(c => c.UserId == userId.Value);
         }
-
+        
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(c => c.Name.Contains(searchTerm) || c.Nip.Contains(searchTerm));
+        }
+        
         var totalCount = await query.CountAsync(cancellationToken);
-
+        
         var clients = await query
             .OrderBy(c => c.Name)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
-
+        
         var clientAddressIds = clients.Select(c => c.AddressId).ToList();
         var addresses = await _db.Set<AddressEntity>()
             .AsNoTracking()
             .Where(a => clientAddressIds.Contains(a.AddressId))
             .ToListAsync(cancellationToken);
-
+        
         var items = clients.Select(c => new Client
         {
             ClientId = c.ClientId,

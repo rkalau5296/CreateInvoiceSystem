@@ -15,7 +15,7 @@ namespace CreateInvoiceSystem.Modules.Clients.Domain.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ClientController : ApiControllerBase
 {
     public ClientController(IMediator mediator, ILogger<ClientController> logger) : base(mediator)
@@ -35,8 +35,7 @@ public class ClientController : ApiControllerBase
         return await HandleRequest<GetClientRequest, GetClientResponse>(request, cancellationToken);
     }
 
-    [HttpGet()]
-    [Route("/Clients")]
+    [HttpGet]    
     public async Task<IActionResult> GetClientsAsync([FromQuery] GetClientsRequest request, CancellationToken cancellationToken)
     {
         var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
