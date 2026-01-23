@@ -36,7 +36,9 @@ public static class InvoiceMappers
         {
             InvoiceId = dto.InvoiceId,
             Title = dto.Title,
-            TotalAmount = dto.TotalAmount,
+            TotalVat = dto.TotalVat,
+            TotalNet = dto.TotalNet,
+            TotalGross = dto.TotalGross,
             PaymentDate = dto.PaymentDate,
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
@@ -69,7 +71,9 @@ public static class InvoiceMappers
         return new Invoice
         {
             Title = dto.Title,
-            TotalAmount = dto.TotalAmount,
+            TotalNet = dto.TotalNet,
+            TotalVat = dto.TotalVat,
+            TotalGross = dto.TotalGross,
             PaymentDate = dto.PaymentDate,
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
@@ -100,7 +104,9 @@ public static class InvoiceMappers
         return new Invoice
         {
             Title = dto.Title,
-            TotalAmount = dto.TotalAmount,
+            TotalVat = dto.TotalVat,
+            TotalNet = dto.TotalNet,
+            TotalGross = dto.TotalGross,
             PaymentDate = dto.PaymentDate,
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
@@ -132,7 +138,9 @@ public static class InvoiceMappers
         : new UpdateInvoiceDto(
             invoice.InvoiceId,
             invoice.Title,
-            invoice.TotalAmount,
+            invoice.TotalNet,
+            invoice.TotalVat,
+            invoice.TotalGross,
             invoice.PaymentDate,
             invoice.CreatedDate,
             invoice.Comments,

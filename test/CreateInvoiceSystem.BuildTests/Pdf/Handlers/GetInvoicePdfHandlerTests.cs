@@ -42,12 +42,20 @@ public class GetInvoicePdfHandlerTests
             InvoiceId = invoiceId,
             UserId = userId,
             Title = "FV/2026/001",
-            TotalAmount = 150.00m,
+            TotalNet = 121.95m,
+            TotalVat = 28.05m,
+            TotalGross = 150.00m,
             ClientName = "Testowy Klient",
             InvoicePositions = new List<InvoicePosition>
+        {
+            new()
             {
-                new() { ProductId = 1, Quantity = 5 }
+                ProductId = 1,
+                Quantity = 5,
+                ProductValue = 24.39m,
+                VatRate = "23"
             }
+        }
         };
 
         _queryExecutorMock
@@ -55,7 +63,7 @@ public class GetInvoicePdfHandlerTests
             .ReturnsAsync(invoiceEntity);
 
         var expectedPdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 };
-        
+
         _exportServiceMock
             .Setup(x => x.ExportToPdfAsync(It.IsAny<InvoiceDto>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedPdfBytes);

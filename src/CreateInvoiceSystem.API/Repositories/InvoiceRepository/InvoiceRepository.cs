@@ -8,13 +8,14 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 {
     public class InvoiceRepository(IDbContext db) : IInvoiceRepository
     {
-        private readonly IDbContext _db = db;
+        private readonly IDbContext _db = db;        
 
         public async Task AddClientAsync(Client client, CancellationToken cancellationToken)
         {
@@ -45,17 +46,23 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
         }
 
         public async Task<Invoice> AddInvoiceAsync(Invoice invoice, CancellationToken cancellationToken)
-        {            
+        {
             var invoiceEntity = new InvoiceEntity
             {
                 Title = invoice.Title,
-                TotalAmount = invoice.TotalAmount,
+                TotalNet = invoice.TotalNet,
+                TotalVat = invoice.TotalVat,
+                TotalGross = invoice.TotalGross,
                 PaymentDate = invoice.PaymentDate,
                 CreatedDate = invoice.CreatedDate,
                 Comments = invoice.Comments,
                 ClientId = invoice.ClientId,
                 UserId = invoice.UserId,
                 MethodOfPayment = invoice.MethodOfPayment,
+                SellerName = invoice.SellerName,
+                SellerNip = invoice.SellerNip,
+                SellerAddress = invoice.SellerAddress,
+                BankAccountNumber = invoice.BankAccountNumber,
                 ClientName = invoice.ClientName,
                 ClientAddress = invoice.ClientAddress,
                 ClientNip = invoice.ClientNip
@@ -63,7 +70,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
             await _db.Set<InvoiceEntity>().AddAsync(invoiceEntity, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
-            
+
             var positionsToSave = invoice.InvoicePositions.Select(ip => new InvoicePositionEntity
             {
                 InvoiceId = invoiceEntity.InvoiceId,
@@ -71,23 +78,30 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 ProductName = ip.ProductName,
                 ProductDescription = ip.ProductDescription,
                 ProductValue = ip.ProductValue,
-                Quantity = ip.Quantity
+                Quantity = ip.Quantity,
+                VatRate = ip.VatRate
             }).ToList();
 
             await _db.Set<InvoicePositionEntity>().AddRangeAsync(positionsToSave, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
-            
+
             return new Invoice
             {
                 InvoiceId = invoiceEntity.InvoiceId,
                 Title = invoiceEntity.Title,
-                TotalAmount = invoiceEntity.TotalAmount,
+                TotalNet = invoiceEntity.TotalNet,
+                TotalVat = invoiceEntity.TotalVat,
+                TotalGross = invoiceEntity.TotalGross,
                 PaymentDate = invoiceEntity.PaymentDate,
                 CreatedDate = invoiceEntity.CreatedDate,
                 Comments = invoiceEntity.Comments,
                 ClientId = invoiceEntity.ClientId,
                 UserId = invoiceEntity.UserId,
                 MethodOfPayment = invoiceEntity.MethodOfPayment,
+                SellerName = invoiceEntity.SellerName,
+                SellerNip = invoiceEntity.SellerNip,
+                SellerAddress = invoiceEntity.SellerAddress,
+                BankAccountNumber = invoiceEntity.BankAccountNumber,
                 ClientName = invoiceEntity.ClientName,
                 ClientAddress = invoiceEntity.ClientAddress,
                 ClientNip = invoiceEntity.ClientNip,
@@ -99,7 +113,8 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                     ProductName = pe.ProductName,
                     ProductDescription = pe.ProductDescription,
                     ProductValue = pe.ProductValue,
-                    Quantity = pe.Quantity
+                    Quantity = pe.Quantity,
+                    VatRate = pe.VatRate
                 }).ToList()
             };
         }
@@ -245,13 +260,19 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             {
                 InvoiceId = invoiceEntity.InvoiceId,
                 Title = invoiceEntity.Title,
-                TotalAmount = invoiceEntity.TotalAmount,
+                TotalNet = invoiceEntity.TotalNet,
+                TotalVat = invoiceEntity.TotalVat,
+                TotalGross = invoiceEntity.TotalGross,
                 PaymentDate = invoiceEntity.PaymentDate,
                 CreatedDate = invoiceEntity.CreatedDate,
                 Comments = invoiceEntity.Comments,
                 ClientId = invoiceEntity.ClientId,
                 UserId = invoiceEntity.UserId,
                 MethodOfPayment = invoiceEntity.MethodOfPayment,
+                SellerName = invoiceEntity.SellerName,
+                SellerNip = invoiceEntity.SellerNip,
+                SellerAddress = invoiceEntity.SellerAddress,
+                BankAccountNumber = invoiceEntity.BankAccountNumber,
                 ClientName = invoiceEntity.ClientName,
                 ClientAddress = invoiceEntity.ClientAddress,
                 ClientNip = invoiceEntity.ClientNip,
@@ -282,6 +303,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             ProductName = ip.ProductName,
             ProductDescription = ip.ProductDescription,
             ProductValue = ip.ProductValue,
+            VatRate = ip.VatRate,
             Product = (ip.ProductId.HasValue && productsMap.TryGetValue(ip.ProductId.Value, out var prod))
                 ? new Product
                 {
@@ -293,20 +315,29 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                     IsDeleted = prod.IsDeleted
                 }
                 : null
-                })]
+        })]
             };
         }
 
-        public async Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+        public async Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken)
         {
-            var baseQuery = _db.Set<InvoiceEntity>()
+            var query = _db.Set<InvoiceEntity>()
                 .AsNoTracking()
                 .Where(i => i.UserId == userId);
 
-            var totalCount = await baseQuery.CountAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var lowerSearch = searchTerm.ToLower();
+                query = query.Where(i =>
+                    i.Title.ToLower().Contains(lowerSearch) ||
+                    i.ClientName.ToLower().Contains(lowerSearch) ||
+                    i.ClientNip.ToLower().Contains(lowerSearch));
+            }
 
-            var invoiceEntities = await baseQuery
-                .OrderByDescending(i => i.CreatedDate) 
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var invoiceEntities = await query
+                .OrderByDescending(i => i.CreatedDate)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
@@ -339,13 +370,19 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             {
                 InvoiceId = i.InvoiceId,
                 Title = i.Title,
-                TotalAmount = i.TotalAmount,
+                TotalNet = i.TotalNet,
+                TotalVat = i.TotalVat,
+                TotalGross = i.TotalGross,
                 PaymentDate = i.PaymentDate,
                 CreatedDate = i.CreatedDate,
                 Comments = i.Comments,
                 ClientId = i.ClientId,
                 UserId = i.UserId,
                 MethodOfPayment = i.MethodOfPayment,
+                SellerName = i.SellerName,
+                SellerNip = i.SellerNip,
+                SellerAddress = i.SellerAddress,
+                BankAccountNumber = i.BankAccountNumber,
                 ClientName = i.ClientName,
                 ClientAddress = i.ClientAddress,
                 ClientNip = i.ClientNip,
@@ -360,8 +397,10 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             InvoiceId = ip.InvoiceId,
             ProductId = ip.ProductId,
             ProductName = ip.ProductName,
+            ProductDescription = ip.ProductDescription,
             ProductValue = ip.ProductValue,
-            Quantity = ip.Quantity
+            Quantity = ip.Quantity,
+            VatRate = ip.VatRate
         })]
             }).ToList();
 
@@ -449,7 +488,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
         public async Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken)
         {
             int? finalClientId = invoice.ClientId;
-            
+
             if (invoice.ClientId == 0 && invoice.Client != null)
             {
                 var addressEntity = new AddressEntity
@@ -477,48 +516,55 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
                 finalClientId = newClient.ClientId;
             }
-            
+
             var invoiceEntity = new InvoiceEntity
             {
                 InvoiceId = invoice.InvoiceId,
                 Title = invoice.Title,
-                TotalAmount = invoice.TotalAmount,
+                TotalNet = invoice.TotalNet,
+                TotalVat = invoice.TotalVat,
+                TotalGross = invoice.TotalGross,
                 PaymentDate = invoice.PaymentDate,
                 CreatedDate = invoice.CreatedDate,
                 Comments = invoice.Comments,
                 ClientId = finalClientId,
                 UserId = invoice.UserId,
                 MethodOfPayment = invoice.MethodOfPayment,
+                BankAccountNumber = invoice.BankAccountNumber,
+                SellerName = invoice.SellerName,
+                SellerNip = invoice.SellerNip,
+                SellerAddress = invoice.SellerAddress,
                 ClientName = invoice.ClientName,
                 ClientAddress = invoice.ClientAddress,
                 ClientNip = invoice.ClientNip
             };
-            
+
             _db.Set<InvoiceEntity>().Update(invoiceEntity);
             await _db.SaveChangesAsync(cancellationToken);
-            
+
             var positionsToProcess = invoice.InvoicePositions.Select(ip => new InvoicePositionEntity
             {
                 InvoicePositionId = ip.InvoicePositionId,
-                InvoiceId = invoiceEntity.InvoiceId, 
+                InvoiceId = invoiceEntity.InvoiceId,
                 ProductId = ip.ProductId > 0 ? ip.ProductId : null,
                 ProductName = ip.ProductName,
                 ProductDescription = ip.ProductDescription,
                 ProductValue = ip.ProductValue,
-                Quantity = ip.Quantity
+                Quantity = ip.Quantity,
+                VatRate = ip.VatRate
             }).ToList();
 
             foreach (var posEntity in positionsToProcess)
             {
                 if (posEntity.InvoicePositionId == 0)
-                {                    
+                {
                     await _db.Set<InvoicePositionEntity>().AddAsync(posEntity, cancellationToken);
                 }
                 else
-                {                    
+                {
                     _db.Set<InvoicePositionEntity>().Update(posEntity);
                 }
-            }            
+            }
             await _db.SaveChangesAsync(cancellationToken);
         }
 
@@ -540,6 +586,33 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 .Where(u => u.Id == userId)
                 .Select(u => u.Email)
                 .FirstOrDefaultAsync(ct);
+        }
+
+        public async Task<User?> GetUserByIdAsync(int userId, CancellationToken ct)
+        {
+            var query = from u in _db.Set<UserEntity>()
+                        join a in _db.Set<AddressEntity>() on u.AddressId equals a.AddressId 
+                        where u.Id == userId
+                        select new User
+                        {
+                            UserId = u.Id,
+                            Name = u.Name,
+                            CompanyName = u.CompanyName,
+                            Nip = u.Nip,
+                            AddressId = u.AddressId,
+                            BankAccountNumber = u.BankAccountNumber,
+                            Address = new Address
+                            {
+                                AddressId = a.AddressId,
+                                Street = a.Street,
+                                Number = a.Number,
+                                City = a.City,
+                                PostalCode = a.PostalCode,
+                                Country = a.Country                                
+                            }
+                        };
+
+            return await query.FirstOrDefaultAsync(ct);
         }
     }
 }

@@ -1,0 +1,221 @@
+﻿@page "/invoices/view/{Id:int}"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject InvoiceService InvoiceService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary" @onclick='() => Navigation.NavigateTo("/invoices")'>
+            <i class="bi bi-arrow-left"></i> Powrót do listy
+        </button>
+        <div class="btn-group">
+            <button class="btn btn-primary shadow-sm" @onclick="DownloadPdf" disabled="@(_isLoading || _isDownloading || _invoice == null)">
+                @if (_isDownloading)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    <span>Generowanie...</span>
+                }
+                else
+                {
+                    <i class="bi bi-file-pdf me-1"></i>
+                    <span>Pobierz PDF</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 text-muted">Ładowanie danych faktury...</p>
+        </div>
+    }
+    else if (_errorMessage != null)
+    {
+        <div class="alert alert-danger shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @_errorMessage
+        </div>
+    }
+    else if (_invoice != null)
+    {
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-dark text-white p-4">
+                <div class="row align-items-center">
+                    <div class="col-sm-7">
+                        <h3 class="mb-0 fw-bold">FAKTURA: @_invoice.Title</h3>
+                    </div>
+                    <div class="col-sm-5 text-sm-end mt-2 mt-sm-0">
+                        <p class="mb-0 small opacity-75 text-uppercase">Data wystawienia</p>
+                        <h5 class="mb-0">@_invoice.CreatedDate.ToShortDateString()</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <div class="row mb-5 py-4 border-bottom border-top bg-light bg-opacity-50 rounded">
+                    <div class="col-md-6 border-end-md">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-3">Sprzedawca</h6>
+                        <h5 class="fw-bold text-primary mb-2">@_invoice.SellerName</h5>
+                        <div class="mb-1"><strong>NIP:</strong> @_invoice.SellerNip</div>
+                        <div class="text-muted small">@_invoice.SellerAddress</div>
+                    </div>
+
+                    <div class="col-md-6 ps-md-5 mt-4 mt-md-0">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-3">Nabywca</h6>
+                        <h5 class="fw-bold mb-2">@_invoice.ClientName</h5>
+                        <div class="mb-1"><strong>NIP:</strong> @_invoice.ClientNip</div>
+                        <div class="text-muted small">@_invoice.ClientAddress</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover border align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px">Lp.</th>
+                                <th>Produkt / Usługa</th>
+                                <th class="text-center" style="width: 80px">Ilość</th>
+                                <th class="text-end" style="width: 120px">Cena netto</th>
+                                <th class="text-center" style="width: 80px">VAT</th>
+                                <th class="text-end" style="width: 150px">Wartość netto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var (pos, index) in _invoice.InvoicePositions.Select((p, i) => (p, i + 1)))
+                            {
+                                <tr>
+                                    <td class="text-center text-muted">@index</td>
+                                    <td>
+                                        <div class="fw-bold">@pos.ProductName</div>
+                                        @if (!string.IsNullOrEmpty(pos.ProductDescription))
+                                        {
+                                            <div class="small text-muted">@pos.ProductDescription</div>
+                                        }
+                                    </td>
+                                    <td class="text-center">@pos.Quantity</td>
+                                    <td class="text-end">@pos.ProductValue?.ToString("N2") PLN</td>
+                                    <td class="text-center">@pos.VatRate</td>
+                                    <td class="text-end fw-bold">@((pos.Quantity * (pos.ProductValue ?? 0)).ToString("N2")) PLN</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row pt-3">
+                    <div class="col-lg-7 mb-4 mb-lg-0">
+                        @if (!string.IsNullOrWhiteSpace(_invoice.Comments))
+                        {
+                            <div class="p-3 bg-light rounded border-start border-4 border-primary shadow-sm h-100">
+                                <h6 class="small fw-bold text-muted mb-2 text-uppercase">Uwagi do faktury:</h6>
+                                <p class="mb-0">@_invoice.Comments</p>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="p-4 border rounded shadow-sm bg-white border-top-0 border-end-0 border-bottom-0 border-start-5 border-success">
+                            <h6 class="text-muted fw-bold text-uppercase small mb-3">Podsumowanie finansowe</h6>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Metoda płatności:</span>
+                                <span class="fw-bold">@_invoice.MethodOfPayment</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small text-muted d-block mb-1">Numer konta bankowego:</label>
+                                <div class="p-2 bg-light rounded fw-bold font-monospace border text-center small">
+                                    @_invoice.BankAccountNumber
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Suma netto:</span>
+                                <span>@_invoice.TotalNet.ToString("N2") PLN</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Suma VAT:</span>
+                                <span>@_invoice.TotalVat.ToString("N2") PLN</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="h5 mb-0 fw-bold">RAZEM (Brutto):</span>
+                                <span class="h4 mb-0 fw-bold text-primary">@_invoice.TotalGross.ToString("N2") PLN</span>
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <span class="badge bg-danger p-2 px-3">
+                                    Termin płatności: @_invoice.PaymentDate.ToShortDateString()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white text-center py-3">
+                <small class="text-muted">Dziękujemy za współpracę!</small>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private InvoiceDto? _invoice;
+    private string? _errorMessage;
+    private bool _isLoading = true;
+    private bool _isDownloading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _invoice = await InvoiceService.GetInvoiceByIdAsync(Id);
+
+            if (_invoice == null)
+            {
+                _errorMessage = "Nie znaleziono faktury o podanym identyfikatorze.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Wystąpił błąd podczas ładowania danych.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task DownloadPdf()
+    {
+        if (_invoice == null || _isDownloading) return;
+
+        try
+        {
+            _isDownloading = true;
+            var pdfBytes = await InvoiceService.DownloadInvoicePdfAsync(Id);
+
+            if (pdfBytes != null && pdfBytes.Length > 0)
+            {
+                var fileName = $"Faktura_{_invoice.Title.Replace(" ", "_")}.pdf";
+                using var streamRef = new DotNetStreamReference(new MemoryStream(pdfBytes));
+                await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd pobierania PDF: {ex.Message}");
+        }
+        finally
+        {
+            _isDownloading = false;
+        }
+    }
+}

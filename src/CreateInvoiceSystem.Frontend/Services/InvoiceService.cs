@@ -38,10 +38,14 @@ namespace CreateInvoiceSystem.Frontend.Services
         {
             [JsonPropertyName("data")]
             public List<InvoiceDto> Data { get; set; } = new();
+            [JsonPropertyName("totalCount")]
             public int TotalCount { get; set; }
             public bool Success { get; set; }
         }
 
+        public class GetInvoiceResponse : ResponseBase<InvoiceDto>
+        {
+        }
         public async Task<InvoiceDto?> SaveInvoiceAsync(InvoiceDto invoice)
         {
             await SetAuthHeader();
@@ -115,6 +119,26 @@ namespace CreateInvoiceSystem.Frontend.Services
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
                 await _js.InvokeVoidAsync("downloadFile", "faktury.csv", "text/csv", fileBytes);
             }
+        }
+
+        public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
+        {
+            await SetAuthHeader();
+            var response = await _http.GetFromJsonAsync<GetInvoiceResponse>($"api/Invoice/{id}");
+            return response?.Data;
+        }
+
+        public async Task<byte[]> DownloadInvoicePdfAsync(int id)
+        {
+            await SetAuthHeader();
+            var response = await _http.GetAsync($"api/Invoice/{id}/pdf"); 
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+
+            return Array.Empty<byte>();
         }
     }
 }

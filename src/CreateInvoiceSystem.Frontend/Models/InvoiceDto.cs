@@ -5,17 +5,23 @@
         public int InvoiceId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Comments { get; set; } = string.Empty;
-        public string MethodOfPayment { get; set; } = "Przelew";
-        public decimal TotalAmount { get; set; }
+        public string MethodOfPayment { get; set; } = "Przelew";        
         public DateTime PaymentDate { get; set; } = DateTime.Today.AddDays(14);
         public DateTime CreatedDate { get; set; } = DateTime.Today;
         public int UserId { get; set; }
         public string? UserEmail { get; set; }        
-        public int? ClientId { get; set; }        
+        public int? ClientId { get; set; }
+        public string? SellerName { get; set; }
+        public string? SellerNip { get; set; }
+        public string? SellerAddress { get; set; }
+        public string BankAccountNumber { get; set; }
         public string? ClientName { get; set; }
         public string? ClientNip { get; set; }
         public string? ClientAddress { get; set; }        
         public ClientDto? Client { get; set; }
         public List<InvoicePositionDto> InvoicePositions { get; set; } = new();
+        public decimal TotalNet { get; set; }
+        public decimal TotalVat { get; set; }
+        public decimal TotalGross { get; set; }
     }
 }

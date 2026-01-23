@@ -9,4 +9,5 @@ public class InvoicePosition
     public string ProductDescription { get; set; }
     public decimal? ProductValue { get; set; }
     public int Quantity { get; set; }
+    public string VatRate { get; set; } = "23%";
 }

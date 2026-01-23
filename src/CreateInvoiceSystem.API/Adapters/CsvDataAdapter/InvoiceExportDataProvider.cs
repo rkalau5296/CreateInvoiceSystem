@@ -9,7 +9,7 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
     {
         public async Task<IEnumerable<object>> GetInvoicesDataAsync(int userId)
         {
-            var pagedResult = await _invoiceRepository.GetInvoicesAsync(userId, 1, int.MaxValue, CancellationToken.None);
+            var pagedResult = await _invoiceRepository.GetInvoicesAsync(userId, 1, int.MaxValue, null, CancellationToken.None);
             var invoices = pagedResult.Items;
 
             return invoices.Select(i => new
@@ -18,7 +18,7 @@ namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
                 Kontrahent = i.ClientName,
                 Nip = i.ClientNip,
                 DataPlatnosci = i.PaymentDate.ToShortDateString(),
-                Kwota = i.TotalAmount
+                Kwota = i.TotalGross
             });
         }
         public async Task<IEnumerable<object>> GetProductsDataAsync(int userId)

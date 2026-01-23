@@ -41,11 +41,18 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
     private void UpdateBasicInformation(Invoice invoice)
     {
         invoice.Title = Parametr.Title ?? invoice.Title;
-        invoice.TotalAmount = Parametr.TotalAmount != default ? Parametr.TotalAmount : invoice.TotalAmount;
+        invoice.TotalNet = Parametr.TotalNet != default ? Parametr.TotalNet : invoice.TotalNet;
+        invoice.TotalVat = Parametr.TotalVat != default ? Parametr.TotalVat : invoice.TotalVat;
+        invoice.TotalGross = Parametr.TotalGross != default ? Parametr.TotalGross : invoice.TotalGross;
         invoice.PaymentDate = Parametr.PaymentDate != default ? Parametr.PaymentDate : invoice.PaymentDate;
         invoice.CreatedDate = Parametr.CreatedDate != default ? Parametr.CreatedDate : invoice.CreatedDate;
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
         invoice.MethodOfPayment = Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
+
+        invoice.SellerName = Parametr.SellerName ?? invoice.SellerName;
+        invoice.SellerNip = Parametr.SellerNip ?? invoice.SellerNip;
+        invoice.SellerAddress = Parametr.SellerAddress ?? invoice.SellerAddress;
+        invoice.BankAccountNumber = Parametr.BankAccountNumber ?? invoice.BankAccountNumber;
     }
 
     private async Task HandleClientUpdate(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
@@ -141,17 +148,23 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             }
         }
     }
-    
 
     private static bool HasChanges(Invoice before, Invoice after)
     {
         return before.Title != after.Title ||
-               before.TotalAmount != after.TotalAmount ||
+               before.TotalNet != after.TotalNet ||
+               before.TotalVat != after.TotalVat ||
+               before.TotalGross != after.TotalGross ||
                before.PaymentDate != after.PaymentDate ||
                before.ClientName != after.ClientName ||
-               before.ClientId != after.ClientId ||
+               before.ClientId != after.ClientId ||               
+               before.SellerName != after.SellerName ||
+               before.SellerNip != after.SellerNip ||
+               before.SellerAddress != after.SellerAddress ||
+               before.BankAccountNumber != after.BankAccountNumber ||               
                before.InvoicePositions.Count != after.InvoicePositions.Count ||
-               !before.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue).SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue));
+               !before.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue)
+                   .SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue));
     }
 
     private static string FormatAddress(dynamic addr) => addr == null ? "" : $"{addr.Street} {addr.Number}, {addr.PostalCode} {addr.City}, {addr.Country}";

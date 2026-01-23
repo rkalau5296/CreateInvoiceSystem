@@ -4,7 +4,9 @@ public record CreateInvoiceDto
     public string Title { get; set; }
     public string Comments { get; set; }
     public string MethodOfPayment { get; set; }
-    public decimal TotalAmount { get; set; }
+    public decimal TotalNet { get; set; }
+    public decimal TotalVat { get; set; }
+    public decimal TotalGross { get; set; }
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public int UserId { get; set; }

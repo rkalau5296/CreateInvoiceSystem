@@ -51,7 +51,7 @@
                                 <InputText @bind-Value="_invoice.ClientNip" class="form-control" placeholder="NIP" />
                             </div>
                             <div class="col-md-4">
-                                <label class="small fw-bold">Adres (Snapshot)</label>
+                                <label class="small fw-bold">Adres</label>
                                 <InputText @bind-Value="_invoice.ClientAddress" class="form-control" placeholder="Adres" />
                             </div>
                         </div>
@@ -64,9 +64,10 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Nazwa produktu / usługi</th>
-                                <th style="width: 120px">Ilość</th>
-                                <th style="width: 180px">Cena jedn.</th>
-                                <th style="width: 180px">Suma</th>
+                                <th style="width: 100px">Ilość</th>
+                                <th style="width: 160px">Cena jedn. netto</th>
+                                <th style="width: 110px">VAT</th>
+                                <th style="width: 160px">Suma brutto</th>
                                 <th style="width: 50px"></th>
                             </tr>
                         </thead>
@@ -88,8 +89,16 @@
                                             <span class="input-group-text">PLN</span>
                                         </div>
                                     </td>
+                                    <td>
+                                        <select @bind="pos.VatRate" class="form-select">
+                                            <option value="23%">23%</option>
+                                            <option value="8%">8%</option>
+                                            <option value="5%">5%</option>
+                                            <option value="zw">zw</option>
+                                        </select>
+                                    </td>
                                     <td class="fw-bold text-end pe-3">
-                                        @((pos.Quantity * (pos.ProductValue ?? 0)).ToString("N2")) PLN
+                                        @CalculatePositionGross(pos).ToString("N2") PLN
                                     </td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-outline-danger btn-sm border-0" @onclick="() => RemovePosition(pos)">
@@ -108,8 +117,10 @@
 
                 <div class="row">
                     <div class="col-md-12 text-end mb-4">
-                        <div class="p-3 bg-light rounded d-inline-block border">
-                            <h4 class="mb-0">Do zapłaty: <span class="text-primary fw-bold">@CalculateTotal().ToString("N2") PLN</span></h4>
+                        <div class="p-3 bg-light rounded d-inline-block border text-end">
+                            <div class="small text-muted">Suma Netto: @CalculateTotalNet().ToString("N2") PLN</div>
+                            <div class="small text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
+                            <h4 class="mb-0">Do zapłaty: <span class="text-primary fw-bold">@CalculateTotalGross().ToString("N2") PLN</span></h4>
                         </div>
                     </div>
                 </div>
@@ -125,7 +136,6 @@
     </div>
 </div>
 
-@* Słowniki podpowiedzi *@
 <datalist id="productOptions">
     @foreach (var p in _availableProducts)
     {
@@ -155,14 +165,12 @@
     {
         try
         {
-            // Pobieramy dane do list podpowiedzi (datalist)
             var pResponse = await ProductService.GetProductsAsync(1, 1000);
             var cResponse = await ClientService.GetClientsAsync(1, 1000);
 
             _availableProducts = pResponse?.Data ?? new();
             _availableClients = cResponse?.Data ?? new();
 
-            // Dodaj pierwszą pustą pozycję na start
             if (!_invoice.InvoicePositions.Any()) AddPosition();
         }
         catch (Exception ex)
@@ -177,13 +185,32 @@
         {
             Quantity = 1,
             ProductName = "",
-            ProductValue = 0
+            ProductValue = 0,
+            VatRate = "23%" 
         });
     }
 
     private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
+    
 
-    private decimal CalculateTotal() => _invoice.InvoicePositions.Sum(p => p.Quantity * (p.ProductValue ?? 0));
+    private decimal CalculatePositionGross(InvoicePositionDto pos)
+    {
+        var net = (pos.ProductValue ?? 0) * pos.Quantity;
+        if (pos.VatRate == "zw") return net;
+
+        if (decimal.TryParse(pos.VatRate.Replace("%", ""), out var rate))
+        {
+            return net + (net * (rate / 100));
+        }
+        return net;
+    }
+
+    private decimal CalculateTotalNet() => _invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity);
+
+    private decimal CalculateTotalVat() => _invoice.InvoicePositions.Sum(p => CalculatePositionGross(p) - ((p.ProductValue ?? 0) * p.Quantity));
+
+    private decimal CalculateTotalGross() => _invoice.InvoicePositions.Sum(p => CalculatePositionGross(p));
+    
 
     private void HandleProductChange(InvoicePositionDto position, string? newValue)
     {
@@ -194,8 +221,8 @@
             position.ProductId = match.ProductId;
             position.ProductName = match.Name;
             position.ProductValue = match.Value;
-            // Snapshot produktu - zachowuje dane nawet po zmianie w bazie produktów
             position.Product = new ProductDto { Name = match.Name, Value = match.Value };
+           
         }
     }
 
@@ -210,7 +237,6 @@
             _invoice.ClientNip = match.Nip;
             _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.City}";
 
-            // Snapshot klienta - zachowuje dane nabywcy na fakturze
             _invoice.Client = new ClientDto
             {
                 Name = match.Name,
@@ -225,14 +251,14 @@
     {
         try
         {
-            _invoice.TotalAmount = CalculateTotal();
+            _invoice.TotalNet = CalculateTotalNet();
+            _invoice.TotalVat = CalculateTotalVat();
+            _invoice.TotalGross = CalculateTotalGross();
 
-            // Wysyłamy do API przez serwis
             var result = await InvoiceService.SaveInvoiceAsync(_invoice);
 
             if (result != null)
             {
-                // Powrót do listy po sukcesie
                 Navigation.NavigateTo("/invoices");
             }
         }

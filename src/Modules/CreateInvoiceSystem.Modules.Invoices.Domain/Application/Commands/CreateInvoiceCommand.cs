@@ -23,9 +23,12 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             ? await GetOrCreateClientAsync(Parametr, _invoiceRepository, cancellationToken)
             : await GetClientByIdAsync(Parametr.ClientId.Value, _invoiceRepository, cancellationToken);
 
+        User user = await _invoiceRepository.GetUserByIdAsync(Parametr.UserId, cancellationToken)
+            ?? throw new InvalidOperationException($"User with ID {Parametr.UserId} not found.");
+
         Invoice entity = Parametr.ClientId is null
-            ? InvoiceMappers.ToInvoiceWithNewClient(Parametr, client)
-            : InvoiceMappers.ToInvoiceWithExistingClient(Parametr, client);
+            ? InvoiceMappers.ToInvoiceWithNewClient(Parametr, client, user)
+            : InvoiceMappers.ToInvoiceWithExistingClient(Parametr, client, user);        
 
         await AddProductsToInvoicePositionsAsync(Parametr, entity, _invoiceRepository, cancellationToken);
 
@@ -48,9 +51,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             && persisted.Client is not null
             && persisted.InvoicePositions is not null;
 
-        return added 
-            ? persisted.ToDto()
-            : throw new InvalidOperationException("User was saved but could not be reloaded.");      
+        return added
+            ? persisted?.ToDto()
+            : throw new InvalidOperationException("Invoice was saved but could not be reloaded.");
     }
 
     private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)

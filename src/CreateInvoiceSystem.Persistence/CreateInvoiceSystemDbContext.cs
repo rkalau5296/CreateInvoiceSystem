@@ -34,10 +34,10 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);        
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CreateInvoiceSystemDbContext).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClientEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AddressEntityConfiguration).Assembly);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);  
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);
 
         var user = modelBuilder.Entity<UserEntity>();
 
@@ -50,7 +50,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .WithMany()
             .HasForeignKey(u => u.AddressId)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
         user.HasMany<InvoiceEntity>()
             .WithOne()
             .HasForeignKey(i => i.UserId)
@@ -65,33 +65,38 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .WithOne()
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
         var client = modelBuilder.Entity<ClientEntity>();
         client.HasOne<AddressEntity>()
               .WithOne()
               .HasForeignKey<ClientEntity>(c => c.AddressId)
               .OnDelete(DeleteBehavior.NoAction);
-        
+
         var position = modelBuilder.Entity<InvoicePositionEntity>();
         position.HasKey(p => p.InvoicePositionId);
         position.Property(p => p.InvoicePositionId).ValueGeneratedOnAdd();
-        position.HasIndex(p => new { p.InvoiceId, p.ProductId });
+        
+        position.Property(p => p.ProductValue).HasPrecision(18, 2);
 
         position.HasOne<InvoiceEntity>()
-                .WithMany() 
+                .WithMany()
                 .HasForeignKey(p => p.InvoiceId)
                 .OnDelete(DeleteBehavior.NoAction);
 
         position.HasOne<ProductEntity>()
-                .WithMany() 
+                .WithMany()
                 .HasForeignKey(p => p.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
-        
+
         position.HasIndex(p => new { p.InvoiceId, p.ProductId });
 
         var invoice = modelBuilder.Entity<InvoiceEntity>();
         invoice.HasKey(i => i.InvoiceId);
         invoice.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
+        
+        invoice.Property(i => i.TotalNet).HasPrecision(18, 2);
+        invoice.Property(i => i.TotalVat).HasPrecision(18, 2);
+        invoice.Property(i => i.TotalGross).HasPrecision(18, 2);
 
         invoice.Ignore(i => i.InvoicePositions);
 
@@ -104,16 +109,16 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         session.HasKey(s => s.Id);
         session.Property(s => s.Id).ValueGeneratedOnAdd();
         session.Property(s => s.RefreshToken).IsRequired();
-        
+
         session.HasOne<UserEntity>()
                .WithMany()
                .HasForeignKey(s => s.UserId)
                .OnDelete(DeleteBehavior.Cascade);
-        
+
         session.HasIndex(s => s.RefreshToken).IsUnique();
 
         modelBuilder.ApplyConfiguration(new AddressEntityConfiguration());
         modelBuilder.ApplyConfiguration(new ClientEntityConfiguration());
-        modelBuilder.ApplyConfiguration(new ProductEntityConfiguration());        
+        modelBuilder.ApplyConfiguration(new ProductEntityConfiguration());
     }
 }

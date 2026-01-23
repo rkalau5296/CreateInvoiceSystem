@@ -32,12 +32,35 @@ public class DeleteInvoiceHandlerTests
         var userId = 1;
         var request = new DeleteInvoiceRequest(invoiceId) { UserId = userId };
 
+        // Zakładamy strukturę InvoiceDto zbliżoną do Update (łącznie ok 18-20 parametrów)
+        var returnDto = new InvoiceDto(
+            invoiceId,
+            "Deleted Invoice",
+            100m,       // TotalNet
+            23m,        // TotalVat
+            123m,       // TotalGross
+            DateTime.Now,
+            DateTime.Now,
+            "Comment",
+            null,       // ClientId
+            userId,
+            "Transfer", // MethodOfPayment
+            null,       // Client (Dto)
+            "SellerName",
+            "SellerNip",
+            "SellerAddress",
+            "BankAccount",
+            "ClientName",
+            "ClientNip",
+            "ClientAddress"
+        );
+
         _commandExecutorMock
             .Setup(x => x.Execute<Invoice, InvoiceDto, IInvoiceRepository>(
                 It.IsAny<CommandBase<Invoice, InvoiceDto, IInvoiceRepository>>(),
                 _repositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new InvoiceDto(invoiceId, "Deleted", 0, DateTime.Now, DateTime.Now, "", null, userId, "", null, "", "", ""));
+            .ReturnsAsync(returnDto);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -59,7 +82,7 @@ public class DeleteInvoiceHandlerTests
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var request = new DeleteInvoiceRequest(1);
+        var request = new DeleteInvoiceRequest(1) { UserId = 1 };
 
         _commandExecutorMock
             .Setup(x => x.Execute<Invoice, InvoiceDto, IInvoiceRepository>(
@@ -71,7 +94,7 @@ public class DeleteInvoiceHandlerTests
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
 
-        // Assert
+        // Assert        
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Delete failed");
     }

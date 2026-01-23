@@ -34,16 +34,22 @@ public class CreateInvoiceHandlerTests
         // Arrange
         var inputDto = new CreateInvoiceDto
         {
-            Title = "FV/2024/01",
-            TotalAmount = 100m,
-            UserId = 1
+            Title = "FV/2026/01",
+            UserId = 1,
+            // Zakładając, że CreateInvoiceDto ma teraz te pola:
+            TotalNet = 100m,
+            TotalVat = 23m,
+            TotalGross = 123m
         };
         var request = new CreateInvoiceRequest(inputDto);
-       
+
+        // Dopasowanie do nowej struktury InvoiceDto (ok. 19 parametrów)
         var expectedInvoice = new InvoiceDto(
             InvoiceId: 500,
-            Title: "FV/2024/01",
-            TotalAmount: 100m,
+            Title: "FV/2026/01",
+            TotalNet: 100m,
+            TotalVat: 23m,
+            TotalGross: 123m,
             PaymentDate: DateTime.Now.AddDays(7),
             CreatedDate: DateTime.Now,
             Comments: "Test",
@@ -51,11 +57,15 @@ public class CreateInvoiceHandlerTests
             UserId: 1,
             MethodOfPayment: "Transfer",
             InvoicePositions: new List<InvoicePositionDto>(),
+            SellerName: "My Company Sp. z o.o.",
+            SellerNip: "9876543210",
+            SellerAddress: "ul. Programistów 1, 00-001 Warszawa",
+            BankAccountNumber: "12 3456 7890 1234 5678 9012 3456",
             ClientName: "Client Name",
             ClientNip: "1234567890",
             ClientAddress: "Address"
         );
-       
+
         _commandExecutorMock
             .Setup(x => x.Execute<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>(
                 It.IsAny<CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>>(),
@@ -70,7 +80,7 @@ public class CreateInvoiceHandlerTests
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data.InvoiceId.Should().Be(500);
-        result.Data.Title.Should().Be("FV/2024/01");
+        result.Data.Title.Should().Be("FV/2026/01");
 
         _commandExecutorMock.Verify(x => x.Execute<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>(
             It.IsAny<CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>>(),
@@ -82,8 +92,8 @@ public class CreateInvoiceHandlerTests
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var request = new CreateInvoiceRequest(new CreateInvoiceDto());
-       
+        var request = new CreateInvoiceRequest(new CreateInvoiceDto { UserId = 1 });
+
         _commandExecutorMock
             .Setup(x => x.Execute<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>(
                 It.IsAny<CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>>(),

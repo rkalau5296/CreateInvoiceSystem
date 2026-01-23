@@ -73,24 +73,30 @@ public static class UserMappers
         new(user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address != null ? AddressMappers.ToCreateAddressDto(user.Address) : null);
 
     public static InvoiceDto ToDto(this Invoice invoice) =>
-        invoice == null
-        ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null when mapping to InvoiceDto.")
-        :
-        new(
-            invoice.InvoiceId,
-            invoice.Title,
-            invoice.TotalAmount,
-            invoice.PaymentDate,
-            invoice.CreatedDate,
-            invoice.Comments,
-            invoice.ClientId,
-            invoice.UserId,
-            invoice.MethodOfPayment,
-            invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList(),
-            invoice.ClientName,
-            invoice.ClientNip,
-            invoice.ClientAddress
-            );
+    invoice == null
+    ? throw new ArgumentNullException(nameof(invoice), "Invoice cannot be null when mapping to InvoiceDto.")
+    :
+    new(
+        invoice.InvoiceId,
+        invoice.Title,
+        invoice.TotalNet,
+        invoice.TotalVat,
+        invoice.TotalGross,
+        invoice.PaymentDate,
+        invoice.CreatedDate,
+        invoice.Comments,
+        invoice.ClientId,
+        invoice.UserId,
+        invoice.MethodOfPayment,
+        invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList(),
+        invoice.SellerName,
+        invoice.SellerNip,
+        invoice.SellerAddress,
+        invoice.BankAccountNumber,
+        invoice.ClientName,
+        invoice.ClientNip,
+        invoice.ClientAddress
+    );
 
     public static User ToEntity(RegisterUserDto dto) =>
         dto == null

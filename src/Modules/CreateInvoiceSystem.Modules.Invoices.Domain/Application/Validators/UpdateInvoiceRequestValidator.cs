@@ -30,7 +30,19 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
         RuleFor(x => x.Invoice.UserId)
             .GreaterThan(0).WithMessage("UserId is required.");
 
-        RuleFor(p => p.Invoice.TotalAmount)
+        RuleFor(p => p.Invoice.TotalNet)
+            .NotEmpty().WithMessage("Value is required.")
+            .GreaterThanOrEqualTo(0)
+            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+
+        RuleFor(p => p.Invoice.TotalVat)
+            .NotEmpty().WithMessage("Value is required.")
+            .GreaterThanOrEqualTo(0)
+            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+
+        RuleFor(p => p.Invoice.TotalGross)
             .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
@@ -39,9 +51,6 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
         RuleFor(x => x.Invoice.MethodOfPayment)
             .NotEmpty().WithMessage("MethodOfPayment is required.")
             .MaximumLength(10).WithMessage("MethodOfPayment can have maximum 10 characters.");
-
-        //RuleFor(x => x.Invoice.Product)
-        //    .NotEmpty().WithMessage("Product is required.")
-        //    .MaximumLength(100).WithMessage("Product can have maximum 10 characters.");
+       
     }    
 }

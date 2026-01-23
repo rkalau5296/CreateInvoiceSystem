@@ -23,7 +23,8 @@ public class GetInvoicesQueryTests
         int? userId = 1;
         int pageNumber = 1;
         int pageSize = 10;
-        var query = new GetInvoicesQuery(userId, pageNumber, pageSize);
+        string? searchTerm = "Invoice";
+        var query = new GetInvoicesQuery(userId, pageNumber, pageSize, searchTerm);
 
         var invoices = new List<Invoice>
         {
@@ -32,7 +33,7 @@ public class GetInvoicesQueryTests
         };
         var pagedResult = new PagedResult<Invoice>(invoices, 2, pageNumber, pageSize);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, searchTerm, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
         // Act
@@ -43,7 +44,7 @@ public class GetInvoicesQueryTests
         result.Items.Should().HaveCount(2);
         result.Items.Should().BeEquivalentTo(invoices);
         result.TotalCount.Should().Be(2);
-        _repositoryMock.Verify(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, searchTerm, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -51,10 +52,10 @@ public class GetInvoicesQueryTests
     {
         // Arrange
         int? userId = 1;
-        var query = new GetInvoicesQuery(userId, 1, 10);
+        var query = new GetInvoicesQuery(userId, 1, 10, null);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((PagedResult<Invoice>)null);
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PagedResult<Invoice>)null!);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object);
@@ -70,10 +71,11 @@ public class GetInvoicesQueryTests
         int? userId = 99;
         int pageNumber = 1;
         int pageSize = 10;
-        var query = new GetInvoicesQuery(userId, pageNumber, pageSize);
+        string? searchTerm = "NonExistent";
+        var query = new GetInvoicesQuery(userId, pageNumber, pageSize, searchTerm);
         var emptyPagedResult = new PagedResult<Invoice>(new List<Invoice>(), 0, pageNumber, pageSize);
 
-        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetInvoicesAsync(userId, pageNumber, pageSize, searchTerm, It.IsAny<CancellationToken>()))
             .ReturnsAsync(emptyPagedResult);
 
         // Act

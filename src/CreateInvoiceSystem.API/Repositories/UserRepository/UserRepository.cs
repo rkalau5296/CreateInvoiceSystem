@@ -92,11 +92,13 @@ public class UserRepository : IUserRepository
                               where user.Id == userId
                               select new { user, addr })
                           .SingleOrDefaultAsync(cancellationToken);
+
         if (baseData == null) return null;
+
         var invoices = await _db.Set<InvoiceEntity>()
-        .Where(i => i.UserId == userId)
-        .AsNoTracking()
-        .ToListAsync(cancellationToken);
+            .Where(i => i.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 
         var invoiceIds = invoices.Select(i => i.InvoiceId).ToList();
         var invoicePositions = await _db.Set<InvoicePositionEntity>()
@@ -119,7 +121,7 @@ public class UserRepository : IUserRepository
             .Where(a => clientAddressIds.Contains(a.AddressId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
-        
+
         return new User
         {
             UserId = baseData.user.Id,
@@ -142,7 +144,9 @@ public class UserRepository : IUserRepository
             {
                 InvoiceId = i.InvoiceId,
                 Title = i.Title,
-                TotalAmount = i.TotalAmount,
+                TotalNet = i.TotalNet,
+                TotalVat = i.TotalVat,
+                TotalGross = i.TotalGross,
                 PaymentDate = i.PaymentDate,
                 CreatedDate = i.CreatedDate,
                 Comments = i.Comments,
@@ -162,7 +166,8 @@ public class UserRepository : IUserRepository
                         Quantity = ip.Quantity,
                         ProductDescription = ip.ProductDescription,
                         ProductName = ip.ProductName,
-                        ProductValue = ip.ProductValue
+                        ProductValue = ip.ProductValue,
+                        VatRate = ip.VatRate
                     }).ToList()
             }).ToList(),
             Products = products.Select(p => new Product
@@ -233,7 +238,9 @@ public class UserRepository : IUserRepository
                     {
                         InvoiceId = i.InvoiceId,
                         Title = i.Title,
-                        TotalAmount = i.TotalAmount,
+                        TotalNet = i.TotalNet,
+                        TotalVat = i.TotalVat,
+                        TotalGross = i.TotalGross,
                         PaymentDate = i.PaymentDate,
                         CreatedDate = i.CreatedDate,
                         Comments = i.Comments,
@@ -253,7 +260,8 @@ public class UserRepository : IUserRepository
                                 Quantity = ip.Quantity,
                                 ProductDescription = ip.ProductDescription,
                                 ProductName = ip.ProductName,
-                                ProductValue = ip.ProductValue
+                                ProductValue = ip.ProductValue,
+                                VatRate = ip.VatRate
                             })
                             .ToList()
                     })

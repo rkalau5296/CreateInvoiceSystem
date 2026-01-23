@@ -2,7 +2,9 @@
 public record InvoiceDto(
     int InvoiceId,
     string Title,
-    decimal TotalAmount,    
+    decimal TotalNet,
+    decimal TotalVat,
+    decimal TotalGross,
     DateTime PaymentDate,
     DateTime CreatedDate,
     string Comments,
@@ -10,7 +12,11 @@ public record InvoiceDto(
     int UserId,
     string MethodOfPayment,
     ICollection<InvoicePositionDto> InvoicePositions,
-    string ClientName,
-    string ClientNip,
-    string ClientAddress
-    );
+     string SellerName,
+     string SellerNip,
+     string SellerAddress,
+     string BankAccountNumber,
+     string ClientName,
+     string ClientNip,
+     string ClientAddress
+);

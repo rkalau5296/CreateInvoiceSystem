@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
     [DbContext(typeof(CreateInvoiceSystemDbContext))]
-    partial class CreateInvoiceSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123090740_AddBankAccountNumber")]
+    partial class AddBankAccountNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +146,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
-                    b.Property<string>("BankAccountNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ClientAddress")
                         .HasColumnType("nvarchar(max)");
 
@@ -169,15 +169,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("SellerAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SellerName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SellerNip")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");

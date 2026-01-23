@@ -14,6 +14,9 @@ public class GetInvoiceHandler(IQueryExecutor queryExecutor, IInvoiceRepository 
         GetInvoiceQuery query = new(request.UserId,request.Id);
         var invoice = await queryExecutor.Execute(query, _invoiceRepository, cancellationToken);
 
+
+        //var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
         return new GetInvoiceResponse
         {
             Data = InvoiceMappers.ToDto(invoice),

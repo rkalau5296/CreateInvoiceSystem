@@ -28,9 +28,18 @@ public class UpdateInvoiceHandlerTests
     {
         // Arrange
         var invoiceId = 55;
-        var updateDto = new UpdateInvoiceDto(invoiceId, "Title", 100m, DateTime.Now, DateTime.Now, "", null, 1, null, "Card", new List<UpdateInvoicePositionDto>(), "", "", "");
+        var userId = 1;
+
+        // Mapowanie 20 parametrów UpdateInvoiceDto
+        var updateDto = new UpdateInvoiceDto(
+            invoiceId, "Title", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Comments",
+            null, userId, null!, "Card", new List<UpdateInvoicePositionDto>(),
+            "SellerName", "SellerNip", "SellerAddr", "BankAcc",
+            "ClientName", "ClientNip", "ClientAddr"
+        );
+
         var request = new UpdateInvoiceRequest(invoiceId, updateDto);
-        
+
         _commandExecutorMock
             .Setup(x => x.Execute<UpdateInvoiceDto, UpdateInvoiceDto, IInvoiceRepository>(
                 It.IsAny<CommandBase<UpdateInvoiceDto, UpdateInvoiceDto, IInvoiceRepository>>(),
@@ -44,17 +53,24 @@ public class UpdateInvoiceHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
+        result.Data.InvoiceId.Should().Be(invoiceId);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var updateDto = new UpdateInvoiceDto(1, "Title", 100m, DateTime.Now, DateTime.Now, "", null, 1, null, "Card", new List<UpdateInvoicePositionDto>(), "", "", "");
-        var request = new UpdateInvoiceRequest(1, updateDto);
-        
+        var invoiceId = 1;
+        var updateDto = new UpdateInvoiceDto(
+            invoiceId, "Title", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Comments",
+            null, 1, null!, "Card", new List<UpdateInvoicePositionDto>(),
+            "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR"
+        );
+
+        var request = new UpdateInvoiceRequest(invoiceId, updateDto);
+
         _commandExecutorMock
-             .Setup(x => x.Execute(
+             .Setup(x => x.Execute<UpdateInvoiceDto, UpdateInvoiceDto, IInvoiceRepository>(
                  It.IsAny<UpdateInvoiceCommand>(),
                  It.IsAny<IInvoiceRepository>(),
                  It.IsAny<CancellationToken>()))
@@ -63,7 +79,7 @@ public class UpdateInvoiceHandlerTests
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
 
-        // Assert        
+        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Concurrency error");
     }

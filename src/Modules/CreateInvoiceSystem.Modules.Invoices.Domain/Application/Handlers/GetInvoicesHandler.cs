@@ -13,13 +13,14 @@ public class GetInvoicesHandler(IQueryExecutor queryExecutor, IInvoiceRepository
 {
     public async Task<GetInvoicesResponse> Handle(GetInvoicesRequest request, CancellationToken cancellationToken)
     {
-        GetInvoicesQuery query = new(request.UserId, request.PageNumber, request.PageSize);
+        GetInvoicesQuery query = new(request.UserId, request.PageNumber, request.PageSize, request.SearchTerm);
 
         PagedResult<Invoice> pagedResult = await queryExecutor.Execute(query, _invoiceRepository, cancellationToken);
 
         return new GetInvoicesResponse
         {
-            Data = pagedResult.Items.ToDtoList()
+            Data = pagedResult.Items.ToDtoList(),
+            TotalCount = pagedResult.TotalCount
         };
     }
 }

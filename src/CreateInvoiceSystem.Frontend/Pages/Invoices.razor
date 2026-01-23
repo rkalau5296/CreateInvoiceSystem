@@ -34,6 +34,8 @@
                         <th>Numer/Tytuł</th>
                         <th>Kontrahent</th>
                         <th>Data wystawienia</th>
+                        <th class="text-end">Kwota netto</th>
+                        <th class="text-end">VAT</th>
                         <th class="text-end">Kwota brutto</th>
                         <th class="text-center">Akcje</th>
                     </tr>
@@ -41,11 +43,11 @@
                 <tbody>
                     @if (_invoices == null)
                     {
-                        <tr><td colspan="5" class="text-center p-4">Ładowanie danych...</td></tr>
+                        <tr><td colspan="7" class="text-center p-4">Ładowanie danych...</td></tr>
                     }
                     else if (!_invoices.Any())
                     {
-                        <tr><td colspan="5" class="text-center p-4">Brak faktur spełniających kryteria.</td></tr>
+                        <tr><td colspan="7" class="text-center p-4">Brak faktur spełniających kryteria.</td></tr>
                     }
                     else
                     {
@@ -55,7 +57,9 @@
                                 <td class="align-middle"><strong>@inv.Title</strong></td>
                                 <td class="align-middle">@inv.ClientName</td>
                                 <td class="align-middle">@inv.CreatedDate.ToShortDateString()</td>
-                                <td class="align-middle text-end fw-bold">@inv.TotalAmount.ToString("N2") PLN</td>
+                                <td class="align-middle text-end">@inv.TotalNet.ToString("N2")</td>
+                                <td class="align-middle text-end">@inv.TotalVat.ToString("N2")</td>
+                                <td class="align-middle text-end fw-bold">@inv.TotalGross.ToString("N2") PLN</td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-outline-primary" @onclick='() => Navigation.NavigateTo($"/invoices/view/{inv.InvoiceId}")'>
                                         <i class="bi bi-eye"></i> Podgląd
@@ -68,13 +72,37 @@
             </table>
         </div>
     </div>
+</div>
 
-    @* Paginacja - identyczna jak w produktach *@
+<div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
-        <div class="text-muted small">Pokazuję @_invoices?.Count z @_totalCount faktur</div>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-primary" @onclick="() => ChangePage(_currentPage - 1)" disabled="@(_currentPage <= 1)">Poprzednia</button>
-            <button class="btn btn-sm btn-outline-primary" @onclick="() => ChangePage(_currentPage + 1)" disabled="@(_currentPage >= _totalPages)">Następna</button>
+        <div class="text-muted small">
+            Pokazuję <strong>@_invoices?.Count</strong> z <strong>@_totalCount</strong> faktur
+            <span class="mx-2">|</span>
+            Strona <strong>@_currentPage</strong> z <strong>@_totalPages</strong>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small text-nowrap fw-bold">Na stronie:</label>
+                <select class="form-select form-select-sm" style="width: 75px;" @onchange="ChangePageSize">
+                    <option value="10" selected="@(_pageSize == 10)">10</option>
+                    <option value="20" selected="@(_pageSize == 20)">20</option>
+                    <option value="50" selected="@(_pageSize == 50)">50</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage - 1)"
+                        disabled="@(_currentPage <= 1)">
+                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
+                </button>
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => ChangePage(_currentPage + 1)"
+                        disabled="@(_currentPage >= _totalPages)">
+                    Następna <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -84,7 +112,8 @@
     private int _pageSize = 10;
     private int _currentPage = 1;
     private int _totalCount = 0;
-    private int _totalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+    private int _totalPages => _totalCount == 0 ? 1 : (int)Math.Ceiling((double)_totalCount / _pageSize);
+
     private string _searchTerm = "";
     private System.Timers.Timer? _searchTimer;
 
@@ -94,10 +123,12 @@
     {
         try
         {
-            // UŻYWAMY SERWISU - on sam doda nagłówek Authorization!
             var response = await InvoiceService.GetInvoicesAsync(_currentPage, _pageSize, _searchTerm);
-            _invoices = response.Data;
-            _totalCount = response.TotalCount;
+            if (response != null)
+            {
+                _invoices = response.Data;
+                _totalCount = response.TotalCount;
+            }
             StateHasChanged();
         }
         catch (Exception ex)
@@ -106,13 +137,34 @@
         }
     }
 
+    private async Task ChangePageSize(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            _pageSize = newSize;
+            _currentPage = 1;
+            await LoadData();
+        }
+    }
+
+    private async Task ChangePage(int newPage)
+    {
+        if (newPage >= 1 && newPage <= _totalPages)
+        {
+            _currentPage = newPage;
+            await LoadData();
+        }
+    }
+
     private void HandleSearch()
     {
         _searchTimer?.Stop();
         _searchTimer = new System.Timers.Timer(400);
-        _searchTimer.Elapsed += async (s, e) => { _currentPage = 1; await InvokeAsync(LoadData); };
+        _searchTimer.Elapsed += async (s, e) =>
+        {
+            _currentPage = 1;
+            await InvokeAsync(LoadData);
+        };
         _searchTimer.Start();
     }
-
-    private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
 }

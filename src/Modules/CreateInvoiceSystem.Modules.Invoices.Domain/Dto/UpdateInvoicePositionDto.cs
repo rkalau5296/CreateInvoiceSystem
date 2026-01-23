@@ -8,5 +8,6 @@ public record UpdateInvoicePositionDto
     string? ProductDescription,
     decimal? ProductValue,
     int Quantity,
+    string VatRate,
     ProductDto? Product
 );

@@ -58,7 +58,6 @@ Console.WriteLine("Create Clients");
 
 foreach (var user in users)
 {
-    
     var clientAddresses = AddressFaker.Generate(25).ToList();
     dbContext.Addresses.AddRange(clientAddresses);
     dbContext.SaveChanges();
@@ -106,7 +105,7 @@ foreach (var user in users)
 
     var existingClient = dbContext.Clients.FirstOrDefault(c => c.UserId == user.Id);
     if (existingClient == null)
-    {        
+    {
         var seedAddr = AddressFaker.Generate();
         dbContext.Addresses.Add(seedAddr);
         dbContext.SaveChanges();
@@ -119,7 +118,6 @@ foreach (var user in users)
     }
     var existingClientAddress = dbContext.Addresses.First(a => a.AddressId == existingClient.AddressId);
 
-    
     var addr1 = AddressFaker.Generate();
     dbContext.Addresses.Add(addr1);
     dbContext.SaveChanges();
@@ -146,8 +144,8 @@ foreach (var user in users)
     var inv1Positions = BuildPositionsFromProducts(invoice1.InvoiceId, newProducts1);
     dbContext.InvoicePositions.AddRange(inv1Positions);
     dbContext.SaveChanges();
-    UpdateInvoiceTotal(dbContext, invoice1.InvoiceId);
-    
+    UpdateInvoiceTotals(dbContext, invoice1.InvoiceId);
+
     var addr2 = AddressFaker.Generate();
     dbContext.Addresses.Add(addr2);
     dbContext.SaveChanges();
@@ -171,8 +169,8 @@ foreach (var user in users)
     var inv2Positions = BuildPositionsFromProducts(invoice2.InvoiceId, inv2Products);
     dbContext.InvoicePositions.AddRange(inv2Positions);
     dbContext.SaveChanges();
-    UpdateInvoiceTotal(dbContext, invoice2.InvoiceId);
-    
+    UpdateInvoiceTotals(dbContext, invoice2.InvoiceId);
+
     var newProducts3 = ProductFaker.Generate(2, user).ToList();
     dbContext.Products.AddRange(newProducts3);
     dbContext.SaveChanges();
@@ -190,7 +188,7 @@ foreach (var user in users)
     var inv3Positions = BuildPositionsFromProducts(invoice3.InvoiceId, newProducts3);
     dbContext.InvoicePositions.AddRange(inv3Positions);
     dbContext.SaveChanges();
-    UpdateInvoiceTotal(dbContext, invoice3.InvoiceId);
+    UpdateInvoiceTotals(dbContext, invoice3.InvoiceId);
 
     var invoice4 = InvoiceFaker.Generate(
         user,
@@ -206,7 +204,7 @@ foreach (var user in users)
     var inv4Positions = BuildPositionsFromProducts(invoice4.InvoiceId, inv4Products);
     dbContext.InvoicePositions.AddRange(inv4Positions);
     dbContext.SaveChanges();
-    UpdateInvoiceTotal(dbContext, invoice4.InvoiceId);
+    UpdateInvoiceTotals(dbContext, invoice4.InvoiceId);
 
     var invoicesToPrint = new[] { invoice1, invoice2, invoice3, invoice4 };
     foreach (var inv in invoicesToPrint)
@@ -219,7 +217,8 @@ foreach (var user in users)
                 p.ProductName,
                 p.ProductDescription,
                 p.ProductValue,
-                p.Quantity
+                p.Quantity,
+                p.VatRate
             })
             .ToList();
 
@@ -227,7 +226,9 @@ foreach (var user in users)
         {
             inv.InvoiceId,
             inv.Title,
-            inv.TotalAmount,
+            inv.TotalNet,
+            inv.TotalVat,
+            inv.TotalGross,
             Client = new { inv.ClientName, inv.ClientNip, inv.ClientAddress },
             Positions = positions
         }, jsonOptions);
@@ -239,6 +240,7 @@ foreach (var user in users)
 static List<InvoicePositionEntity> BuildPositionsFromProducts(int invoiceId, IReadOnlyList<ProductEntity> products)
 {
     var f = new Faker();
+    var vatRates = new[] { "23%", "8%", "5%", "zw" };
     var positions = new List<InvoicePositionEntity>();
     foreach (var product in products)
     {
@@ -249,7 +251,8 @@ static List<InvoicePositionEntity> BuildPositionsFromProducts(int invoiceId, IRe
             ProductName = product.Name,
             ProductDescription = product.Description,
             ProductValue = product.Value,
-            Quantity = f.Random.Int(1, 10)
+            Quantity = f.Random.Int(1, 10),
+            VatRate = f.PickRandom(vatRates)
         });
     }
     return positions;
@@ -261,15 +264,33 @@ static IReadOnlyList<ProductEntity> PickTwo(List<ProductEntity> products)
     return new List<ProductEntity> { chosen[0], chosen[1] };
 }
 
-static void UpdateInvoiceTotal(CreateInvoiceSystemDbContext ctx, int invoiceId)
+static void UpdateInvoiceTotals(CreateInvoiceSystemDbContext ctx, int invoiceId)
 {
-    var sum = ctx.InvoicePositions
+    var positions = ctx.InvoicePositions
         .Where(p => p.InvoiceId == invoiceId)
-        .Select(p => (p.ProductValue ?? 0m) * p.Quantity)
-        .Sum();
+        .ToList();
+
+    decimal totalNet = 0;
+    decimal totalVat = 0;
+
+    foreach (var p in positions)
+    {
+        var net = (p.ProductValue ?? 0m) * p.Quantity;
+        totalNet += net;
+        totalVat += CalculateVatValue(net, p.VatRate);
+    }
 
     var invoice = ctx.Invoices.First(i => i.InvoiceId == invoiceId);
-    invoice.TotalAmount = sum;
+    invoice.TotalNet = totalNet;
+    invoice.TotalVat = totalVat;
+    invoice.TotalGross = totalNet + totalVat;
+
     ctx.Invoices.Update(invoice);
     ctx.SaveChanges();
+}
+
+static decimal CalculateVatValue(decimal net, string vatRate)
+{
+    if (vatRate == "zw") return 0m;
+    return decimal.TryParse(vatRate.Replace("%", ""), out var rate) ? net * (rate / 100) : 0m;
 }

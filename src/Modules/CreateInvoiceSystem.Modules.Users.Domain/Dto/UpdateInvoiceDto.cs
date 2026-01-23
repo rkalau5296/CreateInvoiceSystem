@@ -3,7 +3,9 @@ public record UpdateInvoiceDto
 (
     int InvoiceId,
     string Title,
-    decimal TotalAmount,
+    decimal TotalNet,
+    decimal TotalVat,
+    decimal TotalGross,
     DateTime PaymentDate,
     DateTime CreatedDate,
     string Comments,

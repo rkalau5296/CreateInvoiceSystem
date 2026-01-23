@@ -18,6 +18,7 @@ public enum InvoiceScenario
 public static class InvoiceFaker
 {
     private static readonly string[] PaymentMethods = { "Przelew", "Gotówka", "BLIK", "Karta" };
+    private static readonly string[] VatRates = { "23%", "8%", "5%", "zw" };
 
     private static Faker<InvoiceEntity> BaseFaker => new Faker<InvoiceEntity>("pl")
         .RuleFor(i => i.Title, f => $"Faktura {f.Random.Int(1000, 9999)}")
@@ -25,9 +26,10 @@ public static class InvoiceFaker
         .RuleFor(i => i.CreatedDate, f => f.Date.Recent())
         .RuleFor(i => i.PaymentDate, f => f.Date.Soon(30))
         .RuleFor(i => i.MethodOfPayment, f => f.PickRandom(PaymentMethods))
-        .RuleFor(i => i.TotalAmount, _ => 0m);
+        .RuleFor(i => i.TotalNet, _ => 0m)
+        .RuleFor(i => i.TotalVat, _ => 0m)
+        .RuleFor(i => i.TotalGross, _ => 0m);
 
-    // Prosty faker adresu na potrzeby snapshotu na fakturze
     private static Faker<AddressEntity> AddressFaker => new Faker<AddressEntity>("pl")
         .RuleFor(a => a.Street, f => f.Address.StreetName())
         .RuleFor(a => a.Number, f => f.Address.BuildingNumber())
@@ -47,19 +49,15 @@ public static class InvoiceFaker
         var invoice = BaseFaker.Generate();
         invoice.UserId = user.Id;
 
-        // Klient (snapshot danych klienta na fakturze)
         switch (scenario)
         {
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.NewClient_ProductsFromDb:
                 {
                     var client = ClientFaker.Generate(user);
-
                     invoice.ClientId = null;
                     invoice.ClientName = client.Name;
                     invoice.ClientNip = client.Nip;
-
-                    // ClientEntity nie ma nawigacji Address, więc generujemy adres niezależnie dla snapshotu
                     var address = AddressFaker.Generate();
                     invoice.ClientAddress = FormatAddress(address);
                     break;
@@ -68,54 +66,65 @@ public static class InvoiceFaker
             case InvoiceScenario.ExistingClient_NewProducts:
             case InvoiceScenario.ExistingClient_ProductsFromDb:
                 {
-                    if (dbClient == null)
-                        throw new ArgumentNullException(nameof(dbClient), "Wariant wymaga istniejącego klienta z bazy.");
-
+                    if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));
                     invoice.ClientId = dbClient.ClientId;
                     invoice.ClientName = dbClient.Name;
                     invoice.ClientNip = dbClient.Nip;
-
-                    // Snapshot adresu z bazy — przekaż AddressEntity osobno (brak nawigacji w ClientEntity)
                     invoice.ClientAddress = FormatAddress(dbClientAddress);
                     break;
                 }
         }
 
-        // Produkty → wyliczenie sumy (InvoiceEntity nie ma pozycji, więc tylko suma)
-        decimal total = 0m;
+        decimal totalNet = 0m;
+        decimal totalVat = 0m;
+        var faker = new Faker();
+        List<ProductEntity> chosenProducts = new();
+
         switch (scenario)
         {
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.ExistingClient_NewProducts:
                 {
-                    var p1 = ProductFaker.Generate(user);
-                    var p2 = ProductFaker.Generate(user);
-
-                    total += (p1.Value ?? 0m) * RandomQuantity();
-                    total += (p2.Value ?? 0m) * RandomQuantity();
+                    chosenProducts.Add(ProductFaker.Generate(user));
+                    chosenProducts.Add(ProductFaker.Generate(user));
                     break;
                 }
 
             case InvoiceScenario.NewClient_ProductsFromDb:
             case InvoiceScenario.ExistingClient_ProductsFromDb:
                 {
-                    if (dbProducts == null || dbProducts.Count < 2)
-                        throw new ArgumentException("Wariant wymaga co najmniej dwóch produktów z bazy.", nameof(dbProducts));
-
-                    var chosen = new Faker().PickRandom(dbProducts, 2).ToArray();
-                    total += (chosen[0].Value ?? 0m) * RandomQuantity();
-                    total += (chosen[1].Value ?? 0m) * RandomQuantity();
+                    if (dbProducts == null || dbProducts.Count < 2) throw new ArgumentException(nameof(dbProducts));
+                    chosenProducts.AddRange(faker.PickRandom(dbProducts, 2));
                     break;
                 }
         }
 
-        invoice.TotalAmount = total;
+        foreach (var product in chosenProducts)
+        {
+            int quantity = RandomQuantity();
+            decimal netPrice = product.Value ?? 0m;
+            decimal lineNet = netPrice * quantity;
+            string vatRate = faker.PickRandom(VatRates);
+
+            totalNet += lineNet;
+            totalVat += CalculateVat(lineNet, vatRate);
+        }
+
+        invoice.TotalNet = totalNet;
+        invoice.TotalVat = totalVat;
+        invoice.TotalGross = totalNet + totalVat;
+
         return invoice;
+    }
+
+    private static decimal CalculateVat(decimal net, string vatRate)
+    {
+        if (vatRate == "zw") return 0m;
+        return decimal.TryParse(vatRate.Replace("%", ""), out var rate) ? net * (rate / 100) : 0m;
     }
 
     private static int RandomQuantity() => new Faker().Random.Int(1, 10);
 
     private static string? FormatAddress(AddressEntity? address) =>
-        address == null ? null :
-        $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
+        address == null ? null : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 }
