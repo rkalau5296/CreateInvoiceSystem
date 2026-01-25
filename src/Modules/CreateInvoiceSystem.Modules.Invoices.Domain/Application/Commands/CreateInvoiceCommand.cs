@@ -32,6 +32,10 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         await AddProductsToInvoicePositionsAsync(Parametr, entity, _invoiceRepository, cancellationToken);
 
+        entity.RecalculateTotals();
+
+        entity.Title = await GenerateInvoiceNumberAsync(Parametr.UserId, _invoiceRepository, cancellationToken);
+
         var createdInvoice = await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
         await _invoiceRepository.SaveChangesAsync(cancellationToken);
 
@@ -56,6 +60,8 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             : throw new InvalidOperationException("Invoice was saved but could not be reloaded.");
     }
 
+    private static readonly string[] AllowedVatRates = { "23%", "8%", "5%", "0%", "zw", "np" };
+
     private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)
     {
         ArgumentNullException.ThrowIfNull(parametr);
@@ -64,10 +70,32 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             throw new InvalidOperationException("Invoice must contain at least one position.");
 
         if (parametr.ClientId is null && (parametr.Client is null || IsClientDtoEmpty(parametr.Client)))
-            throw new InvalidOperationException("Invoice must contain clientId or Client details.");       
+            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
 
-        if (parametr.InvoicePositions.Any(ip => ip.Product is null && ip.ProductId is null))
-            throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
+        foreach (var position in parametr.InvoicePositions)
+        {            
+            if (position.Product is null && position.ProductId is null)
+                throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
+         
+            if (string.IsNullOrWhiteSpace(position.VatRate))
+                throw new InvalidOperationException($"VatRate cannot be empty for product: {position.ProductName}");
+
+            if (!AllowedVatRates.Contains(position.VatRate))
+                throw new InvalidOperationException($"Invalid VatRate: {position.VatRate}. Allowed values are: {string.Join(", ", AllowedVatRates)}");
+            
+            if (position.Quantity <= 0)
+                throw new InvalidOperationException($"Quantity must be greater than 0 for product: {position.ProductName}");
+        }
+    }
+
+    private async Task<string> GenerateInvoiceNumberAsync(int userId, IInvoiceRepository invoiceRepository, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+
+        int count = await invoiceRepository.GetInvoicesCountInMonthAsync(userId, now.Month, now.Year, ct);
+        int nextNumber = count + 1;
+
+        return $"{nextNumber}/{now.Month:D2}/{now.Year}";
     }
 
     private static bool IsClientDtoEmpty(CreateClientDto client)

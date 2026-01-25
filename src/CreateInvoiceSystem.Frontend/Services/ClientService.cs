@@ -49,7 +49,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             client.UserId = await GetUserIdFromToken();
 
             var response = await _http.PostAsJsonAsync("api/Client/create", client);
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateClientAsync(ClientDto client)

@@ -614,5 +614,13 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
 
             return await query.FirstOrDefaultAsync(ct);
         }
+
+        public async Task<int> GetInvoicesCountInMonthAsync(int userId, int month, int year, CancellationToken ct)
+        {
+            return await _db.Set<InvoiceEntity>()
+                .Where(i => i.UserId == userId)
+                .Where(i => i.CreatedDate.Month == month && i.CreatedDate.Year == year)
+                .CountAsync(ct);
+        }
     }
 }

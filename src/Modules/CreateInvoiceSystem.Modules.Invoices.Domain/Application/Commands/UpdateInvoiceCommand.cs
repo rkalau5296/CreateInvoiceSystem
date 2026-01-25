@@ -101,37 +101,38 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
 
     private async Task SyncInvoicePositions(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
     {
-        var incoming = Parametr.InvoicePositions;
-        var incomingIds = incoming.Where(p => p.InvoicePositionId > 0).Select(p => p.InvoicePositionId).ToHashSet();
+        var incomingPositions = Parametr.InvoicePositions;
+        var incomingIds = incomingPositions.Where(p => p.InvoicePositionId > 0).Select(p => p.InvoicePositionId).ToHashSet();
+
 
         var toDelete = invoice.InvoicePositions
             .Where(ip => !incomingIds.Contains(ip.InvoicePositionId))
             .ToList();
 
-        foreach (var pos in toDelete)
+        foreach (var position in toDelete)
         {
-            invoice.InvoicePositions.Remove(pos);
-            await _invoiceRepository.RemoveInvoicePositionsAsync(pos);
+            invoice.InvoicePositions.Remove(position);
+            await _invoiceRepository.RemoveInvoicePositionsAsync(position);
         }
 
-        foreach (var dto in incoming)
-        {            
-            var nameToUse = dto.Product?.Name ?? dto.ProductName;
-            var descToUse = dto.Product?.Description ?? dto.ProductDescription;
-            var valToUse = dto.Product?.Value ?? dto.ProductValue;
+        foreach (var incomingPosition in incomingPositions)
+        {
+            var nameToUse = incomingPosition.ProductName;
+            var descToUse = incomingPosition.ProductDescription;
+            var valToUse = incomingPosition.ProductValue;
             
             var product = await GetOrCreateProductAsync(nameToUse, descToUse, valToUse, invoice.UserId, _invoiceRepository, cancellationToken);
 
-            if (dto.InvoicePositionId > 0)
-            {                
-                var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == dto.InvoicePositionId);
+            if (incomingPosition.InvoicePositionId > 0)
+            {
+                var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == incomingPosition.InvoicePositionId);
                 if (existing != null)
-                {
-                    existing.ProductId = product.ProductId; 
-                    existing.ProductName = product.Name;
-                    existing.ProductDescription = product.Description;
-                    existing.ProductValue = product.Value;
-                    existing.Quantity = dto.Quantity;
+                {                    
+                    existing.ProductId = product.ProductId;
+                    existing.ProductName = nameToUse;
+                    existing.ProductDescription = descToUse;
+                    existing.ProductValue = valToUse;
+                    existing.Quantity = incomingPosition.Quantity;
                 }
             }
             else
@@ -140,10 +141,10 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 {
                     InvoiceId = invoice.InvoiceId,
                     ProductId = product.ProductId,
-                    ProductName = product.Name,
-                    ProductDescription = product.Description,
-                    ProductValue = product.Value,
-                    Quantity = dto.Quantity
+                    ProductName = nameToUse,
+                    ProductDescription = descToUse,
+                    ProductValue = valToUse,
+                    Quantity = incomingPosition.Quantity
                 });
             }
         }

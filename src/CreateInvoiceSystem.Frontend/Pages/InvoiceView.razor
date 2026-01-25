@@ -45,11 +45,13 @@
             <div class="card-header bg-dark text-white p-4">
                 <div class="row align-items-center">
                     <div class="col-sm-7">
-                        <h3 class="mb-0 fw-bold">FAKTURA: @_invoice.Title</h3>
+                        <p class="mb-0 small opacity-75 text-uppercase">Numer dokumentu</p>
+                        <h3 class="mb-0 fw-bold">@_invoice.Title</h3>
+                        <div class="small opacity-75">Data wystawienia: @_invoice.CreatedDate.ToShortDateString()</div>
                     </div>
                     <div class="col-sm-5 text-sm-end mt-2 mt-sm-0">
-                        <p class="mb-0 small opacity-75 text-uppercase">Data wystawienia</p>
-                        <h5 class="mb-0">@_invoice.CreatedDate.ToShortDateString()</h5>
+                        <p class="mb-0 small opacity-75 text-uppercase">Status</p>
+                        <h5 class="mb-0 text-success">WYSTAWIONA</h5>
                     </div>
                 </div>
             </div>
@@ -78,14 +80,17 @@
                                 <th class="text-center" style="width: 50px">Lp.</th>
                                 <th>Produkt / Usługa</th>
                                 <th class="text-center" style="width: 80px">Ilość</th>
-                                <th class="text-end" style="width: 120px">Cena netto</th>
+                                <th class="text-end" style="width: 140px">Cena netto</th>
                                 <th class="text-center" style="width: 80px">VAT</th>
-                                <th class="text-end" style="width: 150px">Wartość netto</th>
+                                <th class="text-end" style="width: 130px">Kwota VAT</th>
+                                <th class="text-end" style="width: 150px">Wartość brutto</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var (pos, index) in _invoice.InvoicePositions.Select((p, i) => (p, i + 1)))
                             {
+                                var vatVal = GetVatValue(pos);
+                                var nettoTotal = (pos.ProductValue ?? 0) * pos.Quantity;
                                 <tr>
                                     <td class="text-center text-muted">@index</td>
                                     <td>
@@ -98,7 +103,8 @@
                                     <td class="text-center">@pos.Quantity</td>
                                     <td class="text-end">@pos.ProductValue?.ToString("N2") PLN</td>
                                     <td class="text-center">@pos.VatRate</td>
-                                    <td class="text-end fw-bold">@((pos.Quantity * (pos.ProductValue ?? 0)).ToString("N2")) PLN</td>
+                                    <td class="text-end">@((nettoTotal * (vatVal / 100m)).ToString("N2")) PLN</td>
+                                    <td class="text-end fw-bold">@((nettoTotal * (1 + vatVal / 100m)).ToString("N2")) PLN</td>
                                 </tr>
                             }
                         </tbody>
@@ -110,7 +116,7 @@
                         @if (!string.IsNullOrWhiteSpace(_invoice.Comments))
                         {
                             <div class="p-3 bg-light rounded border-start border-4 border-primary shadow-sm h-100">
-                                <h6 class="small fw-bold text-muted mb-2 text-uppercase">Uwagi do faktury:</h6>
+                                <h6 class="small fw-bold text-muted mb-2 text-uppercase">Uwagi:</h6>
                                 <p class="mb-0">@_invoice.Comments</p>
                             </div>
                         }
@@ -118,7 +124,7 @@
 
                     <div class="col-lg-5">
                         <div class="p-4 border rounded shadow-sm bg-white border-top-0 border-end-0 border-bottom-0 border-start-5 border-success">
-                            <h6 class="text-muted fw-bold text-uppercase small mb-3">Podsumowanie finansowe</h6>
+                            <h6 class="text-muted fw-bold text-uppercase small mb-3">Podsumowanie</h6>
 
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Metoda płatności:</span>
@@ -126,7 +132,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="small text-muted d-block mb-1">Numer konta bankowego:</label>
+                                <label class="small text-muted d-block mb-1">Konto bankowe:</label>
                                 <div class="p-2 bg-light rounded fw-bold font-monospace border text-center small">
                                     @_invoice.BankAccountNumber
                                 </div>
@@ -142,7 +148,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                <span class="h5 mb-0 fw-bold">RAZEM (Brutto):</span>
+                                <span class="h5 mb-0 fw-bold">DO ZAPŁATY:</span>
                                 <span class="h4 mb-0 fw-bold text-primary">@_invoice.TotalGross.ToString("N2") PLN</span>
                             </div>
 
@@ -157,7 +163,7 @@
             </div>
 
             <div class="card-footer bg-white text-center py-3">
-                <small class="text-muted">Dziękujemy za współpracę!</small>
+                <small class="text-muted">Dokument wygenerowany systemowo.</small>
             </div>
         </div>
     }
@@ -179,18 +185,25 @@
 
             if (_invoice == null)
             {
-                _errorMessage = "Nie znaleziono faktury o podanym identyfikatorze.";
+                _errorMessage = "Nie znaleziono faktury.";
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = "Wystąpił błąd podczas ładowania danych.";
+            _errorMessage = "Błąd podczas ładowania danych.";
             Console.WriteLine(ex.Message);
         }
         finally
         {
             _isLoading = false;
         }
+    }
+
+    private decimal GetVatValue(InvoicePositionDto pos)
+    {
+        if (string.IsNullOrEmpty(pos.VatRate) || pos.VatRate == "zw") return 0;
+        if (decimal.TryParse(pos.VatRate.Replace("%", ""), out var val)) return val;
+        return 0;
     }
 
     private async Task DownloadPdf()
@@ -211,7 +224,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd pobierania PDF: {ex.Message}");
+            Console.WriteLine($"Błąd PDF: {ex.Message}");
         }
         finally
         {

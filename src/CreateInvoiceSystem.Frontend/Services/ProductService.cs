@@ -50,7 +50,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             product.UserId = await GetUserIdFromToken();
 
             var response = await _http.PostAsJsonAsync("api/Product/create", product);
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
         }
 
         private async Task SetAuthHeader()

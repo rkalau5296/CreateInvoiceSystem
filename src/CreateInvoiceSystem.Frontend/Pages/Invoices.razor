@@ -3,6 +3,8 @@
 @using CreateInvoiceSystem.Frontend.Services
 @inject InvoiceService InvoiceService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
 
 <div class="container-fluid">
     <h3 class="mb-4">Zarządzanie Fakturami</h3>
@@ -26,7 +28,7 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-light">Lista wystawionych faktur</div>
+        <div class="card-header bg-light fw-bold">Lista wystawionych faktur</div>
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead class="table-dark">
@@ -60,10 +62,23 @@
                                 <td class="align-middle text-end">@inv.TotalNet.ToString("N2")</td>
                                 <td class="align-middle text-end">@inv.TotalVat.ToString("N2")</td>
                                 <td class="align-middle text-end fw-bold">@inv.TotalGross.ToString("N2") PLN</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary" @onclick='() => Navigation.NavigateTo($"/invoices/view/{inv.InvoiceId}")'>
-                                        <i class="bi bi-eye"></i> Podgląd
-                                    </button>
+                                <td class="text-center align-middle">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-info text-white px-3 shadow-sm"
+                                                @onclick='() => Navigation.NavigateTo($"/invoices/view/{inv.InvoiceId}")'>
+                                            <i class="bi bi-eye me-1"></i> Widok
+                                        </button>
+
+                                        <button class="btn btn-sm btn-primary px-3 shadow-sm"
+                                                @onclick='() => Navigation.NavigateTo($"/invoices/edit/{inv.InvoiceId}")'>
+                                            <i class="bi bi-pencil-square me-1"></i> Edytuj
+                                        </button>
+
+                                        <button class="btn btn-sm btn-danger px-3 shadow-sm"
+                                                @onclick="() => ConfirmDelete(inv.InvoiceId, inv.Title)">
+                                            <i class="bi bi-trash me-1"></i> Usuń
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -137,6 +152,38 @@
         }
     }
 
+    private async Task ConfirmDelete(int id, string title)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Czy na pewno chcesz trwale usunąć fakturę {title}?");
+        if (confirmed)
+        {
+            try
+            {
+                await InvoiceService.DeleteInvoiceAsync(id);
+                await LoadData();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd usuwania: {ex.Message}");
+            }
+        }
+    }
+
+    private void HandleSearch()
+    {
+        _searchTimer?.Stop();
+        _searchTimer?.Dispose();
+
+        _searchTimer = new System.Timers.Timer(400);
+        _searchTimer.AutoReset = false;
+        _searchTimer.Elapsed += async (s, e) =>
+        {
+            _currentPage = 1;
+            await InvokeAsync(LoadData);
+        };
+        _searchTimer.Start();
+    }
+
     private async Task ChangePageSize(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int newSize))
@@ -156,15 +203,12 @@
         }
     }
 
-    private void HandleSearch()
+    public void Dispose()
     {
-        _searchTimer?.Stop();
-        _searchTimer = new System.Timers.Timer(400);
-        _searchTimer.Elapsed += async (s, e) =>
+        if (_searchTimer != null)
         {
-            _currentPage = 1;
-            await InvokeAsync(LoadData);
-        };
-        _searchTimer.Start();
+            _searchTimer.Stop();
+            _searchTimer.Dispose();
+        }
     }
 }

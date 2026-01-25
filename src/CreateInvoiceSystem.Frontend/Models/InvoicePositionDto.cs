@@ -2,6 +2,7 @@
 
 public class InvoicePositionDto
 {
+    public int InvoiceId { get; set; }
     public int? ProductId { get; set; }
     public int Quantity { get; set; } = 1;    
     public string? ProductName { get; set; }

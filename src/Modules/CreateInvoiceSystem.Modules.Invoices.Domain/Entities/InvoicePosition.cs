@@ -11,15 +11,22 @@ public class InvoicePosition
     public int Quantity { get; set; }
 
     public string VatRate { get; set; } = "23%";
-    public decimal GetNetValue() => (ProductValue ?? 0) * Quantity;
+    public decimal GetNetValue() => Math.Round((ProductValue ?? 0) * Quantity, 2, MidpointRounding.AwayFromZero);    
+
     public decimal GetVatValue()
     {
-        if (VatRate == "zw") return 0;
+        if (string.IsNullOrWhiteSpace(VatRate) || VatRate.ToLower() == "zw")
+            return 0;
+
         
-        if (decimal.TryParse(VatRate.Replace("%", ""), out var rate))
+        var cleanRate = VatRate.Replace("%", "").Replace(",", ".");
+
+        if (decimal.TryParse(cleanRate, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var rate))
         {
-            return GetNetValue() * (rate / 100);
+            var vat = GetNetValue() * (rate / 100);
+            return Math.Round(vat, 2, MidpointRounding.AwayFromZero);
         }
+
         return 0;
     }
 

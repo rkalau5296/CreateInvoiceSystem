@@ -1,0 +1,178 @@
+﻿@page "/invoices/edit/{Id:int}"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Services
+@inject InvoiceService InvoiceService
+@inject NavigationManager Navigation
+
+<div class="container my-5">
+    @if (_isLoading)
+    {
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary"></div>
+            <p>Ładowanie danych faktury...</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between mb-4">
+            <h3>Tryb Edycji: @_invoice.Title</h3>
+            <div>
+                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
+                <button class="btn btn-primary shadow" @onclick="HandleUpdate">Zapisz zmiany</button>
+            </div>
+        </div>
+
+        <div class="invoice-box p-5 border shadow bg-white">
+            @* Nagłówek i Daty *@
+            <div class="row mb-5">
+                <div class="col-6">
+                    <label class="small text-muted fw-bold">Numer faktury:</label>
+                    <input type="text" class="form-control fw-bold border-primary" @bind="_invoice.Title" />
+                </div>
+                <div class="col-6 text-end">
+                    <div class="mb-2">
+                        <label class="small text-muted fw-bold">Data wystawienia:</label>
+                        <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2" @bind="_invoice.CreatedDate" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="small text-muted fw-bold">Termin płatności:</label>
+                        <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2" @bind="_invoice.PaymentDate" />
+                    </div>
+                    <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
+                </div>
+            </div>
+
+            @* Kontrahenci *@
+            <div class="row mb-5">
+                <div class="col-6">
+                    <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
+                    <input type="text" class="form-control mb-1 fw-bold" @bind="_invoice.SellerName" />
+                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.SellerAddress"></textarea>
+                    <input type="text" class="form-control" @bind="_invoice.SellerNip" />
+                </div>
+                <div class="col-6">
+                    <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-primary">Nabywca</h6>
+                    <input type="text" class="form-control mb-1 fw-bold" @bind="_invoice.ClientName" />
+                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.ClientAddress"></textarea>
+                    <input type="text" class="form-control" @bind="_invoice.ClientNip" />
+                </div>
+            </div>
+
+            @* Tabela Pozycji *@
+            <div class="mb-4">
+                <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-dark text-center small">
+                            <tr>
+                                <th style="width: 50px">Lp.</th>
+                                <th>Produkt / Opis</th>
+                                <th style="width: 80px">Ilość</th>
+                                <th style="width: 140px">Cena netto</th>
+                                <th style="width: 100px">VAT</th>
+                                <th style="width: 130px">Kwota VAT</th>
+                                <th style="width: 150px">Wartość BRUTTO</th>
+                                <th style="width: 100px">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int lp = 1;
+                            }
+                            @foreach (var pos in _invoice.InvoicePositions)
+                            {
+                                <tr>
+                                    <td class="text-center">@(lp++)</td>
+                                    <td>
+                                        <input type="text" class="form-control mb-1 fw-bold" @bind="pos.ProductName" />
+                                        <textarea class="form-control form-control-sm" @bind="pos.ProductDescription" placeholder="Opis pozycji..."></textarea>
+                                    </td>
+                                    <td><input type="number" class="form-control text-center" @bind="pos.Quantity" /></td>
+                                    <td><input type="number" class="form-control text-end" @bind="pos.ProductValue" /></td>
+                                    <td>
+                                        <select @bind="pos.VatRate" class="form-select">
+                                            <option value="23%">23%</option>
+                                            <option value="8%">8%</option>
+                                            <option value="5%">5%</option>
+                                            <option value="0%">0%</option>
+                                            <option value="zw">zw</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-end">@CalculatePositionVat(pos).ToString("N2") PLN</td>
+                                    <td class="text-end fw-bold">@CalculatePositionGross(pos).ToString("N2") PLN</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => RemovePosition(pos)">
+                                            <i class="bi bi-trash"></i> Usuń
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm w-100" @onclick="AddPosition">
+                    <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
+                </button>
+            </div>
+           
+            <div class="row mt-4">
+                <div class="col-md-12 text-end mb-4">
+                    <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
+                        <div class="text-muted">Suma netto: @CalculateTotalNet().ToString("N2") PLN</div>
+                        <div class="text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
+                        <h3 class="mb-0 text-primary fw-bold">RAZEM (Brutto): @CalculateTotalGross().ToString("N2") PLN</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private InvoiceDto _invoice = new() { InvoicePositions = new() };
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await InvoiceService.GetInvoiceByIdAsync(Id);
+        if (result != null)
+        {
+            _invoice = result;
+            _invoice.InvoicePositions ??= new List<InvoicePositionDto>();
+        }
+        else Navigation.NavigateTo("/invoices");
+
+        _isLoading = false;
+    }    
+
+    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%" });
+
+    private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
+
+    private decimal CalculatePositionVat(InvoicePositionDto pos)
+    {
+        var net = (pos.ProductValue ?? 0) * pos.Quantity;
+        if (pos.VatRate == "zw" || string.IsNullOrEmpty(pos.VatRate) || !pos.VatRate.Contains("%")) return 0;
+        decimal.TryParse(pos.VatRate.Replace("%", ""), out var rate);
+        return Math.Round(net * (rate / 100m), 2);
+    }
+
+    private decimal CalculatePositionGross(InvoicePositionDto pos) => Math.Round(((pos.ProductValue ?? 0) * pos.Quantity) + CalculatePositionVat(pos), 2);
+
+    private decimal CalculateTotalNet() => Math.Round(_invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity), 2);
+
+    private decimal CalculateTotalVat() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionVat(p)), 2);
+
+    private decimal CalculateTotalGross() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionGross(p)), 2);
+
+    private async Task HandleUpdate()
+    {        
+        _invoice.TotalNet = CalculateTotalNet();
+        _invoice.TotalVat = CalculateTotalVat();
+        _invoice.TotalGross = CalculateTotalGross();
+
+        await InvoiceService.UpdateInvoiceAsync(_invoice);
+        Navigation.NavigateTo("/invoices");
+    }
+}
