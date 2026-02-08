@@ -156,6 +156,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                before.TotalNet != after.TotalNet ||
                before.TotalVat != after.TotalVat ||
                before.TotalGross != after.TotalGross ||
+               before.CreatedDate != after.CreatedDate ||
                before.PaymentDate != after.PaymentDate ||
                before.ClientName != after.ClientName ||
                before.ClientId != after.ClientId ||               

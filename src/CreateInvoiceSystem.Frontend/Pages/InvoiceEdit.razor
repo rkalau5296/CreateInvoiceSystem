@@ -2,6 +2,8 @@
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @inject InvoiceService InvoiceService
+@inject ClientService ClientService
+@inject ProductService ProductService
 @inject NavigationManager Navigation
 
 <div class="container my-5">
@@ -17,12 +19,11 @@
         <div class="d-flex justify-content-between mb-4">
             <h3>Tryb Edycji: @_invoice.Title</h3>
             <div>
-                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
-                <button class="btn btn-primary shadow" @onclick="HandleUpdate">Zapisz zmiany</button>
+                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>                
             </div>
         </div>
 
-        <div class="invoice-box p-5 border shadow bg-white">            
+        <div class="invoice-box p-5 border shadow bg-white">
             <div class="row mb-5">
                 <div class="col-6">
                     <label class="small text-muted fw-bold">Numer faktury:</label>
@@ -40,7 +41,7 @@
                     <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
                 </div>
             </div>
-            
+
             <div class="row mb-5">
                 <div class="col-6">
                     <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
@@ -50,12 +51,17 @@
                 </div>
                 <div class="col-6">
                     <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-primary">Nabywca</h6>
-                    <input type="text" class="form-control mb-1 fw-bold" @bind="_invoice.ClientName" />
-                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.ClientAddress"></textarea>
-                    <input type="text" class="form-control" @bind="_invoice.ClientNip" />
+                    <input type="text" class="form-control mb-1 fw-bold"
+                           list="clientOptions"
+                           @bind="_invoice.ClientName"
+                           @oninput="(e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
+                           placeholder="Wpisz nazwę klienta..." />
+
+                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.ClientAddress" placeholder="Adres (ulica, nr, miasto)"></textarea>
+                    <input type="text" class="form-control" @bind="_invoice.ClientNip" placeholder="NIP" />
                 </div>
             </div>
-            
+
             <div class="mb-4">
                 <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
                 <div class="table-responsive">
@@ -81,7 +87,12 @@
                                 <tr>
                                     <td class="text-center">@(lp++)</td>
                                     <td>
-                                        <input type="text" class="form-control mb-1 fw-bold" @bind="pos.ProductName" />
+                                        <input type="text" class="form-control mb-1 fw-bold"
+                                               list="productOptions"
+                                               @bind="pos.ProductName"
+                                               @oninput="(e) => { pos.ProductName = e.Value?.ToString(); HandleProductChange(pos, pos.ProductName); }"
+                                               placeholder="Nazwa produktu..." />
+
                                         <textarea class="form-control form-control-sm" @bind="pos.ProductDescription" placeholder="Opis pozycji..."></textarea>
                                     </td>
                                     <td><input type="number" class="form-control text-center" @bind="pos.Quantity" /></td>
@@ -111,7 +122,7 @@
                     <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
                 </button>
             </div>
-           
+
             <div class="row mt-4">
                 <div class="col-md-12 text-end mb-4">
                     <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
@@ -121,27 +132,97 @@
                     </div>
                 </div>
             </div>
+            <div class="text-end mt-4">
+                <button class="btn btn-primary shadow" @onclick="HandleUpdate">Zapisz zmiany</button>
+            </div>
         </div>
     }
 </div>
 
+<datalist id="clientOptions">
+    @foreach (var c in _availableClients)
+    {
+        <option value="@c.Name">NIP: @c.Nip</option>
+    }
+</datalist>
+
+<datalist id="productOptions">
+    @foreach (var p in _availableProducts)
+    {
+        <option value="@p.Name">@p.Value PLN</option>
+    }
+</datalist>
+
 @code {
     [Parameter] public int Id { get; set; }
     private InvoiceDto _invoice = new() { InvoicePositions = new() };
+    private List<ClientDto> _availableClients = new();
+    private List<ProductDto> _availableProducts = new();
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await InvoiceService.GetInvoiceByIdAsync(Id);
-        if (result != null)
-        {
-            _invoice = result;
-            _invoice.InvoicePositions ??= new List<InvoicePositionDto>();
-        }
-        else Navigation.NavigateTo("/invoices");
+        try
+        {            
+            var result = await InvoiceService.GetInvoiceByIdAsync(Id);
+            if (result != null)
+            {
+                _invoice = result;
+                _invoice.InvoicePositions ??= new List<InvoicePositionDto>();
+            }
+            else
+            {
+                Navigation.NavigateTo("/invoices");
+                return;
+            }
+            
+            var cResponse = await ClientService.GetClientsAsync(1, 1000);
+            _availableClients = cResponse?.Data ?? new();
 
-        _isLoading = false;
-    }    
+            var pResponse = await ProductService.GetProductsAsync(1, 1000);
+            _availableProducts = pResponse?.Data ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd inicjalizacji edycji: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void HandleClientChange(string? newValue)
+    {
+        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+        {
+            _invoice.ClientId = match.ClientId;
+            _invoice.ClientName = match.Name;
+            _invoice.ClientNip = match.Nip;            
+            _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.PostalCode} {match.Address.City}";
+        }
+        else
+        {            
+            _invoice.ClientId = null;
+        }
+    }
+
+    private void HandleProductChange(InvoicePositionDto position, string? newValue)
+    {
+        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+        {
+            position.ProductId = match.ProductId;
+            position.ProductName = match.Name;
+            position.ProductValue = match.Value;
+            position.ProductDescription = match.Description;
+        }
+        else
+        {
+            position.ProductId = null;
+        }
+    }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%" });
 
@@ -164,7 +245,7 @@
     private decimal CalculateTotalGross() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionGross(p)), 2);
 
     private async Task HandleUpdate()
-    {        
+    {
         _invoice.TotalNet = CalculateTotalNet();
         _invoice.TotalVat = CalculateTotalVat();
         _invoice.TotalGross = CalculateTotalGross();
