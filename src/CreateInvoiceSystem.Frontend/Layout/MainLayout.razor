@@ -1,12 +1,15 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@using CreateInvoiceSystem.Frontend.Services
+@inject AuthService AuthService
 
-<div class="page">
-    <div class="sidebar" style="background: #2c3e50; color: white; min-width: 250px;">
+<div class="page">    
+    <div class="sidebar d-flex flex-column" style="background: #2c3e50; color: white; min-width: 250px; height: 100vh;">
         <div class="top-row ps-3 navbar navbar-dark">
             <a class="navbar-brand" href="">System Faktur</a>
         </div>
 
-        <nav class="flex-column p-3">
+        <nav class="flex-column p-3 flex-grow-1">
             <div class="nav-item px-3 mb-2">
                 <NavLink class="nav-link text-white" href="" Match="NavLinkMatch.All">
                     🏠 Dashboard
@@ -33,6 +36,20 @@
                 </NavLink>
             </div>
         </nav>
+        
+        <div class="mt-auto p-3 border-top border-secondary">
+            <div class="nav-item px-3 mb-1">
+                <NavLink class="nav-link text-white-50 small" href="settings">
+                    ⚙️ Ustawienia
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">                
+                <button class="btn btn-link nav-link text-danger small w-100 text-start p-0 border-0 shadow-none"
+                        @onclick="HandleLogout">
+                    🚪 Wyloguj się
+                </button>
+            </div>
+        </div>
     </div>
 
     <main>
@@ -44,3 +61,10 @@
         </article>
     </main>
 </div>
+
+@code {
+    private async Task HandleLogout()
+    {        
+        await AuthService.LogoutAsync();
+    }
+}

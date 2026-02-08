@@ -38,5 +38,18 @@ namespace CreateInvoiceSystem.Frontend.Services
             
             _navigationManager.NavigateTo("/login", forceLoad: true);
         }
+
+        public async Task<GetUserResponse?> GetMySettingsAsync()
+        {
+            
+            return await _httpClient.GetFromJsonAsync<GetUserResponse>("api/User/me");
+        }
+
+        public async Task<bool> UpdateMySettingsAsync(UpdateUserDto dto)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/User/update/{dto.UserId}", dto);
+            return response.IsSuccessStatusCode;
+        }
+
     }
 }

@@ -1,0 +1,193 @@
+﻿@page "/settings"
+@inject HttpClient Http
+
+<h3 class="mb-4">Ustawienia Konta i Firmy</h3>
+
+@if (userModel == null)
+{
+    <div class="d-flex align-items-center">
+        <div class="spinner-border me-2" role="status"></div>
+        <span>Ładowanie Twoich ustawień...</span>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Dane profilu i firmy</h5>
+        </div>
+        <div class="card-body">
+            <EditForm Model="@userModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Imię i Nazwisko</label>
+                        <InputText @bind-Value="userModel.Name" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Pełna Nazwa Firmy</label>
+                        <InputText @bind-Value="userModel.CompanyName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="text" value="@userModel.Email" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">NIP</label>
+                        <InputText @bind-Value="userModel.Nip" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Numer konta bankowego</label>
+                        <InputText @bind-Value="userModel.BankAccountNumber" class="form-control" />
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="text-secondary">Adres siedziby</h5>
+
+                    <div class="col-md-9">
+                        <label class="form-label">Ulica</label>
+                        <InputText @bind-Value="userModel.Address.Street" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nr budynku</label>
+                        <InputText @bind-Value="userModel.Address.Number" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Kod pocztowy</label>
+                        <InputText @bind-Value="userModel.Address.PostalCode" class="form-control" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Miasto</label>
+                        <InputText @bind-Value="userModel.Address.City" class="form-control" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Miasto</label>
+                        <InputText @bind-Value="userModel.Address.Country" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success px-4" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Zapisz zmiany
+                    </button>
+                    @if (!string.IsNullOrEmpty(statusMessage))
+                    {
+                        <span class="ms-3 alert @statusClass p-2">@statusMessage</span>
+                    }
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private UpdateUserDto? userModel;
+    private bool isSubmitting = false;
+    private string statusMessage = "";
+    private string statusClass = "";
+
+    public class UpdateUserDto
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string CompanyName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Nip { get; set; } = string.Empty;
+        public string BankAccountNumber { get; set; } = string.Empty;
+        public UpdateAddressDto Address { get; set; } = new();
+    }
+
+    public class UpdateAddressDto
+    {
+        public string Street { get; set; } = string.Empty;
+        public string Number { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Country { get; set; } = "Poland";
+    }
+
+    public class GetMeResponse
+    {
+        public UserDtoData? Data { get; set; }
+    }
+
+    public class UserDtoData
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Nip { get; set; } = "";
+        public string BankAccountNumber { get; set; } = "";
+        public UpdateAddressDto Address { get; set; } = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
+            var userData = response?.Data;
+
+            if (userData != null)
+            {
+                userModel = new UpdateUserDto
+                {
+                    UserId = userData.UserId,
+                    Name = userData.Name,
+                    CompanyName = userData.CompanyName,
+                    Email = userData.Email,
+                    Nip = userData.Nip,
+                    BankAccountNumber = userData.BankAccountNumber,
+                    Address = new UpdateAddressDto
+                    {
+                        Street = userData.Address.Street,
+                        Number = userData.Address.Number,
+                        PostalCode = userData.Address.PostalCode,
+                        City = userData.Address.City,
+                        Country = userData.Address.Country
+                    }
+                };
+            }
+        }
+        catch (Exception)
+        {
+            statusMessage = "Nie udało się załadować profilu.";
+            statusClass = "alert-danger";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (userModel == null) return;
+        isSubmitting = true;
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel);
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = "Ustawienia zapisane!";
+                statusClass = "alert-success";
+            }
+            else
+            {
+                statusMessage = "Błąd podczas zapisu na serwerze.";
+                statusClass = "alert-danger";
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

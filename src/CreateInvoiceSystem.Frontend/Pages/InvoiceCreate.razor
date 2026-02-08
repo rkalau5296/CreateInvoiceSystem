@@ -37,22 +37,36 @@
                 <div class="card mb-4 bg-light border-0">
                     <div class="card-body">
                         <h5 class="card-title text-secondary">Dane Nabywcy</h5>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="small fw-bold">Wybierz klienta</label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Wybierz klienta lub wpisz nową nazwę</label>
                                 <input class="form-control"
                                        list="clientOptions"
                                        @bind="_invoice.ClientName"
                                        @oninput="(e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
-                                       placeholder="Zacznij wpisywać nazwę..." />
+                                       placeholder="Nazwa klienta..." />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="small fw-bold">NIP</label>
                                 <InputText @bind-Value="_invoice.ClientNip" class="form-control" placeholder="NIP" />
                             </div>
-                            <div class="col-md-4">
-                                <label class="small fw-bold">Adres</label>
-                                <InputText @bind-Value="_invoice.ClientAddress" class="form-control" placeholder="Adres" />
+
+                            @* Rozbity Adres AdresDto *@
+                            <div class="col-md-5">
+                                <label class="small fw-bold">Ulica</label>
+                                <InputText @bind-Value="_invoice.Client.Address.Street" class="form-control" placeholder="Ulica" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="small fw-bold">Nr domu/lok.</label>
+                                <InputText @bind-Value="_invoice.Client.Address.Number" class="form-control" placeholder="Nr" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="small fw-bold">Kod pocztowy</label>
+                                <InputText @bind-Value="_invoice.Client.Address.PostalCode" class="form-control" placeholder="00-000" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small fw-bold">Miasto</label>
+                                <InputText @bind-Value="_invoice.Client.Address.City" class="form-control" placeholder="Miasto" />
                             </div>
                         </div>
                     </div>
@@ -90,9 +104,7 @@
                                     </td>
                                     <td><InputNumber @bind-Value="pos.Quantity" class="form-control" /></td>
                                     <td>
-                                        <div class="input-group">
-                                            <InputNumber @bind-Value="pos.ProductValue" class="form-control" />
-                                        </div>
+                                        <InputNumber @bind-Value="pos.ProductValue" class="form-control" />
                                     </td>
                                     <td>
                                         <select @bind="pos.VatRate" class="form-select">
@@ -100,14 +112,11 @@
                                             <option value="8%">8%</option>
                                             <option value="5%">5%</option>
                                             <option value="zw">zw</option>
+                                            <option value="0%">0%</option>
                                         </select>
                                     </td>
-                                    <td class="text-end">
-                                        @CalculatePositionVat(pos).ToString("N2") PLN
-                                    </td>
-                                    <td class="fw-bold text-end">
-                                        @CalculatePositionGross(pos).ToString("N2") PLN
-                                    </td>
+                                    <td class="text-end">@CalculatePositionVat(pos).ToString("N2") PLN</td>
+                                    <td class="fw-bold text-end">@CalculatePositionGross(pos).ToString("N2") PLN</td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-outline-danger btn-sm border-0" @onclick="() => RemovePosition(pos)">
                                             <i class="bi bi-trash"></i>
@@ -163,7 +172,8 @@
     {
         CreatedDate = DateTime.Today,
         PaymentDate = DateTime.Today.AddDays(14),
-        InvoicePositions = new List<InvoicePositionDto>()
+        InvoicePositions = new List<InvoicePositionDto>(),        
+        Client = new ClientDto { Address = new AddressDto() }
     };
 
     private List<ProductDto> _availableProducts = new();
@@ -180,16 +190,16 @@
 
             if (!_invoice.InvoicePositions.Any()) AddPosition();
         }
-        catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
+        catch (Exception ex) { Console.WriteLine($"Błąd inicjalizacji: {ex.Message}"); }
     }
 
-    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%" });
+    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%", Product = new ProductDto() });
     private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
 
     private decimal CalculatePositionVat(InvoicePositionDto pos)
     {
         var net = (pos.ProductValue ?? 0) * pos.Quantity;
-        if (pos.VatRate == "zw" || !pos.VatRate.Contains("%")) return 0;
+        if (pos.VatRate == "zw" || string.IsNullOrEmpty(pos.VatRate) || !pos.VatRate.Contains("%")) return 0;
         decimal.TryParse(pos.VatRate.Replace("%", ""), out var rate);
         return Math.Round(net * (rate / 100m), 2);
     }
@@ -218,7 +228,16 @@
             _invoice.ClientId = match.ClientId;
             _invoice.ClientName = match.Name;
             _invoice.ClientNip = match.Nip;
-            _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.City}";
+            
+            _invoice.Client.Address.Street = match.Address.Street;
+            _invoice.Client.Address.Number = match.Address.Number;
+            _invoice.Client.Address.City = match.Address.City;
+            _invoice.Client.Address.PostalCode = match.Address.PostalCode;
+            _invoice.Client.Address.Country = match.Address.Country;
+        }
+        else
+        {            
+            _invoice.ClientId = null;
         }
     }
 
@@ -227,7 +246,21 @@
         _invoice.TotalNet = CalculateTotalNet();
         _invoice.TotalVat = CalculateTotalVat();
         _invoice.TotalGross = CalculateTotalGross();
-        var result = await InvoiceService.SaveInvoiceAsync(_invoice);
-        if (result != null) Navigation.NavigateTo("/invoices");
+        
+        if (_invoice.ClientId == null)
+        {
+            _invoice.Client.Name = _invoice.ClientName;
+            _invoice.Client.Nip = _invoice.ClientNip;            
+        }
+
+        try
+        {
+            var result = await InvoiceService.SaveInvoiceAsync(_invoice);
+            if (result != null) Navigation.NavigateTo("/invoices");
+        }
+        catch (Exception ex)
+        {            
+            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+        }
     }
 }

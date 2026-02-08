@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 [Authorize]
 public class UserController : ApiControllerBase
 {
@@ -29,12 +29,12 @@ public class UserController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public Task<IActionResult> GetUserAsync([FromRoute] int userId, CancellationToken cancellationToken)
     {
+
         GetUserRequest request = new(userId);
         return HandleRequest<GetUserRequest, GetUserResponse>(request, cancellationToken);
     }
 
-    [HttpGet()]
-    [Route("/Users")]
+    [HttpGet]    
     public async Task<IActionResult> GetUsersAsync([FromQuery] GetUsersRequest request, CancellationToken cancellationToken)
     {
         return await HandleRequest<GetUsersRequest, GetUsersResponse>(request, cancellationToken);
@@ -62,8 +62,7 @@ public class UserController : ApiControllerBase
     }
 
     [HttpDelete]
-    [Route("id")]
-    [Authorize(Roles = "Admin")]
+    [Route("{id}")]    
     public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
     {
         DeleteUserRequest request = new(id);
@@ -76,5 +75,15 @@ public class UserController : ApiControllerBase
         RefreshTokenRequest request = new(refreshToken);
 
         return await HandleRequest<RefreshTokenRequest, AuthResponse>(request, cancellationToken);
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMyDataAsync(CancellationToken cancellationToken)
+    {
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+        
+        GetUserRequest request = new(actualUserId);
+        return await HandleRequest<GetUserRequest, GetUserResponse>(request, cancellationToken);
     }
 }
