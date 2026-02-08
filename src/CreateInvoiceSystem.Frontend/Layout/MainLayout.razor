@@ -6,12 +6,12 @@
 <div class="page">    
     <div class="sidebar d-flex flex-column" style="background: #2c3e50; color: white; min-width: 250px; height: 100vh;">
         <div class="top-row ps-3 navbar navbar-dark">
-            <a class="navbar-brand" href="">System Faktur</a>
+            <a class="navbar-brand" href="dashboard">System Faktur</a>
         </div>
 
         <nav class="flex-column p-3 flex-grow-1">
             <div class="nav-item px-3 mb-2">
-                <NavLink class="nav-link text-white" href="" Match="NavLinkMatch.All">
+                <NavLink class="nav-link text-white" href="dashboard">
                     🏠 Dashboard
                 </NavLink>
             </div>
@@ -66,5 +66,6 @@
     private async Task HandleLogout()
     {        
         await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

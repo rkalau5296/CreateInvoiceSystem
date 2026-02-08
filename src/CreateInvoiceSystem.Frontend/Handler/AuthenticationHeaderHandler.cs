@@ -18,8 +18,15 @@ public class AuthenticationHeaderHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {        
+        var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        if (!string.IsNullOrEmpty(token))
+        {     
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+
         var response = await base.SendAsync(request, cancellationToken);
-     
+        
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             _navigationManager.NavigateTo("/login");

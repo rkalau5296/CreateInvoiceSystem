@@ -2,6 +2,6 @@
 {
     public class GetUserResponse
     {
-        public UserDto? Result { get; set; }
+        public UserDto? Data { get; set; }
     }
 }
