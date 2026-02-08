@@ -337,7 +337,7 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
             var totalCount = await query.CountAsync(cancellationToken);
 
             var invoiceEntities = await query
-                .OrderByDescending(i => i.CreatedDate)
+                .OrderByDescending(i => i.InvoiceId)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);

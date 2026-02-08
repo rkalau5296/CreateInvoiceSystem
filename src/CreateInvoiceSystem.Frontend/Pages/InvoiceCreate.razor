@@ -103,7 +103,7 @@
                                                placeholder="Nazwa produktu..." />
                                     </td>
                                     <td><InputNumber @bind-Value="pos.Quantity" class="form-control" /></td>
-                                    <td>
+                                    <td>                                        
                                         <InputNumber @bind-Value="pos.ProductValue" class="form-control" />
                                     </td>
                                     <td>
@@ -193,7 +193,14 @@
         catch (Exception ex) { Console.WriteLine($"Błąd inicjalizacji: {ex.Message}"); }
     }
 
-    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%", Product = new ProductDto() });
+    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto
+    {
+        Quantity = 1,
+        ProductName = "",
+        ProductValue = 0,
+        VatRate = "23%",        
+        Product = new ProductDto()
+    });
     private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
 
     private decimal CalculatePositionVat(InvoicePositionDto pos)
@@ -253,13 +260,26 @@
             _invoice.Client.Nip = _invoice.ClientNip;            
         }
 
+        foreach (var pos in _invoice.InvoicePositions)
+        {
+            if (pos.ProductId == null)
+            {
+                if (pos.Product == null) pos.Product = new ProductDto();
+
+                pos.Product.Name = pos.ProductName;
+                pos.Product.Value = pos.ProductValue;
+                pos.Product.Description = ""; 
+            }
+        }
+
         try
         {
             var result = await InvoiceService.SaveInvoiceAsync(_invoice);
             if (result != null) Navigation.NavigateTo("/invoices");
         }
         catch (Exception ex)
-        {            
+        {
+            
             Console.WriteLine($"Błąd zapisu: {ex.Message}");
         }
     }

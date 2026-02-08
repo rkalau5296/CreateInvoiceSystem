@@ -21,6 +21,9 @@
             </div>
         </div>
         <div class="col-md-6 text-end">
+            <button class="btn btn-outline-secondary me-2" @onclick="ExportToCsv">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Eksportuj CSV
+            </button>
             <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/invoices/create")'>
                 <i class="bi bi-plus-circle me-1"></i> Wystaw nową fakturę
             </button>
@@ -211,4 +214,6 @@
             _searchTimer.Dispose();
         }
     }
+
+    private async Task ExportToCsv() => await InvoiceService.DownloadInvoicesCsvAsync();
 }
