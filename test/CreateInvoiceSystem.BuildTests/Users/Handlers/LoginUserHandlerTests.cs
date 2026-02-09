@@ -32,7 +32,7 @@ public class LoginUserHandlerTests
     public async Task Handle_ShouldReturnToken_WhenLoginIsSuccessful()
     {
         // Arrange
-        var dto = new LoginUserDto("test@example.com", "Password123!");
+        var dto = new LoginUserDto("test@example.com", "Password123!", true);
         var request = new LoginUserRequest(dto);
         var expectedAccessToken = "generated-jwt-token";
         var expectedRefreshToken = Guid.NewGuid();
@@ -63,7 +63,7 @@ public class LoginUserHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenTokenIsEmpty()
     {
         // Arrange
-        var request = new LoginUserRequest(new LoginUserDto("wrong@test.com", "wrong"));
+        var request = new LoginUserRequest(new LoginUserDto("wrong@test.com", "wrong", true));
         var emptyResult = new UserTokenResult(string.Empty, Guid.Empty);
 
         _commandExecutorMock.Setup(x => x.Execute(
@@ -85,7 +85,7 @@ public class LoginUserHandlerTests
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var request = new LoginUserRequest(new LoginUserDto("error@test.com", "pass"));
+        var request = new LoginUserRequest(new LoginUserDto("error@test.com", "pass", true));
 
         _commandExecutorMock.Setup(x => x.Execute(
                 It.IsAny<LoginUserCommand>(),

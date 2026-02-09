@@ -69,6 +69,7 @@ public class UserController : ApiControllerBase
         return await HandleRequest<DeleteUserRequest, DeleteUserResponse>(request, cancellationToken);
     }
 
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshTokenAsync([FromBody] Guid refreshToken, CancellationToken cancellationToken)
     {        

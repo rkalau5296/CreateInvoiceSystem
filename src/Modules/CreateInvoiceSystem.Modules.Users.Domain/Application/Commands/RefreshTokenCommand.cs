@@ -1,11 +1,6 @@
 ﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands
 {
@@ -21,7 +16,7 @@ namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands
             if (session is null || session.IsRevoked)
                 throw new UnauthorizedAccessException("Sesja jest nieważna.");
 
-            if (DateTime.UtcNow - session.LastActivityAt > TimeSpan.FromMinutes(5))
+            if (DateTime.UtcNow - session.LastActivityAt > TimeSpan.FromMinutes(120))
             {
                 session.IsRevoked = true;
                 await _userRepository.UpdateSessionActivityAsync(session, cancellationToken);

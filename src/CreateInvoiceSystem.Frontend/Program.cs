@@ -1,5 +1,6 @@
 using CreateInvoiceSystem.Frontend.Handler;
 using CreateInvoiceSystem.Frontend.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -29,7 +30,10 @@ namespace CreateInvoiceSystem.Frontend
             builder.Services.AddScoped<NbpService>();
             builder.Services.AddScoped<InvoiceService>();
             builder.Services.AddScoped<UserService>();
-
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<CustomAuthStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());            
+            
             await builder.Build().RunAsync();
         }
     }

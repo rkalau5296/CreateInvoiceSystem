@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
@@ -11,17 +12,21 @@ namespace CreateInvoiceSystem.Frontend.Services
     {
         private readonly HttpClient _http;
         private readonly IJSRuntime _js;
+        private readonly NavigationManager _navigationManager;
+        private readonly AuthService _authService;
 
-        public ProductService(HttpClient http, IJSRuntime js)
+        public ProductService(HttpClient http, IJSRuntime js, NavigationManager navigationManager, AuthService authService)
         {
             _http = http;
             _js = js;
+            _navigationManager = navigationManager;
+            _authService = authService;
         }
 
         public async Task<GetProductsResponse> GetProductsAsync(int pageNumber, int pageSize, string? searchTerm = null)
         {
             await SetAuthHeader();
-            
+
             var url = $"api/Product?PageNumber={pageNumber}&PageSize={pageSize}";
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -29,9 +34,31 @@ namespace CreateInvoiceSystem.Frontend.Services
                 url += $"&SearchTerm={Uri.EscapeDataString(searchTerm)}";
             }
 
-            var response = await _http.GetFromJsonAsync<GetProductsResponse>(url);
+            var response = await _http.GetAsync(url);
 
-            return response ?? new GetProductsResponse { Data = new List<ProductDto>(), TotalCount = 0 };
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var isRefreshed = await _authService.RefreshTokenAsync();
+
+                if (isRefreshed)
+                {
+                    await SetAuthHeader();
+                    response = await _http.GetAsync(url);
+                }
+                else
+                {
+                    _navigationManager.NavigateTo("/login");
+                    return new GetProductsResponse { Data = new List<ProductDto>(), TotalCount = 0 };
+                }
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<GetProductsResponse>();
+                return result ?? new GetProductsResponse { Data = new List<ProductDto>(), TotalCount = 0 };
+            }
+
+            return new GetProductsResponse { Data = new List<ProductDto>(), TotalCount = 0 };
         }
 
         public class GetProductsResponse
@@ -39,29 +66,37 @@ namespace CreateInvoiceSystem.Frontend.Services
             [JsonPropertyName("data")]
             public List<ProductDto> Data { get; set; } = new();
 
-            public int TotalCount { get; set; } 
+            public int TotalCount { get; set; }
             public bool Success { get; set; }
         }
 
         public async Task SaveProductAsync(ProductDto product)
         {
             await SetAuthHeader();
-            
+
             product.UserId = await GetUserIdFromToken();
 
             var response = await _http.PostAsJsonAsync("api/Product/create", product);
-            //response.EnsureSuccessStatusCode();
         }
 
         private async Task SetAuthHeader()
         {
             var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            }
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
         private async Task<int> GetUserIdFromToken()
         {
             var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            }
+
             if (string.IsNullOrEmpty(token)) return 0;
 
             var handler = new JwtSecurityTokenHandler();
@@ -73,7 +108,7 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task DeleteProductAsync(int productId)
         {
-            await SetAuthHeader(); 
+            await SetAuthHeader();
             var response = await _http.DeleteAsync($"api/Product/{productId}");
 
             if (!response.IsSuccessStatusCode)
@@ -86,7 +121,7 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task UpdateProductAsync(ProductDto product)
         {
             await SetAuthHeader();
-            
+
             var updateDto = new
             {
                 product.ProductId,
@@ -96,7 +131,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                 product.UserId,
                 product.IsDeleted
             };
-            
+
             var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
 
             if (!response.IsSuccessStatusCode)
@@ -105,15 +140,16 @@ namespace CreateInvoiceSystem.Frontend.Services
                 throw new Exception($"API zwróciło błąd: {error}");
             }
         }
+
         public async Task DownloadProductsCsvAsync()
         {
-            await SetAuthHeader();            
+            await SetAuthHeader();
             var response = await _http.GetAsync("api/export/products");
 
             if (response.IsSuccessStatusCode)
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                
+
                 await _js.InvokeVoidAsync("downloadFile", "produkty.csv", "text/csv", fileBytes);
             }
         }
