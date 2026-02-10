@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace CreateInvoiceSystem.Frontend.Services
 {
@@ -37,12 +38,10 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 string storageType = request.Dto.RememberMe ? "localStorage" : "sessionStorage";
                 string alternativeStorage = request.Dto.RememberMe ? "sessionStorage" : "localStorage";
-
-                // Czyścimy ten drugi, żeby nie było konfliktów
+                                
                 await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "authToken");
                 await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "refreshToken");
-
-                // Zapisujemy do właściwego
+                                
                 await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", result.Token);
                 await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", result.RefreshToken);
 
@@ -126,6 +125,34 @@ namespace CreateInvoiceSystem.Frontend.Services
                 }
             }
             return null;
-        }        
+        }
+        public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email)
+        {
+            var dto = new ForgotPasswordDto(email);
+            var request = new ForgotPasswordRequest(dto);
+
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/forgot-password", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ForgotPasswordResponse>();
+            }
+
+            return new ForgotPasswordResponse(false, "Błąd serwera. Spróbuj później.");
+        }
+
+        public async Task<ResetPasswordResponse> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var request = new { Email = email, Token = token, NewPassword = newPassword };
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/reset-password", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ResetPasswordResponse>()
+                       ?? new ResetPasswordResponse(false, "Błąd odpowiedzi.");
+            }
+
+            return new ResetPasswordResponse(false, "Nie udało się zresetować hasła.");
+        }
     }
 }

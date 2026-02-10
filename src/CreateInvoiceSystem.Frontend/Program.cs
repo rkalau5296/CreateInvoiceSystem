@@ -68,6 +68,10 @@ namespace CreateInvoiceSystem.Frontend
             builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
                 sp.GetRequiredService<CustomAuthStateProvider>());
 
+            builder.Services.AddScoped(sp => new HttpClient
+            {
+                BaseAddress = new Uri("https://localhost:7168/")
+            });
             await builder.Build().RunAsync();
         }
     }

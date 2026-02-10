@@ -4,12 +4,14 @@ using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.Log
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 
+[ApiController]
 [Route("api/[controller]")]
 public class AuthController : ApiControllerBase
 {
@@ -17,6 +19,7 @@ public class AuthController : ApiControllerBase
     {
         logger.LogInformation("This is AuthController");
     }
+
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserRequest request, CancellationToken cancellationToken)
@@ -32,6 +35,7 @@ public class AuthController : ApiControllerBase
         return await HandleRequest<LoginUserRequest, LoginUserResponse>(request, cancellationToken);
     }
 
+    [AllowAnonymous]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {

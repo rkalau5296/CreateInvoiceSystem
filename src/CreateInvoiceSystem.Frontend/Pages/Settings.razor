@@ -1,5 +1,6 @@
 ﻿@page "/settings"
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <h3 class="mb-4">Ustawienia Konta i Firmy</h3>
 
@@ -135,11 +136,20 @@ else
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
-            var userData = response?.Data;
+            var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
 
-            if (userData != null)
+            if (!string.IsNullOrEmpty(token))
             {
+                token = token.Trim('"');
+                Http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
+
+            if (response?.Data != null)
+            {
+                var userData = response.Data;
                 userModel = new UpdateUserDto
                 {
                     UserId = userData.UserId,
@@ -161,8 +171,9 @@ else
         }
         catch (Exception)
         {
-            statusMessage = "Nie udało się załadować profilu.";
+            statusMessage = "Błąd autoryzacji sesji.";
             statusClass = "alert-danger";
+            userModel = new UpdateUserDto();
         }
     }
 

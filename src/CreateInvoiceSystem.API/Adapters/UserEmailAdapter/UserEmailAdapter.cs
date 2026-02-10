@@ -6,8 +6,10 @@ namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 public class UserEmailAdapter(IEmailService emailService) : IUserEmailSender
 {
     public async Task SendResetPasswordEmailAsync(string email, string token)
-    {
-        var resetLink = $"https://localhost:7168/api/auth/reset-password?token={token}&email={email}";
+    {      
+        var escapedToken = Uri.EscapeDataString(token);
+
+        var resetLink = $"https://localhost:7022/reset-password?token={escapedToken}&email={email}";
 
         await emailService.SendResetPasswordEmailAsync(email, resetLink);
     }

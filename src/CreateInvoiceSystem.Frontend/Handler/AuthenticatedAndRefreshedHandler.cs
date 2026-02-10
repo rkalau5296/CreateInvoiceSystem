@@ -1,6 +1,5 @@
 ﻿using CreateInvoiceSystem.Frontend.Services;
-using Microsoft.AspNetCore.Components; // Dodaj to
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Http.Headers;
