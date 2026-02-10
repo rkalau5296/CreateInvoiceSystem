@@ -462,6 +462,22 @@ public class UserRepository : IUserRepository
             await _db.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken)
+    {
+
+        var entity = await _db.Set<UserSessionEntity>()
+            .FirstOrDefaultAsync(s => s.Id == session.Id, cancellationToken);
+
+        if (entity is not null)
+        {
+            entity.RefreshToken = session.RefreshToken; 
+            entity.LastActivityAt = session.LastActivityAt;
+            entity.IsRevoked = session.IsRevoked;
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+    }
     public async Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken)
     {        
         var entity = await _db.Set<UserSessionEntity>()
@@ -471,6 +487,7 @@ public class UserRepository : IUserRepository
         
         return new UserSession
         {
+            Id = entity.Id,
             UserId = entity.UserId,
             RefreshToken = entity.RefreshToken,
             LastActivityAt = entity.LastActivityAt,

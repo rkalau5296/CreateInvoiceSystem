@@ -1,8 +1,10 @@
 using CreateInvoiceSystem.Frontend.Handler;
 using CreateInvoiceSystem.Frontend.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
 
 namespace CreateInvoiceSystem.Frontend
 {
@@ -15,25 +17,57 @@ namespace CreateInvoiceSystem.Frontend
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             builder.Services.AddTransient<AuthenticationHeaderHandler>();
+            builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();
 
-            builder.Services.AddHttpClient("ServerApi", client =>
+            builder.Services.AddHttpClient<InvoiceService>(client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7168/");
             })
-            .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
-            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerApi"));
+            builder.Services.AddHttpClient<ClientService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
-            builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<ProductService>();
-            builder.Services.AddScoped<ClientService>();
-            builder.Services.AddScoped<NbpService>();
-            builder.Services.AddScoped<InvoiceService>();
-            builder.Services.AddScoped<UserService>();
+            builder.Services.AddHttpClient<ProductService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
+
+            builder.Services.AddHttpClient<UserService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
+
+            builder.Services.AddHttpClient<NbpService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            });
+
+            builder.Services.AddHttpClient("AuthClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            });
+
+            builder.Services.AddScoped<AuthService>(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                var js = sp.GetRequiredService<IJSRuntime>();
+                var nav = sp.GetRequiredService<NavigationManager>();
+                var authState = sp.GetRequiredService<AuthenticationStateProvider>();
+                var cleanClient = factory.CreateClient("AuthClient");
+                return new AuthService(cleanClient, js, nav, authState);
+            });
+
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<CustomAuthStateProvider>();
-            builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());            
-            
+            builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+                sp.GetRequiredService<CustomAuthStateProvider>());
+
             await builder.Build().RunAsync();
         }
     }

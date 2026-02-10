@@ -27,24 +27,30 @@ namespace CreateInvoiceSystem.Frontend.Services
             _authStateProvider = (CustomAuthStateProvider)authStateProvider;
         }
 
-        public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+        public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
             if (!response.IsSuccessStatusCode) return null;
 
-            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (result != null && !string.IsNullOrEmpty(result.Token))
-            {                
+            {
                 string storageType = request.Dto.RememberMe ? "localStorage" : "sessionStorage";
+                string alternativeStorage = request.Dto.RememberMe ? "sessionStorage" : "localStorage";
+
+                // Czyścimy ten drugi, żeby nie było konfliktów
+                await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "authToken");
+                await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "refreshToken");
+
+                // Zapisujemy do właściwego
                 await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", result.Token);
                 await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", result.RefreshToken);
 
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
-
                 _authStateProvider.NotifyUserAuthentication(result.Token);
             }
             return result;
-        }        
+        }
 
         public async Task LogoutAsync()
         {
@@ -96,40 +102,30 @@ namespace CreateInvoiceSystem.Frontend.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> RefreshTokenAsync()
-        {
-            var refreshToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "refreshToken");
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                refreshToken = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "refreshToken");
-            }
+        public async Task<string?> RefreshTokenAsync()
+        {            
+            var localToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "refreshToken");
+            var sessionToken = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "refreshToken");
 
-            if (string.IsNullOrEmpty(refreshToken) || !Guid.TryParse(refreshToken, out Guid refreshGuid))
-            {
-                return false;
-            }
+            string storageType = !string.IsNullOrEmpty(localToken) ? "localStorage" : "sessionStorage";
+            string? currentRefreshToken = !string.IsNullOrEmpty(localToken) ? localToken : sessionToken;
 
-            _httpClient.DefaultRequestHeaders.Authorization = null;
+            if (string.IsNullOrEmpty(currentRefreshToken)) return null;
 
-            var response = await _httpClient.PostAsJsonAsync("api/User/refresh", refreshGuid);
+            var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken));
 
             if (response.IsSuccessStatusCode)
             {
                 var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                if (authData != null)
-                {
-                    var isLocal = !string.IsNullOrEmpty(await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken"));
-                    var storage = isLocal ? "localStorage" : "sessionStorage";
+                if (authData != null && !string.IsNullOrEmpty(authData.Token))
+                {                    
+                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
+                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", authData.RefreshToken);
 
-                    await _jsRuntime.InvokeVoidAsync($"{storage}.setItem", "authToken", authData.Token);
-                    await _jsRuntime.InvokeVoidAsync($"{storage}.setItem", "refreshToken", authData.RefreshToken);
-
-                    return true;
+                    return authData.Token;
                 }
             }
-            var errorDetails = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"REFRESH ERROR: Serwer odrzucił refresh. Status: {response.StatusCode}, Error: {errorDetails}");
-            return false;
-        }
+            return null;
+        }        
     }
 }

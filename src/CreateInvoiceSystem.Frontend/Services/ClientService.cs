@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -20,8 +19,6 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task<GetClientsResponse> GetClientsAsync(int pageNumber, int pageSize, string? searchTerm = null)
         {
-            await SetAuthHeader();
-
             var url = $"api/Client?PageNumber={pageNumber}&PageSize={pageSize}";
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -44,17 +41,12 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task SaveClientAsync(ClientDto client)
         {
-            await SetAuthHeader();
-
             client.UserId = await GetUserIdFromToken();
-
-            await _http.PostAsJsonAsync("api/Client/create", client);            
+            await _http.PostAsJsonAsync("api/Client/create", client);
         }
 
         public async Task UpdateClientAsync(ClientDto client)
         {
-            await SetAuthHeader();
-            
             var updateDto = new
             {
                 client.ClientId,
@@ -77,31 +69,24 @@ namespace CreateInvoiceSystem.Frontend.Services
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API zwróciło błąd: {error}");
+                throw new Exception($"API error: {error}");
             }
         }
 
         public async Task DeleteClientAsync(int clientId)
         {
-            await SetAuthHeader();
             var response = await _http.DeleteAsync($"api/Client/{clientId}");
 
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Nie udało się usunąć klienta: {error}");
+                throw new Exception($"API error: {error}");
             }
-        }
-
-        private async Task SetAuthHeader()
-        {
-            var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
         private async Task<int> GetUserIdFromToken()
         {
-            var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+            var token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
             if (string.IsNullOrEmpty(token)) return 0;
 
             var handler = new JwtSecurityTokenHandler();
@@ -110,10 +95,9 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             return int.TryParse(claim, out var id) ? id : 0;
         }
-        
+
         public async Task DownloadClientsCsvAsync()
         {
-            await SetAuthHeader();
             var response = await _http.GetAsync("api/export/clients");
 
             if (response.IsSuccessStatusCode)

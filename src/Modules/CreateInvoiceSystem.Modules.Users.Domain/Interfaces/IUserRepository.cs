@@ -23,4 +23,5 @@ public interface IUserRepository : ISaveChangesContext
     Task AddSessionAsync(UserSession session, CancellationToken cancellationToken);
     Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken);
     public Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken);
+    Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken);
 }
