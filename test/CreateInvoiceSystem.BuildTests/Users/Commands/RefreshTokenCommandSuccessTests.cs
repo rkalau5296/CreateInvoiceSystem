@@ -46,7 +46,7 @@ namespace CreateInvoiceSystem.BuildTests.Users.Commands
             expiredSession.IsRevoked.Should().BeTrue();
 
             _userRepositoryMock.Verify(x =>
-                x.UpdateSessionActivityAsync(expiredSession, It.IsAny<CancellationToken>()),
+                x.UpdateSessionAsync(expiredSession, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -100,11 +100,10 @@ namespace CreateInvoiceSystem.BuildTests.Users.Commands
             result.Should().NotBeNull();
             result.AccessToken.Should().Be("new-access-token");
             result.RefreshToken.Should().Be(newRefreshToken);
-
+                        
             _userRepositoryMock.Verify(x =>
-                x.UpdateSessionActivityAsync(activeSession, It.IsAny<CancellationToken>()),
+                x.UpdateSessionAsync(activeSession, It.IsAny<CancellationToken>()),
                 Times.Once);
-
             activeSession.IsRevoked.Should().BeFalse();
         }
     }
