@@ -135,16 +135,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         try
-        {
-            var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                token = token.Trim('"');
-                Http.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
+        {            
             var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
 
             if (response?.Data != null)
@@ -169,8 +160,8 @@ else
                 };
             }
         }
-        catch (Exception)
-        {
+        catch (Exception ex)
+        {            
             statusMessage = "Błąd autoryzacji sesji.";
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();

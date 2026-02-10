@@ -67,11 +67,15 @@ namespace CreateInvoiceSystem.Frontend
             builder.Services.AddScoped<CustomAuthStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
                 sp.GetRequiredService<CustomAuthStateProvider>());
-
-            builder.Services.AddScoped(sp => new HttpClient
+            
+            builder.Services.AddHttpClient("FullAccessClient", client =>
             {
-                BaseAddress = new Uri("https://localhost:7168/")
-            });
+                client.BaseAddress = new Uri("https://localhost:7168/");
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
+
+            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("FullAccessClient"));
+
             await builder.Build().RunAsync();
         }
     }
