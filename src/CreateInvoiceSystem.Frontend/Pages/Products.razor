@@ -1,6 +1,7 @@
 ﻿@page "/products"
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
+@using System.ComponentModel.DataAnnotations
 @inject ProductService ProductService
 
 <div class="container-fluid">
@@ -28,7 +29,7 @@
             </div>
         </div>
 
-        <div class="col-md-6 text-end">  
+        <div class="col-md-6 text-end">
             <button class="btn btn-outline-secondary me-2" @onclick="ExportToCsv">
                 <i class="bi bi-file-earmark-spreadsheet me-1"></i> Eksportuj CSV
             </button>
@@ -37,37 +38,43 @@
             </button>
         </div>
     </div>
-    
+
     @if (_isModalOpen)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog shadow-lg">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Dodaj Nowy Produkt</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nazwa produktu</label>
-                            <input type="text" class="form-control" @bind="_newProduct.Name" placeholder="np. Kawa" />
+                    <EditForm Model="_newProduct" OnValidSubmit="HandleSave">
+                        <DataAnnotationsValidator />
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Dodaj Nowy Produkt</h5>
+                            <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Opis</label>
-                            <textarea class="form-control" @bind="_newProduct.Description" placeholder="Opcjonalny opis..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Cena</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" class="form-control" @bind="_newProduct.Value" />
-                                <span class="input-group-text">PLN</span>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nazwa produktu <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="_newProduct.Name" placeholder="np. Kawa" />
+                                <ValidationMessage For="@(() => _newProduct.Name)" class="text-danger small" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Opis</label>
+                                <InputTextArea class="form-control" @bind-Value="_newProduct.Description" placeholder="Opcjonalny opis..." />
+                                <ValidationMessage For="@(() => _newProduct.Description)" class="text-danger small" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cena <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <InputNumber class="form-control" @bind-Value="_newProduct.Value" />
+                                    <span class="input-group-text">PLN</span>
+                                </div>
+                                <ValidationMessage For="@(() => _newProduct.Value)" class="text-danger small" />
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
-                        <button type="button" class="btn btn-success px-4" @onclick="HandleSave">Zapisz produkt</button>
-                    </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
+                            <button type="submit" class="btn btn-success px-4">Zapisz produkt</button>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
         </div>
@@ -79,10 +86,10 @@
             <table class="table table-hover mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>Nazwa</th>
-                        <th>Opis</th>
-                        <th class="text-end">Cena</th>
-                        <th class="text-center">Akcje</th>
+                        <th style="width: 25%">Nazwa</th>
+                        <th style="width: 40%">Opis</th>
+                        <th style="width: 15%" class="text-end">Cena</th>
+                        <th style="width: 20%" class="text-center">Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,28 +108,40 @@
                             <tr>
                                 @if (_editingProductId == p.ProductId)
                                 {
-                                    <td><input class="form-control form-control-sm" @bind="_editModel.Name" /></td>
-                                    <td><input class="form-control form-control-sm" @bind="_editModel.Description" /></td>
-                                    <td class="text-end"><input type="number" step="0.01" class="form-control form-control-sm text-end" @bind="_editModel.Value" /></td>
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-success px-3 shadow-sm" @onclick="SaveEdit">
-                                                <i class="bi bi-check-lg"></i> Zapisz
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
-                                                Anuluj
-                                            </button>
-                                        </div>
+                                    <td colspan="4" class="bg-light p-2 border-primary shadow-sm">
+                                        <EditForm Model="_editModel" OnValidSubmit="SaveEdit">
+                                            <DataAnnotationsValidator />
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="flex-grow-1">
+                                                    <InputText class="form-control form-control-sm" @bind-Value="_editModel.Name" placeholder="Nazwa" />
+                                                    <ValidationMessage For="@(() => _editModel.Name)" class="text-danger tiny" />
+                                                </div>
+                                                <div style="flex-grow: 2;">
+                                                    <InputText class="form-control form-control-sm" @bind-Value="_editModel.Description" placeholder="Opis" />
+                                                </div>
+                                                <div style="width: 120px;">
+                                                    <InputNumber class="form-control form-control-sm text-end" @bind-Value="_editModel.Value" />
+                                                    <ValidationMessage For="@(() => _editModel.Value)" class="text-danger tiny" />
+                                                </div>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
+                                                        <i class="bi bi-check-lg"></i> Zapisz
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
+                                                        Anuluj
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </EditForm>
                                     </td>
                                 }
                                 else
                                 {
                                     <td class="align-middle"><strong>@p.Name</strong></td>
-                                    <td class="align-middle">@p.Description</td>
+                                    <td class="align-middle text-truncate" style="max-width: 300px;">@p.Description</td>
                                     <td class="align-middle text-end">@p.Value?.ToString("N2") PLN</td>
                                     <td class="text-center align-middle">
                                         <div class="d-flex justify-content-center gap-2">
-                                            
                                             <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => StartEdit(p)">
                                                 <i class="bi bi-pencil-square me-1"></i> Edytuj
                                             </button>
@@ -140,6 +159,12 @@
         </div>
     </div>
 </div>
+
+<style>
+    .tiny {
+        font-size: 0.75rem;
+    }
+</style>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
@@ -159,12 +184,12 @@
                 </select>
             </div>
 
-            <div class="btn-group">                
+            <div class="btn-group">
                 <button class="btn btn-sm btn-outline-primary px-3"
                         @onclick="() => ChangePage(_currentPage - 1)"
                         disabled="@(_currentPage <= 1)">
                     <i class="bi bi-chevron-left me-1"></i> Poprzednia
-                </button>                
+                </button>
                 <button class="btn btn-sm btn-outline-primary px-3"
                         @onclick="() => ChangePage(_currentPage + 1)"
                         disabled="@(_currentPage >= _totalPages)">
@@ -187,10 +212,10 @@
     private string _searchTerm = "";
     private System.Timers.Timer? _searchTimer;
     private bool _isModalOpen = false;
-    
+
     private void OpenAddModal()
     {
-        _newProduct = new ProductDto { Name = "", Value = 0, Description = "" };
+        _newProduct = new ProductDto { Name = "", Value = null, Description = "" };
         _isModalOpen = true;
     }
 
@@ -206,12 +231,10 @@
 
     private async Task HandleSave()
     {
-        if (string.IsNullOrWhiteSpace(_newProduct.Name)) return;
-
         try
         {
             await ProductService.SaveProductAsync(_newProduct);
-            _isModalOpen = false; 
+            _isModalOpen = false;
             _newProduct = new ProductDto();
             await LoadData();
         }
@@ -220,7 +243,7 @@
             Console.WriteLine($"Błąd zapisu: {ex.Message}");
         }
     }
-    
+
     private void HandleSearch()
     {
         _searchTimer?.Stop();
@@ -271,19 +294,18 @@
 
     private async Task SaveEdit()
     {
-        try { await ProductService.UpdateProductAsync(_editModel); _editingProductId = null; await LoadData(); }
+        try
+        {
+            await ProductService.UpdateProductAsync(_editModel);
+            _editingProductId = null;
+            await LoadData();
+        }
         catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
     }
 
     private async Task ExportToCsv()
     {
-        try
-        {
-            await ProductService.DownloadProductsCsvAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Błąd eksportu: {ex.Message}");
-        }
+        try { await ProductService.DownloadProductsCsvAsync(); }
+        catch (Exception ex) { Console.WriteLine($"Błąd eksportu: {ex.Message}"); }
     }
 }
