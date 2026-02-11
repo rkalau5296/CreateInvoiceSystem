@@ -59,15 +59,14 @@ public class GetClientsQueryTests
     }
 
     [Fact]
-    public async Task Execute_ShouldThrowInvalidOperationException_WhenTotalCountIsZero()
+    public async Task Execute_ShouldThrowInvalidOperationException_WhenRepositoryReturnsNull()
     {
         // Arrange
         var pageNumber = 1;
         var pageSize = 10;
-        var emptyPagedResult = new PagedResult<Client>(new List<Client>(), 0, pageNumber, pageSize);
         
         _repositoryMock.Setup(r => r.GetAllAsync(It.IsAny<int?>(), pageNumber, pageSize, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyPagedResult);
+            .ReturnsAsync((PagedResult<Client>)null!);
 
         var query = new GetClientsQuery(null, pageNumber, pageSize, null);
 

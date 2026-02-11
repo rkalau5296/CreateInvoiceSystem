@@ -3,13 +3,15 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 
-public class UserEmailAdapter(IEmailService emailService) : IUserEmailSender
+public class UserEmailAdapter(IEmailService emailService, IConfiguration _configuration) : IUserEmailSender
 {
     public async Task SendResetPasswordEmailAsync(string email, string token)
-    {      
+    {
         var escapedToken = Uri.EscapeDataString(token);
+        
+        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
 
-        var resetLink = $"https://localhost:7022/reset-password?token={escapedToken}&email={email}";
+        var resetLink = $"{frontendUrl}/reset-password?token={escapedToken}&email={email}";
 
         await emailService.SendResetPasswordEmailAsync(email, resetLink);
     }

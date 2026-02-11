@@ -16,41 +16,46 @@ namespace CreateInvoiceSystem.Frontend
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
+            // Pobieramy adres z appsettings.json
+            var apiBaseAddress = builder.Configuration["BaseApiUrl"] ?? "https://localhost:7168/";
+            var apiUri = new Uri(apiBaseAddress);
+
             builder.Services.AddTransient<AuthenticationHeaderHandler>();
             builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();
 
+            // Rejestracja us³ug z u¿yciem zmiennej apiUri
             builder.Services.AddHttpClient<InvoiceService>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
             builder.Services.AddHttpClient<ClientService>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
             builder.Services.AddHttpClient<ProductService>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
             builder.Services.AddHttpClient<UserService>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
             builder.Services.AddHttpClient<NbpService>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             });
 
             builder.Services.AddHttpClient("AuthClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             });
 
             builder.Services.AddScoped<AuthService>(sp =>
@@ -67,10 +72,10 @@ namespace CreateInvoiceSystem.Frontend
             builder.Services.AddScoped<CustomAuthStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
                 sp.GetRequiredService<CustomAuthStateProvider>());
-            
+
             builder.Services.AddHttpClient("FullAccessClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7168/");
+                client.BaseAddress = apiUri;
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
