@@ -10,12 +10,6 @@ public class GetClientsQuery(int? userId, int pageNumber, int pageSize, string? 
 
     public override async Task<PagedResult<Client>> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
     {
-        var clients = await _clientRepository.GetAllAsync(UserId, pageNumber, pageSize, searchTerm,cancellationToken) ?? throw new InvalidOperationException("List of clients is empty.");
-
-        var clientsList = clients.Items.ToList();
-
-        return clients.TotalCount == 0
-            ? throw new InvalidOperationException("List of clients is empty.")
-            : clients;
+        return await _clientRepository.GetAllAsync(UserId, pageNumber, pageSize, searchTerm,cancellationToken) ?? throw new InvalidOperationException("List of clients is empty.");       
     }
 }
