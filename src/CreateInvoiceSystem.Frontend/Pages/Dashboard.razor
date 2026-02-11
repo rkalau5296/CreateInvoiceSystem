@@ -1,4 +1,5 @@
 ﻿@page "/dashboard"
+@using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @inject NavigationManager Navigation
 @inject InvoiceService InvoiceService
@@ -74,7 +75,7 @@ else
             </div>
         </div>
 
-        <div class="row">
+        <div class="row mb-5">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white fw-bold py-3">
@@ -87,6 +88,82 @@ else
                         <button class="btn btn-outline-primary px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>
                             <i class="bi bi-list-ul me-2"></i> Przeglądaj faktury
                         </button>
+                        <button class="btn btn-outline-secondary px-4" @onclick='() => Navigation.NavigateTo("/clients")'>
+                            <i class="bi bi-person-plus me-2"></i> Kontrahenci
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-clock-history me-2 text-primary"></i>Ostatnie faktury
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">Numer</th>
+                                        <th>Klient</th>
+                                        <th>Data</th>
+                                        <th class="text-end pe-3">Kwota</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_recentInvoices.Any())
+                                    {
+                                        @foreach (var inv in _recentInvoices)
+                                        {
+                                            <tr>
+                                                <td class="ps-3 fw-medium">@inv.Title</td>
+                                                <td>@inv.ClientName</td>
+                                                <td>@inv.CreatedDate.ToShortDateString()</td>
+                                                <td class="text-end pe-3 fw-bold">@inv.TotalGross.ToString("N2")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">Brak wystawionych faktur</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-person-badge me-2 text-info"></i>Najnowsi klienci
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            @if (_recentClients.Any())
+                            {
+                                @foreach (var client in _recentClients)
+                                {
+                                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold">@client.Name</div>
+                                            <small class="text-muted">NIP: @client.Nip</small>
+                                        </div>
+                                        <span class="badge bg-light text-dark border">@client.Name</span>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item text-center py-4 text-muted">Brak kontrahentów</li>
+                            }
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -98,12 +175,12 @@ else
     .animate-fade-in {
         animation: fadeIn 0.5s ease-in;
     }
-
     @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(10px);
     }
 
     to {
@@ -116,6 +193,11 @@ else
     .welcome-container {
         min-height: 60vh;
     }
+
+    .table-hover tbody tr:hover {
+        cursor: pointer;
+        background-color: rgba(0,0,0,0.02);
+    }
 </style>
 
 @code {
@@ -126,6 +208,9 @@ else
     private int _productCount = 0;
     private bool _isLoading = true;
 
+    private List<InvoiceDto> _recentInvoices = new();
+    private List<ClientDto> _recentClients = new();
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
@@ -133,35 +218,31 @@ else
         {
             var userTask = AuthService.GetMySettingsAsync();
             var invoiceTask = InvoiceService.GetInvoicesAsync(1, 100, "");
-            var clientTask = ClientService.GetClientsAsync(1, 1, "");
+            var clientTask = ClientService.GetClientsAsync(1, 5, "");
             var productTask = ProductService.GetProductsAsync(1, 1, "");
 
             await Task.WhenAll(userTask, invoiceTask, clientTask, productTask);
 
             var userResponse = await userTask;
-            if (userResponse?.Data != null)
-            {
-                _userName = userResponse.Data.Name;
-            }
+            if (userResponse?.Data != null) _userName = userResponse.Data.Name;
 
             var invoiceResponse = await invoiceTask;
             if (invoiceResponse != null)
             {
                 _invoiceCount = invoiceResponse.TotalCount;
                 _totalGross = invoiceResponse.Data.Sum(x => x.TotalGross);
+                _recentInvoices = invoiceResponse.Data.OrderByDescending(x => x.CreatedDate).Take(5).ToList();
             }
 
             var clientResponse = await clientTask;
             if (clientResponse != null)
             {
                 _clientCount = clientResponse.TotalCount;
+                _recentClients = clientResponse.Data.Take(5).ToList();
             }
 
             var productResponse = await productTask;
-            if (productResponse != null)
-            {
-                _productCount = productResponse.TotalCount;
-            }
+            if (productResponse != null) _productCount = productResponse.TotalCount;
         }
         catch (Exception ex)
         {
