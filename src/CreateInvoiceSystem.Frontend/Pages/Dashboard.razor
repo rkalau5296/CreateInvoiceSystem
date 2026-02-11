@@ -2,6 +2,8 @@
 @using CreateInvoiceSystem.Frontend.Services
 @inject NavigationManager Navigation
 @inject InvoiceService InvoiceService
+@inject ClientService ClientService
+@inject ProductService ProductService
 @inject AuthService AuthService
 
 @if (_isLoading)
@@ -26,7 +28,7 @@ else
         </div>
 
         <div class="row g-4 mb-5">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm bg-primary text-white p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -37,7 +39,7 @@ else
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm bg-success text-white p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -48,7 +50,7 @@ else
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm bg-info text-white p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -59,10 +61,21 @@ else
                     </div>
                 </div>
             </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-warning text-white p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50">Liczba produktów</h6>
+                            <h3 class="fw-bold mb-0">@_productCount</h3>
+                        </div>
+                        <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white fw-bold py-3">
                         <i class="bi bi-lightning-charge me-2 text-warning"></i>Szybkie akcje
@@ -91,11 +104,13 @@ else
             opacity: 0;
             transform: translateY(10px);
         }
+    }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .welcome-container {
@@ -108,26 +123,45 @@ else
     private decimal _totalGross = 0;
     private int _invoiceCount = 0;
     private int _clientCount = 0;
+    private int _productCount = 0;
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
         try
-        {            
-            var userResponse = await AuthService.GetMySettingsAsync();
+        {
+            var userTask = AuthService.GetMySettingsAsync();
+            var invoiceTask = InvoiceService.GetInvoicesAsync(1, 100, "");
+            var clientTask = ClientService.GetClientsAsync(1, 1, "");
+            var productTask = ProductService.GetProductsAsync(1, 1, "");
+
+            await Task.WhenAll(userTask, invoiceTask, clientTask, productTask);
+
+            var userResponse = await userTask;
             if (userResponse?.Data != null)
             {
                 _userName = userResponse.Data.Name;
             }
-         
-            var response = await InvoiceService.GetInvoicesAsync(1, 100, "");
-            if (response != null)
+
+            var invoiceResponse = await invoiceTask;
+            if (invoiceResponse != null)
             {
-                _invoiceCount = response.TotalCount;
-                _totalGross = response.Data.Sum(x => x.TotalGross);
+                _invoiceCount = invoiceResponse.TotalCount;
+                _totalGross = invoiceResponse.Data.Sum(x => x.TotalGross);
             }
-            
+
+            var clientResponse = await clientTask;
+            if (clientResponse != null)
+            {
+                _clientCount = clientResponse.TotalCount;
+            }
+
+            var productResponse = await productTask;
+            if (productResponse != null)
+            {
+                _productCount = productResponse.TotalCount;
+            }
         }
         catch (Exception ex)
         {
