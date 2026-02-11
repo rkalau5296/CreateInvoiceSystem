@@ -63,19 +63,28 @@
 
             var result = await AuthService.LoginAsync(_loginRequest);
 
-            if (result != null && !string.IsNullOrEmpty(result.Token))
+            if (result is { IsSuccess: true } && !string.IsNullOrEmpty(result.Token))
             {
-                _statusMessage = "Zalogowano!";                
-                await Task.Yield();
+                _statusMessage = "Zalogowano!";
+
+                string storage = _loginRequest.Dto.RememberMe ? "localStorage" : "sessionStorage";
+
+                await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+
+                await JS.InvokeVoidAsync($"{storage}.setItem", "authToken", result.Token);
+
+                if (!string.IsNullOrEmpty(result.RefreshToken))
+                {
+                    await JS.InvokeVoidAsync($"{storage}.setItem", "refreshToken", result.RefreshToken);
+                }
+
+                await Task.Delay(500);
                 Navigation.NavigateTo("/dashboard");
-            }
-            else if (result != null && !result.IsSuccess)
-            {
-                _statusMessage = $"Błąd: {result.Message}";
             }
             else
             {
-                _statusMessage = "Błąd: Nieprawidłowa odpowiedź serwera.";
+                _statusMessage = $"Błąd: {result?.Message ?? "Nieprawidłowe dane logowania."}";
             }
         }
         catch (Exception ex)

@@ -62,8 +62,12 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public void NotifyUserAuthentication(string token)
-        {
-            var authUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "User") }, "jwt"));
+        {            
+            var claims = ParseClaimsFromJwt(token);
+            var authUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+         
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var authState = Task.FromResult(new AuthenticationState(authUser));
             NotifyAuthenticationStateChanged(authState);
         }

@@ -34,19 +34,23 @@ namespace CreateInvoiceSystem.Frontend.Services
             if (!response.IsSuccessStatusCode) return null;
 
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (result != null && !string.IsNullOrEmpty(result.Token))
+            if (result is { IsSuccess: true } && !string.IsNullOrEmpty(result.Token))
             {
                 string storageType = request.Dto.RememberMe ? "localStorage" : "sessionStorage";
-                string alternativeStorage = request.Dto.RememberMe ? "sessionStorage" : "localStorage";
-                                
-                await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "authToken");
-                await _jsRuntime.InvokeVoidAsync($"{alternativeStorage}.removeItem", "refreshToken");
-                                
+
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
+
                 await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", result.Token);
-                await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", result.RefreshToken);
+                if (!string.IsNullOrEmpty(result.RefreshToken))
+                {
+                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", result.RefreshToken);
+                }
 
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
-                _authStateProvider.NotifyUserAuthentication(result.Token);
+                ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
             }
             return result;
         }
@@ -54,7 +58,10 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task LogoutAsync()
         {
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+
             await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+            await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
 
             _httpClient.DefaultRequestHeaders.Authorization = null;
             _authStateProvider.NotifyUserLogout();
