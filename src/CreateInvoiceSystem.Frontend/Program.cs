@@ -15,15 +15,13 @@ namespace CreateInvoiceSystem.Frontend
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
-
-            // Pobieramy adres z appsettings.json
+            
             var apiBaseAddress = builder.Configuration["BaseApiUrl"] ?? "https://localhost:7168/";
             var apiUri = new Uri(apiBaseAddress);
 
             builder.Services.AddTransient<AuthenticationHeaderHandler>();
             builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();
-
-            // Rejestracja us³ug z u¿yciem zmiennej apiUri
+            
             builder.Services.AddHttpClient<InvoiceService>(client =>
             {
                 client.BaseAddress = apiUri;

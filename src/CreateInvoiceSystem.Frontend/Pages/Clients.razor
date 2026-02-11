@@ -1,6 +1,7 @@
 ﻿@page "/clients"
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
+@using System.ComponentModel.DataAnnotations
 @inject ClientService ClientService
 
 <div class="container-fluid">
@@ -43,45 +44,60 @@
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog modal-lg shadow-lg">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">@(_isEditMode ? "Edytuj Kontrahenta" : "Nowy Kontrahent")</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold">Nazwa firmy</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Name" />
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">NIP</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Nip" />
-                            </div>
-                            <hr class="my-2 text-muted" />
-                            <div class="col-md-9">
-                                <label class="form-label fw-bold">Ulica</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Address.Street" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold">Numer</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Address.Number" />
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Kod pocztowy</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Address.PostalCode" />
-                            </div>
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold">Miasto</label>
-                                <input type="text" class="form-control" @bind="_editingClient.Address.City" />
+                    <EditForm EditContext="_editContext" OnSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">@(_isEditMode ? "Edytuj Kontrahenta" : "Nowy Kontrahent")</h5>
+                            <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">Nazwa firmy <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Name" />
+                                    <ValidationMessage For="@(() => _editingClient.Name)" class="text-danger small" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">NIP <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Nip" />
+                                    <ValidationMessage For="@(() => _editingClient.Nip)" class="text-danger small" />
+                                </div>
+
+                                <hr class="my-2 text-muted" />
+                                <h6 class="text-muted mb-2">Adres kontrahenta</h6>
+
+                                <div class="col-md-9">
+                                    <label class="form-label fw-bold">Ulica <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Address.Street" />
+                                    <ValidationMessage For="@(() => _editingClient.Address.Street)" class="text-danger small" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Numer <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Address.Number" />
+                                    <ValidationMessage For="@(() => _editingClient.Address.Number)" class="text-danger small" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Address.PostalCode" />
+                                    <ValidationMessage For="@(() => _editingClient.Address.PostalCode)" class="text-danger small" />
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">Miasto <span class="text-danger">*</span></label>
+                                    <InputText class="form-control" @bind-Value="_editingClient.Address.City" />
+                                    <ValidationMessage For="@(() => _editingClient.Address.City)" class="text-danger small" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
-                        <button class="btn btn-success px-4" @onclick="HandleSave">
-                            <i class="bi bi-check-circle me-1"></i> Zapisz
-                        </button>
-                    </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-check-circle me-1"></i> Zapisz
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
         </div>
@@ -190,6 +206,7 @@
     private bool _isModalOpen = false;
     private bool _isEditMode = false;
     private System.Timers.Timer? _searchTimer;
+    private EditContext? _editContext;
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
@@ -198,7 +215,7 @@
         var response = await ClientService.GetClientsAsync(_currentPage, _pageSize, _searchTerm);
         _clients = response.Data;
         _totalCount = response.TotalCount;
-        
+
         if (_clients != null)
         {
             foreach (var client in _clients.Where(c => c.Address == null))
@@ -230,7 +247,7 @@
         _currentPage = 1;
         await LoadData();
     }
-  
+
     private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
 
     private async Task ChangePageSize(ChangeEventArgs e)
@@ -247,12 +264,13 @@
     {
         _isEditMode = false;
         _editingClient = new ClientDto { Address = new AddressDto() };
+        _editContext = new EditContext(_editingClient);
         _isModalOpen = true;
     }
 
     private void OpenEditModal(ClientDto client)
     {
-        _isEditMode = true;        
+        _isEditMode = true;
         _editingClient = new ClientDto
         {
             ClientId = client.ClientId,
@@ -270,10 +288,43 @@
                 Country = client.Address?.Country ?? "Polska"
             }
         };
+        _editContext = new EditContext(_editingClient);
         _isModalOpen = true;
     }
 
     private void CloseModal() => _isModalOpen = false;
+
+    private async Task HandleSubmit()
+    {
+        var isValid = _editContext?.Validate() ?? false;
+
+        var isAddressValid = !string.IsNullOrWhiteSpace(_editingClient.Address.Street) &&
+                             !string.IsNullOrWhiteSpace(_editingClient.Address.Number) &&
+                             !string.IsNullOrWhiteSpace(_editingClient.Address.PostalCode) &&
+                             !string.IsNullOrWhiteSpace(_editingClient.Address.City);
+
+        if (isValid && isAddressValid)
+        {
+            await HandleSave();
+        }
+        else
+        {
+            if (!isAddressValid)
+            {
+                var messages = new ValidationMessageStore(_editContext!);
+                if (string.IsNullOrWhiteSpace(_editingClient.Address.Street))
+                    messages.Add(() => _editingClient.Address.Street, "Ulica jest wymagana");
+                if (string.IsNullOrWhiteSpace(_editingClient.Address.Number))
+                    messages.Add(() => _editingClient.Address.Number, "Numer jest wymagany");
+                if (string.IsNullOrWhiteSpace(_editingClient.Address.PostalCode))
+                    messages.Add(() => _editingClient.Address.PostalCode, "Kod pocztowy jest wymagany");
+                if (string.IsNullOrWhiteSpace(_editingClient.Address.City))
+                    messages.Add(() => _editingClient.Address.City, "Miasto jest wymagane");
+
+                _editContext?.NotifyValidationStateChanged();
+            }
+        }
+    }
 
     private async Task HandleSave()
     {
@@ -289,7 +340,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+            Console.WriteLine($"Błąd: {ex.Message}");
         }
     }
 
@@ -302,7 +353,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd usuwania: {ex.Message}");
+            Console.WriteLine($"Błąd: {ex.Message}");
         }
     }
 
