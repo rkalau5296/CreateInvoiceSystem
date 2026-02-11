@@ -9,18 +9,21 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CreateInvoiceSystem.API.Repositories.UserRepository;
 
 public class UserRepository : IUserRepository
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbContext _db;
     private readonly UserManager<UserEntity> _userManager;
 
-    public UserRepository(IDbContext db, UserManager<UserEntity> userManager)
+    public UserRepository(IDbContext db, UserManager<UserEntity> userManager, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken)
@@ -493,5 +496,36 @@ public class UserRepository : IUserRepository
             LastActivityAt = entity.LastActivityAt,
             IsRevoked = entity.IsRevoked
         };
+    }
+
+    public async Task<int> GetLoggedUserId(CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return 0;
+        }
+
+        return await Task.FromResult(userId);
+    }
+    public async Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string oldPassword, string newPassword)
+    {        
+        var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());
+
+        if (userEntity == null)
+        {
+            return (false, "Nie odnaleziono profilu użytkownika w systemie Identity.");
+        }
+        
+        var result = await _userManager.ChangePasswordAsync(userEntity, oldPassword, newPassword);
+
+        if (result.Succeeded)
+        {
+            return (true, null);
+        }
+        
+        var error = result.Errors.FirstOrDefault()?.Description ?? "Błąd podczas zmiany hasła.";
+        return (false, error);
     }
 }

@@ -1,13 +1,18 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ChangePassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
+using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using System.Threading;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
 
@@ -46,5 +51,12 @@ public class AuthController : ApiControllerBase
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
     {        
         return await HandleRequest<ResetPasswordRequest, ResetPasswordResponse>(request, cancellationToken);
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest dto, CancellationToken cancellationToken)
+    {
+        return await HandleRequest<ChangePasswordRequest, ChangePasswordResponse>(dto, cancellationToken);
     }
 }

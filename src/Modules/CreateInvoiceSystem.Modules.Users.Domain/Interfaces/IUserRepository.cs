@@ -24,4 +24,6 @@ public interface IUserRepository : ISaveChangesContext
     Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken);
     public Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken);
     Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken);
+    Task<int> GetLoggedUserId(CancellationToken ct);
+    Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 }
