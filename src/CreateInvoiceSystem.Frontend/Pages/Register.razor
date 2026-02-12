@@ -12,61 +12,72 @@
                     <h3 class="mb-0">Rejestracja konta firmowego</h3>
                 </div>
                 <div class="card-body p-4">
-                    <EditForm Model="regModel" OnValidSubmit="HandleRegister">
+                    <EditForm EditContext="_editContext" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalidSubmit">
                         <DataAnnotationsValidator />
 
                         <div class="row">
                             <div class="col-md-6 border-end">
                                 <h5 class="text-primary mb-3">Dane użytkownika</h5>
                                 <div class="mb-3">
-                                    <label class="form-label">Email / Login</label>
-                                    <InputText @bind-Value="regModel.Email" class="form-control" />
+                                    <label class="form-label">Email / Login <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Email" class="@($"form-control {GetFieldClass(() => regModel.Email)}")" />
+                                    <ValidationMessage For="@(() => regModel.Email)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Hasło</label>
-                                    <InputText @bind-Value="regModel.Password" type="password" class="form-control" />
+                                    <label class="form-label">Hasło <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Password" type="password" class="@($"form-control {GetFieldClass(() => regModel.Password)}")" />
+                                    <ValidationMessage For="@(() => regModel.Password)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Imię i Nazwisko</label>
-                                    <InputText @bind-Value="regModel.Name" class="form-control" />
+                                    <label class="form-label">Imię i Nazwisko <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Name" class="@($"form-control {GetFieldClass(() => regModel.Name)}")" />
+                                    <ValidationMessage For="@(() => regModel.Name)" class="text-danger small" />
                                 </div>
 
                                 <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
                                 <div class="mb-3">
-                                    <label class="form-label">Nazwa firmy</label>
-                                    <InputText @bind-Value="regModel.CompanyName" class="form-control" />
+                                    <label class="form-label">Nazwa firmy <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.CompanyName" class="@($"form-control {GetFieldClass(() => regModel.CompanyName)}")" />
+                                    <ValidationMessage For="@(() => regModel.CompanyName)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">NIP</label>
-                                    <InputText @bind-Value="regModel.Nip" class="form-control" />
+                                    <label class="form-label">NIP <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Nip" class="@($"form-control {GetFieldClass(() => regModel.Nip)}")" />
+                                    <ValidationMessage For="@(() => regModel.Nip)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Konto bankowe</label>
-                                    <InputText @bind-Value="regModel.BankAccountNumber" class="form-control" />
+                                    <label class="form-label">Konto bankowe <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.BankAccountNumber" class="@($"form-control {GetFieldClass(() => regModel.BankAccountNumber)}")" />
+                                    <ValidationMessage For="@(() => regModel.BankAccountNumber)" class="text-danger small" />
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <h5 class="text-primary mb-3">Adres siedziby</h5>
                                 <div class="mb-3">
-                                    <label class="form-label">Ulica</label>
-                                    <InputText @bind-Value="regModel.Address.Street" class="form-control" />
+                                    <label class="form-label">Ulica <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Address.Street" class="@($"form-control {GetFieldClass(() => regModel.Address.Street)}")" />
+                                    <ValidationMessage For="@(() => regModel.Address.Street)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Numer budynku</label>
-                                    <InputText @bind-Value="regModel.Address.Number" class="form-control" />
+                                    <label class="form-label">Numer budynku <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Address.Number" class="@($"form-control {GetFieldClass(() => regModel.Address.Number)}")" />
+                                    <ValidationMessage For="@(() => regModel.Address.Number)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Kod pocztowy</label>
-                                    <InputText @bind-Value="regModel.Address.PostalCode" class="form-control" />
+                                    <label class="form-label">Kod pocztowy <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Address.PostalCode" class="@($"form-control {GetFieldClass(() => regModel.Address.PostalCode)}")" />
+                                    <ValidationMessage For="@(() => regModel.Address.PostalCode)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Miasto</label>
-                                    <InputText @bind-Value="regModel.Address.City" class="form-control" />
+                                    <label class="form-label">Miasto <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Address.City" class="@($"form-control {GetFieldClass(() => regModel.Address.City)}")" />
+                                    <ValidationMessage For="@(() => regModel.Address.City)" class="text-danger small" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Kraj</label>
-                                    <InputText @bind-Value="regModel.Address.Country" class="form-control" />
+                                    <label class="form-label">Kraj <span class="text-danger">*</span></label>
+                                    <InputText @bind-Value="regModel.Address.Country" class="@($"form-control {GetFieldClass(() => regModel.Address.Country)}")" />
+                                    <ValidationMessage For="@(() => regModel.Address.Country)" class="text-danger small" />
                                 </div>
                             </div>
                         </div>
@@ -102,28 +113,116 @@
 </div>
 
 @code {
-    private RegisterUserDto regModel = new();
+    private RegisterUserDto regModel = new() { Address = new RegisterAddressDto() };
     private bool isSubmitting = false;
     private string statusMessage = "";
     private bool isError = false;
 
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _messageStore = default!;
+    private bool _submitAttempted = false;
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(regModel);
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnFieldChanged += (s, e) =>
+        {
+            _messageStore.Clear(e.FieldIdentifier);
+            _editContext.NotifyValidationStateChanged();
+        };
+    }
+
+    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    {
+        var fieldId = FieldIdentifier.Create(accessor);
+        
+        if (_editContext.GetValidationMessages(fieldId).Any())
+            return "is-invalid";
+        
+        var fieldTouchedOrSubmitted = _submitAttempted || _editContext.IsModified(fieldId);
+        if (!fieldTouchedOrSubmitted)
+            return "";
+        
+        T? value;
+        try
+        {
+            value = accessor.Compile().Invoke();
+        }
+        catch
+        {
+            value = default;
+        }
+
+        bool hasValue;
+        if (value is string s)
+            hasValue = !string.IsNullOrWhiteSpace(s);
+        else
+            hasValue = !EqualityComparer<T?>.Default.Equals(value, default);
+        
+        if (hasValue)
+            return "is-valid";
+        
+        return "is-invalid";
+    }
+
+    private void HandleInvalidSubmit(EditContext context)
+    {
+        _submitAttempted = true;
+        statusMessage = "Uzupełnij wymagane pola.";
+        isError = true;
+        _editContext.NotifyValidationStateChanged();
+    }
+
     private async Task HandleRegister()
     {
-        if (string.IsNullOrWhiteSpace(regModel.Email) || string.IsNullOrWhiteSpace(regModel.Password))
+        _submitAttempted = true;
+        _messageStore.Clear();
+        isError = false;
+        statusMessage = "";
+        
+        if (string.IsNullOrWhiteSpace(regModel.Email))
+            _message_store_add(() => regModel.Email, "Wymagane");
+        if (string.IsNullOrWhiteSpace(regModel.Password))
+            _message_store_add(() => regModel.Password, "Wymagane");
+        if (string.IsNullOrWhiteSpace(regModel.Name))
+            _message_store_add(() => regModel.Name, "Wymagane");
+        if (string.IsNullOrWhiteSpace(regModel.CompanyName))
+            _message_store_add(() => regModel.CompanyName, "Wymagane");
+        if (string.IsNullOrWhiteSpace(regModel.Nip))
+            _message_store_add(() => regModel.Nip, "Wymagane");
+
+        if (regModel.Address == null)
         {
-            statusMessage = "Pola Email i Hasło nie mogą być puste.";
+            _messageStore.Add(new FieldIdentifier(regModel, nameof(regModel.Address)), "Adres jest wymagany");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(regModel.Address.Street))
+                _message_store_add(() => regModel.Address.Street, "Wymagane");
+            if (string.IsNullOrWhiteSpace(regModel.Address.Number))
+                _message_store_add(() => regModel.Address.Number, "Wymagane");
+            if (string.IsNullOrWhiteSpace(regModel.Address.PostalCode))
+                _message_store_add(() => regModel.Address.PostalCode, "Wymagane");
+            if (string.IsNullOrWhiteSpace(regModel.Address.City))
+                _message_store_add(() => regModel.Address.City, "Wymagane");
+            if (string.IsNullOrWhiteSpace(regModel.Address.Country))
+                _message_store_add(() => regModel.Address.Country, "Wymagane");
+        }
+
+        _editContext.NotifyValidationStateChanged();
+
+        if (_editContext.GetValidationMessages().Any())
+        {
+            statusMessage = "Uzupełnij wymagane pola.";
             isError = true;
             return;
         }
 
         isSubmitting = true;
-        statusMessage = "";
-        isError = false;
-
-        var request = new RegisterUserRequest(regModel);
-
         try
         {
+            var request = new RegisterUserRequest(regModel);
             var response = await Http.PostAsJsonAsync("api/Auth/register", request);
 
             if (response.IsSuccessStatusCode)
@@ -133,7 +232,8 @@
                 if (result != null && result.Success)
                 {
                     statusMessage = "Konto zostało utworzone pomyślnie!";
-                    await Task.Delay(2000);
+                    isError = false;
+                    await Task.Delay(1500);
                     Navigation.NavigateTo("/");
                 }
                 else
@@ -156,6 +256,13 @@
         finally
         {
             isSubmitting = false;
+            StateHasChanged();
         }
+    }
+    
+    private void _message_store_add<T>(System.Linq.Expressions.Expression<Func<T>> accessor, string message)
+    {
+        var field = FieldIdentifier.Create(accessor);
+        _messageStore.Add(field, message);
     }
 }

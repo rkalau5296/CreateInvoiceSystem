@@ -14,25 +14,36 @@
                 <div class="card-body">
                     <h3 class="card-title text-center mb-4">Logowanie</h3>
 
-                    <div class="form-group mb-3">
-                        <label class="form-label">Email:</label>
-                        <input type="email" class="form-control" @bind="_loginRequest.Dto.Email" placeholder="email@przyklad.pl" />
-                    </div>
+                    <EditForm EditContext="_editContext" OnValidSubmit="HandleLoginSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+                        <DataAnnotationsValidator />
 
-                    <div class="form-group mb-3">
-                        <label class="form-label">Hasło:</label>
-                        <input type="password" class="form-control" @bind="_loginRequest.Dto.Password" />
-                    </div>
-
-                    <div class="form-group mb-3 d-flex justify-content-between align-items-center">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="rememberMe" @bind="_loginRequest.Dto.RememberMe" />
-                            <label class="form-check-label" for="rememberMe">Zapamiętaj mnie</label>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Email: <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="_loginRequest.Dto.Email"
+                                       type="email"
+                                       class="@($"form-control {GetFieldClass(() => _loginRequest.Dto.Email)}")"
+                                       placeholder="email@przyklad.pl" />
+                            <ValidationMessage For="@(() => _loginRequest.Dto.Email)" class="text-danger small" />
                         </div>
-                        <a href="/forgot-password" class="text-decoration-none small">Zapomniałeś hasła?</a>
-                    </div>
 
-                    <button class="btn btn-primary w-100 mb-3" @onclick="HandleLogin">Zaloguj</button>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Hasło: <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="_loginRequest.Dto.Password"
+                                       type="password"
+                                       class="@($"form-control {GetFieldClass(() => _loginRequest.Dto.Password)}")" />
+                            <ValidationMessage For="@(() => _loginRequest.Dto.Password)" class="text-danger small" />
+                        </div>
+
+                        <div class="form-group mb-3 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="_loginRequest.Dto.RememberMe" class="form-check-input" id="rememberMe" />
+                                <label class="form-check-label" for="rememberMe">Zapamiętaj mnie</label>
+                            </div>
+                            <a href="/forgot-password" class="text-decoration-none small">Zapomniałeś hasła?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Zaloguj</button>
+                    </EditForm>
 
                     <div class="text-center">
                         <span class="text-muted small">Nie masz konta?</span>
@@ -54,11 +65,44 @@
 @code {
     private LoginRequest _loginRequest = new LoginRequest { Dto = new LoginUserDto() };
     private string _statusMessage = "";
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _messageStore = default!;
 
-    private async Task HandleLogin()
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_loginRequest.Dto);
+        _messageStore = new ValidationMessageStore(_edit_context());
+        _editContext.OnFieldChanged += (s, e) =>
+        {
+            _messageStore.Clear(e.FieldIdentifier);
+            _editContext.NotifyValidationStateChanged();
+        };
+
+        EditContext _edit_context() => _editContext;
+    }
+
+    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    {
+        var fieldId = FieldIdentifier.Create(accessor);
+        var fieldHasErrors = _editContext.GetValidationMessages(fieldId).Any();
+        if (fieldHasErrors) return "is-invalid";
+
+        if (_editContext.GetValidationMessages().Any()) return "is-valid";
+
+        return "";
+    }
+
+    private void HandleInvalidSubmit(EditContext context)
+    {
+        _statusMessage = "Błąd: uzupełnij wymagane pola.";        
+        _editContext.NotifyValidationStateChanged();
+    }
+
+    private async Task HandleLoginSubmit()
     {
         try
         {
+            _messageStore.Clear();
             _statusMessage = "Łączenie z serwerem...";
 
             var result = await AuthService.LoginAsync(_loginRequest);
