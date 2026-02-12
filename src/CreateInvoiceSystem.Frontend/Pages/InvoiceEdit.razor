@@ -19,123 +19,173 @@
         <div class="d-flex justify-content-between mb-4">
             <h3>Tryb Edycji: @_invoice.Title</h3>
             <div>
-                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>                
+                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
             </div>
         </div>
 
-        <div class="invoice-box p-5 border shadow bg-white">
-            <div class="row mb-5">
-                <div class="col-6">
-                    <label class="small text-muted fw-bold">Numer faktury:</label>
-                    <input type="text" class="form-control fw-bold border-primary" @bind="_invoice.Title" />
-                </div>
-                <div class="col-6 text-end">
-                    <div class="mb-2">
-                        <label class="small text-muted fw-bold">Data wystawienia:</label>
-                        <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2" @bind="_invoice.CreatedDate" />
+        <EditForm EditContext="_editContext" OnSubmit="OnSubmitUpdate">
+            <DataAnnotationsValidator />
+
+            <div class="invoice-box p-5 border shadow bg-white">
+                <div class="row mb-5">
+                    <div class="col-6">
+                        <label class="small text-muted fw-bold">Numer faktury: <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="_invoice.Title" class="@($"form-control fw-bold {GetFieldClass(() => _invoice.Title)}")" />
+                        <ValidationMessage For="@(() => _invoice.Title)" class="text-danger small" />
                     </div>
-                    <div class="mb-2">
-                        <label class="small text-muted fw-bold">Termin płatności:</label>
-                        <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2" @bind="_invoice.PaymentDate" />
+                    <div class="col-6 text-end">
+                        <div class="mb-2">
+                            <label class="small text-muted fw-bold">Data wystawienia: <span class="text-danger">*</span></label>
+                            <InputDate @bind-Value="_invoice.CreatedDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.CreatedDate)}")" />
+                            <ValidationMessage For="@(() => _invoice.CreatedDate)" class="text-danger small" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted fw-bold">Termin płatności: <span class="text-danger">*</span></label>
+                            <InputDate @bind-Value="_invoice.PaymentDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.PaymentDate)}")" />
+                            <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
+                        </div>
+                        <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
                     </div>
-                    <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
                 </div>
-            </div>
 
-            <div class="row mb-5">
-                <div class="col-6">
-                    <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
-                    <input type="text" class="form-control mb-1 fw-bold" @bind="_invoice.SellerName" />
-                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.SellerAddress"></textarea>
-                    <input type="text" class="form-control" @bind="_invoice.SellerNip" />
+                <div class="row mb-5">
+                    <div class="col-6">
+                        <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
+                        <label class="small text-muted">Nazwa sprzedawcy: <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="_invoice.SellerName" class="@($"form-control mb-1 fw-bold {GetFieldClass(() => _invoice.SellerName)}")" />
+                        <ValidationMessage For="@(() => _invoice.SellerName)" class="text-danger small" />
+
+                        <label class="small text-muted">Adres sprzedawcy: <span class="text-danger">*</span></label>
+                        <InputTextArea @bind-Value="_invoice.SellerAddress" class="@($"form-control mb-1 {GetFieldClass(() => _invoice.SellerAddress)}")" rows="2" />
+                        <ValidationMessage For="@(() => _invoice.SellerAddress)" class="text-danger small" />
+
+                        <label class="small text-muted">NIP sprzedawcy: <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="_invoice.SellerNip" class="@($"form-control {GetFieldClass(() => _invoice.SellerNip)}")" />
+                        <ValidationMessage For="@(() => _invoice.SellerNip)" class="text-danger small" />
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-primary">Nabywca</h6>
+
+                        <label class="small text-muted">Nazwa nabywcy: <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="_invoice.ClientName"
+                                   list="clientOptions"
+                                   class="@($"form-control mb-1 fw-bold {GetFieldClass(() => _invoice.ClientName)}")"
+                                   @oninput="(ChangeEventArgs e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
+                                   placeholder="Wpisz nazwę klienta..." />
+                        <ValidationMessage For="@(() => _invoice.ClientName)" class="text-danger small" />
+
+                        <label class="small text-muted">Adres nabywcy: <span class="text-danger">*</span></label>
+                        <InputTextArea @bind-Value="_invoice.ClientAddress" class="@($"form-control mb-1 {GetFieldClass(() => _invoice.ClientAddress)}")" rows="2" placeholder="Adres (ulica, nr, miasto)"></InputTextArea>
+                        <ValidationMessage For="@(() => _invoice.ClientAddress)" class="text-danger small" />
+
+                        <label class="small text-muted">NIP nabywcy: <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="_invoice.ClientNip" class="@($"form-control {GetFieldClass(() => _invoice.ClientNip)}")" placeholder="NIP" />
+                        <ValidationMessage For="@(() => _invoice.ClientNip)" class="text-danger small" />
+                    </div>
                 </div>
-                <div class="col-6">
-                    <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-primary">Nabywca</h6>
-                    <input type="text" class="form-control mb-1 fw-bold"
-                           list="clientOptions"
-                           @bind="_invoice.ClientName"
-                           @oninput="(e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
-                           placeholder="Wpisz nazwę klienta..." />
 
-                    <textarea class="form-control mb-1" rows="2" @bind="_invoice.ClientAddress" placeholder="Adres (ulica, nr, miasto)"></textarea>
-                    <input type="text" class="form-control" @bind="_invoice.ClientNip" placeholder="NIP" />
-                </div>
-            </div>
+                <div class="mb-4">
+                    <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
 
-            <div class="mb-4">
-                <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-dark text-center small">
-                            <tr>
-                                <th style="width: 50px">Lp.</th>
-                                <th>Produkt / Opis</th>
-                                <th style="width: 80px">Ilość</th>
-                                <th style="width: 140px">Cena netto</th>
-                                <th style="width: 100px">VAT</th>
-                                <th style="width: 130px">Kwota VAT</th>
-                                <th style="width: 150px">Wartość BRUTTO</th>
-                                <th style="width: 100px">Akcje</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @{
-                                int lp = 1;
-                            }
-                            @foreach (var pos in _invoice.InvoicePositions)
+                    @{
+                        var posField = new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions));
+                        var posErrors = _editContext?.GetValidationMessages(posField) ?? Enumerable.Empty<string>();
+                    }
+                    @if (posErrors.Any())
+                    {
+                        <div class="alert alert-danger small">
+                            @foreach (var msg in posErrors)
                             {
-                                <tr>
-                                    <td class="text-center">@(lp++)</td>
-                                    <td>
-                                        <input type="text" class="form-control mb-1 fw-bold"
-                                               list="productOptions"
-                                               @bind="pos.ProductName"
-                                               @oninput="(e) => { pos.ProductName = e.Value?.ToString(); HandleProductChange(pos, pos.ProductName); }"
-                                               placeholder="Nazwa produktu..." />
-
-                                        <textarea class="form-control form-control-sm" @bind="pos.ProductDescription" placeholder="Opis pozycji..."></textarea>
-                                    </td>
-                                    <td><input type="number" class="form-control text-center" @bind="pos.Quantity" /></td>
-                                    <td><input type="number" class="form-control text-end" @bind="pos.ProductValue" /></td>
-                                    <td>
-                                        <select @bind="pos.VatRate" class="form-select">
-                                            <option value="23%">23%</option>
-                                            <option value="8%">8%</option>
-                                            <option value="5%">5%</option>
-                                            <option value="0%">0%</option>
-                                            <option value="zw">zw</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-end">@CalculatePositionVat(pos).ToString("N2") PLN</td>
-                                    <td class="text-end fw-bold">@CalculatePositionGross(pos).ToString("N2") PLN</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => RemovePosition(pos)">
-                                            <i class="bi bi-trash"></i> Usuń
-                                        </button>
-                                    </td>
-                                </tr>
+                                <div>@msg</div>
                             }
-                        </tbody>
-                    </table>
-                </div>
-                <button class="btn btn-outline-secondary btn-sm w-100" @onclick="AddPosition">
-                    <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
-                </button>
-            </div>
+                        </div>
+                    }
 
-            <div class="row mt-4">
-                <div class="col-md-12 text-end mb-4">
-                    <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
-                        <div class="text-muted">Suma netto: @CalculateTotalNet().ToString("N2") PLN</div>
-                        <div class="text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
-                        <h3 class="mb-0 text-primary fw-bold">RAZEM (Brutto): @CalculateTotalGross().ToString("N2") PLN</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-dark text-center small">
+                                <tr>
+                                    <th style="width: 50px">Lp.</th>
+                                    <th>Produkt / Opis</th>
+                                    <th style="width: 80px">Ilość <span class="text-danger">*</span></th>
+                                    <th style="width: 140px">Cena netto <span class="text-danger">*</span></th>
+                                    <th style="width: 100px">VAT</th>
+                                    <th style="width: 130px">Kwota VAT</th>
+                                    <th style="width: 150px">Wartość BRUTTO</th>
+                                    <th style="width: 100px">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int lp = 1;
+                                }
+                                @foreach (var pos in _invoice.InvoicePositions)
+                                {
+                                    <tr>
+                                        <td class="text-center">@(lp++)</td>
+                                        <td>
+                                            <label class="small mb-1">Nazwa produktu: <span class="text-danger">*</span></label>
+                                            <InputText @bind-Value="pos.ProductName"
+                                                       list="productOptions"
+                                                       class="@($"form-control mb-1 fw-bold {GetFieldClass(() => pos.ProductName)}")"
+                                                       @oninput="(ChangeEventArgs e) => { pos.ProductName = e.Value?.ToString(); HandleProductChange(pos, pos.ProductName); }"
+                                                       placeholder="Nazwa produktu..." />
+                                            <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
+
+                                            <label class="small mt-2">Opis pozycji:</label>
+                                            <InputTextArea @bind-Value="pos.ProductDescription" class="@($"form-control form-control-sm {GetFieldClass(() => pos.ProductDescription)}")" placeholder="Opis pozycji..." />
+                                            <ValidationMessage For="@(() => pos.ProductDescription)" class="text-danger small" />
+                                        </td>
+                                        <td>
+                                            <label class="visually-hidden">Ilość</label>
+                                            <InputNumber @bind-Value="pos.Quantity" class="@($"form-control text-center {GetFieldClass(() => pos.Quantity)}")" />
+                                            <ValidationMessage For="@(() => pos.Quantity)" class="text-danger small" />
+                                        </td>
+                                        <td>
+                                            <label class="visually-hidden">Cena netto</label>
+                                            <InputNumber @bind-Value="pos.ProductValue" class="@($"form-control text-end {GetFieldClass(() => pos.ProductValue)}")" />
+                                            <ValidationMessage For="@(() => pos.ProductValue)" class="text-danger small" />
+                                        </td>
+                                        <td>
+                                            <select @bind="pos.VatRate" class="form-select">
+                                                <option value="23%">23%</option>
+                                                <option value="8%">8%</option>
+                                                <option value="5%">5%</option>
+                                                <option value="0%">0%</option>
+                                                <option value="zw">zw</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-end">@CalculatePositionVat(pos).ToString("N2") PLN</td>
+                                        <td class="text-end fw-bold">@CalculatePositionGross(pos).ToString("N2") PLN</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => RemovePositionWithClear(pos)">
+                                                <i class="bi bi-trash"></i> Usuń
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm w-100 mt-2" @onclick="AddPosition">
+                        <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
+                    </button>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-end mb-4">
+                        <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
+                            <div class="text-muted">Suma netto: @CalculateTotalNet().ToString("N2") PLN</div>
+                            <div class="text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
+                            <h3 class="mb-0 text-primary fw-bold">RAZEM (Brutto): @CalculateTotalGross().ToString("N2") PLN</h3>
+                        </div>
                     </div>
                 </div>
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-primary shadow">Zapisz zmiany</button>
+                </div>
             </div>
-            <div class="text-end mt-4">
-                <button class="btn btn-primary shadow" @onclick="HandleUpdate">Zapisz zmiany</button>
-            </div>
-        </div>
+        </EditForm>
     }
 </div>
 
@@ -160,10 +210,19 @@
     private List<ProductDto> _availableProducts = new();
     private bool _isLoading = true;
 
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _message_store = default!;
+    private ValidationMessageStore _messageStore
+    {
+        get => _message_store ??= new ValidationMessageStore(_editContext);
+        set => _message_store = value;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        _edit_context_init();
         try
-        {            
+        {
             var result = await InvoiceService.GetInvoiceByIdAsync(Id);
             if (result != null)
             {
@@ -175,7 +234,7 @@
                 Navigation.NavigateTo("/invoices");
                 return;
             }
-            
+
             var cResponse = await ClientService.GetClientsAsync(1, 1000);
             _availableClients = cResponse?.Data ?? new();
 
@@ -192,6 +251,17 @@
         }
     }
 
+    private void _edit_context_init()
+    {
+        _editContext = new EditContext(_invoice);
+        _message_store = new ValidationMessageStore(_editContext);
+        _editContext.OnFieldChanged += (s, e) =>
+        {
+            _message_store.Clear(e.FieldIdentifier);
+            _editContext.NotifyValidationStateChanged();
+        };
+    }
+
     private void HandleClientChange(string? newValue)
     {
         var match = _availableClients.FirstOrDefault(c => c.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
@@ -199,11 +269,15 @@
         {
             _invoice.ClientId = match.ClientId;
             _invoice.ClientName = match.Name;
-            _invoice.ClientNip = match.Nip;            
+            _invoice.ClientNip = match.Nip;
             _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.PostalCode} {match.Address.City}";
+
+            ClearAndNotify(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)));
+            ClearAndNotify(new FieldIdentifier(_invoice, nameof(_invoice.ClientNip)));
+            ClearAndNotify(new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress)));
         }
         else
-        {            
+        {
             _invoice.ClientId = null;
         }
     }
@@ -222,11 +296,30 @@
         {
             position.ProductId = null;
         }
+
+        var fiName = new FieldIdentifier(position, nameof(position.ProductName));
+        var fiValue = new FieldIdentifier(position, nameof(position.ProductValue));
+        var fiQty = new FieldIdentifier(position, nameof(position.Quantity));
+
+        _messageStore.Clear(fiName);
+        _messageStore.Clear(fiValue);
+        _messageStore.Clear(fiQty);
+
+        _editContext.NotifyFieldChanged(fiName);
+        _editContext.NotifyFieldChanged(fiValue);
+        _editContext.NotifyFieldChanged(fiQty);
     }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, ProductName = "", ProductValue = 0, VatRate = "23%" });
 
-    private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
+    private void RemovePositionWithClear(InvoicePositionDto pos)
+    {
+        _invoice.InvoicePositions.Remove(pos);
+
+        var posField = new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions));
+        _messageStore.Clear(posField);
+        _editContext.NotifyValidationStateChanged();
+    }
 
     private decimal CalculatePositionVat(InvoicePositionDto pos)
     {
@@ -244,13 +337,97 @@
 
     private decimal CalculateTotalGross() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionGross(p)), 2);
 
-    private async Task HandleUpdate()
+    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
     {
+        var fieldId = FieldIdentifier.Create(accessor);
+        var fieldHasErrors = _editContext.GetValidationMessages(fieldId).Any();
+        if (fieldHasErrors) return "is-invalid";
+
+        if (_editContext.GetValidationMessages().Any()) return "is-valid";
+
+        return "";
+    }
+
+    private void ClearAndNotify(FieldIdentifier field)
+    {
+        _messageStore.Clear(field);
+        _editContext.NotifyValidationStateChanged();
+        _editContext.NotifyFieldChanged(field);
+    }
+
+    private async Task OnSubmitUpdate()
+    {
+        _messageStore.Clear();
+
+        if (string.IsNullOrWhiteSpace(_invoice.Title))
+            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.Title)), "Wymagane");
+
+        if (_invoice.CreatedDate == default)
+            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.CreatedDate)), "Wymagane");
+
+        if (_invoice.PaymentDate == default)
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.PaymentDate)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.SellerName))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.SellerName)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.SellerAddress))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.SellerAddress)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.SellerNip))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.SellerNip)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.ClientName))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.ClientAddress))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress)), "Wymagane");
+
+        if (string.IsNullOrWhiteSpace(_invoice.ClientNip))
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.ClientNip)), "Wymagane");
+
+        if (_invoice.InvoicePositions == null || !_invoice.InvoicePositions.Any())
+        {
+            _message_store.Add(new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions)), "Faktura musi zawierać przynajmniej jedną pozycję.");
+        }
+        else
+        {
+            foreach (var pos in _invoice.InvoicePositions)
+            {
+                var fiName = new FieldIdentifier(pos, nameof(pos.ProductName));
+                var fiValue = new FieldIdentifier(pos, nameof(pos.ProductValue));
+                var fiQty = new FieldIdentifier(pos, nameof(pos.Quantity));
+
+                if (string.IsNullOrWhiteSpace(pos.ProductName))
+                    _message_store.Add(fiName, "Wymagane");
+
+                if ((pos.ProductValue ?? 0) <= 0)
+                    _message_store.Add(fiValue, "Cena > 0");
+
+                if (pos.Quantity <= 0)
+                    _message_store.Add(fiQty, "Ilość > 0");
+            }
+        }
+
+        _editContext.NotifyValidationStateChanged();
+
+        if (_editContext.GetValidationMessages().Any())
+        {
+            return;
+        }
+
         _invoice.TotalNet = CalculateTotalNet();
         _invoice.TotalVat = CalculateTotalVat();
         _invoice.TotalGross = CalculateTotalGross();
 
-        await InvoiceService.UpdateInvoiceAsync(_invoice);
-        Navigation.NavigateTo("/invoices");
+        try
+        {
+            await InvoiceService.UpdateInvoiceAsync(_invoice);
+            Navigation.NavigateTo("/invoices");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+        }
     }
 }
