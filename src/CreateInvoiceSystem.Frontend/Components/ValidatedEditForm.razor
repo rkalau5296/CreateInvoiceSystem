@@ -1,0 +1,76 @@
+﻿@typeparam TModel
+@using Microsoft.AspNetCore.Components.Forms
+
+<CascadingValue Value="_editContext">
+    <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmitInternal" OnInvalidSubmit="HandleInvalidSubmitInternal">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        @ChildContent
+    </EditForm>
+</CascadingValue>
+
+@code {
+    [Parameter] public TModel? Model { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
+
+    private EditContext _editContext = default!;
+    private ValidationMessageStore? _messageStore;
+
+    protected override void OnParametersSet()
+    {
+        if (Model == null) return;
+
+        if (_editContext == null || !object.ReferenceEquals(_editContext.Model, Model))
+        {
+            _editContext = new EditContext(Model);
+            _messageStore = new ValidationMessageStore(_editContext);
+
+            _editContext.OnFieldChanged += (s, e) =>
+            {
+                _messageStore?.Clear(e.FieldIdentifier);
+                _editContext.NotifyValidationStateChanged();
+            };
+        }
+    }
+
+    private async Task HandleValidSubmitInternal()
+    {
+        _messageStore?.Clear();
+        _editContext.NotifyValidationStateChanged();
+
+        if (OnValidSubmit.HasDelegate)
+            await OnValidSubmit.InvokeAsync(null);
+    }
+
+    private async Task HandleInvalidSubmitInternal(EditContext editContext)
+    {
+        if (OnInvalidSubmit.HasDelegate)
+            await OnInvalidSubmit.InvokeAsync(editContext);
+    }
+
+    public void AddServerError(string fieldName, string message)
+    {
+        if (_messageStore == null || _editContext == null) return;
+
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            var fi = new FieldIdentifier(_editContext.Model!, string.Empty);
+            _messageStore.Add(fi, message);
+        }
+        else
+        {
+            var fi = new FieldIdentifier(_editContext.Model!, fieldName);
+            _messageStore.Add(fi, message);
+        }
+        _editContext.NotifyValidationStateChanged();
+    }
+
+    public void ClearServerErrors()
+    {
+        if (_messageStore == null || _editContext == null) return;
+        _messageStore.Clear();
+        _editContext.NotifyValidationStateChanged();
+    }
+}

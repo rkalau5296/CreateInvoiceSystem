@@ -1,0 +1,84 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="mb-3">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="form-label">
+            @Label
+            @if (IsRequired())
+            {
+                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+            }
+        </label>
+    }
+
+    <input value="@Value"
+               class="@InputCssClass"
+               placeholder="@Placeholder"
+               disabled="@Disabled"
+               @oninput="OnInput" />
+
+    <ValidationMessage For="@ValueExpression" class="text-danger small" />
+
+    @if (ShowValidFeedback && IsModified && !HasErrors)
+    {
+        <div class="valid-feedback d-block">Wygląda dobrze.</div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
+
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<string>>? ValueExpression { get; set; }
+
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool ShowValidFeedback { get; set; } = true;
+
+    private FieldIdentifier Field => ValueExpression != null ? FieldIdentifier.Create(ValueExpression) : default;
+
+    private bool HasErrors => CascadedEditContext != null && ValueExpression != null && CascadedEditContext.GetValidationMessages(Field).Any();
+    private bool IsModified => CascadedEditContext != null && ValueExpression != null && CascadedEditContext.IsModified(Field);
+
+    private string InputCssClass
+    {
+        get
+        {
+            var baseClass = "form-control";
+            if (CascadedEditContext == null || ValueExpression == null) return baseClass;
+            var hasErrors = CascadedEditContext.GetValidationMessages(Field).Any();
+            if (!CascadedEditContext.IsModified(Field)) return baseClass;
+            return $"{baseClass} {(hasErrors ? "is-invalid" : "is-valid")}";
+        }
+    }
+
+    private bool IsRequired()
+    {
+        if (ValueExpression == null) return false;
+        MemberExpression? member = ValueExpression.Body as MemberExpression;
+        if (member == null && ValueExpression.Body is UnaryExpression ue && ue.Operand is MemberExpression m) member = m;
+        if (member?.Member is System.Reflection.PropertyInfo prop)
+        {
+            return System.Attribute.IsDefined(prop, typeof(System.ComponentModel.DataAnnotations.RequiredAttribute));
+        }
+        return false;
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var newVal = e.Value?.ToString();
+        if (!EqualityComparer<string?>.Default.Equals(Value, newVal))
+        {
+            await ValueChanged.InvokeAsync(newVal);
+            if (CascadedEditContext != null && ValueExpression != null)
+            {
+                CascadedEditContext.NotifyFieldChanged(Field);
+            }
+        }
+    }
+}
