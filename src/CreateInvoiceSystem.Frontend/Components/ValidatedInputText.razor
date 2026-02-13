@@ -15,14 +15,14 @@
     }
 
     <input value="@Value"
-               class="@InputCssClass"
-               placeholder="@Placeholder"
-               disabled="@Disabled"
-               @oninput="OnInput" />
+           class="@InputCssClass"
+           placeholder="@Placeholder"
+           disabled="@Disabled"
+           @oninput="OnInput" />
 
     <ValidationMessage For="@ValueExpression" class="text-danger small" />
 
-    @if (ShowValidFeedback && IsModified && !HasErrors)
+    @if (ShowValidFeedback && IsModifiedOrHasValue && !HasErrorsEffective)
     {
         <div class="valid-feedback d-block">Wygląda dobrze.</div>
     }
@@ -44,6 +44,67 @@
 
     private bool HasErrors => CascadedEditContext != null && ValueExpression != null && CascadedEditContext.GetValidationMessages(Field).Any();
     private bool IsModified => CascadedEditContext != null && ValueExpression != null && CascadedEditContext.IsModified(Field);
+    private bool IsModifiedOrHasValue => IsModified || !string.IsNullOrWhiteSpace(Value);
+
+    private bool HasParentErrors
+    {
+        get
+        {
+            if (CascadedEditContext == null || ValueExpression == null) return false;
+
+            var rootModel = CascadedEditContext.Model;
+            if (rootModel == null) return false;
+
+            var parts = GetMemberNames(ValueExpression);
+            if (parts == null || parts.Length == 0) return false;
+            
+            int startIndex = 0;
+            if (rootModel.GetType().GetProperty(parts[0], System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) == null)
+                startIndex = 1;
+
+            var pathParts = parts.Skip(startIndex).ToArray();
+            if (pathParts.Length == 0) return false;
+
+            var fullPath = string.Join(".", pathParts); 
+            
+            try
+            {
+                var fiRootFull = new FieldIdentifier(rootModel, fullPath);
+                if (CascadedEditContext.GetValidationMessages(fiRootFull).Any())
+                    return true;
+            }
+            catch { }
+            
+            if (pathParts.Length >= 2)
+            {
+                var parentName = pathParts[pathParts.Length - 2]; 
+                try
+                {
+                    var fiRootParent = new FieldIdentifier(rootModel, parentName);
+                    if (CascadedEditContext.GetValidationMessages(fiRootParent).Any())
+                        return true;
+                }
+                catch { }
+            }
+            
+            try
+            {
+                var parentInstance = GetParentInstance(ValueExpression);
+                var childName = pathParts.Last();
+                if (parentInstance != null)
+                {
+                    var fiParentInstance = new FieldIdentifier(parentInstance, childName);
+                    if (CascadedEditContext.GetValidationMessages(fiParentInstance).Any())
+                        return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+    }
+
+    private bool HasErrorsEffective => HasErrors || HasParentErrors;
 
     private string InputCssClass
     {
@@ -51,9 +112,14 @@
         {
             var baseClass = "form-control";
             if (CascadedEditContext == null || ValueExpression == null) return baseClass;
-            var hasErrors = CascadedEditContext.GetValidationMessages(Field).Any();
-            if (!CascadedEditContext.IsModified(Field)) return baseClass;
-            return $"{baseClass} {(hasErrors ? "is-invalid" : "is-valid")}";
+
+            if (HasErrorsEffective)
+                return $"{baseClass} is-invalid";
+
+            if (IsModifiedOrHasValue)
+                return $"{baseClass} is-valid";
+
+            return baseClass;
         }
     }
 
@@ -80,5 +146,42 @@
                 CascadedEditContext.NotifyFieldChanged(Field);
             }
         }
+    }
+
+    private static string[]? GetMemberNames(Expression<Func<string>>? expr)
+    {
+        if (expr == null) return null;
+        Expression? body = expr.Body;
+        if (body is UnaryExpression ue) body = ue.Operand;
+        var members = new System.Collections.Generic.List<string>();
+        while (body is MemberExpression me)
+        {
+            members.Add(me.Member.Name);
+            body = me.Expression;
+        }
+        members.Reverse();
+        return members.ToArray();
+    }
+
+    private static object? GetParentInstance(Expression<Func<string>>? expr)
+    {
+        if (expr == null) return null;
+        Expression? body = expr.Body;
+        if (body is UnaryExpression ue) body = ue.Operand;
+        if (body is MemberExpression leaf)
+        {
+            var parentExpr = leaf.Expression;
+            if (parentExpr == null) return null;
+            try
+            {
+                var getter = Expression.Lambda<Func<object>>(Expression.Convert(parentExpr, typeof(object)));
+                return getter.Compile().Invoke();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return null;
     }
 }

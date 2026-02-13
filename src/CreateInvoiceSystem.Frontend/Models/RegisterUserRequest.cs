@@ -24,6 +24,7 @@ public record RegisterUserDto
     [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi składać się z 10 cyfr.")]
     public string Nip { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Konto bankowe jest wymagane.")]
     [RegularExpression(@"^PL\d{26}$", ErrorMessage = "IBAN musi zaczynać się od PL i zawierać dokładnie 26 cyfr.")]
     public string? BankAccountNumber { get; set; } = string.Empty;
 

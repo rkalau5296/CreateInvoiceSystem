@@ -1,10 +1,12 @@
-﻿@typeparam TModel
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+@using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@typeparam TModel
 
 <CascadingValue Value="_editContext">
     <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmitInternal" OnInvalidSubmit="HandleInvalidSubmitInternal">
         <DataAnnotationsValidator />
-        <ValidationSummary />
         @ChildContent
     </EditForm>
 </CascadingValue>
@@ -18,6 +20,8 @@
     private EditContext _editContext = default!;
     private ValidationMessageStore? _messageStore;
 
+    public EditContext? EditContext => _editContext;
+
     protected override void OnParametersSet()
     {
         if (Model == null) return;
@@ -25,20 +29,32 @@
         if (_editContext == null || !object.ReferenceEquals(_editContext.Model, Model))
         {
             _editContext = new EditContext(Model);
-            _messageStore = new ValidationMessageStore(_editContext);
-
-            _editContext.OnFieldChanged += (s, e) =>
-            {
-                _messageStore?.Clear(e.FieldIdentifier);
-                _editContext.NotifyValidationStateChanged();
-            };
+            CreateMessageStoreAndHook();
         }
+    }
+
+    private void CreateMessageStoreAndHook()
+    {
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnFieldChanged += (s, e) =>
+        {
+            _messageStore?.Clear(e.FieldIdentifier);
+            _editContext.NotifyValidationStateChanged();
+        };
     }
 
     private async Task HandleValidSubmitInternal()
     {
         _messageStore?.Clear();
-        _editContext.NotifyValidationStateChanged();
+        var added = RunRecursiveValidationAndStoreMessages();
+        _edit_context_notify();
+
+        if (added)
+        {
+            if (OnInvalidSubmit.HasDelegate)
+                await OnInvalidSubmit.InvokeAsync(_editContext);
+            return;
+        }
 
         if (OnValidSubmit.HasDelegate)
             await OnValidSubmit.InvokeAsync(null);
@@ -46,31 +62,167 @@
 
     private async Task HandleInvalidSubmitInternal(EditContext editContext)
     {
+        _messageStore?.Clear();
+        RunRecursiveValidationAndStoreMessages();
+        _edit_context_notify();
+
         if (OnInvalidSubmit.HasDelegate)
             await OnInvalidSubmit.InvokeAsync(editContext);
     }
 
+    private bool RunRecursiveValidationAndStoreMessages()
+    {
+        if (_message_store_check()) return false;
+
+        _messageStore!.Clear();
+
+        var anyAdded = false;
+
+        void AddMessage(object instance, string memberName, string message)
+        {
+            try
+            {
+                var fi = new FieldIdentifier(instance, memberName);
+                if (!_editContext.GetValidationMessages(fi).Contains(message))
+                {
+                    _messageStore.Add(fi, message);
+                    anyAdded = true;
+                }
+            }
+            catch { }
+        }
+
+        void AddRootDottedMessage(string dottedPath, string message)
+        {
+            try
+            {
+                var rootFi = new FieldIdentifier(_editContext.Model!, dottedPath);
+                if (!_editContext.GetValidationMessages(rootFi).Contains(message))
+                {
+                    _messageStore.Add(rootFi, message);
+                    anyAdded = true;
+                }
+            }
+            catch { }
+        }
+
+        void ValidateObjectRecursive(object instance, string prefix)
+        {
+            if (instance == null) return;
+
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(instance, null, null);
+            Validator.TryValidateObject(instance, context, results, true);
+
+            foreach (var vr in results)
+            {
+                var messageText = vr.ErrorMessage ?? "Błąd";
+
+                if (vr.MemberNames != null && vr.MemberNames.Any())
+                {
+                    foreach (var member in vr.MemberNames)
+                    {
+                        AddMessage(instance, member, messageText);
+                        var dotted = string.IsNullOrEmpty(prefix) ? member : $"{prefix}.{member}";
+                        AddRootDottedMessage(dotted, messageText);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var rootFi = new FieldIdentifier(_editContext.Model!, string.Empty);
+                        if (!_editContext.GetValidationMessages(rootFi).Contains(messageText))
+                        {
+                            _messageStore.Add(rootFi, messageText);
+                            anyAdded = true;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            var props = instance.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var p in props)
+            {
+                if (p.GetIndexParameters().Length > 0) continue;
+                if (p.PropertyType == typeof(string)) continue;
+                if (p.PropertyType.IsValueType) continue;
+
+                object? child = null;
+                try { child = p.GetValue(instance); } catch { child = null; }
+                if (child == null) continue;
+
+                var childPrefix = string.IsNullOrEmpty(prefix) ? p.Name : $"{prefix}.{p.Name}";
+                ValidateObjectRecursive(child, childPrefix);
+            }
+        }
+
+        ValidateObjectRecursive(_editContext.Model!, string.Empty);
+        return anyAdded;
+    }
+
     public void AddServerError(string fieldName, string message)
     {
-        if (_messageStore == null || _editContext == null) return;
+        if (_message_store_check()) return;
 
         if (string.IsNullOrWhiteSpace(fieldName))
         {
             var fi = new FieldIdentifier(_editContext.Model!, string.Empty);
-            _messageStore.Add(fi, message);
+            if (!_editContext.GetValidationMessages(fi).Contains(message))
+                _messageStore!.Add(fi, message);
+            _edit_context_notify();
+            return;
         }
-        else
+
+        var parts = fieldName.Split('.');
+        object? instance = _editContext.Model!;
+        for (int i = 0; i < parts.Length - 1; i++)
         {
-            var fi = new FieldIdentifier(_editContext.Model!, fieldName);
-            _messageStore.Add(fi, message);
+            var prop = instance?.GetType().GetProperty(parts[i]);
+            if (prop == null || instance == null)
+            {
+                var fiFallback = new FieldIdentifier(_editContext.Model!, fieldName);
+                if (!_editContext.GetValidationMessages(fiFallback).Contains(message))
+                    _messageStore!.Add(fiFallback, message);
+                _edit_context_notify();
+                return;
+            }
+            instance = prop.GetValue(instance);
+            if (instance == null)
+            {
+                var fiFallback = new FieldIdentifier(_editContext.Model!, fieldName);
+                if (!_editContext.GetValidationMessages(fiFallback).Contains(message))
+                    _messageStore!.Add(fiFallback, message);
+                _edit_context_notify();
+                return;
+            }
         }
-        _editContext.NotifyValidationStateChanged();
+
+        var lastName = parts[^1];
+        var fi2 = new FieldIdentifier(instance!, lastName);
+        if (!_editContext.GetValidationMessages(fi2).Contains(message))
+            _messageStore!.Add(fi2, message);
+
+        try
+        {
+            var dotted = string.Join(".", parts);
+            var rootFi = new FieldIdentifier(_editContext.Model!, dotted);
+            if (!_editContext.GetValidationMessages(rootFi).Contains(message))
+                _messageStore!.Add(rootFi, message);
+        }
+        catch { }
+
+        _edit_context_notify();
     }
+
+    private bool _message_store_check() => _messageStore == null || _editContext == null;
+    private void _edit_context_notify() => _editContext.NotifyValidationStateChanged();
 
     public void ClearServerErrors()
     {
         if (_messageStore == null || _editContext == null) return;
         _messageStore.Clear();
-        _editContext.NotifyValidationStateChanged();
+        _edit_context_notify();
     }
 }
