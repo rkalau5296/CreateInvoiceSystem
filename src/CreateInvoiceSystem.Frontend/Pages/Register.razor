@@ -55,8 +55,8 @@
                             </button>
                             <a href="/" class="btn btn-link text-center">Powrót do logowania</a>
                         </div>
-                    </ValidatedEditForm>                    
-                    
+                    </ValidatedEditForm>
+
                     @if (!string.IsNullOrEmpty(statusMessage))
                     {
                         <div class="alert mt-4 @(isError ? "alert-danger" : "alert-success")">
@@ -101,14 +101,26 @@
             formRef?.AddServerError(nameof(_regModel.BankAccountNumber), "Wymagane");
 
         var addr = _regModel.Address;
-        if (addr == null ||
-            string.IsNullOrWhiteSpace(addr.Street) ||
-            string.IsNullOrWhiteSpace(addr.Number) ||
-            string.IsNullOrWhiteSpace(addr.PostalCode) ||
-            string.IsNullOrWhiteSpace(addr.City) ||
-            string.IsNullOrWhiteSpace(addr.Country))
+        if (addr == null)
+        {            
+            formRef?.AddServerError($"{nameof(_regModel.Address)}.Street", "Wymagane");
+            formRef?.AddServerError($"{nameof(_regModel.Address)}.Number", "Wymagane");
+            formRef?.AddServerError($"{nameof(_regModel.Address)}.PostalCode", "Wymagane");
+            formRef?.AddServerError($"{nameof(_regModel.Address)}.City", "Wymagane");
+            formRef?.AddServerError($"{nameof(_regModel.Address)}.Country", "Wymagane");
+        }
+        else
         {
-            formRef?.AddServerError(nameof(_regModel.Address), "Uzupełnij wszystkie pola adresowe.");
+            if (string.IsNullOrWhiteSpace(addr.Street))
+                formRef?.AddServerError($"{nameof(_regModel.Address)}.Street", "Wymagane");
+            if (string.IsNullOrWhiteSpace(addr.Number))
+                formRef?.AddServerError($"{nameof(_regModel.Address)}.Number", "Wymagane");
+            if (string.IsNullOrWhiteSpace(addr.PostalCode))
+                formRef?.AddServerError($"{nameof(_regModel.Address)}.PostalCode", "Wymagane");
+            if (string.IsNullOrWhiteSpace(addr.City))
+                formRef?.AddServerError($"{nameof(_regModel.Address)}.City", "Wymagane");
+            if (string.IsNullOrWhiteSpace(addr.Country))
+                formRef?.AddServerError($"{nameof(_regModel.Address)}.Country", "Wymagane");
         }
 
         bool hadClientErrors = string.IsNullOrWhiteSpace(_regModel.Email)

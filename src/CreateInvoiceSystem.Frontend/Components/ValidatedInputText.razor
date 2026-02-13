@@ -52,51 +52,19 @@
         {
             if (CascadedEditContext == null || ValueExpression == null) return false;
 
-            var rootModel = CascadedEditContext.Model;
-            if (rootModel == null) return false;
+            // check messages attached to the actual parent instance for this property (e.g. FieldIdentifier(addressInstance, "Street"))
+            var parentInstance = GetParentInstance(ValueExpression);
+            if (parentInstance == null) return false;
 
             var parts = GetMemberNames(ValueExpression);
             if (parts == null || parts.Length == 0) return false;
-            
-            int startIndex = 0;
-            if (rootModel.GetType().GetProperty(parts[0], System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) == null)
-                startIndex = 1;
 
-            var pathParts = parts.Skip(startIndex).ToArray();
-            if (pathParts.Length == 0) return false;
-
-            var fullPath = string.Join(".", pathParts); 
-            
+            var childName = parts.Last();
             try
             {
-                var fiRootFull = new FieldIdentifier(rootModel, fullPath);
-                if (CascadedEditContext.GetValidationMessages(fiRootFull).Any())
+                var fiParentInstance = new FieldIdentifier(parentInstance, childName);
+                if (CascadedEditContext.GetValidationMessages(fiParentInstance).Any())
                     return true;
-            }
-            catch { }
-            
-            if (pathParts.Length >= 2)
-            {
-                var parentName = pathParts[pathParts.Length - 2]; 
-                try
-                {
-                    var fiRootParent = new FieldIdentifier(rootModel, parentName);
-                    if (CascadedEditContext.GetValidationMessages(fiRootParent).Any())
-                        return true;
-                }
-                catch { }
-            }
-            
-            try
-            {
-                var parentInstance = GetParentInstance(ValueExpression);
-                var childName = pathParts.Last();
-                if (parentInstance != null)
-                {
-                    var fiParentInstance = new FieldIdentifier(parentInstance, childName);
-                    if (CascadedEditContext.GetValidationMessages(fiParentInstance).Any())
-                        return true;
-                }
             }
             catch { }
 

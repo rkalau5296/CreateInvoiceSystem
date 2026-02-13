@@ -35,6 +35,11 @@
 
     private void CreateMessageStoreAndHook()
     {
+        _message_store_create();
+    }
+
+    private void _message_store_create()
+    {
         _messageStore = new ValidationMessageStore(_editContext);
         _editContext.OnFieldChanged += (s, e) =>
         {
@@ -72,10 +77,9 @@
 
     private bool RunRecursiveValidationAndStoreMessages()
     {
-        if (_message_store_check()) return false;
+        if (_messageStore == null || _editContext == null || _editContext.Model == null) return false;
 
-        _messageStore!.Clear();
-
+        _messageStore.Clear();
         var anyAdded = false;
 
         void AddMessage(object instance, string memberName, string message)
@@ -92,21 +96,7 @@
             catch { }
         }
 
-        void AddRootDottedMessage(string dottedPath, string message)
-        {
-            try
-            {
-                var rootFi = new FieldIdentifier(_editContext.Model!, dottedPath);
-                if (!_editContext.GetValidationMessages(rootFi).Contains(message))
-                {
-                    _messageStore.Add(rootFi, message);
-                    anyAdded = true;
-                }
-            }
-            catch { }
-        }
-
-        void ValidateObjectRecursive(object instance, string prefix)
+        void ValidateObjectRecursive(object instance)
         {
             if (instance == null) return;
 
@@ -123,8 +113,6 @@
                     foreach (var member in vr.MemberNames)
                     {
                         AddMessage(instance, member, messageText);
-                        var dotted = string.IsNullOrEmpty(prefix) ? member : $"{prefix}.{member}";
-                        AddRootDottedMessage(dotted, messageText);
                     }
                 }
                 else
@@ -153,24 +141,23 @@
                 try { child = p.GetValue(instance); } catch { child = null; }
                 if (child == null) continue;
 
-                var childPrefix = string.IsNullOrEmpty(prefix) ? p.Name : $"{prefix}.{p.Name}";
-                ValidateObjectRecursive(child, childPrefix);
+                ValidateObjectRecursive(child);
             }
         }
 
-        ValidateObjectRecursive(_editContext.Model!, string.Empty);
+        ValidateObjectRecursive(_editContext.Model!);
         return anyAdded;
     }
 
     public void AddServerError(string fieldName, string message)
     {
-        if (_message_store_check()) return;
+        if (_messageStore == null || _editContext == null) return;
 
         if (string.IsNullOrWhiteSpace(fieldName))
         {
             var fi = new FieldIdentifier(_editContext.Model!, string.Empty);
             if (!_editContext.GetValidationMessages(fi).Contains(message))
-                _messageStore!.Add(fi, message);
+                _messageStore.Add(fi, message);
             _edit_context_notify();
             return;
         }
@@ -184,7 +171,7 @@
             {
                 var fiFallback = new FieldIdentifier(_editContext.Model!, fieldName);
                 if (!_editContext.GetValidationMessages(fiFallback).Contains(message))
-                    _messageStore!.Add(fiFallback, message);
+                    _messageStore.Add(fiFallback, message);
                 _edit_context_notify();
                 return;
             }
@@ -193,7 +180,7 @@
             {
                 var fiFallback = new FieldIdentifier(_editContext.Model!, fieldName);
                 if (!_editContext.GetValidationMessages(fiFallback).Contains(message))
-                    _messageStore!.Add(fiFallback, message);
+                    _messageStore.Add(fiFallback, message);
                 _edit_context_notify();
                 return;
             }
@@ -202,21 +189,11 @@
         var lastName = parts[^1];
         var fi2 = new FieldIdentifier(instance!, lastName);
         if (!_editContext.GetValidationMessages(fi2).Contains(message))
-            _messageStore!.Add(fi2, message);
-
-        try
-        {
-            var dotted = string.Join(".", parts);
-            var rootFi = new FieldIdentifier(_editContext.Model!, dotted);
-            if (!_editContext.GetValidationMessages(rootFi).Contains(message))
-                _messageStore!.Add(rootFi, message);
-        }
-        catch { }
+            _messageStore.Add(fi2, message);
 
         _edit_context_notify();
     }
 
-    private bool _message_store_check() => _messageStore == null || _editContext == null;
     private void _edit_context_notify() => _editContext.NotifyValidationStateChanged();
 
     public void ClearServerErrors()
