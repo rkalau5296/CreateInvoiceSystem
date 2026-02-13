@@ -2,6 +2,8 @@
 @using CreateInvoiceSystem.Frontend.Dto
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
+@using CreateInvoiceSystem.Frontend.Components
+@using Microsoft.AspNetCore.Components.Forms
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -14,24 +16,18 @@
                 <div class="card-body">
                     <h3 class="card-title text-center mb-4">Logowanie</h3>
 
-                    <EditForm EditContext="_editContext" OnValidSubmit="HandleLoginSubmit" OnInvalidSubmit="HandleInvalidSubmit">
-                        <DataAnnotationsValidator />
-
+                    <ValidatedEditForm TModel="LoginUserDto" Model="_loginRequest.Dto" OnValidSubmit="HandleLoginSubmit" OnInvalidSubmit="HandleInvalidSubmit" @ref="formRef">
                         <div class="form-group mb-3">
-                            <label class="form-label">Email: <span class="text-danger">*</span></label>
-                            <InputText @bind-Value="_loginRequest.Dto.Email"
-                                       type="email"
-                                       class="@($"form-control {GetFieldClass(() => _loginRequest.Dto.Email)}")"
-                                       placeholder="email@przyklad.pl" />
-                            <ValidationMessage For="@(() => _loginRequest.Dto.Email)" class="text-danger small" />
+                            <ValidatedInputText @bind-Value="_loginRequest.Dto.Email"
+                                                Type="email"
+                                                Label="Email"
+                                                Placeholder="email@przyklad.pl" />
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="form-label">Hasło: <span class="text-danger">*</span></label>
-                            <InputText @bind-Value="_loginRequest.Dto.Password"
-                                       type="password"
-                                       class="@($"form-control {GetFieldClass(() => _loginRequest.Dto.Password)}")" />
-                            <ValidationMessage For="@(() => _loginRequest.Dto.Password)" class="text-danger small" />
+                            <ValidatedInputText @bind-Value="_loginRequest.Dto.Password"
+                                                Type="password"
+                                                Label="Hasło" />
                         </div>
 
                         <div class="form-group mb-3 d-flex justify-content-between align-items-center">
@@ -43,7 +39,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mb-3">Zaloguj</button>
-                    </EditForm>
+                    </ValidatedEditForm>
 
                     <div class="text-center">
                         <span class="text-muted small">Nie masz konta?</span>
@@ -65,46 +61,20 @@
 @code {
     private LoginRequest _loginRequest = new LoginRequest { Dto = new LoginUserDto() };
     private string _statusMessage = "";
-    private EditContext _editContext = default!;
-    private ValidationMessageStore _messageStore = default!;
-
-    protected override void OnInitialized()
-    {
-        _editContext = new EditContext(_loginRequest.Dto);
-        _messageStore = new ValidationMessageStore(_edit_context());
-        _editContext.OnFieldChanged += (s, e) =>
-        {
-            _messageStore.Clear(e.FieldIdentifier);
-            _editContext.NotifyValidationStateChanged();
-        };
-
-        EditContext _edit_context() => _editContext;
-    }
-
-    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
-    {
-        var fieldId = FieldIdentifier.Create(accessor);
-        var fieldHasErrors = _editContext.GetValidationMessages(fieldId).Any();
-        if (fieldHasErrors) return "is-invalid";
-
-        if (_editContext.GetValidationMessages().Any()) return "is-valid";
-
-        return "";
-    }
+    private ValidatedEditForm<LoginUserDto>? formRef;
 
     private void HandleInvalidSubmit(EditContext context)
     {
-        _statusMessage = "Błąd: uzupełnij wymagane pola.";        
-        _editContext.NotifyValidationStateChanged();
+        _statusMessage = "Błąd: uzupełnij wymagane pola.";
     }
 
     private async Task HandleLoginSubmit()
     {
+        formRef?.ClearServerErrors();
+        _statusMessage = "Łączenie z serwerem...";
+
         try
         {
-            _messageStore.Clear();
-            _statusMessage = "Łączenie z serwerem...";
-
             var result = await AuthService.LoginAsync(_loginRequest);
 
             if (result is { IsSuccess: true } && !string.IsNullOrEmpty(result.Token))
@@ -125,10 +95,14 @@
 
                 await Task.Delay(500);
                 Navigation.NavigateTo("/dashboard");
+                return;
             }
             else
             {
-                _statusMessage = $"Błąd: {result?.Message ?? "Nieprawidłowe dane logowania."}";
+                if (!string.IsNullOrEmpty(result?.Message))
+                    _statusMessage = $"Błąd: {result.Message}";
+                else
+                    _statusMessage = $"Błąd: Nieprawidłowe dane logowania.";
             }
         }
         catch (Exception ex)

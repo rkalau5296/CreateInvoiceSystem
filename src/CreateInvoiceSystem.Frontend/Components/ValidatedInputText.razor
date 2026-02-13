@@ -15,6 +15,7 @@
     }
 
     <input value="@Value"
+           type="@Type"
            class="@InputCssClass"
            placeholder="@Placeholder"
            disabled="@Disabled"
@@ -37,6 +38,7 @@
 
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string Type { get; set; } = "text";
     [Parameter] public bool Disabled { get; set; } = false;
     [Parameter] public bool ShowValidFeedback { get; set; } = true;
 
@@ -52,7 +54,6 @@
         {
             if (CascadedEditContext == null || ValueExpression == null) return false;
 
-            // check messages attached to the actual parent instance for this property (e.g. FieldIdentifier(addressInstance, "Street"))
             var parentInstance = GetParentInstance(ValueExpression);
             if (parentInstance == null) return false;
 
@@ -65,6 +66,19 @@
                 var fiParentInstance = new FieldIdentifier(parentInstance, childName);
                 if (CascadedEditContext.GetValidationMessages(fiParentInstance).Any())
                     return true;
+            }
+            catch { }
+            
+            try
+            {
+                var rootModel = CascadedEditContext.Model;
+                if (rootModel != null)
+                {
+                    var fullPath = string.Join(".", parts);
+                    var fiRootFull = new FieldIdentifier(rootModel, fullPath);
+                    if (CascadedEditContext.GetValidationMessages(fiRootFull).Any())
+                        return true;
+                }
             }
             catch { }
 
