@@ -1,4 +1,9 @@
 ﻿@page "/settings"
+@using System.ComponentModel.DataAnnotations
+@using System.Linq.Expressions
+@using System.Reflection
+@using Microsoft.AspNetCore.Components.Forms
+
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
@@ -18,57 +23,168 @@ else
             <h5 class="mb-0">Dane profilu i firmy</h5>
         </div>
         <div class="card-body">
-            <EditForm Model="@userModel" OnValidSubmit="HandleValidSubmit">
+            <EditForm EditContext="@editContext" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Imię i Nazwisko</label>
+                        <label class="form-label fw-bold">
+                            Imię i Nazwisko
+                            @if (IsRequired(() => userModel.Name))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Name" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Name)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Name) && !GetValidationMessages(() => userModel.Name).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Pełna Nazwa Firmy</label>
+                        <label class="form-label fw-bold">
+                            Pełna Nazwa Firmy
+                            @if (IsRequired(() => userModel.CompanyName))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.CompanyName" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.CompanyName)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.CompanyName) && !GetValidationMessages(() => userModel.CompanyName).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="text" value="@userModel.Email" class="form-control" />
+                        <label class="form-label fw-bold">
+                            Email
+                            @if (IsRequired(() => userModel.Email))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
+                        <InputText @bind-Value="userModel.Email" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Email)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Email) && !GetValidationMessages(() => userModel.Email).Any())
+                        {
+                            <div class="valid-feedback d-block">Adres email jest poprawny.</div>
+                        }
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">NIP</label>
+                        <label class="form-label fw-bold">
+                            NIP
+                            @if (IsRequired(() => userModel.Nip))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Nip" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Nip)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Nip) && !GetValidationMessages(() => userModel.Nip).Any())
+                        {
+                            <div class="valid-feedback d-block">NIP wygląda poprawnie.</div>
+                        }
                     </div>
 
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">Numer konta bankowego</label>
+                        <label class="form-label fw-bold">
+                            Numer konta bankowego
+                            @if (IsRequired(() => userModel.BankAccountNumber))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.BankAccountNumber" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.BankAccountNumber)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.BankAccountNumber) && !GetValidationMessages(() => userModel.BankAccountNumber).Any())
+                        {
+                            <div class="valid-feedback d-block">Numer konta wygląda dobrze.</div>
+                        }
                     </div>
 
                     <hr class="my-4" />
                     <h5 class="text-secondary">Adres siedziby</h5>
 
                     <div class="col-md-9">
-                        <label class="form-label">Ulica</label>
+                        <label class="form-label">
+                            Ulica
+                            @if (IsRequired(() => userModel.Address.Street))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Address.Street" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Address.Street)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Address.Street) && !GetValidationMessages(() => userModel.Address.Street).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Nr budynku</label>
+                        <label class="form-label">
+                            Nr budynku
+                            @if (IsRequired(() => userModel.Address.Number))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Address.Number" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Address.Number)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Address.Number) && !GetValidationMessages(() => userModel.Address.Number).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Kod pocztowy</label>
+                        <label class="form-label">
+                            Kod pocztowy
+                            @if (IsRequired(() => userModel.Address.PostalCode))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Address.PostalCode" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Address.PostalCode)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Address.PostalCode) && !GetValidationMessages(() => userModel.Address.PostalCode).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
                     <div class="col-md-8">
-                        <label class="form-label">Miasto</label>
+                        <label class="form-label">
+                            Miasto
+                            @if (IsRequired(() => userModel.Address.City))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Address.City" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Address.City)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Address.City) && !GetValidationMessages(() => userModel.Address.City).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
                     <div class="col-md-8">
-                        <label class="form-label">Miasto</label>
+                        <label class="form-label">
+                            Kraj
+                            @if (IsRequired(() => userModel.Address.Country))
+                            {
+                                <span class="text-danger ms-1" title="Pole wymagane">*</span>
+                            }
+                        </label>
                         <InputText @bind-Value="userModel.Address.Country" class="form-control" />
+                        <ValidationMessage For="@(() => userModel.Address.Country)" class="invalid-feedback" />
+                        @if (IsFieldModified(() => userModel.Address.Country) && !GetValidationMessages(() => userModel.Address.Country).Any())
+                        {
+                            <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
                     </div>
                 </div>
 
@@ -101,50 +217,15 @@ else
 
 @code {
     private UpdateUserDto? userModel;
+    private EditContext? editContext;
     private bool isSubmitting = false;
     private string statusMessage = "";
     private string statusClass = "";
 
-    public class UpdateUserDto
-    {
-        public int UserId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string CompanyName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Nip { get; set; } = string.Empty;
-        public string BankAccountNumber { get; set; } = string.Empty;
-        public UpdateAddressDto Address { get; set; } = new();
-    }
-
-    public class UpdateAddressDto
-    {
-        public string Street { get; set; } = string.Empty;
-        public string Number { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string Country { get; set; } = "Poland";
-    }
-
-    public class GetMeResponse
-    {
-        public UserDtoData? Data { get; set; }
-    }
-
-    public class UserDtoData
-    {
-        public int UserId { get; set; }
-        public string Name { get; set; } = "";
-        public string CompanyName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string Nip { get; set; } = "";
-        public string BankAccountNumber { get; set; } = "";
-        public UpdateAddressDto Address { get; set; } = new();
-    }
-
     protected override async Task OnInitializedAsync()
     {
         try
-        {            
+        {
             var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
 
             if (response?.Data != null)
@@ -167,13 +248,18 @@ else
                         Country = userData.Address.Country
                     }
                 };
+                
+                editContext = new EditContext(userModel);
+                editContext.SetFieldCssClassProvider(new BootstrapValidationClassProvider());
             }
         }
         catch (Exception)
-        {            
+        {
             statusMessage = "Błąd autoryzacji sesji.";
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();
+            editContext = new EditContext(userModel);
+            editContext.SetFieldCssClassProvider(new BootstrapValidationClassProvider());
         }
     }
 
@@ -199,6 +285,117 @@ else
         finally
         {
             isSubmitting = false;
+        }
+    }
+    
+    private IEnumerable<string> GetValidationMessages<T>(Expression<Func<T>> accessor)
+    {
+        if (editContext == null) return Enumerable.Empty<string>();
+        var field = FieldIdentifier.Create(accessor);
+        return editContext.GetValidationMessages(field);
+    }
+
+    private bool IsFieldModified<T>(Expression<Func<T>> accessor)
+    {
+        if (editContext == null) return false;
+        var field = FieldIdentifier.Create(accessor);
+        return editContext.IsModified(field);
+    }
+    
+    private bool IsRequired<T>(Expression<Func<T>> accessor)
+    {
+        MemberExpression? member = accessor.Body as MemberExpression;
+        if (member == null && accessor.Body is UnaryExpression ue && ue.Operand is MemberExpression me)
+        {
+            member = me;
+        }
+
+        if (member == null) return false;
+
+        if (member.Member is PropertyInfo prop)
+        {            
+            if (Attribute.IsDefined(prop, typeof(RequiredAttribute))) return true;
+         
+            var getMethod = prop.GetGetMethod(true);
+            if (getMethod != null && Attribute.IsDefined(getMethod, typeof(RequiredAttribute))) return true;
+        }
+
+        return false;
+    }
+    
+    public class UpdateUserDto
+    {
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Imię i nazwisko jest wymagane.")]
+        [StringLength(100, ErrorMessage = "Maksymalnie 100 znaków.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Nazwa firmy jest wymagana.")]
+        [StringLength(200, ErrorMessage = "Maksymalnie 200 znaków.")]
+        public string CompanyName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email jest wymagany.")]
+        [EmailAddress(ErrorMessage = "Nieprawidłowy format email.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "NIP jest wymagany.")]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi zawierać 10 cyfr.")]
+        public string Nip { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Numer konta jest wymagany.")]
+        [StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
+        public string BankAccountNumber { get; set; } = string.Empty;
+
+        public UpdateAddressDto Address { get; set; } = new();
+    }
+
+    public class UpdateAddressDto
+    {
+        [Required(ErrorMessage = "Ulica jest wymagana.")]
+        public string Street { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Nr budynku jest wymagany.")]
+        public string Number { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Kod pocztowy jest wymagany.")]
+        [RegularExpression(@"^\d{2}-\d{3}$", ErrorMessage = "Kod pocztowy musi mieć format XX-XXX.")]
+        public string PostalCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Miasto jest wymagane.")]
+        public string City { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Kraj jest wymagany.")]
+        public string Country { get; set; } = "Poland";
+    }
+
+    public class GetMeResponse
+    {
+        public UserDtoData? Data { get; set; }
+    }
+
+    public class UserDtoData
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Nip { get; set; } = "";
+        public string BankAccountNumber { get; set; } = "";
+        public UpdateAddressDto Address { get; set; } = new();
+    }
+    
+    public class BootstrapValidationClassProvider : FieldCssClassProvider
+    {
+        public override string GetFieldCssClass(EditContext editContext, in FieldIdentifier fieldIdentifier)
+        {
+            var hasErrors = editContext.GetValidationMessages(fieldIdentifier).Any();
+            
+            if (!editContext.IsModified(fieldIdentifier))
+            {
+                return string.Empty;
+            }
+            return hasErrors ? "is-invalid" : "is-valid";
         }
     }
 }
