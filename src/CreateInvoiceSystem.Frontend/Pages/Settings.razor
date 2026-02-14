@@ -3,7 +3,7 @@
 @using System.Linq.Expressions
 @using System.Reflection
 @using Microsoft.AspNetCore.Components.Forms
-
+@using CreateInvoiceSystem.Frontend.Models
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
@@ -23,10 +23,7 @@ else
             <h5 class="mb-0">Dane profilu i firmy</h5>
         </div>
         <div class="card-body">
-            <EditForm EditContext="@editContext" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" />
-
+            <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">
@@ -36,11 +33,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Name" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Name)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Name)}")"
+                                   @bind-Value="userModel.Name"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Name)" />
                         @if (IsFieldModified(() => userModel.Name) && !GetValidationMessages(() => userModel.Name).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.Name))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
 
@@ -52,11 +54,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.CompanyName" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.CompanyName)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.CompanyName)}")"
+                                   @bind-Value="userModel.CompanyName"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.CompanyName)" />
                         @if (IsFieldModified(() => userModel.CompanyName) && !GetValidationMessages(() => userModel.CompanyName).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.CompanyName))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
 
@@ -68,11 +75,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Email" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Email)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Email)}")"
+                                   @bind-Value="userModel.Email"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Email)" />
                         @if (IsFieldModified(() => userModel.Email) && !GetValidationMessages(() => userModel.Email).Any())
                         {
                             <div class="valid-feedback d-block">Adres email jest poprawny.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.Email))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
 
@@ -84,11 +96,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Nip" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Nip)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Nip)}")"
+                                   @bind-Value="userModel.Nip"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Nip)" />
                         @if (IsFieldModified(() => userModel.Nip) && !GetValidationMessages(() => userModel.Nip).Any())
                         {
                             <div class="valid-feedback d-block">NIP wygląda poprawnie.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.Nip))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
 
@@ -100,11 +117,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.BankAccountNumber" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.BankAccountNumber)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.BankAccountNumber)}")"
+                                   @bind-Value="userModel.BankAccountNumber"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.BankAccountNumber)" />
                         @if (IsFieldModified(() => userModel.BankAccountNumber) && !GetValidationMessages(() => userModel.BankAccountNumber).Any())
                         {
                             <div class="valid-feedback d-block">Numer konta wygląda dobrze.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.BankAccountNumber))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
 
@@ -119,13 +141,19 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Address.Street" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Address.Street)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Address.Street)}")"
+                                   @bind-Value="userModel.Address.Street"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Address.Street)" />
                         @if (IsFieldModified(() => userModel.Address.Street) && !GetValidationMessages(() => userModel.Address.Street).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
                         }
+                        @foreach (var m in GetValidationMessages(() => userModel.Address.Street))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
+                        }
                     </div>
+
                     <div class="col-md-3">
                         <label class="form-label">
                             Nr budynku
@@ -134,13 +162,19 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Address.Number" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Address.Number)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Address.Number)}")"
+                                   @bind-Value="userModel.Address.Number"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Address.Number)" />
                         @if (IsFieldModified(() => userModel.Address.Number) && !GetValidationMessages(() => userModel.Address.Number).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
                         }
+                        @foreach (var m in GetValidationMessages(() => userModel.Address.Number))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
+                        }
                     </div>
+
                     <div class="col-md-4">
                         <label class="form-label">
                             Kod pocztowy
@@ -149,13 +183,19 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Address.PostalCode" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Address.PostalCode)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Address.PostalCode)}")"
+                                   @bind-Value="userModel.Address.PostalCode"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Address.PostalCode)" />
                         @if (IsFieldModified(() => userModel.Address.PostalCode) && !GetValidationMessages(() => userModel.Address.PostalCode).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
                         }
+                        @foreach (var m in GetValidationMessages(() => userModel.Address.PostalCode))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
+                        }
                     </div>
+
                     <div class="col-md-8">
                         <label class="form-label">
                             Miasto
@@ -164,13 +204,19 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Address.City" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Address.City)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Address.City)}")"
+                                   @bind-Value="userModel.Address.City"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Address.City)" />
                         @if (IsFieldModified(() => userModel.Address.City) && !GetValidationMessages(() => userModel.Address.City).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
                         }
+                        @foreach (var m in GetValidationMessages(() => userModel.Address.City))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
+                        }
                     </div>
+
                     <div class="col-md-8">
                         <label class="form-label">
                             Kraj
@@ -179,11 +225,16 @@ else
                                 <span class="text-danger ms-1" title="Pole wymagane">*</span>
                             }
                         </label>
-                        <InputText @bind-Value="userModel.Address.Country" class="form-control" />
-                        <ValidationMessage For="@(() => userModel.Address.Country)" class="invalid-feedback" />
+                        <InputText class="@($"form-control {GetFieldClass(() => userModel.Address.Country)}")"
+                                   @bind-Value="userModel.Address.Country"
+                                   @oninput="(ChangeEventArgs __e) => MarkModified(() => userModel.Address.Country)" />
                         @if (IsFieldModified(() => userModel.Address.Country) && !GetValidationMessages(() => userModel.Address.Country).Any())
                         {
                             <div class="valid-feedback d-block">Wygląda dobrze.</div>
+                        }
+                        @foreach (var m in GetValidationMessages(() => userModel.Address.Country))
+                        {
+                            <div class="invalid-feedback d-block">@m</div>
                         }
                     </div>
                 </div>
@@ -201,9 +252,10 @@ else
                         <span class="ms-3 alert @statusClass p-2">@statusMessage</span>
                     }
                 </div>
-            </EditForm>
+            </ValidatedEditForm>
         </div>
     </div>
+
     <div class="card mt-3">
         <div class="card-body">
             <h5>Bezpieczeństwo</h5>
@@ -217,10 +269,10 @@ else
 
 @code {
     private UpdateUserDto? userModel;
-    private EditContext? editContext;
     private bool isSubmitting = false;
     private string statusMessage = "";
     private string statusClass = "";
+    private readonly HashSet<string> _modifiedFields = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -248,9 +300,6 @@ else
                         Country = userData.Address.Country
                     }
                 };
-                
-                editContext = new EditContext(userModel);
-                editContext.SetFieldCssClassProvider(new BootstrapValidationClassProvider());
             }
         }
         catch (Exception)
@@ -258,8 +307,6 @@ else
             statusMessage = "Błąd autoryzacji sesji.";
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();
-            editContext = new EditContext(userModel);
-            editContext.SetFieldCssClassProvider(new BootstrapValidationClassProvider());
         }
     }
 
@@ -267,6 +314,8 @@ else
     {
         if (userModel == null) return;
         isSubmitting = true;
+        statusMessage = "";
+        statusClass = "";
 
         try
         {
@@ -278,7 +327,8 @@ else
             }
             else
             {
-                statusMessage = "Błąd podczas zapisu na serwerze.";
+                string serverMsg = await response.Content.ReadAsStringAsync();
+                statusMessage = string.IsNullOrWhiteSpace(serverMsg) ? "Błąd podczas zapisu na serwerze." : serverMsg;
                 statusClass = "alert-danger";
             }
         }
@@ -287,21 +337,34 @@ else
             isSubmitting = false;
         }
     }
-    
+
     private IEnumerable<string> GetValidationMessages<T>(Expression<Func<T>> accessor)
     {
-        if (editContext == null) return Enumerable.Empty<string>();
-        var field = FieldIdentifier.Create(accessor);
-        return editContext.GetValidationMessages(field);
+        var (target, prop) = GetTargetAndProperty(accessor);
+        if (target == null || prop == null) return Enumerable.Empty<string>();
+
+        var results = new List<ValidationResult>();
+        var ctx = new ValidationContext(target) { MemberName = prop.Name };
+        Validator.TryValidateProperty(prop.GetValue(target), ctx, results);
+        return results.Select(r => r.ErrorMessage).Where(m => !string.IsNullOrWhiteSpace(m));
     }
 
     private bool IsFieldModified<T>(Expression<Func<T>> accessor)
     {
-        if (editContext == null) return false;
-        var field = FieldIdentifier.Create(accessor);
-        return editContext.IsModified(field);
+        var path = GetPropertyPath(accessor);
+        return _modifiedFields.Contains(path);
     }
-    
+
+    private void MarkModified<T>(Expression<Func<T>> accessor)
+    {
+        var path = GetPropertyPath(accessor);
+        if (!_modifiedFields.Contains(path))
+        {
+            _modifiedFields.Add(path);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
     private bool IsRequired<T>(Expression<Func<T>> accessor)
     {
         MemberExpression? member = accessor.Body as MemberExpression;
@@ -313,16 +376,80 @@ else
         if (member == null) return false;
 
         if (member.Member is PropertyInfo prop)
-        {            
+        {
             if (Attribute.IsDefined(prop, typeof(RequiredAttribute))) return true;
-         
             var getMethod = prop.GetGetMethod(true);
             if (getMethod != null && Attribute.IsDefined(getMethod, typeof(RequiredAttribute))) return true;
         }
 
         return false;
     }
-    
+
+    private string GetFieldClass<T>(Expression<Func<T>> accessor)
+    {
+        var (target, prop) = GetTargetAndProperty(accessor);
+        if (target == null || prop == null) return "";
+
+        var messages = GetValidationMessages(accessor);
+        if (messages.Any()) return "is-invalid";
+
+        var path = GetPropertyPath(accessor);
+        if (!_modified_fields_contains(path: path)) return "";
+
+        return "is-valid";
+    }
+
+    private bool _modified_fields_contains(string path) => _modified_fields_internal().Contains(path);
+    private HashSet<string> _modified_fields_internal() => _modifiedFields;
+
+    private (object? targetInstance, PropertyInfo? property) GetTargetAndProperty<T>(Expression<Func<T>> accessor)
+    {
+        Expression e = accessor.Body;
+        if (e is UnaryExpression ue && ue.Operand is MemberExpression)
+            e = ue.Operand;
+
+        if (e is not MemberExpression me)
+            return (null, null);
+
+        var prop = me.Member as PropertyInfo;
+        if (prop == null) return (null, null);
+
+        object? targetInstance;
+        if (me.Expression is ConstantExpression constExpr)
+        {
+            targetInstance = constExpr.Value;
+        }
+        else
+        {
+            try
+            {
+                var lambda = Expression.Lambda(me.Expression);
+                var fn = lambda.Compile();
+                targetInstance = fn.DynamicInvoke();
+            }
+            catch
+            {
+                targetInstance = null;
+            }
+        }
+
+        return (targetInstance, prop);
+    }
+
+    private string GetPropertyPath<T>(Expression<Func<T>> expr)
+    {
+        var parts = new List<string>();
+        Expression e = expr.Body;
+        if (e is UnaryExpression ue && ue.Operand is MemberExpression) e = ue.Operand;
+
+        while (e is MemberExpression me)
+        {
+            parts.Insert(0, me.Member.Name);
+            e = me.Expression!;
+        }
+        return string.Join(".", parts);
+    }
+
     public class UpdateUserDto
     {
         public int UserId { get; set; }
@@ -383,19 +510,5 @@ else
         public string Nip { get; set; } = "";
         public string BankAccountNumber { get; set; } = "";
         public UpdateAddressDto Address { get; set; } = new();
-    }
-    
-    public class BootstrapValidationClassProvider : FieldCssClassProvider
-    {
-        public override string GetFieldCssClass(EditContext editContext, in FieldIdentifier fieldIdentifier)
-        {
-            var hasErrors = editContext.GetValidationMessages(fieldIdentifier).Any();
-            
-            if (!editContext.IsModified(fieldIdentifier))
-            {
-                return string.Empty;
-            }
-            return hasErrors ? "is-invalid" : "is-valid";
-        }
     }
 }
