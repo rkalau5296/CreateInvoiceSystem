@@ -1,7 +1,9 @@
 ﻿@page "/products"
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
+@using CreateInvoiceSystem.Frontend.Components
 @using System.ComponentModel.DataAnnotations
+@using System.Globalization
 @inject ProductService ProductService
 
 <div class="container-fluid">
@@ -44,37 +46,35 @@
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog shadow-lg">
                 <div class="modal-content">
-                    <EditForm Model="_newProduct" OnValidSubmit="HandleSave">
-                        <DataAnnotationsValidator />
+                    <ValidatedEditForm TModel="ProductEditModel" Model="_newProductView" OnValidSubmit="HandleSave">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title">Dodaj Nowy Produkt</h5>
                             <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Nazwa produktu <span class="text-danger">*</span></label>
-                                <InputText class="form-control" @bind-Value="_newProduct.Name" placeholder="np. Kawa" />
-                                <ValidationMessage For="@(() => _newProduct.Name)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_newProductView.Name"
+                                                    Label="Nazwa produktu"
+                                                    Placeholder="np. Kawa" />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Opis</label>
-                                <InputTextArea class="form-control" @bind-Value="_newProduct.Description" placeholder="Opcjonalny opis..." />
-                                <ValidationMessage For="@(() => _newProduct.Description)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_newProductView.Description"
+                                                    Label="Opis"
+                                                    Placeholder="Opcjonalny opis..." />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Cena <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <InputNumber class="form-control" @bind-Value="_newProduct.Value" />
-                                    <span class="input-group-text">PLN</span>
-                                </div>
-                                <ValidationMessage For="@(() => _newProduct.Value)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_newProductView.ValueString"
+                                                    Label="Cena"
+                                                    Placeholder="0.00"
+                                                    Type="number" />
+                                <div class="mt-1"><small class="text-muted">PLN</small></div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
                             <button type="submit" class="btn btn-success px-4">Zapisz produkt</button>
                         </div>
-                    </EditForm>
+                    </ValidatedEditForm>
                 </div>
             </div>
         </div>
@@ -105,38 +105,39 @@
                     {
                         @foreach (var p in _products)
                         {
-                            <tr>
-                                @if (_editingProductId == p.ProductId)
-                                {
-                                    <td colspan="4" class="bg-light p-2 border-primary shadow-sm">
-                                        <EditForm Model="_editModel" OnValidSubmit="SaveEdit">
-                                            <DataAnnotationsValidator />
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="flex-grow-1">
-                                                    <InputText class="form-control form-control-sm" @bind-Value="_editModel.Name" placeholder="Nazwa" />
-                                                    <ValidationMessage For="@(() => _editModel.Name)" class="text-danger tiny" />
+                            if (_editingProductId == p.ProductId)
+                            {
+                                <tr class="editing-row">
+                                    <td colspan="4" class="p-2">
+                                        <ValidatedEditForm TModel="ProductEditModel" Model="_editViewModel" OnValidSubmit="SubmitInlineEdit">
+                                            <div class="editing-grid">
+                                                <div>
+                                                    <ValidatedInputText @bind-Value="_editViewModel.Name" Placeholder="Nazwa" />
                                                 </div>
-                                                <div style="flex-grow: 2;">
-                                                    <InputText class="form-control form-control-sm" @bind-Value="_editModel.Description" placeholder="Opis" />
+                                                <div>
+                                                    <ValidatedInputText @bind-Value="_editViewModel.Description" Placeholder="Opis" />
                                                 </div>
-                                                <div style="width: 120px;">
-                                                    <InputNumber class="form-control form-control-sm text-end" @bind-Value="_editModel.Value" placeholder="Wartość" />
-                                                    <ValidationMessage For="@(() => _editModel.Value)" class="text-danger tiny" />
+                                                <div class="text-end">
+                                                    <ValidatedInputText @bind-Value="_editViewModel.ValueString" Placeholder="Wartość" Type="number" />
                                                 </div>
-                                                <div class="d-flex justify-content-center gap-2">
-                                                    <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
-                                                        <i class="bi bi-check-lg"></i> Zapisz
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
-                                                        Anuluj
-                                                    </button>
+                                                <div class="text-center">
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
+                                                            <i class="bi bi-check-lg"></i> Zapisz
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
+                                                            Anuluj
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </EditForm>
+                                        </ValidatedEditForm>
                                     </td>
-                                }
-                                else
-                                {
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
                                     <td class="align-middle"><strong>@p.Name</strong></td>
                                     <td class="align-middle text-truncate" style="max-width: 300px;">@p.Description</td>
                                     <td class="align-middle text-end">@p.Value?.ToString("N2") PLN</td>
@@ -150,8 +151,8 @@
                                             </button>
                                         </div>
                                     </td>
-                                }
-                            </tr>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -163,6 +164,23 @@
 <style>
     .tiny {
         font-size: 0.75rem;
+    }
+
+    .editing-grid {
+        display: grid;
+        grid-template-columns: 25% 40% 15% 20%;
+        gap: 8px;
+        align-items: center;
+    }
+
+        .editing-grid .form-control {
+            height: calc(1.5em + 0.5rem);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+    .editing-row td {
+        vertical-align: middle;
     }
 </style>
 
@@ -204,7 +222,9 @@
     private List<ProductDto>? _products;
     private int? _editingProductId;
     private ProductDto _newProduct = new();
+    private ProductEditModel _newProductView = new();
     private ProductDto _editModel = new();
+    private ProductEditModel _editViewModel = new();
     private int _pageSize = 10;
     private int _currentPage = 1;
     private int _totalCount = 0;
@@ -216,6 +236,12 @@
     private void OpenAddModal()
     {
         _newProduct = new ProductDto { Name = "", Value = null, Description = "" };
+        _newProductView = new ProductEditModel
+        {
+            Name = _newProduct.Name,
+            Description = _newProduct.Description,
+            ValueString = _newProduct.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
+        };
         _isModalOpen = true;
     }
 
@@ -233,7 +259,13 @@
     {
         try
         {
-            await ProductService.SaveProductAsync(_newProduct);
+            if (!TryBuildDtoFromView(_newProductView, out var dto, out var err))
+            {
+                Console.WriteLine($"Walidacja: {err}");
+                return;
+            }
+
+            await ProductService.SaveProductAsync(dto);
             _isModalOpen = false;
             _newProduct = new ProductDto();
             await LoadData();
@@ -288,24 +320,100 @@
             Value = product.Value,
             UserId = product.UserId
         };
+
+        _editViewModel = new ProductEditModel
+        {
+            ProductId = _editModel.ProductId,
+            UserId = _editModel.UserId,
+            Name = _editModel.Name,
+            Description = _editModel.Description,
+            ValueString = _editModel.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
+        };
     }
 
-    private void CancelEdit() => _editingProductId = null;
-
-    private async Task SaveEdit()
+    private void CancelEdit()
     {
-        try
+        _editingProductId = null;
+    }
+
+    private async Task SubmitInlineEdit()
+    {
+        if (!TryBuildDtoFromView(_editViewModel, out var dto, out var err))
         {
-            await ProductService.UpdateProductAsync(_editModel);
-            _editingProductId = null;
-            await LoadData();
+            Console.WriteLine($"Walidacja: {err}");
+            return;
         }
-        catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
+
+        dto.ProductId = _editViewModel.ProductId;
+        dto.UserId = _editViewModel.UserId;
+
+        await ProductService.UpdateProductAsync(dto);
+        _editingProductId = null;
+        await LoadData();
     }
 
     private async Task ExportToCsv()
     {
         try { await ProductService.DownloadProductsCsvAsync(); }
         catch (Exception ex) { Console.WriteLine($"Błąd eksportu: {ex.Message}"); }
+    }
+
+    private bool TryBuildDtoFromView(ProductEditModel vm, out ProductDto dto, out string? error)
+    {
+        error = null;
+        dto = new ProductDto();
+
+        if (string.IsNullOrWhiteSpace(vm.Name))
+        {
+            error = "Nazwa jest wymagana.";
+            return false;
+        }
+
+        var s = (vm.ValueString ?? "").Trim().Replace(',', '.');
+        if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var val))
+        {
+            error = "Nieprawidłowa wartość ceny.";
+            return false;
+        }
+
+        dto.ProductId = vm.ProductId;
+        dto.UserId = vm.UserId;
+        dto.Name = vm.Name;
+        dto.Description = vm.Description;
+        dto.Value = val;
+        return true;
+    }
+
+    public class ProductEditModel : IValidatableObject
+    {
+        public int ProductId { get; set; }
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Nazwa jest wymagana.")]
+        public string Name { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Cena jest wymagana.")]
+        public string ValueString { get; set; } = string.Empty;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var results = new List<ValidationResult>();
+
+            var s = (ValueString ?? string.Empty).Trim().Replace(',', '.');
+            if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var val))
+            {
+                results.Add(new ValidationResult("Nieprawidłowa wartość ceny.", new[] { nameof(ValueString) }));
+                return results;
+            }
+
+            if (val < 0m)
+            {
+                results.Add(new ValidationResult("Cena nie może być ujemna.", new[] { nameof(ValueString) }));
+            }
+
+            return results;
+        }
     }
 }
