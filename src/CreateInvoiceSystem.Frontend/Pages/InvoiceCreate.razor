@@ -157,7 +157,6 @@
                 <div class="d-flex justify-content-end gap-3">
                     <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
                     <button type="submit" class="btn btn-success btn-lg px-5 shadow">Wystaw i zapisz fakturę</button>
-                    <button type="button" class="btn btn-secondary btn-lg px-4" @onclick="DebugSubmit">Debug submit</button>
                 </div>
             </ValidatedEditForm>
         </div>
@@ -215,6 +214,12 @@
 
     private Task OnEditContextInitialized(EditContext ctx)
     {
+        _edit_context_set(ctx);
+        return Task.CompletedTask;
+    }
+
+    private void _edit_context_set(EditContext ctx)
+    {
         _editContext = ctx;
         _pageMessageStore = new ValidationMessageStore(_editContext);
         _editContext.OnFieldChanged += (s, e) =>
@@ -222,7 +227,6 @@
             _pageMessageStore.Clear(e.FieldIdentifier);
             _editContext.NotifyValidationStateChanged();
         };
-        return Task.CompletedTask;
     }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto
@@ -265,17 +269,22 @@
             position.ProductValue = match.Value;
         }
 
-        if (_editContext != null)
+        if (_editContext == null) return;
+
+        var fiName = new FieldIdentifier(position, nameof(position.ProductName));
+        var fiValue = new FieldIdentifier(position, nameof(position.ProductValue));
+        var fiQty = new FieldIdentifier(position, nameof(position.Quantity));
+
+        _pageMessageStore?.Clear(fiName);
+        _pageMessageStore?.Clear(fiValue);
+        _pageMessageStore?.Clear(fiQty);
+
+        if (_submitAttempted)
         {
             _validatedForm?.ClearServerErrors();
-            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.ProductName)));
-            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.ProductValue)));
-            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.Quantity)));
-
-            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.ProductName)));
-            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.ProductValue)));
-            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.Quantity)));
-
+            _editContext.NotifyFieldChanged(fiName);
+            _editContext.NotifyFieldChanged(fiValue);
+            _editContext.NotifyFieldChanged(fiQty);
             _editContext.NotifyValidationStateChanged();
         }
     }
@@ -303,21 +312,45 @@
             _invoice.ClientId = null;
         }
 
-        if (_editContext != null)
+        if (_editContext == null) return;
+
+        var fiName = new FieldIdentifier(_invoice, nameof(_invoice.ClientName));
+        var fiNip = new FieldIdentifier(_invoice, nameof(_invoice.ClientNip));
+
+        _pageMessageStore?.Clear(fiName);
+        _pageMessageStore?.Clear(fiNip);
+
+        if (_submitAttempted)
         {
-            _validated_form_clear_and_notify(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)));
-            _validated_form_clear_and_notify(new FieldIdentifier(_invoice, nameof(_invoice.ClientNip)));
-
-            if (_invoice.Client?.Address != null)
-            {
-                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street)));
-                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number)));
-                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.PostalCode)));
-                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.City)));
-            }
-
-            _editContext.NotifyValidationStateChanged();
+            _validatedForm?.ClearServerErrors();
+            _editContext.NotifyFieldChanged(fiName);
+            _editContext.NotifyFieldChanged(fiNip);
         }
+
+        if (_invoice.Client?.Address != null)
+        {
+            var fiStreet = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street));
+            var fiNumber = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number));
+            var fiPostal = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.PostalCode));
+            var fiCity = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.City));
+
+            _pageMessageStore?.Clear(fiStreet);
+            _pageMessageStore?.Clear(fiNumber);
+            _pageMessageStore?.Clear(fiPostal);
+            _pageMessageStore?.Clear(fiCity);
+
+            if (_submitAttempted)
+            {
+                _validatedForm?.ClearServerErrors();
+                _editContext.NotifyFieldChanged(fiStreet);
+                _editContext.NotifyFieldChanged(fiNumber);
+                _editContext.NotifyFieldChanged(fiPostal);
+                _editContext.NotifyFieldChanged(fiCity);
+            }
+        }
+
+        if (_submitAttempted)
+            _editContext.NotifyValidationStateChanged();
     }
 
     private void _validated_form_clear_and_notify(FieldIdentifier fi)
@@ -351,25 +384,6 @@
         await ValidatePositionsAndSubmit();
     }
 
-    private void DumpValidationMessages()
-    {
-        if (_editContext == null) return;
-        Console.WriteLine("VALIDATION DUMP:");
-        var all = _editContext.GetValidationMessages().ToList();
-        Console.WriteLine("ALL MESSAGES COUNT: " + all.Count);
-        foreach (var m in all)
-        {
-            Console.WriteLine("MSG: " + m);
-        }
-    }
-
-    private async Task DebugSubmit()
-    {
-        DumpValidationMessages();
-        await ValidatePositionsAndSubmit();
-        DumpValidationMessages();
-    }
-
     private async Task ValidatePositionsAndSubmit()
     {
         if (_editContext == null) return;
@@ -394,9 +408,7 @@
                     {
                         var fi = new FieldIdentifier(pos, member);
                         if (!_editContext.GetValidationMessages(fi).Contains(msg))
-                        {
                             _pageMessageStore?.Add(fi, msg);
-                        }
                         anyErrors = true;
                     }
                 }
@@ -437,9 +449,7 @@
                     {
                         var fi = new FieldIdentifier(_invoice.Client.Address, member);
                         if (!_editContext.GetValidationMessages(fi).Contains(msg))
-                        {
                             _pageMessageStore?.Add(fi, msg);
-                        }
                         anyErrors = true;
                     }
                 }
@@ -469,7 +479,6 @@
 
         if (anyErrors || _editContext.GetValidationMessages().Any())
         {
-            DumpValidationMessages();
             return;
         }
 
