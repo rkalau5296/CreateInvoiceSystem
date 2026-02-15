@@ -110,13 +110,17 @@
                                                placeholder="Nazwa produktu..." />
                                         <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
                                     </td>
-                                    <td>
-                                        <InputNumber TValue="int" @bind-Value="pos.Quantity" class="@FormControlClass(() => pos.Quantity)" />
-                                        <ValidationMessage For="@(() => pos.Quantity)" class="text-danger small" />
+                                    <td style="width:110px">
+                                        <ValidatedInputNumber TValue="int"
+                                                              @bind-Value="pos.Quantity"
+                                                              Placeholder="1"
+                                                              AdditionalAttributes="@_minOneAttributes" />
                                     </td>
-                                    <td>
-                                        <InputNumber TValue="decimal?" @bind-Value="pos.ProductValue" class="@FormControlClass(() => pos.ProductValue)" />
-                                        <ValidationMessage For="@(() => pos.ProductValue)" class="text-danger small" />
+                                    <td style="width:160px">
+                                        <ValidatedInputNumber TValue="decimal?"
+                                                              @bind-Value="pos.ProductValue"
+                                                              Placeholder="0.00"
+                                                              Step="0.01" />
                                     </td>
                                     <td>
                                         <select @bind="pos.VatRate" class="form-select">
@@ -143,16 +147,6 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm mb-4" @onclick="AddPosition">
                     <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
                 </button>
-
-                <div class="row">
-                    <div class="col-md-12 text-end mb-4">
-                        <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
-                            <div class="text-muted">Suma netto: @CalculateTotalNet().ToString("N2") PLN</div>
-                            <div class="text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
-                            <h3 class="mb-0 text-primary fw-bold">RAZEM (Brutto): @CalculateTotalGross().ToString("N2") PLN</h3>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="d-flex justify-content-end gap-3">
                     <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
@@ -195,6 +189,10 @@
     private ValidationMessageStore? _pageMessageStore;
     private bool _submitAttempted;
 
+    // prebuilt attribute dictionaries to avoid Razor parse issues
+    private readonly IDictionary<string, object> _productListAttributes = new Dictionary<string, object> { { "list", "productOptions" } };
+    private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -214,12 +212,6 @@
 
     private Task OnEditContextInitialized(EditContext ctx)
     {
-        _edit_context_set(ctx);
-        return Task.CompletedTask;
-    }
-
-    private void _edit_context_set(EditContext ctx)
-    {
         _editContext = ctx;
         _pageMessageStore = new ValidationMessageStore(_editContext);
         _editContext.OnFieldChanged += (s, e) =>
@@ -227,6 +219,7 @@
             _pageMessageStore.Clear(e.FieldIdentifier);
             _editContext.NotifyValidationStateChanged();
         };
+        return Task.CompletedTask;
     }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto
@@ -243,7 +236,7 @@
         _invoice.InvoicePositions.Remove(pos);
         _pageMessageStore?.Clear();
         _validatedForm?.ClearServerErrors();
-        _editContext?.NotifyValidationStateChanged();
+        if (_editContext != null) _editContext.NotifyValidationStateChanged();
     }
 
     private decimal CalculatePositionVat(InvoicePositionDto pos)
@@ -322,12 +315,12 @@
 
         if (_submitAttempted)
         {
-            _validatedForm?.ClearServerErrors();
-            _editContext.NotifyFieldChanged(fiName);
-            _editContext.NotifyFieldChanged(fiNip);
+            _validated_form_clear_and_notify(fiName);
+            _validated_form_clear_and_notify(fiNip);
+            _editContext.NotifyValidationStateChanged();
         }
 
-        if (_invoice.Client?.Address != null)
+        if (_invoice.Client?.Address != null && _submitAttempted)
         {
             var fiStreet = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street));
             var fiNumber = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number));
@@ -339,25 +332,25 @@
             _pageMessageStore?.Clear(fiPostal);
             _pageMessageStore?.Clear(fiCity);
 
-            if (_submitAttempted)
-            {
-                _validatedForm?.ClearServerErrors();
-                _editContext.NotifyFieldChanged(fiStreet);
-                _editContext.NotifyFieldChanged(fiNumber);
-                _editContext.NotifyFieldChanged(fiPostal);
-                _editContext.NotifyFieldChanged(fiCity);
-            }
-        }
+            _validated_form_clear_and_notify(fiStreet);
+            _validated_form_clear_and_notify(fiNumber);
+            _validated_form_clear_and_notify(fiPostal);
+            _validated_form_clear_and_notify(fiCity);
 
-        if (_submitAttempted)
             _editContext.NotifyValidationStateChanged();
+        }
     }
 
     private void _validated_form_clear_and_notify(FieldIdentifier fi)
     {
         _pageMessageStore?.Clear(fi);
-        _validatedForm?.ClearServerErrors();
+        _validated_form_safe_clear();
         _editContext?.NotifyFieldChanged(fi);
+    }
+
+    private void _validated_form_safe_clear()
+    {
+        try { _validatedForm?.ClearServerErrors(); } catch { }
     }
 
     private string FormControlClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
@@ -389,7 +382,7 @@
         if (_editContext == null) return;
 
         _pageMessageStore?.Clear();
-        _validatedForm?.ClearServerErrors();
+        _validated_form_safe_clear();
 
         var anyErrors = false;
 
