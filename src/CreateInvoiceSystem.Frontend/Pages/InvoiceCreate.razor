@@ -1,6 +1,9 @@
 ﻿@page "/invoices/create"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
+@using CreateInvoiceSystem.Frontend.Components
 @inject InvoiceService InvoiceService
 @inject ClientService ClientService
 @inject ProductService ProductService
@@ -15,23 +18,25 @@
             </button>
         </div>
         <div class="card-body">
-            <EditForm EditContext="_editContext" OnSubmit="HandleSubmit">
-                <DataAnnotationsValidator />
-
+            <ValidatedEditForm TModel="InvoiceDto"
+                               Model="_invoice"
+                               OnValidSubmit="HandleValidSubmit"
+                               OnInvalidSubmit="HandleInvalidSubmit"
+                               OnEditContextInitialized="OnEditContextInitialized"
+                               @ref="_validatedForm">
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Tytuł faktury <span class="text-danger">*</span></label>
-                        <InputText @bind-Value="_invoice.Title" class="@($"form-control {GetFieldClass(() => _invoice.Title)}")" placeholder="np. FV 01/2026" />
-                        <ValidationMessage For="@(() => _invoice.Title)" class="text-danger small" />
+                        <ValidatedInputText @bind-Value="_invoice.Title" Placeholder="np. FV 01/2026" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Data wystawienia <span class="text-danger">*</span></label>
-                        <InputDate @bind-Value="_invoice.CreatedDate" class="@($"form-control {GetFieldClass(() => _invoice.CreatedDate)}")" />
+                        <InputDate @bind-Value="_invoice.CreatedDate" class="@FormControlClass(() => _invoice.CreatedDate)" />
                         <ValidationMessage For="@(() => _invoice.CreatedDate)" class="text-danger small" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Termin płatności <span class="text-danger">*</span></label>
-                        <InputDate @bind-Value="_invoice.PaymentDate" class="@($"form-control {GetFieldClass(() => _invoice.PaymentDate)}")" />
+                        <InputDate @bind-Value="_invoice.PaymentDate" class="@FormControlClass(() => _invoice.PaymentDate)" />
                         <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
                     </div>
                 </div>
@@ -42,93 +47,75 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="small fw-bold">Wybierz klienta lub wpisz nową nazwę <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.ClientName"
-                                           list="clientOptions"
-                                           class="@($"form-control {GetFieldClass(() => _invoice.ClientName)}")"
-                                           @oninput="(ChangeEventArgs e) => { _invoice.ClientName = e.Value?.ToString(); HandleClientChange(_invoice.ClientName); }"
-                                           placeholder="Nazwa klienta..." />
+                                <input list="clientOptions"
+                                       class="@FormControlClass(() => _invoice.ClientName)"
+                                       @bind="_invoice.ClientName"
+                                       @oninput="(ChangeEventArgs e) => HandleClientChange(e.Value?.ToString())"
+                                       placeholder="Nazwa klienta..." />
                                 <ValidationMessage For="@(() => _invoice.ClientName)" class="text-danger small" />
                             </div>
+
                             <div class="col-md-6">
                                 <label class="small fw-bold">NIP <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.ClientNip" class="@($"form-control {GetFieldClass(() => _invoice.ClientNip)}")" placeholder="NIP" />
-                                <ValidationMessage For="@(() => _invoice.ClientNip)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_invoice.ClientNip" Placeholder="NIP" />
                             </div>
 
                             <div class="col-md-5">
                                 <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.Client.Address.Street" class="@($"form-control {GetFieldClass(() => _invoice.Client.Address.Street)}")" placeholder="Ulica" />
-                                <ValidationMessage For="@(() => _invoice.Client.Address.Street)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_invoice.Client.Address.Street" Placeholder="Ulica" />
                             </div>
                             <div class="col-md-2">
                                 <label class="small fw-bold">Nr domu/lok. <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.Client.Address.Number" class="@($"form-control {GetFieldClass(() => _invoice.Client.Address.Number)}")" placeholder="Nr" />
-                                <ValidationMessage For="@(() => _invoice.Client.Address.Number)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_invoice.Client.Address.Number" Placeholder="Nr" />
                             </div>
                             <div class="col-md-2">
                                 <label class="small fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.Client.Address.PostalCode" class="@($"form-control {GetFieldClass(() => _invoice.Client.Address.PostalCode)}")" placeholder="00-000" />
-                                <ValidationMessage For="@(() => _invoice.Client.Address.PostalCode)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_invoice.Client.Address.PostalCode" Placeholder="00-000" />
                             </div>
                             <div class="col-md-3">
                                 <label class="small fw-bold">Miasto <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="_invoice.Client.Address.City" class="@($"form-control {GetFieldClass(() => _invoice.Client.Address.City)}")" placeholder="Miasto" />
-                                <ValidationMessage For="@(() => _invoice.Client.Address.City)" class="text-danger small" />
+                                <ValidatedInputText @bind-Value="_invoice.Client.Address.City" Placeholder="Miasto" />
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
-                @{
-                    var posField = new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions));
-                    var posErrors = _editContext?.GetValidationMessages(posField) ?? Enumerable.Empty<string>();
-                }
-                @if (posErrors.Any())
-                {
-                    <div class="alert alert-danger small">
-                        @foreach (var msg in posErrors)
-                        {
-                            <div>@msg</div>
-                        }
-                    </div>
-                }
+
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle">
                         <thead class="table-dark">
                             <tr>
-                                <th>Lp.</th>
+                                <th style="width:48px">Lp.</th>
                                 <th>Produkt / Usługa <span class="text-danger">*</span></th>
-                                <th style="width: 80px">Ilość <span class="text-danger">*</span></th>
-                                <th style="width: 140px">Cena netto <span class="text-danger">*</span></th>
+                                <th style="width: 110px">Ilość <span class="text-danger">*</span></th>
+                                <th style="width: 160px">Cena netto <span class="text-danger">*</span></th>
                                 <th style="width: 100px">VAT</th>
                                 <th style="width: 130px">Kwota VAT</th>
                                 <th style="width: 150px">Wartość BRUTTO</th>
-                                <th style="width: 50px"></th>
+                                <th style="width: 80px"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @{
-                                int lp = 1;
-                            }
-                            @foreach (var pos in _invoice.InvoicePositions)
+                            @for (int i = 0; i < _invoice.InvoicePositions.Count; i++)
                             {
-                                <tr>
-                                    <td>@(lp++)</td>
+                                var pos = _invoice.InvoicePositions[i];
+                                <tr @key="pos">
+                                    <td>@(i + 1)</td>
                                     <td>
-                                        <InputText @bind-Value="pos.ProductName"
-                                                   list="productOptions"
-                                                   class="@($"form-control {GetFieldClass(() => pos.ProductName)}")"
-                                                   @oninput="(ChangeEventArgs e) => { pos.ProductName = e.Value?.ToString(); HandleProductChange(pos, pos.ProductName); }"
-                                                   placeholder="Nazwa produktu..." />
+                                        <input list="productOptions"
+                                               class="@FormControlClass(() => pos.ProductName)"
+                                               @bind="pos.ProductName"
+                                               @oninput="(ChangeEventArgs e) => HandleProductChange(pos, e.Value?.ToString())"
+                                               placeholder="Nazwa produktu..." />
                                         <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
                                     </td>
                                     <td>
-                                        <InputNumber @bind-Value="pos.Quantity" class="@($"form-control {GetFieldClass(() => pos.Quantity)}")" />
+                                        <InputNumber TValue="int" @bind-Value="pos.Quantity" class="@FormControlClass(() => pos.Quantity)" />
                                         <ValidationMessage For="@(() => pos.Quantity)" class="text-danger small" />
                                     </td>
                                     <td>
-                                        <InputNumber @bind-Value="pos.ProductValue" class="@($"form-control {GetFieldClass(() => pos.ProductValue)}")" />
+                                        <InputNumber TValue="decimal?" @bind-Value="pos.ProductValue" class="@FormControlClass(() => pos.ProductValue)" />
                                         <ValidationMessage For="@(() => pos.ProductValue)" class="text-danger small" />
                                     </td>
                                     <td>
@@ -169,11 +156,10 @@
 
                 <div class="d-flex justify-content-end gap-3">
                     <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
-                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">
-                        Wystaw i zapisz fakturę
-                    </button>
+                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">Wystaw i zapisz fakturę</button>
+                    <button type="button" class="btn btn-secondary btn-lg px-4" @onclick="DebugSubmit">Debug submit</button>
                 </div>
-            </EditForm>
+            </ValidatedEditForm>
         </div>
     </div>
 </div>
@@ -203,12 +189,15 @@
 
     private List<ProductDto> _availableProducts = new();
     private List<ClientDto> _availableClients = new();
-    private EditContext _editContext = default!;
-    private ValidationMessageStore _messageStore = default!;
+
+    private ValidatedEditForm<InvoiceDto>? _validatedForm;
+
+    private EditContext? _editContext;
+    private ValidationMessageStore? _pageMessageStore;
+    private bool _submitAttempted;
 
     protected override async Task OnInitializedAsync()
     {
-        _edit_context_init();
         try
         {
             var pResponse = await ProductService.GetProductsAsync(1, 1000);
@@ -218,18 +207,22 @@
 
             if (!_invoice.InvoicePositions.Any()) AddPosition();
         }
-        catch (Exception ex) { Console.WriteLine($"Błąd inicjalizacji: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd inicjalizacji: {ex.Message}");
+        }
     }
 
-    private void _edit_context_init()
+    private Task OnEditContextInitialized(EditContext ctx)
     {
-        _editContext = new EditContext(_invoice);
-        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext = ctx;
+        _pageMessageStore = new ValidationMessageStore(_editContext);
         _editContext.OnFieldChanged += (s, e) =>
         {
-            _messageStore.Clear(e.FieldIdentifier);
+            _pageMessageStore.Clear(e.FieldIdentifier);
             _editContext.NotifyValidationStateChanged();
         };
+        return Task.CompletedTask;
     }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto
@@ -244,10 +237,9 @@
     private void RemovePosition(InvoicePositionDto pos)
     {
         _invoice.InvoicePositions.Remove(pos);
-
-        var posField = new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions));
-        _messageStore.Clear(posField);
-        _editContext.NotifyValidationStateChanged();
+        _pageMessageStore?.Clear();
+        _validatedForm?.ClearServerErrors();
+        _editContext?.NotifyValidationStateChanged();
     }
 
     private decimal CalculatePositionVat(InvoicePositionDto pos)
@@ -273,17 +265,19 @@
             position.ProductValue = match.Value;
         }
 
-        var fiName = new FieldIdentifier(position, nameof(position.ProductName));
-        var fiValue = new FieldIdentifier(position, nameof(position.ProductValue));
-        var fiQty = new FieldIdentifier(position, nameof(position.Quantity));
+        if (_editContext != null)
+        {
+            _validatedForm?.ClearServerErrors();
+            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.ProductName)));
+            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.ProductValue)));
+            _pageMessageStore?.Clear(new FieldIdentifier(position, nameof(position.Quantity)));
 
-        _messageStore.Clear(fiName);
-        _messageStore.Clear(fiValue);
-        _messageStore.Clear(fiQty);
+            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.ProductName)));
+            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.ProductValue)));
+            _editContext.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.Quantity)));
 
-        _editContext.NotifyFieldChanged(fiName);
-        _editContext.NotifyFieldChanged(fiValue);
-        _editContext.NotifyFieldChanged(fiQty);
+            _editContext.NotifyValidationStateChanged();
+        }
     }
 
     private void HandleClientChange(string? newValue)
@@ -295,8 +289,8 @@
             _invoice.ClientName = match.Name;
             _invoice.ClientNip = match.Nip;
 
-            if (_invoice.Client == null) _invoice.Client = new ClientDto();
-            if (_invoice.Client.Address == null) _invoice.Client.Address = new AddressDto();
+            _invoice.Client ??= new ClientDto();
+            _invoice.Client.Address ??= new AddressDto();
 
             _invoice.Client.Address.Street = match.Address.Street;
             _invoice.Client.Address.Number = match.Address.Number;
@@ -309,109 +303,173 @@
             _invoice.ClientId = null;
         }
 
-        var fiName = new FieldIdentifier(_invoice, nameof(_invoice.ClientName));
-        var fiNip = new FieldIdentifier(_invoice, nameof(_invoice.ClientNip));
-        _messageStore.Clear(fiName);
-        _messageStore.Clear(fiNip);
-        _editContext.NotifyFieldChanged(fiName);
-        _editContext.NotifyFieldChanged(fiNip);
-
-        if (_invoice.Client?.Address != null)
+        if (_editContext != null)
         {
-            var fiStreet = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street));
-            var fiNumber = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number));
-            var fiPostal = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.PostalCode));
-            var fiCity = new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.City));
+            _validated_form_clear_and_notify(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)));
+            _validated_form_clear_and_notify(new FieldIdentifier(_invoice, nameof(_invoice.ClientNip)));
 
-            _messageStore.Clear(fiStreet);
-            _messageStore.Clear(fiNumber);
-            _messageStore.Clear(fiPostal);
-            _messageStore.Clear(fiCity);
+            if (_invoice.Client?.Address != null)
+            {
+                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street)));
+                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number)));
+                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.PostalCode)));
+                _validated_form_clear_and_notify(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.City)));
+            }
 
-            _editContext.NotifyFieldChanged(fiStreet);
-            _editContext.NotifyFieldChanged(fiNumber);
-            _editContext.NotifyFieldChanged(fiPostal);
-            _editContext.NotifyFieldChanged(fiCity);
+            _editContext.NotifyValidationStateChanged();
         }
-
-        _editContext.NotifyValidationStateChanged();
     }
 
-    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    private void _validated_form_clear_and_notify(FieldIdentifier fi)
     {
+        _pageMessageStore?.Clear(fi);
+        _validatedForm?.ClearServerErrors();
+        _editContext?.NotifyFieldChanged(fi);
+    }
+
+    private string FormControlClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    {
+        if (_editContext == null) return "form-control";
+        if (!_submitAttempted) return "form-control";
         var fieldId = FieldIdentifier.Create(accessor);
         var fieldHasErrors = _editContext.GetValidationMessages(fieldId).Any();
-        if (fieldHasErrors) return "is-invalid";
-
-        if (_editContext.GetValidationMessages().Any()) return "is-valid";
-
-        return "";
+        if (fieldHasErrors) return "form-control is-invalid";
+        var isModified = _editContext.IsModified(fieldId);
+        if (isModified) return "form-control is-valid";
+        return "form-control";
     }
 
-    private async Task HandleSubmit()
+    private async Task HandleValidSubmit()
     {
-        _messageStore.Clear();
+        _submitAttempted = true;
+        await ValidatePositionsAndSubmit();
+    }
 
-        if (string.IsNullOrWhiteSpace(_invoice.Title))
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.Title)), "Wymagane");
+    private async Task HandleInvalidSubmit(EditContext ctx)
+    {
+        _submitAttempted = true;
+        await ValidatePositionsAndSubmit();
+    }
 
-        if (_invoice.CreatedDate == default)
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.CreatedDate)), "Wymagane");
-        if (_invoice.PaymentDate == default)
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.PaymentDate)), "Wymagane");
-
-        if (string.IsNullOrWhiteSpace(_invoice.ClientName))
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)), "Wymagane");
-
-        if (string.IsNullOrWhiteSpace(_invoice.ClientNip))
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.ClientNip)), "Wymagane");
-
-        if (_invoice.Client?.Address == null)
+    private void DumpValidationMessages()
+    {
+        if (_editContext == null) return;
+        Console.WriteLine("VALIDATION DUMP:");
+        var all = _editContext.GetValidationMessages().ToList();
+        Console.WriteLine("ALL MESSAGES COUNT: " + all.Count);
+        foreach (var m in all)
         {
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.Client)), "Brak danych adresowych");
+            Console.WriteLine("MSG: " + m);
         }
-        else
+    }
+
+    private async Task DebugSubmit()
+    {
+        DumpValidationMessages();
+        await ValidatePositionsAndSubmit();
+        DumpValidationMessages();
+    }
+
+    private async Task ValidatePositionsAndSubmit()
+    {
+        if (_editContext == null) return;
+
+        _pageMessageStore?.Clear();
+        _validatedForm?.ClearServerErrors();
+
+        var anyErrors = false;
+
+        foreach (var pos in _invoice.InvoicePositions)
         {
-            if (string.IsNullOrWhiteSpace(_invoice.Client.Address.Street))
-                _messageStore.Add(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Street)), "Wymagane");
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(pos, null, null);
+            Validator.TryValidateObject(pos, context, results, true);
 
-            if (string.IsNullOrWhiteSpace(_invoice.Client.Address.Number))
-                _messageStore.Add(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.Number)), "Wymagane");
-
-            if (string.IsNullOrWhiteSpace(_invoice.Client.Address.PostalCode))
-                _messageStore.Add(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.PostalCode)), "Wymagane");
-
-            if (string.IsNullOrWhiteSpace(_invoice.Client.Address.City))
-                _messageStore.Add(new FieldIdentifier(_invoice.Client.Address, nameof(_invoice.Client.Address.City)), "Wymagane");
-        }
-
-        if (_invoice.InvoicePositions == null || !_invoice.InvoicePositions.Any())
-        {
-            _messageStore.Add(new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions)), "Faktura musi zawierać przynajmniej jedną pozycję.");
-        }
-        else
-        {
-            foreach (var pos in _invoice.InvoicePositions)
+            foreach (var vr in results)
             {
-                var fiName = new FieldIdentifier(pos, nameof(pos.ProductName));
-                var fiValue = new FieldIdentifier(pos, nameof(pos.ProductValue));
-                var fiQty = new FieldIdentifier(pos, nameof(pos.Quantity));
-
-                if (string.IsNullOrWhiteSpace(pos.ProductName))
-                    _messageStore.Add(fiName, "Wymagane");
-
-                if ((pos.ProductValue ?? 0) <= 0)
-                    _messageStore.Add(fiValue, "Cena > 0");
-
-                if (pos.Quantity <= 0)
-                    _messageStore.Add(fiQty, "Ilość > 0");
+                var msg = vr.ErrorMessage ?? "Błąd";
+                if (vr.MemberNames != null && vr.MemberNames.Any())
+                {
+                    foreach (var member in vr.MemberNames)
+                    {
+                        var fi = new FieldIdentifier(pos, member);
+                        if (!_editContext.GetValidationMessages(fi).Contains(msg))
+                        {
+                            _pageMessageStore?.Add(fi, msg);
+                        }
+                        anyErrors = true;
+                    }
+                }
+                else
+                {
+                    anyErrors = true;
+                }
             }
         }
 
+        if (string.IsNullOrWhiteSpace(_invoice.ClientName))
+        {
+            var fi = new FieldIdentifier(_invoice, nameof(_invoice.ClientName));
+            if (!_editContext.GetValidationMessages(fi).Contains("Nazwa klienta jest wymagana"))
+                _pageMessageStore?.Add(fi, "Nazwa klienta jest wymagana");
+            anyErrors = true;
+        }
+        if (string.IsNullOrWhiteSpace(_invoice.ClientNip))
+        {
+            var fi = new FieldIdentifier(_invoice, nameof(_invoice.ClientNip));
+            if (!_editContext.GetValidationMessages(fi).Contains("NIP klienta jest wymagany"))
+                _pageMessageStore?.Add(fi, "NIP klienta jest wymagany");
+            anyErrors = true;
+        }
+
+        if (_invoice.Client?.Address != null)
+        {
+            var addrResults = new List<ValidationResult>();
+            var addrContext = new ValidationContext(_invoice.Client.Address, null, null);
+            Validator.TryValidateObject(_invoice.Client.Address, addrContext, addrResults, true);
+
+            foreach (var vr in addrResults)
+            {
+                var msg = vr.ErrorMessage ?? "Błąd";
+                if (vr.MemberNames != null && vr.MemberNames.Any())
+                {
+                    foreach (var member in vr.MemberNames)
+                    {
+                        var fi = new FieldIdentifier(_invoice.Client.Address, member);
+                        if (!_editContext.GetValidationMessages(fi).Contains(msg))
+                        {
+                            _pageMessageStore?.Add(fi, msg);
+                        }
+                        anyErrors = true;
+                    }
+                }
+                else
+                {
+                    anyErrors = true;
+                }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(_invoice.Title))
+        {
+            var fi = new FieldIdentifier(_invoice, nameof(_invoice.Title));
+            if (!_editContext.GetValidationMessages(fi).Contains("Tytuł jest wymagany."))
+                _pageMessageStore?.Add(fi, "Tytuł jest wymagany.");
+            anyErrors = true;
+        }
+        if (_invoice.CreatedDate == default)
+        {
+            var fi = new FieldIdentifier(_invoice, nameof(_invoice.CreatedDate));
+            if (!_editContext.GetValidationMessages(fi).Contains("Data wystawienia jest wymagana."))
+                _pageMessageStore?.Add(fi, "Data wystawienia jest wymagana.");
+            anyErrors = true;
+        }
+
         _editContext.NotifyValidationStateChanged();
 
-        if (_editContext.GetValidationMessages().Any())
+        if (anyErrors || _editContext.GetValidationMessages().Any())
         {
+            DumpValidationMessages();
             return;
         }
 
@@ -441,6 +499,10 @@
             var result = await InvoiceService.SaveInvoiceAsync(_invoice);
             if (result != null) Navigation.NavigateTo("/invoices");
         }
-        catch (Exception ex) { Console.WriteLine($"Błąd zapisu: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Błąd zapisu: " + ex.Message);
+            _editContext.NotifyValidationStateChanged();
+        }
     }
 }

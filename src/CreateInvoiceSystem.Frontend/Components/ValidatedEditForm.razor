@@ -15,7 +15,8 @@
     [Parameter] public TModel? Model { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback OnValidSubmit { get; set; }
-    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
+    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }    
+    [Parameter] public EventCallback<EditContext> OnEditContextInitialized { get; set; }
 
     private EditContext _editContext = default!;
     private ValidationMessageStore? _messageStore;
@@ -30,6 +31,11 @@
         {
             _editContext = new EditContext(Model);
             CreateMessageStoreAndHook();
+            
+            if (OnEditContextInitialized.HasDelegate)
+            {                
+                _ = OnEditContextInitialized.InvokeAsync(_editContext);
+            }
         }
     }
 
