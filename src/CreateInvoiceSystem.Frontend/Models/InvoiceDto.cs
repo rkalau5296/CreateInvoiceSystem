@@ -22,10 +22,14 @@ namespace CreateInvoiceSystem.Frontend.Models
 
         public int UserId { get; set; }
         public string? UserEmail { get; set; }
-        public int? ClientId { get; set; }        
-        public string? SellerName { get; set; }        
-        public string? SellerNip { get; set; }        
-        public string? SellerAddress { get; set; }                
+        public int? ClientId { get; set; }
+
+        [Required(ErrorMessage = "Nazwa sprzedawcy jest wymagana")]
+        public string? SellerName { get; set; }
+        [Required(ErrorMessage = "NIP sprzedawcy jest wymagany")]
+        public string? SellerNip { get; set; }
+        [Required(ErrorMessage = "Adres sprzedawcy jest wymagany")]
+        public string? SellerAddress { get; set; }
         public string BankAccountNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Nazwa klienta jest wymagana")]
@@ -33,7 +37,8 @@ namespace CreateInvoiceSystem.Frontend.Models
 
         [Required(ErrorMessage = "NIP klienta jest wymagany")]
         public string? ClientNip { get; set; }
-        
+
+        [Required(ErrorMessage = "Adres klienta jest wymagany")]
         public string? ClientAddress { get; set; }
 
         public ClientDto? Client { get; set; }
