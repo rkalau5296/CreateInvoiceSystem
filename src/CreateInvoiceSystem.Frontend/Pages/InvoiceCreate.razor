@@ -188,8 +188,7 @@
     private EditContext? _editContext;
     private ValidationMessageStore? _pageMessageStore;
     private bool _submitAttempted;
-
-    // prebuilt attribute dictionaries to avoid Razor parse issues
+    
     private readonly IDictionary<string, object> _productListAttributes = new Dictionary<string, object> { { "list", "productOptions" } };
     private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
 
