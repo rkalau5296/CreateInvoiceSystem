@@ -153,47 +153,21 @@
     </div>
 </div>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
-        <div class="text-muted small">
-            Pokazuję <strong>@_clients?.Count</strong> z <strong>@_totalCount</strong> klientów
-            <span class="mx-2">|</span>
-            Strona <strong>@_currentPage</strong> z <strong>@_totalPages</strong>
-        </div>
-
-        <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-                <label class="small text-nowrap fw-bold">Na stronie:</label>
-                <select class="form-select form-select-sm" style="width: 75px;" @onchange="ChangePageSize">
-                    <option value="10" selected="@(_pageSize == 10)">10</option>
-                    <option value="20" selected="@(_pageSize == 20)">20</option>
-                    <option value="50" selected="@(_pageSize == 50)">50</option>
-                </select>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary px-3"
-                        @onclick="() => ChangePage(_currentPage - 1)"
-                        disabled="@(_currentPage <= 1)">
-                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
-                </button>
-
-                <button class="btn btn-sm btn-outline-primary px-3"
-                        @onclick="() => ChangePage(_currentPage + 1)"
-                        disabled="@(_currentPage >= _totalPages)">
-                    Następna <i class="bi bi-chevron-right ms-1"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<Pagination ItemsOnPageCount="@(_clients?.Count ?? 0)"
+            TotalItems="@_totalCount"
+            CurrentPage="@_currentPage"
+            CurrentPageChanged="ChangePage"
+            PageSize="@_page_size"
+            PageSizeChanged="ChangePageSize"
+            ItemLabel="klientów" />
 
 @code {
     private List<ClientDto>? _clients;
     private ClientDto _editingClient = new() { Address = new AddressDto() };
     private string _searchTerm = "";
     private int _currentPage = 1;
-    private int _pageSize = 10;
+    private int _page_size = 10;
+    private int _pageSize { get => _page_size; set => _page_size = value; }
     private int _totalCount = 0;
     private int _totalPages => (_pageSize == 0) ? 0 : (int)Math.Ceiling((double)_totalCount / _pageSize);
     private bool _isModalOpen = false;
@@ -250,14 +224,12 @@
         await LoadData();
     }
 
-    private async Task ChangePageSize(ChangeEventArgs e)
+    private async Task ChangePageSize(int newSize)
     {
-        if (int.TryParse(e.Value?.ToString(), out int newSize))
-        {
-            _pageSize = newSize;
-            _currentPage = 1;
-            await LoadData();
-        }
+        if (newSize <= 0) return;
+        _pageSize = newSize;
+        _currentPage = 1;
+        await LoadData();
     }
 
     private void OpenAddModal()

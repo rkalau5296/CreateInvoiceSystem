@@ -184,39 +184,13 @@
     }
 </style>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
-        <div class="text-muted small">
-            Pokazuję <strong>@_products?.Count</strong> z <strong>@_totalCount</strong> produktów
-            <span class="mx-2">|</span>
-            Strona <strong>@_currentPage</strong> z <strong>@_totalPages</strong>
-        </div>
-
-        <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-                <label class="small text-nowrap fw-bold">Na stronie:</label>
-                <select class="form-select form-select-sm" style="width: 75px;" @onchange="ChangePageSize">
-                    <option value="10" selected="@(_pageSize == 10)">10</option>
-                    <option value="20" selected="@(_pageSize == 20)">20</option>
-                    <option value="50" selected="@(_pageSize == 50)">50</option>
-                </select>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary px-3"
-                        @onclick="() => ChangePage(_currentPage - 1)"
-                        disabled="@(_currentPage <= 1)">
-                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
-                </button>
-                <button class="btn btn-sm btn-outline-primary px-3"
-                        @onclick="() => ChangePage(_currentPage + 1)"
-                        disabled="@(_currentPage >= _totalPages)">
-                    Następna <i class="bi bi-chevron-right ms-1"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<Pagination ItemsOnPageCount="@(_products?.Count ?? 0)"
+            TotalItems="@_totalCount"
+            CurrentPage="@_currentPage"
+            CurrentPageChanged="ChangePage"
+            PageSize="@_pageSize"
+            PageSizeChanged="ChangePageSize"
+            ItemLabel="produktów" />
 
 @code {
     private List<ProductDto>? _products;
@@ -291,16 +265,16 @@
     }
 
     private async Task ClearSearch() { _searchTerm = ""; _currentPage = 1; await LoadData(); }
-    private async Task ChangePage(int newPage) { _currentPage = newPage; await LoadData(); }
-    private async Task ChangePageSize(ChangeEventArgs e)
+    private async Task ChangePage(int newPage) { if (newPage < 1) newPage = 1; _currentPage = newPage; await LoadData(); }
+
+    private async Task ChangePageSize(int newSize)
     {
-        if (int.TryParse(e.Value?.ToString(), out int newSize))
-        {
-            _pageSize = newSize;
-            _currentPage = 1;
-            await LoadData();
-        }
+        if (newSize <= 0) return;
+        _pageSize = newSize;
+        _currentPage = 1;
+        await LoadData();
     }
+
     protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task HandleDelete(int productId)

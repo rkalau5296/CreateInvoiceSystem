@@ -1,0 +1,68 @@
+﻿@using Microsoft.AspNetCore.Components
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mt-3 bg-light p-3 rounded border shadow-sm">
+        <div class="text-muted small">
+            Pokazuję <strong>@(ItemsOnPageCount)</strong> z <strong>@(TotalItems)</strong> @ItemLabel
+            <span class="mx-2">|</span>
+            Strona <strong>@(CurrentPage)</strong> z <strong>@(TotalPages)</strong>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small text-nowrap fw-bold">Na stronie:</label>
+                <select class="form-select form-select-sm" style="width: 75px;" @onchange="OnPageSizeChangedHandler" value="@PageSize.ToString()">
+                    @foreach (var opt in PageSizeOptions)
+                    {
+                        <option value="@opt" selected="@(opt == PageSize)">@opt</option>
+                    }
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => GoToPage(CurrentPage - 1)"
+                        disabled="@(CurrentPage <= 1)">
+                    <i class="bi bi-chevron-left me-1"></i> Poprzednia
+                </button>
+
+                <button class="btn btn-sm btn-outline-primary px-3"
+                        @onclick="() => GoToPage(CurrentPage + 1)"
+                        disabled="@(CurrentPage >= TotalPages)">
+                    Następna <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ItemsOnPageCount { get; set; }
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public EventCallback<int> CurrentPageChanged { get; set; }
+    [Parameter] public int PageSize { get; set; } = 20;
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+    [Parameter] public string ItemLabel { get; set; } = "elementów";
+    [Parameter] public int[] PageSizeOptions { get; set; } = new[] { 10, 20, 50 };
+
+    private int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalItems / (double)PageSize) : 1;
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1) page = 1;
+        if (page > TotalPages) page = TotalPages;
+        if (page == CurrentPage) return;
+        CurrentPage = page;
+        if (CurrentPageChanged.HasDelegate) await CurrentPageChanged.InvokeAsync(page);
+    }
+
+    private async Task OnPageSizeChangedHandler(ChangeEventArgs e)
+    {
+        if (!int.TryParse(Convert.ToString(e.Value), out var newSize)) return;
+        if (newSize <= 0) return;
+        PageSize = newSize;
+        if (PageSizeChanged.HasDelegate) await PageSizeChanged.InvokeAsync(newSize);
+        await GoToPage(1);
+    }
+}
