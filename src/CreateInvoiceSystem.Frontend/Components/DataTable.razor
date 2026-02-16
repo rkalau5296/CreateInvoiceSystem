@@ -1,0 +1,47 @@
+﻿@typeparam TItem
+<table class="@TableClass">
+    <thead class="@HeaderClass">
+        @if (HeaderTemplate != null)
+        {
+            @HeaderTemplate
+        }
+    </thead>
+    <tbody>
+        @if (Items == null)
+        {
+            <tr><td colspan="@Cols" class="text-center p-4 italic text-muted">Ładowanie danych z serwera...</td></tr>
+        }
+        else if (!Items.Any())
+        {
+            <tr><td colspan="@Cols" class="text-center p-4">@NoItemsMessage</td></tr>
+        }
+        else
+        {
+            int idx = StartIndex;
+            foreach (var item in Items)
+            {
+                <tr @key="GetKey(item)">
+                    @if (RowTemplate != null)
+                    {
+                        @RowTemplate(item)
+                    }
+                </tr>
+                idx++;
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    [Parameter] public RenderFragment? HeaderTemplate { get; set; }
+    [Parameter] public RenderFragment<TItem>? RowTemplate { get; set; }
+    [Parameter] public string NoItemsMessage { get; set; } = "Brak elementów.";
+    [Parameter] public string TableClass { get; set; } = "table table-hover mb-0";
+    [Parameter] public string HeaderClass { get; set; } = "table-dark";
+    [Parameter] public Func<TItem, object>? KeySelector { get; set; }
+    [Parameter] public int StartIndex { get; set; } = 1;
+    [Parameter] public int Cols { get; set; } = 1;
+
+    private object GetKey(TItem item) => KeySelector != null ? KeySelector(item) ?? item! : item!;
+}

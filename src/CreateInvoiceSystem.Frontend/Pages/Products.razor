@@ -83,80 +83,63 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light">Twoja lista produktów</div>
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
+            <DataTable Items="_products" Cols="4" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="p => p.ProductId" NoItemsMessage="Brak produktów w bazie.">
+                <HeaderTemplate>
                     <tr>
                         <th style="width: 25%">Nazwa</th>
                         <th style="width: 40%">Opis</th>
                         <th style="width: 15%" class="text-end">Cena</th>
                         <th style="width: 20%" class="text-center">Akcje</th>
                     </tr>
-                </thead>
-                <tbody>
-                    @if (_products == null)
+                </HeaderTemplate>
+
+                <RowTemplate Context="p">
+                    @if (_editingProductId == p.ProductId)
                     {
-                        <tr><td colspan="4" class="text-center p-4 italic text-muted">Ładowanie danych z serwera...</td></tr>
-                    }
-                    else if (!_products.Any())
-                    {
-                        <tr><td colspan="4" class="text-center p-4">Brak produktów w bazie.</td></tr>
+                        <td colspan="4" class="p-2">
+                            <ValidatedEditForm TModel="ProductEditModel" Model="_editViewModel" OnValidSubmit="SubmitInlineEdit">
+                                <div class="editing-grid">
+                                    <div>
+                                        <ValidatedInputText @bind-Value="_editViewModel.Name" Placeholder="Nazwa" />
+                                    </div>
+                                    <div>
+                                        <ValidatedInputText @bind-Value="_editViewModel.Description" Placeholder="Opis" />
+                                    </div>
+                                    <div class="text-end">
+                                        <ValidatedInputText @bind-Value="_editViewModel.ValueString" Placeholder="Wartość" Type="number" />
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
+                                                <i class="bi bi-check-lg"></i> Zapisz
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
+                                                Anuluj
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ValidatedEditForm>
+                        </td>
                     }
                     else
                     {
-                        @foreach (var p in _products)
-                        {
-                            if (_editingProductId == p.ProductId)
-                            {
-                                <tr class="editing-row">
-                                    <td colspan="4" class="p-2">
-                                        <ValidatedEditForm TModel="ProductEditModel" Model="_editViewModel" OnValidSubmit="SubmitInlineEdit">
-                                            <div class="editing-grid">
-                                                <div>
-                                                    <ValidatedInputText @bind-Value="_editViewModel.Name" Placeholder="Nazwa" />
-                                                </div>
-                                                <div>
-                                                    <ValidatedInputText @bind-Value="_editViewModel.Description" Placeholder="Opis" />
-                                                </div>
-                                                <div class="text-end">
-                                                    <ValidatedInputText @bind-Value="_editViewModel.ValueString" Placeholder="Wartość" Type="number" />
-                                                </div>
-                                                <div class="text-center">
-                                                    <div class="d-flex justify-content-center gap-2">
-                                                        <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
-                                                            <i class="bi bi-check-lg"></i> Zapisz
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" @onclick="CancelEdit">
-                                                            Anuluj
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </ValidatedEditForm>
-                                    </td>
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td class="align-middle"><strong>@p.Name</strong></td>
-                                    <td class="align-middle text-truncate" style="max-width: 300px;">@p.Description</td>
-                                    <td class="align-middle text-end">@p.Value?.ToString("N2") PLN</td>
-                                    <td class="text-center align-middle">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => StartEdit(p)">
-                                                <i class="bi bi-pencil-square me-1"></i> Edytuj
-                                            </button>
-                                            <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(p.ProductId)">
-                                                <i class="bi bi-trash me-1"></i> Usuń
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
+                        <td class="align-middle"><strong>@p.Name</strong></td>
+                        <td class="align-middle text-truncate" style="max-width: 300px;">@p.Description</td>
+                        <td class="align-middle text-end">@p.Value?.ToString("N2") PLN</td>
+                        <td class="text-center align-middle">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => StartEdit(p)">
+                                    <i class="bi bi-pencil-square me-1"></i> Edytuj
+                                </button>
+                                <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(p.ProductId)">
+                                    <i class="bi bi-trash me-1"></i> Usuń
+                                </button>
+                            </div>
+                        </td>
                     }
-                </tbody>
-            </table>
+                </RowTemplate>
+            </DataTable>
         </div>
     </div>
 </div>

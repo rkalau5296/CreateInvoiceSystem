@@ -99,56 +99,41 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light">Twoja lista kontrahentów</div>
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
+            <DataTable Items="_clients" Cols="4" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="c => c.ClientId" NoItemsMessage="Brak kontrahentów w bazie.">
+                <HeaderTemplate>
                     <tr>
                         <th>Nazwa</th>
                         <th>NIP</th>
                         <th>Adres</th>
                         <th class="text-center">Akcje</th>
                     </tr>
-                </thead>
-                <tbody>
-                    @if (_clients == null)
-                    {
-                        <tr><td colspan="4" class="text-center p-4 italic text-muted">Ładowanie danych z serwera...</td></tr>
-                    }
-                    else if (!_clients.Any())
-                    {
-                        <tr><td colspan="4" class="text-center p-4">Brak kontrahentów w bazie.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var c in _clients)
+                </HeaderTemplate>
+
+                <RowTemplate Context="c">
+                    <td class="align-middle"><strong>@c.Name</strong></td>
+                    <td class="align-middle">@c.Nip</td>
+                    <td class="align-middle small">
+                        @if (c.Address != null)
                         {
-                            <tr>
-                                <td class="align-middle"><strong>@c.Name</strong></td>
-                                <td class="align-middle">@c.Nip</td>
-                                <td class="align-middle small">
-                                    @if (c.Address != null)
-                                    {
-                                        <span>@c.Address.Street @c.Address.Number, @c.Address.PostalCode @c.Address.City</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Brak adresu</span>
-                                    }
-                                </td>
-                                <td class="text-center align-middle">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => OpenEditModal(c)">
-                                            <i class="bi bi-pencil-square me-1"></i> Edytuj
-                                        </button>
-                                        <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(c.ClientId)">
-                                            <i class="bi bi-trash me-1"></i> Usuń
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <span>@c.Address.Street @c.Address.Number, @c.Address.PostalCode @c.Address.City</span>
                         }
-                    }
-                </tbody>
-            </table>
+                        else
+                        {
+                            <span class="text-muted">Brak adresu</span>
+                        }
+                    </td>
+                    <td class="text-center align-middle">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-sm btn-primary px-3 shadow-sm" @onclick="() => OpenEditModal(c)">
+                                <i class="bi bi-pencil-square me-1"></i> Edytuj
+                            </button>
+                            <button class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => HandleDelete(c.ClientId)">
+                                <i class="bi bi-trash me-1"></i> Usuń
+                            </button>
+                        </div>
+                    </td>
+                </RowTemplate>
+            </DataTable>
         </div>
     </div>
 </div>
@@ -285,11 +270,13 @@
         _submitAttempted = true;
         RunValidationAndCollectInvalidFields();
 
-        if (!_invalidFields.Any())
+        if (!_invalid_fields_any())
         {
             await HandleSave();
         }
     }
+
+    private bool _invalid_fields_any() => _invalidFields.Any();
 
     private void RunValidationAndCollectInvalidFields()
     {
