@@ -6,12 +6,12 @@ using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 
-public class RegisterUserHandler(ICommandExecutor commandExecutor, IUserRepository _userRepository)
+public class RegisterUserHandler(ICommandExecutor commandExecutor, IUserRepository _userRepository, IUserEmailSender _emailSender)
     : IRequestHandler<RegisterUserRequest, RegisterUserResponse>
 {
     public async Task<RegisterUserResponse> Handle(RegisterUserRequest request, CancellationToken cancellationToken)
     {        
-        var command = new RegisterUserCommand { Parametr = request.User };        
+        var command = new RegisterUserCommand(_emailSender) { Parametr = request.User };        
         var createdUser = await commandExecutor.Execute(command, _userRepository, cancellationToken);
         
         return new RegisterUserResponse

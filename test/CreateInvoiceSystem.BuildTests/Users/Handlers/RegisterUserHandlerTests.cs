@@ -15,15 +15,18 @@ public class RegisterUserHandlerTests
     private readonly Mock<ICommandExecutor> _commandExecutorMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly RegisterUserHandler _handler;
+    private readonly Mock<IUserEmailSender> _emailSenderMock;
 
     public RegisterUserHandlerTests()
     {
         _commandExecutorMock = new Mock<ICommandExecutor>();
         _userRepositoryMock = new Mock<IUserRepository>();
+        _emailSenderMock = new Mock<IUserEmailSender>();
 
         _handler = new RegisterUserHandler(
             _commandExecutorMock.Object,
-            _userRepositoryMock.Object);
+            _userRepositoryMock.Object,
+            _emailSenderMock.Object);
     }
 
     [Fact]

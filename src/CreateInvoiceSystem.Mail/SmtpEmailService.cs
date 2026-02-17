@@ -5,7 +5,7 @@ using MailKit.Security;
 
 namespace CreateInvoiceSystem.Mail;
 
-public class SmtpEmailService(IConfiguration configuration) : IEmailService
+public class SmtpEmailService(IConfiguration _configuration) : IEmailService
 {
     public async Task SendResetPasswordEmailAsync(string email, string resetLink)
     {
@@ -25,13 +25,13 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
-            configuration["Smtp:Host"],
-            int.Parse(configuration["Smtp:Port"]!),
+            _configuration["Smtp:Host"],
+            int.Parse(_configuration["Smtp:Port"]!),
             SecureSocketOptions.StartTls);
 
         await client.AuthenticateAsync(
-            configuration["Smtp:Username"],
-            configuration["Smtp:Password"]);
+            _configuration["Smtp:Username"],
+            _configuration["Smtp:Password"]);
 
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
@@ -39,7 +39,7 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
     public async Task SendEmailAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();        
-        message.From.Add(new MailboxAddress("System Faktur", configuration["Smtp:Username"]));
+        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
         message.To.Add(new MailboxAddress("", toEmail));
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = body };
@@ -49,17 +49,48 @@ public class SmtpEmailService(IConfiguration configuration) : IEmailService
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
-            configuration["Smtp:Host"],
-            int.Parse(configuration["Smtp:Port"]),
+            _configuration["Smtp:Host"],
+            int.Parse(_configuration["Smtp:Port"]),
             SecureSocketOptions.StartTls,
             cancellationToken);
         
         await client.AuthenticateAsync(
-            configuration["Smtp:Username"],
-            configuration["Smtp:Password"],
+            _configuration["Smtp:Username"],
+            _configuration["Smtp:Password"],
             cancellationToken);
         
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
-    }    
+    }
+    public async Task SendConfirmationRegistrationEmailAsync(string email, string subject, string messageHtml)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentNullException(nameof(email));
+
+        var mime = new MimeMessage();
+        mime.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        mime.To.Add(new MailboxAddress("", email));
+        mime.Subject = subject ?? "Witamy w serwisie";
+        
+        mime.Body = new TextPart("html")
+        {
+            Text = messageHtml ?? "Dziękujemy za rejestrację!"
+        };
+
+        using var client = new SmtpClient();
+
+        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                
+        await client.ConnectAsync(
+            _configuration["Smtp:Host"],
+            int.Parse(_configuration["Smtp:Port"]!),
+            SecureSocketOptions.StartTls);
+
+        await client.AuthenticateAsync(
+            _configuration["Smtp:Username"],
+            _configuration["Smtp:Password"]);
+
+        await client.SendAsync(mime);
+        await client.DisconnectAsync(true);
+    }
 }
