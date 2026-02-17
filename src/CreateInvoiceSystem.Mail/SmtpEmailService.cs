@@ -61,36 +61,5 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
-    }
-    public async Task SendConfirmationRegistrationEmailAsync(string email, string subject, string messageHtml)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentNullException(nameof(email));
-
-        var mime = new MimeMessage();
-        mime.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
-        mime.To.Add(new MailboxAddress("", email));
-        mime.Subject = subject ?? "Witamy w serwisie";
-        
-        mime.Body = new TextPart("html")
-        {
-            Text = messageHtml ?? "Dziękujemy za rejestrację!"
-        };
-
-        using var client = new SmtpClient();
-
-        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                
-        await client.ConnectAsync(
-            _configuration["Smtp:Host"],
-            int.Parse(_configuration["Smtp:Port"]!),
-            SecureSocketOptions.StartTls);
-
-        await client.AuthenticateAsync(
-            _configuration["Smtp:Username"],
-            _configuration["Smtp:Password"]);
-
-        await client.SendAsync(mime);
-        await client.DisconnectAsync(true);
-    }
+    }    
 }

@@ -11,7 +11,7 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
             throw new ArgumentNullException(nameof(email));
 
         subject ??= "Witamy w serwisie";
-        message ??= "Dziękujemy za rejestrację!";
+        message ??= "Witamy w serwisie!";
 
         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
         var appLinkHtml = string.IsNullOrWhiteSpace(frontendUrl)
