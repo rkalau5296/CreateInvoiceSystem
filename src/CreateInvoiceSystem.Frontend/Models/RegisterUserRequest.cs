@@ -12,7 +12,13 @@ public record RegisterUserDto
 
     [Required(ErrorMessage = "Hasło jest wymagane.")]
     [MinLength(6, ErrorMessage = "Hasło musi mieć co najmniej 6 znaków.")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$", 
+        ErrorMessage = "Hasło musi zawierać małe i duże litery, cyfrę oraz znak specjalny.")]
     public string Password { get; set; } = string.Empty;
+
+    [Required]
+    [Compare(nameof(Password), ErrorMessage = "Hasła muszą być takie same.")]
+    public string ConfirmPassword { get; set; }
 
     [Required(ErrorMessage = "Imię i nazwisko jest wymagane.")]
     public string Name { get; set; } = string.Empty;

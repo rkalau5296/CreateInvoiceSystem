@@ -20,7 +20,8 @@
                             <div class="col-md-6 border-end">
                                 <h5 class="text-primary mb-3">Dane użytkownika</h5>
                                 <ValidatedInputText @bind-Value="_regModel.Email" Label="Email / Login" Placeholder="Email / Login" />
-                                <ValidatedInputText @bind-Value="_regModel.Password" Label="Hasło" Placeholder="Hasło" />
+                                <ValidatedInputText @bind-Value="_regModel.Password" Label="Hasło" Placeholder="Hasło" Type="password" />
+                                <ValidatedInputText @bind-Value="_regModel.ConfirmPassword" Label="Potwierdź Hasło" Placeholder="Potwierdź Hasło" Type="password" />
                                 <ValidatedInputText @bind-Value="_regModel.Name" Label="Imię i Nazwisko" Placeholder="Imię i Nazwisko" />
 
                                 <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
