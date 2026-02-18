@@ -1,8 +1,10 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ChangePassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
 using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
@@ -58,5 +60,19 @@ public class AuthController : ApiControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest dto, CancellationToken cancellationToken)
     {
         return await HandleRequest<ChangePasswordRequest, ChangePasswordResponse>(dto, cancellationToken);
+    }
+
+    [HttpGet("activate")] 
+    public async Task<IActionResult> Activate([FromQuery] string token, CancellationToken cancellationToken)
+    {        
+        var request = new ActivateUserRequest { Token = token };
+     
+        return await HandleRequest<ActivateUserRequest, ActivateUserResponse>(request, cancellationToken);
+    }
+
+    [HttpPost("resend-activation")]
+    public async Task<IActionResult> ResendActivation([FromBody] ResendActivationTokenRequest request, CancellationToken cancellationToken)
+    {
+        return await HandleRequest<ResendActivationTokenRequest, ResendActivationTokenResponse>(request, cancellationToken);
     }
 }

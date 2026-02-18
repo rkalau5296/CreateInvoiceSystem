@@ -18,6 +18,7 @@ public static class UserMappers
             user.Nip, 
             user.Address.ToDto(),
             user.BankAccountNumber,
+            user.IsActive,
             user.Invoices.Select(i => i.ToDto()), 
             user.Clients.Select(c => c.ToDto()), 
             user.Products.Select(p => p.ToDto()));
@@ -26,7 +27,7 @@ public static class UserMappers
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Nip, user.BankAccountNumber, user.Address.ToUpdateAddressDto());
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Nip, user.BankAccountNumber, user.IsActive, user.Address.ToUpdateAddressDto());
 
     public static User ToEntity(this UserDto dto) =>
         dto == null
@@ -70,7 +71,7 @@ public static class UserMappers
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.Address != null ? AddressMappers.ToCreateAddressDto(user.Address) : null);
+        new(user.Name, user.CompanyName, user.Email, user.Password, user.Nip, user.IsActive, user.Address != null ? AddressMappers.ToCreateAddressDto(user.Address) : null);
 
     public static InvoiceDto ToDto(this Invoice invoice) =>
     invoice == null

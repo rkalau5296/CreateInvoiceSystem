@@ -5,6 +5,11 @@ namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 
 public class UserEmailAdapter(IEmailService _emailService, IConfiguration _configuration) : IUserEmailSender
 {
+    public async Task SendActivationEmailAsync(string email, string activationLink)
+    {
+        await _emailService.SendActivationEmailAsync(email, activationLink);
+    }
+
     public async Task SendConfirmationRegistrationEmailAsync(string email, string subject, string message)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -43,4 +48,5 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
 
         await _emailService.SendResetPasswordEmailAsync(email, resetLink);
     }
+
 }

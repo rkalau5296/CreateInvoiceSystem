@@ -36,6 +36,7 @@ using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
@@ -110,7 +111,8 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(GetProductsRequest).Assembly,
     typeof(GetUsersRequest).Assembly,
     typeof(GetActualCurrencyRatesRequest).Assembly,
-    typeof(GetInvoicesRequest).Assembly    
+    typeof(GetInvoicesRequest).Assembly,
+    typeof(ActivateUserCommand).Assembly
 ));
 
 // Validators

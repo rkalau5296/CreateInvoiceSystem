@@ -23,6 +23,10 @@ public class LoginUserCommand : CommandBase<LoginUserDto, UserTokenResult, IUser
         var initialUser = await _userRepository.FindByEmailAsync(this.Parametr.Email)
             ?? throw new UnauthorizedAccessException("Invalid e-mail or password.");
 
+        if (initialUser != null && !initialUser.IsActive)
+        {
+            throw new UnauthorizedAccessException("Konto nie jest aktywne. Sprawdź e-mail, aby dokończyć rejestrację.");
+        }
         var authenticatedUser = await _userRepository.CheckPasswordAsync(initialUser, this.Parametr.Password)
             ?? throw new UnauthorizedAccessException("Invalid e-mail or password.");
 

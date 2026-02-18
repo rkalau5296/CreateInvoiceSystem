@@ -73,13 +73,14 @@ public class UserRepository : IUserRepository
         user.AddressId = addressEntity.AddressId;
 
         var userEntity = new UserEntity
-        {            
+        {
+            Name = user.Name,
             CompanyName = user.CompanyName,
             Email = user.Email,            
             Nip = user.Nip,
             AddressId = user.AddressId,
-            UserName = user.Email,
-            Name = user.Name
+            UserName = user.Email,            
+            BankAccountNumber = user.BankAccountNumber
         };
 
         user.Name = user.Email;
@@ -369,6 +370,7 @@ public class UserRepository : IUserRepository
         userEntity.Nip = user.Nip;
         userEntity.Email = user.Email;
         userEntity.BankAccountNumber = user.BankAccountNumber;
+        userEntity.IsActive = user.IsActive;
 
         if (addressEntity != null && user.Address != null)
         {
@@ -403,9 +405,12 @@ public class UserRepository : IUserRepository
             {
                 UserId = userEntity.Id,
                 Email = userEntity.Email,
+                Name = userEntity.Name,
                 CompanyName = userEntity.CompanyName,
                 Nip = userEntity.Nip,
-                AddressId = userEntity.AddressId
+                AddressId = userEntity.AddressId,
+                BankAccountNumber = userEntity.BankAccountNumber,
+                IsActive = userEntity.IsActive
             }
             : null;
     }

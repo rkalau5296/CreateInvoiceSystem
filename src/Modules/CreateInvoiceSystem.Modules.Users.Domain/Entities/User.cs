@@ -11,6 +11,7 @@ public class User
     public Address Address { get; set; }
     public int AddressId { get; set; }
     public string? BankAccountNumber { get; set; }
+    public bool IsActive { get; set; }
     public ICollection<Invoice> Invoices { get; set; } = [];    
     public ICollection<Client> Clients { get; set; } = [];
     public ICollection<Product> Products { get; set; } = [];

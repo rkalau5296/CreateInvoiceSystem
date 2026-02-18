@@ -6,5 +6,6 @@ public record CreateUserDto(
     string Email,
     string Password,
     string Nip,
+    bool IsActive,
     CreateAddressDto Address
 );

@@ -1,0 +1,67 @@
+﻿@page "/activate"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<h3>Aktywacja konta</h3>
+
+@if (_isProcessing)
+{
+    <p>Proszę czekać, aktywujemy Twoje konto...</p>
+}
+else
+{
+    <div class="alert @(_isSuccess ? "alert-success" : "alert-danger")">
+        @_message
+    </div>
+
+    @if (_isSuccess)
+    {
+        <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/login")'>Zaloguj się</button>
+    }
+}
+
+@code {
+    [Parameter][SupplyParameterFromQuery] public string? Token { get; set; }
+
+    private bool _isProcessing = true;
+    private bool _isSuccess;
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Token))
+        {
+            _isSuccess = false;
+            _message = "Brak tokena aktywacyjnego.";
+            _isProcessing = false;
+            return;
+        }
+
+        try
+        {            
+            var response = await Http.GetAsync($"api/Auth/activate?token={Token}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _isSuccess = true;
+                _message = "Konto zostało pomyślnie aktywowane!";
+            }
+            else
+            {
+                _isSuccess = false;
+                _message = "Link wygasł lub jest nieprawidłowy.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _isSuccess = false;
+            _message = $"Błąd połączenia: {ex.Message}"; // Zobaczysz prawdziwy powód błędu
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+}

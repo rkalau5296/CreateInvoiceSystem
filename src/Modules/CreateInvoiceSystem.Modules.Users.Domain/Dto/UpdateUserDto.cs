@@ -7,5 +7,6 @@ public record UpdateUserDto(
     string Email,    
     string Nip,
     string BankAccountNumber,
+    bool IsActive,
     UpdateAddressDto Address
 );

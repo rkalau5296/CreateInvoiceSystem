@@ -7,6 +7,7 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Configuration;
 
 namespace CreateInvoiceSystem.BuildTests.Users.Handlers;
 
@@ -16,17 +17,23 @@ public class RegisterUserHandlerTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly RegisterUserHandler _handler;
     private readonly Mock<IUserEmailSender> _emailSenderMock;
+    private readonly Mock<IUserTokenService> _userTokenServiceMock;
+    private readonly Mock<IConfiguration> _configurationMock;
 
     public RegisterUserHandlerTests()
     {
         _commandExecutorMock = new Mock<ICommandExecutor>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _emailSenderMock = new Mock<IUserEmailSender>();
+        _userTokenServiceMock = new Mock<IUserTokenService>();
+        _configurationMock = new Mock<IConfiguration>();
 
         _handler = new RegisterUserHandler(
             _commandExecutorMock.Object,
             _userRepositoryMock.Object,
-            _emailSenderMock.Object);
+            _emailSenderMock.Object,
+            _userTokenServiceMock.Object,
+            _configurationMock.Object);
     }
 
     [Fact]

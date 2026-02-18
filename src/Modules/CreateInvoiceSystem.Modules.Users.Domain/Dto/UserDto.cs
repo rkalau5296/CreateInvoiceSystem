@@ -9,6 +9,7 @@ public record UserDto(
     string Nip,    
     AddressDto Address,
     string BankAccountNumber,
+    bool IsActive,
     IEnumerable<InvoiceDto> Invoices,
     IEnumerable<ClientDto> Clients,
     IEnumerable<ProductDto> Products
