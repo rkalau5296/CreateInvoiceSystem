@@ -6,111 +6,119 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
-<h3 class="mb-4">Ustawienia Konta i Firmy</h3>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-9">
+            <h3 class="mb-4">Ustawienia Konta i Firmy</h3>
 
-@if (userModel == null)
-{
-    <div class="d-flex align-items-center">
-        <div class="spinner-border me-2" role="status"></div>
-        <span>Ładowanie Twoich ustawień...</span>
-    </div>
-}
-else
-{
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Dane profilu i firmy</h5>
-        </div>
-        <div class="card-body">
-            <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <ValidatedInputText @bind-Value="userModel.Name"
-                                            Label="Imię i Nazwisko"
-                                            Placeholder="Wpisz imię i nazwisko" />
+            @if (userModel == null)
+            {
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border me-2" role="status"></div>
+                    <span>Ładowanie Twoich ustawień...</span>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Dane profilu i firmy</h5>
                     </div>
+                    <div class="card-body p-4">
+                        <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <ValidatedInputText @bind-Value="userModel.Name"
+                                                        Label="Imię i Nazwisko"
+                                                        Placeholder="Wpisz imię i nazwisko" />
+                                </div>
 
-                    <div class="col-md-6">
-                        <ValidatedInputText @bind-Value="userModel.CompanyName"
-                                            Label="Pełna Nazwa Firmy"
-                                            Placeholder="Wpisz nazwę firmy" />
-                    </div>
+                                <div class="col-md-6">
+                                    <ValidatedInputText @bind-Value="userModel.CompanyName"
+                                                        Label="Pełna Nazwa Firmy"
+                                                        Placeholder="Wpisz nazwę firmy" />
+                                </div>
 
-                    <div class="col-md-6">
-                        <ValidatedInputText @bind-Value="userModel.Email"
-                                            Label="Email"
-                                            Placeholder="adres@example.com" Type="email" />
-                    </div>
+                                <div class="col-md-6">
+                                    <ValidatedInputText @bind-Value="userModel.Email"
+                                                        Label="Email"
+                                                        Placeholder="adres@example.com" Type="email" />
+                                </div>
 
-                    <div class="col-md-6">
-                        <ValidatedInputText @bind-Value="userModel.Nip"
-                                            Label="NIP"
-                                            Placeholder="1234567890" />
-                    </div>
+                                <div class="col-md-6">
+                                    <ValidatedInputText @bind-Value="userModel.Nip"
+                                                        Label="NIP"
+                                                        Placeholder="1234567890" />
+                                </div>
 
-                    <div class="col-md-12">
-                        <ValidatedInputText @bind-Value="userModel.BankAccountNumber"
-                                            Label="Numer konta bankowego"
-                                            Placeholder="PL..." />
-                    </div>
+                                <div class="col-md-12">
+                                    <ValidatedInputText @bind-Value="userModel.BankAccountNumber"
+                                                        Label="Numer konta bankowego"
+                                                        Placeholder="PL..." />
+                                </div>
 
-                    <hr class="my-4" />
-                    <h5 class="text-secondary">Adres siedziby</h5>
+                                <div class="col-12">
+                                    <hr class="my-4" />
+                                    <h5 class="text-secondary mb-3">Adres siedziby</h5>
+                                </div>
 
-                    <div class="col-md-9">
-                        <ValidatedInputText @bind-Value="userModel.Address.Street"
-                                            Label="Ulica"
-                                            Placeholder="Ulica" />
-                    </div>
-                    <div class="col-md-3">
-                        <ValidatedInputText @bind-Value="userModel.Address.Number"
-                                            Label="Nr budynku"
-                                            Placeholder="Nr" />
-                    </div>
-                    <div class="col-md-4">
-                        <ValidatedInputText @bind-Value="userModel.Address.PostalCode"
-                                            Label="Kod pocztowy"
-                                            Placeholder="12-345" />
-                    </div>
-                    <div class="col-md-8">
-                        <ValidatedInputText @bind-Value="userModel.Address.City"
-                                            Label="Miasto"
-                                            Placeholder="Miasto" />
-                    </div>
-                    <div class="col-md-8">
-                        <ValidatedInputText @bind-Value="userModel.Address.Country"
-                                            Label="Kraj"
-                                            Placeholder="Kraj" />
+                                <div class="col-md-9">
+                                    <ValidatedInputText @bind-Value="userModel.Address.Street"
+                                                        Label="Ulica"
+                                                        Placeholder="Ulica" />
+                                </div>
+                                <div class="col-md-3">
+                                    <ValidatedInputText @bind-Value="userModel.Address.Number"
+                                                        Label="Nr budynku"
+                                                        Placeholder="Nr" />
+                                </div>
+                                <div class="col-md-4">
+                                    <ValidatedInputText @bind-Value="userModel.Address.PostalCode"
+                                                        Label="Kod pocztowy"
+                                                        Placeholder="12-345" />
+                                </div>
+                                <div class="col-md-8">
+                                    <ValidatedInputText @bind-Value="userModel.Address.City"
+                                                        Label="Miasto"
+                                                        Placeholder="Miasto" />
+                                </div>
+                                <div class="col-md-12">
+                                    <ValidatedInputText @bind-Value="userModel.Address.Country"
+                                                        Label="Kraj"
+                                                        Placeholder="Kraj" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex align-items-center">
+                                <button type="submit" class="btn btn-success px-4" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    Zapisz zmiany
+                                </button>
+                                @if (!string.IsNullOrEmpty(statusMessage))
+                                {
+                                    <span class="ms-3 alert @statusClass p-2 mb-0">@statusMessage</span>
+                                }
+                            </div>
+                        </ValidatedEditForm>
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-success px-4" disabled="@isSubmitting">
-                        @if (isSubmitting)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        Zapisz zmiany
-                    </button>
-                    @if (!string.IsNullOrEmpty(statusMessage))
-                    {
-                        <span class="ms-3 alert @statusClass p-2">@statusMessage</span>
-                    }
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h5>Bezpieczeństwo</h5>
+                        <p class="text-muted small">Zalecamy regularną zmianę hasła dla ochrony Twoich danych fakturowych.</p>
+                        <a href="/change-password" class="btn btn-outline-warning">
+                            <i class="bi bi-shield-lock"></i> Zmień hasło dostępu
+                        </a>
+                    </div>
                 </div>
-            </ValidatedEditForm>
+            }
         </div>
     </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5>Bezpieczeństwo</h5>
-            <p class="text-muted small">Zalecamy regularną zmianę hasła dla ochrony Twoich danych fakturowych.</p>
-            <a href="/change-password" class="btn btn-outline-warning">
-                <i class="bi bi-shield-lock"></i> Zmień hasło dostępu
-            </a>
-        </div>
-    </div>
-}
+</div>
 
 @code {
     private UpdateUserDto? userModel;
