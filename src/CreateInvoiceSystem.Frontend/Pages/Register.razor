@@ -1,11 +1,11 @@
 ﻿@page "/register"
 @using System.Linq
 @using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Components
+@using Microsoft.AspNetCore.Components.Forms
 @attribute [AllowAnonymous]
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@using CreateInvoiceSystem.Frontend.Components
-@using Microsoft.AspNetCore.Components.Forms
 
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
@@ -15,53 +15,76 @@
                     <h3 class="mb-0">Rejestracja konta firmowego</h3>
                 </div>
                 <div class="card-body p-4">
-                    <ValidatedEditForm TModel="RegisterUserDto" Model="_regModel" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalidSubmit" @ref="formRef">
-                        <div class="row">
-                            <div class="col-md-6 border-end">
-                                <h5 class="text-primary mb-3">Dane użytkownika</h5>
-                                <ValidatedInputText @bind-Value="_regModel.Email" Label="Email / Login" Placeholder="Email / Login" />
-                                <ValidatedInputText @bind-Value="_regModel.Password" Label="Hasło" Placeholder="Hasło" Type="password" />
-                                <ValidatedInputText @bind-Value="_regModel.ConfirmPassword" Label="Potwierdź Hasło" Placeholder="Potwierdź Hasło" Type="password" />
-                                <ValidatedInputText @bind-Value="_regModel.Name" Label="Imię i Nazwisko" Placeholder="Imię i Nazwisko" />
-
-                                <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
-                                <ValidatedInputText @bind-Value="_regModel.CompanyName" Label="Nazwa firmy" Placeholder="Nazwa firmy" />
-                                <ValidatedInputText @bind-Value="_regModel.Nip" Label="NIP" Placeholder="NIP" />
-                                <ValidatedInputText @bind-Value="_regModel.BankAccountNumber" Label="Konto bankowe" Placeholder="Konto bankowe" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">Adres siedziby</h5>
-                                <ValidatedInputText @bind-Value="_regModel.Address.Street" Label="Ulica" Placeholder="Ulica" />
-                                <ValidatedInputText @bind-Value="_regModel.Address.Number" Label="Numer budynku" Placeholder="Numer budynku" />
-                                <ValidatedInputText @bind-Value="_regModel.Address.PostalCode" Label="Kod pocztowy" Placeholder="Kod pocztowy" />
-                                <ValidatedInputText @bind-Value="_regModel.Address.City" Label="Miasto" Placeholder="Miasto" />
-                                <ValidatedInputText @bind-Value="_regModel.Address.Country" Label="Kraj" Placeholder="Kraj" />
-                            </div>
-                        </div>
-
-                        <hr class="my-4" />
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
-                                @if (isSubmitting)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                    <span>Trwa rejestracja...</span>
-                                }
-                                else
-                                {
-                                    <span>Zarejestruj konto</span>
-                                }
-                            </button>
-                            <a href="/" class="btn btn-link text-center">Powrót do logowania</a>
-                        </div>
-                    </ValidatedEditForm>
-
-                    @if (!string.IsNullOrEmpty(statusMessage))
+                    @if (!_isRegistered)
                     {
-                        <div class="alert mt-4 @(isError ? "alert-danger" : "alert-success")">
-                            @statusMessage
+                        <ValidatedEditForm TModel="RegisterUserDto" Model="_regModel" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalidSubmit" @ref="formRef">
+                            <div class="row">
+                                <div class="col-md-6 border-end">
+                                    <h5 class="text-primary mb-3">Dane użytkownika</h5>
+                                    <ValidatedInputText @bind-Value="_regModel.Email" Label="Email / Login" Placeholder="Email / Login" />
+                                    <ValidatedInputText @bind-Value="_regModel.Password" Label="Hasło" Placeholder="Hasło" Type="password" />
+                                    <ValidatedInputText @bind-Value="_regModel.ConfirmPassword" Label="Potwierdź Hasło" Placeholder="Potwierdź Hasło" Type="password" />
+                                    <ValidatedInputText @bind-Value="_regModel.Name" Label="Imię i Nazwisko" Placeholder="Imię i Nazwisko" />
+
+                                    <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
+                                    <ValidatedInputText @bind-Value="_regModel.CompanyName" Label="Nazwa firmy" Placeholder="Nazwa firmy" />
+                                    <ValidatedInputText @bind-Value="_regModel.Nip" Label="NIP" Placeholder="NIP" />
+                                    <ValidatedInputText @bind-Value="_regModel.BankAccountNumber" Label="Konto bankowe" Placeholder="Konto bankowe" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Adres siedziby</h5>
+                                    <ValidatedInputText @bind-Value="_regModel.Address.Street" Label="Ulica" Placeholder="Ulica" />
+                                    <ValidatedInputText @bind-Value="_regModel.Address.Number" Label="Numer budynku" Placeholder="Numer budynku" />
+                                    <ValidatedInputText @bind-Value="_regModel.Address.PostalCode" Label="Kod pocztowy" Placeholder="Kod pocztowy" />
+                                    <ValidatedInputText @bind-Value="_regModel.Address.City" Label="Miasto" Placeholder="Miasto" />
+                                    <ValidatedInputText @bind-Value="_regModel.Address.Country" Label="Kraj" Placeholder="Kraj" />
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Trwa rejestracja...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Zarejestruj konto</span>
+                                    }
+                                </button>
+                                <a href="/" class="btn btn-link text-center">Powrót do logowania</a>
+                            </div>
+                        </ValidatedEditForm>
+
+                        @if (!string.IsNullOrEmpty(statusMessage))
+                        {
+                            <div class="alert mt-4 @(isError ? "alert-danger" : "alert-success")">
+                                @statusMessage
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center p-4">
+                            <div class="mb-4">
+                                <i class="bi bi-envelope-check text-success" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="text-success mb-3">Konto zostało utworzone!</h3>
+                            <div class="alert alert-success shadow-sm">
+                                <p class="mb-0">
+                                    Jeśli podany adres e-mail jest prawidłowy, wysłaliśmy na niego <strong>link aktywacyjny</strong>.
+                                    Prosimy o sprawdzenie skrzynki e-mail (oraz folderu Spam) i kliknięcie w link w celu aktywacji konta.
+                                </p>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg w-100" @onclick='() => Navigation.NavigateTo("/")'>
+                                    Przejdź do strony logowania
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
@@ -73,6 +96,7 @@
 @code {
     private RegisterUserDto _regModel = new() { Address = new RegisterAddressDto() };
     private bool isSubmitting = false;
+    private bool _isRegistered = false;
     private string statusMessage = "";
     private bool isError = false;
 
@@ -87,58 +111,17 @@
     private async Task HandleRegister()
     {
         formRef?.ClearServerErrors();
-
-        if (string.IsNullOrWhiteSpace(_regModel.Email))
-            formRef?.AddServerError(nameof(_regModel.Email), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Password))
-            formRef?.AddServerError(nameof(_regModel.Password), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Name))
-            formRef?.AddServerError(nameof(_regModel.Name), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.CompanyName))
-            formRef?.AddServerError(nameof(_regModel.CompanyName), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Nip))
-            formRef?.AddServerError(nameof(_regModel.Nip), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.BankAccountNumber))
-            formRef?.AddServerError(nameof(_regModel.BankAccountNumber), "Wymagane");
+                
+        if (string.IsNullOrWhiteSpace(_regModel.Email)) formRef?.AddServerError(nameof(_regModel.Email), "Wymagane");
+        if (string.IsNullOrWhiteSpace(_regModel.Password)) formRef?.AddServerError(nameof(_regModel.Password), "Wymagane");
+        if (string.IsNullOrWhiteSpace(_regModel.Name)) formRef?.AddServerError(nameof(_regModel.Name), "Wymagane");
+        if (string.IsNullOrWhiteSpace(_regModel.CompanyName)) formRef?.AddServerError(nameof(_regModel.CompanyName), "Wymagane");
+        if (string.IsNullOrWhiteSpace(_regModel.Nip)) formRef?.AddServerError(nameof(_regModel.Nip), "Wymagane");
 
         var addr = _regModel.Address;
-        if (addr == null)
-        {            
-            formRef?.AddServerError($"{nameof(_regModel.Address)}.Street", "Wymagane");
-            formRef?.AddServerError($"{nameof(_regModel.Address)}.Number", "Wymagane");
-            formRef?.AddServerError($"{nameof(_regModel.Address)}.PostalCode", "Wymagane");
-            formRef?.AddServerError($"{nameof(_regModel.Address)}.City", "Wymagane");
-            formRef?.AddServerError($"{nameof(_regModel.Address)}.Country", "Wymagane");
-        }
-        else
+        if (addr == null || string.IsNullOrWhiteSpace(addr.Street) || string.IsNullOrWhiteSpace(addr.City))
         {
-            if (string.IsNullOrWhiteSpace(addr.Street))
-                formRef?.AddServerError($"{nameof(_regModel.Address)}.Street", "Wymagane");
-            if (string.IsNullOrWhiteSpace(addr.Number))
-                formRef?.AddServerError($"{nameof(_regModel.Address)}.Number", "Wymagane");
-            if (string.IsNullOrWhiteSpace(addr.PostalCode))
-                formRef?.AddServerError($"{nameof(_regModel.Address)}.PostalCode", "Wymagane");
-            if (string.IsNullOrWhiteSpace(addr.City))
-                formRef?.AddServerError($"{nameof(_regModel.Address)}.City", "Wymagane");
-            if (string.IsNullOrWhiteSpace(addr.Country))
-                formRef?.AddServerError($"{nameof(_regModel.Address)}.Country", "Wymagane");
-        }
-
-        bool hadClientErrors = string.IsNullOrWhiteSpace(_regModel.Email)
-            || string.IsNullOrWhiteSpace(_regModel.Password)
-            || string.IsNullOrWhiteSpace(_regModel.Name)
-            || string.IsNullOrWhiteSpace(_regModel.CompanyName)
-            || string.IsNullOrWhiteSpace(_regModel.Nip)
-            || addr == null
-            || string.IsNullOrWhiteSpace(addr.Street)
-            || string.IsNullOrWhiteSpace(addr.Number)
-            || string.IsNullOrWhiteSpace(addr.PostalCode)
-            || string.IsNullOrWhiteSpace(addr.City)
-            || string.IsNullOrWhiteSpace(addr.Country);
-
-        if (hadClientErrors)
-        {
-            statusMessage = "Uzupełnij wymagane pola.";
+            statusMessage = "Uzupełnij wymagane dane adresowe.";
             isError = true;
             return;
         }
@@ -157,28 +140,25 @@
                 var result = await response.Content.ReadFromJsonAsync<RegisterUserResponse>();
 
                 if (result != null && result.Success)
-                {
-                    statusMessage = "Konto zostało utworzone pomyślnie!";
+                {                    
+                    _isRegistered = true;
                     isError = false;
-                    await Task.Delay(1500);
-                    Navigation.NavigateTo("/");
-                    return;
                 }
                 else
                 {
-                    statusMessage = result?.Message ?? "Wystąpił błąd.";
+                    statusMessage = result?.Message ?? "Wystąpił błąd podczas rejestracji.";
                     isError = true;
                 }
             }
             else
             {
-                statusMessage = "Błąd serwera. Sprawdź poprawność danych.";
+                statusMessage = "Błąd serwera. Sprawdź, czy podany e-mail nie jest już zajęty.";
                 isError = true;
             }
         }
         catch (Exception ex)
         {
-            statusMessage = $"Błąd: {ex.Message}";
+            statusMessage = $"Błąd połączenia: {ex.Message}";
             isError = true;
         }
         finally
