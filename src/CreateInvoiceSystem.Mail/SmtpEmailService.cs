@@ -9,19 +9,36 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
 {
     public async Task SendResetPasswordEmailAsync(string email, string resetLink)
     {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("System Faktur", "no-reply@system.pl"));
+        var message = new MimeMessage();        
+        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
         message.To.Add(new MailboxAddress("", email));
-        message.Subject = "Resetowanie hasła";
+        message.Subject = "Resetowanie hasła - System Faktur";
 
-        message.Body = new TextPart("plain")
+        var bodyBuilder = new BodyBuilder
         {
-            Text = $"Aby zresetować hasło, kliknij w poniższy link:\n\n{resetLink}\n\n" +
-                   $"Link jest ważny przez 2 godziny."
+            HtmlBody = $@"
+            <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                <h2>Resetowanie hasła</h2>
+                <p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta w Systemie Faktur.</p>
+                <p>Aby ustawić nowe hasło, kliknij w poniższy przycisk:</p>
+                <p style='margin: 20px 0;'>
+                    <a href='{resetLink}' 
+                       style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                       Resetuj moje hasło
+                    </a>
+                </p>
+                <p>Link jest ważny przez <strong>2 godziny</strong>.</p>
+                <p>Jeśli przycisk nie działa, skopiuj poniższy link do przeglądarki:</p>
+                <p style='color: #007bff;'>{resetLink}</p>
+                <p>Jeśli to nie Ty prosiłeś o zmianę hasła, po prostu zignoruj tę wiadomość.</p>
+                <hr style='border: 0; border-top: 1px solid #eee; margin-top: 20px;'>
+                <small style='color: #888;'>Wiadomość została wygenerowana automatycznie, prosimy na nią nie odpowiadać.</small>
+            </div>"
         };
+        
+        message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
-        
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
@@ -36,6 +53,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }
+
     public async Task SendEmailAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();        
@@ -82,7 +100,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
                         </a>
                     </p>
                     <p>Jeśli przycisk nie działa, skopiuj poniższy link do przeglądarki:</p>
-                    <p>{activationLink}</p>
+                    <p style='color: #007bff;'>{activationLink}</p>                    
                     <hr style='border: 0; border-top: 1px solid #eee; margin-top: 20px;'>
                     <small style='color: #888;'>Wiadomość została wygenerowana automatycznie, prosimy na nią nie odpowiadać.</small>
                 </div>"
