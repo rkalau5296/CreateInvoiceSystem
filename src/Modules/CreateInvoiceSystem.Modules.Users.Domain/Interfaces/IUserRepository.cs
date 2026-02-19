@@ -26,4 +26,7 @@ public interface IUserRepository : ISaveChangesContext
     Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken);
     Task<int> GetLoggedUserId(CancellationToken ct);
     Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string currentPassword, string newPassword);
+    Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct);
+    Task<List<User>> GetUsersForCleanupWarningAsync(DateTime warningDate, CancellationToken ct);
+
 }

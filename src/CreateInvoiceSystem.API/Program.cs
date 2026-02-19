@@ -38,6 +38,7 @@ using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.Services;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
@@ -224,6 +225,9 @@ builder.Services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
 //pdf
 builder.Services.AddPdfModule();
 builder.Services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
+
+// BackgroundService
+builder.Services.AddHostedService<UserCleanupService>();
 
 builder.Services.AddCors(options =>
 {

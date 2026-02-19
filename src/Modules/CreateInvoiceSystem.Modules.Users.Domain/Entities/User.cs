@@ -12,6 +12,7 @@ public class User
     public int AddressId { get; set; }
     public string? BankAccountNumber { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public ICollection<Invoice> Invoices { get; set; } = [];    
     public ICollection<Client> Clients { get; set; } = [];
     public ICollection<Product> Products { get; set; } = [];

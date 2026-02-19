@@ -533,4 +533,45 @@ public class UserRepository : IUserRepository
         var error = result.Errors.FirstOrDefault()?.Description ?? "Błąd podczas zmiany hasła.";
         return (false, error);
     }
+    public async Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct)
+    {
+        var inactiveUsers = _db.Set<UserEntity>()
+            .Where(u => !u.IsActive 
+                    && u.CreatedAt < cutoffDate
+                    && !(u.Invoices.Any() || u.Products.Any() || u.Clients.Any())
+            );        
+
+        int count = await inactiveUsers.CountAsync(ct);
+
+        if (count > 0)
+        {
+            _db.Set<UserEntity>().RemoveRange(inactiveUsers);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return count;
+    }
+
+    public async Task<List<User>> GetUsersForCleanupWarningAsync(DateTime warningDate, CancellationToken ct)
+    {        
+        var dayStart = warningDate.Date;
+        var dayEnd = dayStart.AddDays(1);
+
+        var entities = await _db.Set<UserEntity>()
+            .Where(u => !u.IsActive
+                     && u.CreatedAt >= dayStart
+                     && u.CreatedAt < dayEnd)
+            .ToListAsync(ct);
+        
+        return entities.Select(e => new User
+        {
+            UserId = e.Id,
+            Email = e.Email,
+            Name = e.Name,
+            IsActive = e.IsActive,
+            CreatedAt = e.CreatedAt
+        }).ToList();
+    }
+
+    
 }

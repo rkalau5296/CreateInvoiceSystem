@@ -40,6 +40,9 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
 
     public async Task SendResetPasswordEmailAsync(string email, string token)
     {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentNullException(nameof(email));
+
         var escapedToken = Uri.EscapeDataString(token);
         
         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
@@ -47,6 +50,20 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
         var resetLink = $"{frontendUrl}/reset-password?token={escapedToken}&email={email}";
 
         await _emailService.SendResetPasswordEmailAsync(email, resetLink);
+    }
+    public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentNullException(nameof(email));
+
+        var subject = "Twoje konto wkrótce wygaśnie";
+        var message = $"Witaj {name},<br/><br/>" +
+                      $"Zauważyliśmy, że Twoje konto nie zostało jeszcze aktywowane. " +
+                      $"Zgodnie z naszą polityką bezpieczeństwa, jeśli nie aktywujesz konta w ciągu <b>{daysLeft} dni</b>, " +
+                      "Twoje dane zostaną automatycznie usunięte.<br/><br/>" +
+                      "Jeśli chcesz zachować konto, odszukaj wiadomość z linkiem aktywacyjnym i kliknij go.";
+        
+        await _emailService.SendEmailAsync(email, subject, message, CancellationToken.None);
     }
 
 }

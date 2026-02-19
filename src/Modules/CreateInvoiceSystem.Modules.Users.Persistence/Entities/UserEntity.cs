@@ -10,6 +10,7 @@ public class UserEntity : IdentityUser<int>
     public string Nip { get; set; }    
     public int AddressId { get; set; }
     public string? BankAccountNumber { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; }
 
     [NotMapped]
