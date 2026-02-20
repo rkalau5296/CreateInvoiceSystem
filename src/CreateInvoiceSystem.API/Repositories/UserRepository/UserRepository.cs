@@ -35,8 +35,7 @@ public class UserRepository : IUserRepository
             City = user.Address.City,
             PostalCode = user.Address.PostalCode,
             Country = user.Address.Country
-        };
-        
+        };        
         
         await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
@@ -514,6 +513,7 @@ public class UserRepository : IUserRepository
 
         return await Task.FromResult(userId);
     }
+
     public async Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string oldPassword, string newPassword)
     {        
         var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());

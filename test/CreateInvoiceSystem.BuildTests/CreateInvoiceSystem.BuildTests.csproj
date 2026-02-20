@@ -32,6 +32,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Csv\CreateInvoiceSystem.Csv.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Pdf\CreateInvoiceSystem.Pdf.csproj" />

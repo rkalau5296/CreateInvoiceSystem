@@ -12,6 +12,7 @@ using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.API.RestServices;
+using CreateInvoiceSystem.API.TransactionBehavior;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.Interfaces;
@@ -127,6 +128,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidat
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
 // Repositories (Scoped)
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
