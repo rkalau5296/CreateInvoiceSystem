@@ -622,5 +622,24 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
                 .Where(i => i.CreatedDate.Month == month && i.CreatedDate.Year == year)
                 .CountAsync(ct);
         }
+
+        public async Task RemoveAllByUserIdAsync(int userId, CancellationToken ct)
+        {
+            var invoices = await _db.Set<InvoiceEntity>()
+                .Include(i => i.InvoicePositions)
+                .Where(i => i.UserId == userId)
+                .ToListAsync(ct);
+
+            foreach (var invoice in invoices)
+            {
+                if (invoice.InvoicePositions != null)
+                {                    
+                    var positions = invoice.InvoicePositions.OfType<InvoicePositionEntity>();
+                    _db.Set<InvoicePositionEntity>().RemoveRange(positions);
+                }
+
+                _db.Set<InvoiceEntity>().Remove(invoice);
+            }
+        }
     }
 }

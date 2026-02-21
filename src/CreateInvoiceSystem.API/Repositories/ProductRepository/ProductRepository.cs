@@ -105,6 +105,18 @@ public class ProductRepository(IDbContext db) : IProductRepository
         };
     }
 
+    public async Task RemoveAllByUserIdAsync(int userId, CancellationToken ct)
+    {
+        var products = await _db.Set<ProductEntity>()
+            .Where(p => p.UserId == userId)
+            .ToListAsync(ct);
+
+        if (products.Count != 0)
+        {
+            _db.Set<ProductEntity>().RemoveRange(products);
+        }
+    }
+
     public async Task RemoveAsync(int productId, CancellationToken cancellationToken)
     {
         var productEntity = await _db.Set<ProductEntity>()

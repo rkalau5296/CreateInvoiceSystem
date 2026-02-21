@@ -13,4 +13,5 @@ public interface IProductRepository : ISaveChangesContext
     Task RemoveAsync(int productId, CancellationToken cancellationToken);
     Task<bool> ExistsByIdAsync(int productId, CancellationToken cancellationToken);
     Task<PagedResult<Product>> GetAllAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken ct);
+    Task RemoveAllByUserIdAsync(int userId, CancellationToken cancellationToken);
 }

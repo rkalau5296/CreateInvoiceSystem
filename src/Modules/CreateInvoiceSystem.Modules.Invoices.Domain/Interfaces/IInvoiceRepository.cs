@@ -25,4 +25,5 @@ public interface IInvoiceRepository : ISaveChangesContext
     Task<string> GetUserEmailByIdAsync(int userId, CancellationToken ct);
     Task<User> GetUserByIdAsync(int userId, CancellationToken ct);
     Task<int> GetInvoicesCountInMonthAsync(int userId, int month, int year, CancellationToken ct);
+    Task RemoveAllByUserIdAsync(int userId, CancellationToken ct);
 }

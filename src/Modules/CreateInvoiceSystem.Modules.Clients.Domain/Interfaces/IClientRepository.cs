@@ -16,4 +16,5 @@ public interface IClientRepository : ISaveChangesContext
     Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken);
     Task<bool> AddressExistsByIdAsync(int addressId, CancellationToken cancellationToken);
       
+    Task RemoveAllByUserIdAsync(int userId, CancellationToken cancellationToken);
 }
