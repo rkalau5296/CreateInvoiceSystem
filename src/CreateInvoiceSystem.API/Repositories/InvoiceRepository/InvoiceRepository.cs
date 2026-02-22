@@ -626,19 +626,25 @@ namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository
         public async Task RemoveAllByUserIdAsync(int userId, CancellationToken ct)
         {
             var invoices = await _db.Set<InvoiceEntity>()
-                .Include(i => i.InvoicePositions)
                 .Where(i => i.UserId == userId)
                 .ToListAsync(ct);
 
-            foreach (var invoice in invoices)
+            if (invoices.Count != 0)
             {
-                if (invoice.InvoicePositions != null)
-                {                    
-                    var positions = invoice.InvoicePositions.OfType<InvoicePositionEntity>();
+                var invoiceIds = invoices.Select(i => i.InvoiceId).ToList();
+
+                var positions = await _db.Set<InvoicePositionEntity>()
+                    .Where(p => invoiceIds.Contains(p.InvoiceId))
+                    .ToListAsync(ct);
+
+                if (positions.Count != 0)
+                {
                     _db.Set<InvoicePositionEntity>().RemoveRange(positions);
                 }
 
-                _db.Set<InvoiceEntity>().Remove(invoice);
+                _db.Set<InvoiceEntity>().RemoveRange(invoices);
+
+                await _db.SaveChangesAsync(ct);
             }
         }
     }

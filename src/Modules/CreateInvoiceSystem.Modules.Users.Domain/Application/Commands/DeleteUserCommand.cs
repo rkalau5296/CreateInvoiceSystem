@@ -18,13 +18,13 @@ public class DeleteUserCommand : CommandBase<User, UserDto, IUserRepository>
         if (userEntity.Invoices.Any() || userEntity.Clients.Any() || userEntity.Products.Any())
             throw new InvalidOperationException($"Cannot delete User with ID {Parametr.UserId} because it has associated Invoices.");
 
-        await _userRepository.RemoveAsync(userEntity, cancellationToken);
+        await _userRepository.RemoveAsync(Parametr.UserId, cancellationToken);
         if (userEntity.Address is not null)
-            await _userRepository.RemoveAddress(userEntity.Address, cancellationToken);
+            await _userRepository.RemoveAddress(userEntity.AddressId, cancellationToken);
 
         await _userRepository.SaveChangesAsync(cancellationToken);        
 
-        bool addrExists = await _userRepository.IsAddressExists(userEntity.Address.AddressId, cancellationToken);
+        bool addrExists = await _userRepository.IsAddressExists(userEntity.AddressId, cancellationToken);
         bool userExists = await _userRepository.IsUserExists(userEntity.UserId, cancellationToken);
 
         return !userExists && !addrExists

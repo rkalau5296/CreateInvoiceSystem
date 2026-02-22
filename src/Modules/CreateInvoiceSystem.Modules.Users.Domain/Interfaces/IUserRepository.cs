@@ -7,8 +7,8 @@ namespace CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 public interface IUserRepository : ISaveChangesContext
 {    
     Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken);    
-    Task RemoveAsync(User user, CancellationToken cancellationToken);
-    Task RemoveAddress(Address address, CancellationToken cancellationToken);
+    Task RemoveAsync(int userId, CancellationToken cancellationToken);
+    Task RemoveAddress(int addressId, CancellationToken cancellationToken);
     Task<bool> IsUserExists(int userId, CancellationToken cancellationToken);
     Task<bool> IsAddressExists(int addressId, CancellationToken cancellationToken);
     Task AddAsync(User user, CancellationToken cancellationToken);

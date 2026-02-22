@@ -62,9 +62,17 @@ public class UserController : ApiControllerBase
     }
 
     [HttpDelete]
-    [Route("{id}")]    
+    [Route("{id}")]
     public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
     {
+        var claimValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(claimValue, out int actualUserId))
+            return Unauthorized();
+        
+        if (actualUserId != id)
+            return Forbid(); 
+
         DeleteUserRequest request = new(id);
         return await HandleRequest<DeleteUserRequest, DeleteUserResponse>(request, cancellationToken);
     }

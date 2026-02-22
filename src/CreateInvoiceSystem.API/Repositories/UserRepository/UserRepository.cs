@@ -321,32 +321,26 @@ public class UserRepository : IUserRepository
             .AnyAsync(c => c.Id == userId, cancellationToken);
     }
 
-    public async Task RemoveAddress(Address address, CancellationToken cancellationToken)
+    public async Task RemoveAddress(int addressId, CancellationToken cancellationToken)
     {
-        var addressEntity = new AddressEntity
+        var addressEntity = await _db.Set<AddressEntity>().FirstOrDefaultAsync(a => a.AddressId == addressId, cancellationToken);
+        if (addressEntity != null)
         {
-            AddressId = address.AddressId,
-            Street = address.Street,
-            Number = address.Number,
-            City = address.City,
-            PostalCode = address.PostalCode,
-            Country = address.Country
-        };
-        _db.Set<AddressEntity>().Remove(addressEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+            _db.Set<AddressEntity>().Remove(addressEntity);
+            await _db.SaveChangesAsync(cancellationToken);
+        }
     }
 
-    public async Task RemoveAsync(User user, CancellationToken cancellationToken)
-    {
-        var userEntity = new UserEntity
-        {            
-            Name = user.Name,
-            CompanyName = user.CompanyName,            
-            Nip = user.Nip,
-            AddressId = user.AddressId
-        };
-        _db.Set<UserEntity>().Remove(userEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+    public async Task RemoveAsync(int userId, CancellationToken ct)
+    {        
+        var user = await _db.Set<UserEntity>().FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user != null)
+        {
+            _db.Set<UserEntity>().Remove(user);
+
+            await _db.SaveChangesAsync(ct);
+        }
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
