@@ -1,0 +1,36 @@
+﻿@inject IJSRuntime JSRuntime
+
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Potwierdź usunięcie konta</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4>Czy na pewno?</h4>
+                    <p>Wszystkie Twoje faktury, dane firmy oraz snapshoty produktów zostaną <strong>trwale usunięte</strong>.</p>
+                    <p class="text-muted small">Tej operacji nie można cofnąć.</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary px-4" @onclick="Close">Anuluj</button>
+                    <button type="button" class="btn btn-danger px-4" @onclick="Confirm">Tak, usuń wszystko</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private async Task Confirm() => await OnConfirm.InvokeAsync();
+    private async Task Close() => await OnClose.InvokeAsync();
+}
