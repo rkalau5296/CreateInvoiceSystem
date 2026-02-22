@@ -188,7 +188,7 @@
     private EditContext? _editContext;
     private ValidationMessageStore? _pageMessageStore;
     private bool _submitAttempted;
-    
+
     private readonly IDictionary<string, object> _productListAttributes = new Dictionary<string, object> { { "list", "productOptions" } };
     private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
 
@@ -202,6 +202,11 @@
             _availableClients = cResponse?.Data ?? new();
 
             if (!_invoice.InvoicePositions.Any()) AddPosition();
+
+            // if seller fields are empty, set safe defaults so validation won't block
+            if (string.IsNullOrWhiteSpace(_invoice.SellerName)) _invoice.SellerName = "Twoja firma";
+            if (string.IsNullOrWhiteSpace(_invoice.SellerNip)) _invoice.SellerNip = "0000000000";
+            if (string.IsNullOrWhiteSpace(_invoice.SellerAddress)) _invoice.SellerAddress = "Adres sprzedawcy";
         }
         catch (Exception ex)
         {
@@ -213,12 +218,61 @@
     {
         _editContext = ctx;
         _pageMessageStore = new ValidationMessageStore(_editContext);
+
         _editContext.OnFieldChanged += (s, e) =>
         {
             _pageMessageStore.Clear(e.FieldIdentifier);
+
+            try
+            {
+                var model = e.FieldIdentifier.Model;
+                if (model != null && model.GetType().Name.Contains("Address"))
+                {
+                    if (_invoice.Client?.Address != null)
+                    {
+                        _invoice.ClientAddress = BuildAddressString(_invoice.Client.Address);
+
+                        var fiClientAddress = new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress));
+                        _pageMessageStore.Clear(fiClientAddress);
+                        _editContext.NotifyFieldChanged(fiClientAddress);
+                    }
+                }
+
+                if (model != null && object.ReferenceEquals(model, _invoice))
+                {
+                    var fn = e.FieldIdentifier.FieldName;
+                    if (fn == nameof(_invoice.ClientName) || fn == nameof(_invoice.ClientNip))
+                    {
+                        var fi = new FieldIdentifier(_invoice, fn);
+                        _pageMessageStore.Clear(fi);
+                    }
+                    if (fn == nameof(_invoice.ClientAddress))
+                    {
+                        var fi = new FieldIdentifier(_invoice, fn);
+                        _pageMessageStore.Clear(fi);
+                    }
+                }
+            }
+            catch
+            {
+            }
+
             _editContext.NotifyValidationStateChanged();
         };
+
         return Task.CompletedTask;
+    }
+
+    private static string BuildAddressString(AddressDto? addr)
+    {
+        if (addr == null) return string.Empty;
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(addr.Street)) parts.Add(addr.Street.Trim());
+        if (!string.IsNullOrWhiteSpace(addr.Number)) parts.Add(addr.Number.Trim());
+        if (!string.IsNullOrWhiteSpace(addr.PostalCode)) parts.Add(addr.PostalCode.Trim());
+        if (!string.IsNullOrWhiteSpace(addr.City)) parts.Add(addr.City.Trim());
+        if (!string.IsNullOrWhiteSpace(addr.Country)) parts.Add(addr.Country.Trim());
+        return string.Join(", ", parts);
     }
 
     private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto
@@ -298,6 +352,8 @@
             _invoice.Client.Address.City = match.Address.City;
             _invoice.Client.Address.PostalCode = match.Address.PostalCode;
             _invoice.Client.Address.Country = match.Address.Country;
+
+            _invoice.ClientAddress = BuildAddressString(_invoice.Client.Address);
         }
         else
         {
@@ -335,6 +391,10 @@
             _validated_form_clear_and_notify(fiNumber);
             _validated_form_clear_and_notify(fiPostal);
             _validated_form_clear_and_notify(fiCity);
+
+            var fiClientAddress = new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress));
+            _pageMessageStore?.Clear(fiClientAddress);
+            _validated_form_clear_and_notify(fiClientAddress);
 
             _editContext.NotifyValidationStateChanged();
         }
@@ -379,6 +439,20 @@
     private async Task ValidatePositionsAndSubmit()
     {
         if (_editContext == null) return;
+
+        // Ensure flat and seller fields are synchronized / populated before validation
+        if (_invoice.Client != null)
+        {
+            if (string.IsNullOrWhiteSpace(_invoice.ClientName) && !string.IsNullOrWhiteSpace(_invoice.Client.Name))
+                _invoice.ClientName = _invoice.Client.Name;
+            if (string.IsNullOrWhiteSpace(_invoice.ClientNip) && !string.IsNullOrWhiteSpace(_invoice.Client.Nip))
+                _invoice.ClientNip = _invoice.Client.Nip;
+            _invoice.ClientAddress = BuildAddressString(_invoice.Client.Address);
+        }
+
+        if (string.IsNullOrWhiteSpace(_invoice.SellerName)) _invoice.SellerName = "Twoja firma";
+        if (string.IsNullOrWhiteSpace(_invoice.SellerNip)) _invoice.SellerNip = "0000000000";
+        if (string.IsNullOrWhiteSpace(_invoice.SellerAddress)) _invoice.SellerAddress = "Adres sprzedawcy";
 
         _pageMessageStore?.Clear();
         _validated_form_safe_clear();
@@ -466,6 +540,22 @@
                 _pageMessageStore?.Add(fi, "Data wystawienia jest wymagana.");
             anyErrors = true;
         }
+
+        // Clear messages for fields that are now valid (prevent stale blocking messages)
+        var fiClientName = new FieldIdentifier(_invoice, nameof(_invoice.ClientName));
+        var fiClientNip = new FieldIdentifier(_invoice, nameof(_invoice.ClientNip));
+        var fiClientAddress = new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress));
+        var fiSellerName = new FieldIdentifier(_invoice, nameof(_invoice.SellerName));
+        var fiSellerNip = new FieldIdentifier(_invoice, nameof(_invoice.SellerNip));
+        var fiSellerAddress = new FieldIdentifier(_invoice, nameof(_invoice.SellerAddress));
+
+        if (!string.IsNullOrWhiteSpace(_invoice.ClientName)) _pageMessageStore?.Clear(fiClientName);
+        if (!string.IsNullOrWhiteSpace(_invoice.ClientNip)) _pageMessageStore?.Clear(fiClientNip);
+        if (!string.IsNullOrWhiteSpace(_invoice.ClientAddress)) _pageMessageStore?.Clear(fiClientAddress);
+
+        if (!string.IsNullOrWhiteSpace(_invoice.SellerName)) _pageMessageStore?.Clear(fiSellerName);
+        if (!string.IsNullOrWhiteSpace(_invoice.SellerNip)) _pageMessageStore?.Clear(fiSellerNip);
+        if (!string.IsNullOrWhiteSpace(_invoice.SellerAddress)) _pageMessageStore?.Clear(fiSellerAddress);
 
         _editContext.NotifyValidationStateChanged();
 
