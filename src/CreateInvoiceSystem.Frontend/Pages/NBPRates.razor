@@ -1,4 +1,5 @@
 ﻿@page "/nbp-rates"
+@using System.Text.Json
 @using CreateInvoiceSystem.Frontend.Services
 @using CreateInvoiceSystem.Frontend.Models
 @inject NbpService NbpService
@@ -10,7 +11,7 @@
             <div class="row g-3">
                 <div class="col-md-2">
                     <label class="form-label small fw-bold">Tabela</label>
-                    <select class="form-select" @bind="_selectedTable">
+                    <select class="form-select" @bind="_selectedTable" disabled="@_isLoading">
                         <option value="A">A (Średnie)</option>
                         <option value="B">B (Rzadkie)</option>
                         <option value="C">C (Kupno/Sprzedaż)</option>
@@ -18,24 +19,33 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small fw-bold">Kod waluty (opcjonalnie)</label>
-                    <input type="text" class="form-control" placeholder="np. USD" @bind="_currencyCode" maxlength="3" />
+                    <input type="text" class="form-control" placeholder="np. USD" @bind="_currencyCode" maxlength="3" disabled="@_isLoading" />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Data od</label>
-                    <input type="date" class="form-control" @bind="_dateFrom" />
+                    <input type="date" class="form-control" @bind="_dateFrom" disabled="@_isLoading" />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Data do</label>
-                    <input type="date" class="form-control" @bind="_dateTo" />
+                    <input type="date" class="form-control" @bind="_dateTo" disabled="@_isLoading" />
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-primary w-100" @onclick="ExecuteSearch">
+                    <button class="btn btn-primary w-100" @onclick="ExecuteSearch" disabled="@_isLoading">
                         <i class="bi bi-search me-1"></i> Szukaj
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <div class="mt-3">
+            <div class="alert @( _isError ? "alert-danger" : "alert-info")">
+                @_statusMessage
+            </div>
+        </div>
+    }
 
     @if (_isLoading)
     {
@@ -92,14 +102,26 @@
     private DateTime _dateFrom = DateTime.Today;
     private DateTime _dateTo = DateTime.Today;
 
-    // Zmieniamy na listę, aby obsłużyć wiele dni (zakres dat)
     private List<CurrencyRatesTable> _allTables = new();
     private bool _isLoading = false;
+
+    private string _statusMessage = "";
+    private bool _isError = false;
 
     private async Task ExecuteSearch()
     {
         _isLoading = true;
         _allTables.Clear();
+        _statusMessage = "";
+        _isError = false;
+
+        if (_dateFrom > _dateTo)
+        {
+            _statusMessage = "Data 'od' nie może być późniejsza niż data 'do'.";
+            _isError = true;
+            _isLoading = false;
+            return;
+        }
 
         bool isSpecificCurrency = !string.IsNullOrWhiteSpace(_currencyCode);
         bool isDateRange = _dateFrom != _dateTo;
@@ -115,28 +137,82 @@
                     result = await NbpService.GetSpecificCurrencyRateAsync(_selectedTable, _currencyCode);
 
                 if (result != null) _allTables.Add(result);
+                else
+                {
+                    _statusMessage = "Brak danych dla podanych parametrów.";
+                    _isError = true;
+                }
             }
             else
             {
                 if (isDateRange)
                 {
-                    // Tutaj NbpService musi zwracać List<CurrencyRatesTable>
-                    _allTables = await NbpService.GetTableHistoryAsync(_selectedTable, _dateFrom, _dateTo);
+                    var list = await NbpService.GetTableHistoryAsync(_selectedTable, _dateFrom, _dateTo);
+                    if (list != null && list.Any())
+                        _allTables = list;
+                    else
+                    {
+                        _statusMessage = "Brak danych w podanym zakresie dat.";
+                        _isError = true;
+                    }
                 }
                 else
                 {
                     var result = await NbpService.GetCurrentTableAsync(_selectedTable);
                     if (result != null) _allTables.Add(result);
+                    else
+                    {
+                        _statusMessage = "Brak danych dla bieżącej daty.";
+                        _isError = true;
+                    }
+                }
+            }
+        }
+        catch (ApiException aex)
+        {
+            _statusMessage = aex.GetUserMessage();
+            _isError = true;
+
+            if (!string.IsNullOrWhiteSpace(aex.Response))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(aex.Response);
+                    if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        foreach (var prop in errorsElement.EnumerateObject())
+                        {
+                            foreach (var msgElem in prop.Value.EnumerateArray())
+                            {
+                                var msg = msgElem.GetString();
+                                if (!string.IsNullOrWhiteSpace(msg))
+                                {
+                                    if (sb.Length > 0) sb.Append(" ; ");
+                                    sb.Append(msg);
+                                }
+                            }
+                        }
+                        if (sb.Length > 0)
+                        {
+                            _statusMessage = sb.ToString();
+                        }
+                    }
+                }
+                catch
+                {
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd: {ex.Message}");
+            _statusMessage = $"Nieoczekiwany błąd: {ex.Message}";
+            _isError = true;
         }
         finally
         {
             _isLoading = false;
+            StateHasChanged();
         }
     }
 }

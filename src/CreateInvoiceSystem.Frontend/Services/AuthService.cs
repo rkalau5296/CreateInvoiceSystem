@@ -64,13 +64,8 @@ namespace CreateInvoiceSystem.Frontend.Services
             await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
 
             _httpClient.DefaultRequestHeaders.Authorization = null;
-            _auth_state_provider_notify_logout();
-            _navigationManager.NavigateTo("/login");
-        }
-
-        private void _auth_state_provider_notify_logout()
-        {
             _authStateProvider.NotifyUserLogout();
+            _navigationManager.NavigateTo("/login");
         }
 
         public async Task<GetUserResponse?> GetMySettingsAsync()
@@ -153,6 +148,13 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             return await response.Content.ReadFromJsonAsync<ResetPasswordResponse>()
                    ?? new ResetPasswordResponse(false, "Błąd odpowiedzi.");
+        }
+
+        public async Task<RegisterUserResponse?> RegisterAsync(RegisterUserRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/register", request);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
+            return await response.Content.ReadFromJsonAsync<RegisterUserResponse>();
         }
     }
 }

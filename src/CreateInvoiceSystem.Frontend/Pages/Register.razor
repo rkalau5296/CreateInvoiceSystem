@@ -1,10 +1,12 @@
 ﻿@page "/register"
 @using System.Linq
+@using System.Text.Json
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Components
+@using CreateInvoiceSystem.Frontend.Services
 @using Microsoft.AspNetCore.Components.Forms
 @attribute [AllowAnonymous]
-@inject HttpClient Http
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <div class="container mt-5 mb-5">
@@ -111,7 +113,7 @@
     private async Task HandleRegister()
     {
         formRef?.ClearServerErrors();
-                
+
         if (string.IsNullOrWhiteSpace(_regModel.Email)) formRef?.AddServerError(nameof(_regModel.Email), "Wymagane");
         if (string.IsNullOrWhiteSpace(_regModel.Password)) formRef?.AddServerError(nameof(_regModel.Password), "Wymagane");
         if (string.IsNullOrWhiteSpace(_regModel.Name)) formRef?.AddServerError(nameof(_regModel.Name), "Wymagane");
@@ -133,28 +135,51 @@
         try
         {
             var request = new RegisterUserRequest(_regModel);
-            var response = await Http.PostAsJsonAsync("api/Auth/register", request);
+            var result = await AuthService.RegisterAsync(request);
 
-            if (response.IsSuccessStatusCode)
+            if (result != null && result.Success)
             {
-                var result = await response.Content.ReadFromJsonAsync<RegisterUserResponse>();
-
-                if (result != null && result.Success)
-                {                    
-                    _isRegistered = true;
-                    isError = false;
-                }
-                else
-                {
-                    statusMessage = result?.Message ?? "Wystąpił błąd podczas rejestracji.";
-                    isError = true;
-                }
+                _isRegistered = true;
+                isError = false;
             }
             else
             {
-                statusMessage = "Błąd serwera. Sprawdź, czy podany e-mail nie jest już zajęty.";
+                statusMessage = result?.Message ?? "Wystąpił błąd podczas rejestracji.";
                 isError = true;
             }
+        }
+        catch (ApiException aex)
+        {
+            if (!string.IsNullOrWhiteSpace(aex.Response))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(aex.Response);
+                    if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in errorsElement.EnumerateObject())
+                        {
+                            var field = prop.Name; 
+                            foreach (var msgElem in prop.Value.EnumerateArray())
+                            {
+                                var msg = msgElem.GetString() ?? "Błąd walidacji";
+                                formRef?.AddServerError(field, msg);
+                            }
+                        }
+
+                        formRef?.EditContext?.NotifyValidationStateChanged();
+                        isError = true;
+                        return;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            formRef?.AddServerError(string.Empty, aex.Message);
+            formRef?.EditContext?.NotifyValidationStateChanged();
+            isError = true;
         }
         catch (Exception ex)
         {

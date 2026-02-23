@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using FluentValidation;
 
 namespace CreateInvoiceSystem.API.Middleware;
 
@@ -26,6 +27,7 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            // Ensure we catch and attempt to handle any exception
             await HandleExceptionAsync(context, ex).ConfigureAwait(false);
         }
     }
@@ -34,15 +36,18 @@ public class ExceptionHandlingMiddleware
     {
         _logger.LogError(exception, "Unhandled exception while processing request {Method} {Path}", context.Request?.Method, context.Request?.Path);
 
-        context.Response.Clear();
-        context.Response.ContentType = "application/json";
+        if (context.Response.HasStarted)
+        {
+            _logger.LogWarning("Response has already started for {Path}. Cannot write ProblemDetails. TraceId={TraceId}", context.Request?.Path, context.TraceIdentifier);
+            return;
+        }
 
         ProblemDetails problem;
         int status;
 
         switch (exception)
         {
-            case ValidationException fvEx:
+            case FluentValidation.ValidationException fvEx:
                 status = StatusCodes.Status400BadRequest;
                 problem = new ValidationProblemDetails(fvEx.Errors
                     .GroupBy(e => e.PropertyName)
@@ -54,6 +59,20 @@ public class ExceptionHandlingMiddleware
                     Title = "Validation failed",
                     Status = status,
                     Detail = _env.IsDevelopment() ? string.Join(" | ", fvEx.Errors.Select(e => e.ErrorMessage)) : null
+                };
+                break;
+
+            case System.ComponentModel.DataAnnotations.ValidationException sysValEx:
+                status = StatusCodes.Status400BadRequest;
+                var msg = sysValEx.ValidationResult?.ErrorMessage ?? sysValEx.Message ?? "Validation failed";
+                problem = new ValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    { string.Empty, new[] { msg } }
+                })
+                {
+                    Title = "Validation failed",
+                    Status = status,
+                    Detail = _env.IsDevelopment() ? msg : null
                 };
                 break;
 
@@ -109,15 +128,40 @@ public class ExceptionHandlingMiddleware
                 break;
         }
 
-        // optional: include trace id
         if (!string.IsNullOrEmpty(context.TraceIdentifier))
         {
             problem.Extensions["traceId"] = context.TraceIdentifier;
         }
 
+        context.Response.Clear();
+        context.Response.ContentType = "application/json";
         context.Response.StatusCode = status;
+
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        await context.Response.WriteAsync(JsonSerializer.Serialize(problem, options)).ConfigureAwait(false);
+
+        try
+        {
+            _logger.LogInformation("Writing ProblemDetails response for {Path} with status {Status}. TraceId={TraceId}", context.Request?.Path, status, context.TraceIdentifier);
+            var json = JsonSerializer.Serialize(problem, options);
+            await context.Response.WriteAsync(json).ConfigureAwait(false);
+        }
+        catch (Exception writeEx)
+        {
+            _logger.LogError(writeEx, "Failed to write ProblemDetails JSON for {Path}. TraceId={TraceId}", context.Request?.Path, context.TraceIdentifier);
+
+            try
+            {
+                var fallback = _env.IsDevelopment()
+                    ? $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"{EscapeForJson(exception.Message)}\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}"
+                    : $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"An unexpected error occurred\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}";
+
+                await context.Response.WriteAsync(fallback).ConfigureAwait(false);
+            }
+            catch (Exception finalEx)
+            {
+                _logger.LogError(finalEx, "Failed to write fallback error response for {Path}. TraceId={TraceId}", context.Request?.Path, context.TraceIdentifier);
+            }
+        }
     }
 
     private static string GetInnermostMessage(Exception ex)
@@ -125,6 +169,12 @@ public class ExceptionHandlingMiddleware
         while (ex.InnerException != null)
             ex = ex.InnerException;
         return ex.Message;
+    }
+
+    private static string EscapeForJson(string? s)
+    {
+        if (string.IsNullOrEmpty(s)) return string.Empty;
+        return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
     }
 }
 
