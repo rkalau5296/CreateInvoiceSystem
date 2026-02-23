@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -39,15 +40,18 @@ namespace CreateInvoiceSystem.Frontend.Services
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 _navigationManager.NavigateTo("/login");
+                return new GetProductsResponse();
             }
 
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
             return new GetProductsResponse();
         }
 
         public async Task SaveProductAsync(ProductDto product)
         {
             product.UserId = await GetUserIdFromToken();
-            await _http.PostAsJsonAsync("api/Product/create", product);
+            var response = await _http.PostAsJsonAsync("api/Product/create", product);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task UpdateProductAsync(ProductDto product)
@@ -63,23 +67,13 @@ namespace CreateInvoiceSystem.Frontend.Services
             };
 
             var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DeleteProductAsync(int productId)
         {
             var response = await _http.DeleteAsync($"api/Product/{productId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DownloadProductsCsvAsync()
@@ -90,6 +84,10 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
                 await _js.InvokeVoidAsync("downloadFile", "produkty.csv", "text/csv", fileBytes);
+            }
+            else
+            {
+                await response.EnsureSuccessOrThrowApiExceptionAsync();
             }
         }
 

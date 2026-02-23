@@ -242,12 +242,11 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowBlazor");
-app.UseMiddleware<ValidationExceptionMiddleware>();
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>

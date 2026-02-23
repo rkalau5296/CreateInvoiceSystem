@@ -1,6 +1,7 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -42,7 +43,8 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task SaveClientAsync(ClientDto client)
         {
             client.UserId = await GetUserIdFromToken();
-            await _http.PostAsJsonAsync("api/Client/create", client);
+            var response = await _http.PostAsJsonAsync("api/Client/create", client);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task UpdateClientAsync(ClientDto client)
@@ -65,23 +67,13 @@ namespace CreateInvoiceSystem.Frontend.Services
             };
 
             var response = await _http.PutAsJsonAsync($"api/Client/update/{client.ClientId}", updateDto);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DeleteClientAsync(int clientId)
         {
             var response = await _http.DeleteAsync($"api/Client/{clientId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         private async Task<int> GetUserIdFromToken()
@@ -104,6 +96,10 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
                 await _js.InvokeVoidAsync("downloadFile", "klienci.csv", "text/csv", fileBytes);
+            }
+            else
+            {
+                await response.EnsureSuccessOrThrowApiExceptionAsync();
             }
         }
     }

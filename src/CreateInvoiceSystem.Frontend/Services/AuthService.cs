@@ -30,7 +30,8 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
-            if (!response.IsSuccessStatusCode) return null;
+
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (result is { IsSuccess: true } && !string.IsNullOrEmpty(result.Token))
@@ -63,8 +64,13 @@ namespace CreateInvoiceSystem.Frontend.Services
             await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
 
             _httpClient.DefaultRequestHeaders.Authorization = null;
-            _authStateProvider.NotifyUserLogout();
+            _auth_state_provider_notify_logout();
             _navigationManager.NavigateTo("/login");
+        }
+
+        private void _auth_state_provider_notify_logout()
+        {
+            _authStateProvider.NotifyUserLogout();
         }
 
         public async Task<GetUserResponse?> GetMySettingsAsync()
@@ -82,17 +88,11 @@ namespace CreateInvoiceSystem.Frontend.Services
 
                 var response = await _httpClient.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var userResponse = await response.Content.ReadFromJsonAsync<GetUserResponse>(options);
-                    return userResponse;
-                }
+                await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-                var errorContent = await response.Content.ReadAsStringAsync();
-                await _jsRuntime.InvokeVoidAsync("console.error", $"API zwróciło błąd {response.StatusCode}: {errorContent}");
-
-                return null;
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var userResponse = await response.Content.ReadFromJsonAsync<GetUserResponse>(options);
+                return userResponse;
             }
             catch (Exception ex)
             {
@@ -104,11 +104,12 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task<bool> UpdateMySettingsAsync(UpdateUserDto dto)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/User/update/{dto.UserId}", dto);
-            return response.IsSuccessStatusCode;
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
+            return true;
         }
 
         public async Task<string?> RefreshTokenAsync()
-        {            
+        {
             var localToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "refreshToken");
             var sessionToken = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "refreshToken");
 
@@ -118,47 +119,40 @@ namespace CreateInvoiceSystem.Frontend.Services
             if (string.IsNullOrEmpty(currentRefreshToken)) return null;
 
             var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken));
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            if (response.IsSuccessStatusCode)
+            var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authData != null && !string.IsNullOrEmpty(authData.Token))
             {
-                var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                if (authData != null && !string.IsNullOrEmpty(authData.Token))
-                {                    
-                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
-                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", authData.RefreshToken);
+                await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
+                await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", authData.RefreshToken);
 
-                    return authData.Token;
-                }
+                return authData.Token;
             }
+
             return null;
         }
+
         public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email)
         {
             var dto = new ForgotPasswordDto(email);
             var request = new ForgotPasswordRequest(dto);
 
             var response = await _httpClient.PostAsJsonAsync("api/Auth/forgot-password", request);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<ForgotPasswordResponse>();
-            }
-
-            return new ForgotPasswordResponse(false, "Błąd serwera. Spróbuj później.");
+            return await response.Content.ReadFromJsonAsync<ForgotPasswordResponse>()
+                   ?? new ForgotPasswordResponse(false, "Błąd odpowiedzi.");
         }
 
         public async Task<ResetPasswordResponse> ResetPasswordAsync(string email, string token, string newPassword)
         {
             var request = new { Email = email, Token = token, NewPassword = newPassword };
             var response = await _httpClient.PostAsJsonAsync("api/Auth/reset-password", request);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<ResetPasswordResponse>()
-                       ?? new ResetPasswordResponse(false, "Błąd odpowiedzi.");
-            }
-
-            return new ResetPasswordResponse(false, "Nie udało się zresetować hasła.");
+            return await response.Content.ReadFromJsonAsync<ResetPasswordResponse>()
+                   ?? new ResetPasswordResponse(false, "Błąd odpowiedzi.");
         }
     }
 }

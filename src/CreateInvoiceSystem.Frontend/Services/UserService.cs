@@ -32,23 +32,13 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task UpdateUser(int id, UpdateUserDto dto)
         {
             var response = await _http.PutAsJsonAsync($"api/User/update/{id}", dto);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DeleteUserAccountAsync(int userId)
         {
             var response = await _http.DeleteAsync($"api/User/{userId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception(error);
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
             await _js.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
             await _js.InvokeVoidAsync("localStorage.removeItem", "authToken");

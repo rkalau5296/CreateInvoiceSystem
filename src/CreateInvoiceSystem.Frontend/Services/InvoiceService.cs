@@ -2,6 +2,7 @@
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Frontend.Services
@@ -35,35 +36,21 @@ namespace CreateInvoiceSystem.Frontend.Services
             invoice.UserId = await GetUserIdFromToken();
             var response = await _http.PostAsJsonAsync("api/Invoice/create", invoice);
 
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<InvoiceDto>();
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"API error: {error}");
+            return await response.Content.ReadFromJsonAsync<InvoiceDto>();
         }
 
         public async Task UpdateInvoiceAsync(InvoiceDto invoice)
         {
             var response = await _http.PutAsJsonAsync($"api/Invoice/update/{invoice.InvoiceId}", invoice);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DeleteInvoiceAsync(int invoiceId)
         {
             var response = await _http.DeleteAsync($"api/Invoice/{invoiceId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {error}");
-            }
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task DownloadInvoicesCsvAsync()
@@ -74,6 +61,10 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
                 await _js.InvokeVoidAsync("downloadFile", "faktury.csv", "text/csv", fileBytes);
+            }
+            else
+            {
+                await response.EnsureSuccessOrThrowApiExceptionAsync();
             }
         }
 
@@ -92,6 +83,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                 return await response.Content.ReadAsByteArrayAsync();
             }
 
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
             return Array.Empty<byte>();
         }
 
