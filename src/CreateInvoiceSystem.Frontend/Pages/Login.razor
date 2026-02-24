@@ -1,4 +1,5 @@
 ﻿@page "/login"
+@using System.Text.Json
 @using CreateInvoiceSystem.Frontend.Dto
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
@@ -10,9 +11,9 @@
 @attribute [AllowAnonymous]
 
 <div class="container mt-5">
-    <div class="row justify-content-center">        
+    <div class="row justify-content-center">
         <div class="col-md-8 col-lg-5">
-            <div class="card shadow-lg">                
+            <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white py-3">
                     <h3 class="mb-0 text-center">Logowanie</h3>
                 </div>
@@ -73,6 +74,21 @@
         _statusMessage = "Błąd: uzupełnij wymagane pola.";
     }
 
+    private static string NormalizeFieldName(string original)
+    {
+        if (string.IsNullOrWhiteSpace(original))
+            return original ?? string.Empty;
+
+        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var p = parts[i];
+            if (p.Length == 0) continue;
+            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
+        }
+        return string.Join('.', parts);
+    }
+
     private async Task HandleLoginSubmit()
     {
         formRef?.ClearServerErrors();
@@ -104,15 +120,67 @@
             }
             else
             {
-                if (!string.IsNullOrEmpty(result?.Message))
-                    _statusMessage = $"Błąd: {result.Message}";
-                else
-                    _statusMessage = $"Błąd: Nieprawidłowe dane logowania.";
+                var svcMessage = result?.Message;
+                var sanitizedResultMessage = string.IsNullOrWhiteSpace(svcMessage)
+                    ? "Błąd: Nieprawidłowe dane logowania."
+                    : ApiExceptionExtensions.SanitizeMessage(svcMessage);
+
+                if (!sanitizedResultMessage.StartsWith("Błąd"))
+                    sanitizedResultMessage = "Błąd: " + sanitizedResultMessage;
+
+                _statusMessage = sanitizedResultMessage;
             }
+        }
+        catch (ApiException aex)
+        {
+            bool addedAny = false;
+
+            if (!string.IsNullOrWhiteSpace(aex.Response))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(aex.Response);
+                    if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in errorsElement.EnumerateObject())
+                        {
+                            var rawField = prop.Name;
+                            var fieldName = NormalizeFieldName(rawField);
+                            foreach (var msgElem in prop.Value.EnumerateArray())
+                            {
+                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
+                                formRef?.AddServerError(fieldName, fieldMsg);
+                                addedAny = true;
+                            }
+                        }
+
+                        if (addedAny)
+                        {
+                            formRef?.EditContext?.NotifyValidationStateChanged();
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            var userMessage = aex.GetUserMessage();
+            if (!userMessage.StartsWith("Błąd"))
+                userMessage = "Błąd: " + userMessage;
+
+            formRef?.AddServerError(string.Empty, userMessage);
+            formRef?.EditContext?.NotifyValidationStateChanged();
+
+            _statusMessage = userMessage;
         }
         catch (Exception ex)
         {
-            _statusMessage = $"Błąd krytyczny: {ex.Message}";
+            var sanitizedExMessage = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitizedExMessage.StartsWith("Błąd"))
+                sanitizedExMessage = "Błąd: " + sanitizedExMessage;
+            _statusMessage = sanitizedExMessage;
         }
     }
 }

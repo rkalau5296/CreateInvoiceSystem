@@ -110,6 +110,21 @@
         isError = true;
     }
 
+    private static string NormalizeFieldName(string original)
+    {
+        if (string.IsNullOrWhiteSpace(original))
+            return original ?? string.Empty;
+
+        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var p = parts[i];
+            if (p.Length == 0) continue;
+            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
+        }
+        return string.Join('.', parts);
+    }
+
     private async Task HandleRegister()
     {
         formRef?.ClearServerErrors();
@@ -141,15 +156,24 @@
             {
                 _isRegistered = true;
                 isError = false;
+                return;
             }
-            else
-            {
-                statusMessage = result?.Message ?? "Wystąpił błąd podczas rejestracji.";
-                isError = true;
-            }
+
+            var svcMessage = result?.Message;
+            var sanitized = string.IsNullOrWhiteSpace(svcMessage)
+                ? "Wystąpił błąd podczas rejestracji."
+                : ApiExceptionExtensions.SanitizeMessage(svcMessage);
+
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+
+            statusMessage = sanitized;
+            isError = true;
         }
         catch (ApiException aex)
         {
+            bool addedAny = false;
+
             if (!string.IsNullOrWhiteSpace(aex.Response))
             {
                 try
@@ -159,17 +183,22 @@
                     {
                         foreach (var prop in errorsElement.EnumerateObject())
                         {
-                            var field = prop.Name; 
+                            var rawField = prop.Name;
+                            var fieldName = NormalizeFieldName(rawField);
                             foreach (var msgElem in prop.Value.EnumerateArray())
                             {
-                                var msg = msgElem.GetString() ?? "Błąd walidacji";
-                                formRef?.AddServerError(field, msg);
+                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
+                                formRef?.AddServerError(fieldName, fieldMsg);
+                                addedAny = true;
                             }
                         }
 
-                        formRef?.EditContext?.NotifyValidationStateChanged();
-                        isError = true;
-                        return;
+                        if (addedAny)
+                        {
+                            formRef?.EditContext?.NotifyValidationStateChanged();
+                            isError = true;
+                            return;
+                        }
                     }
                 }
                 catch
@@ -177,13 +206,23 @@
                 }
             }
 
-            formRef?.AddServerError(string.Empty, aex.Message);
+            var userMessage = aex.GetUserMessage();
+            if (!userMessage.StartsWith("Błąd"))
+                userMessage = "Błąd: " + userMessage;
+                            
+            formRef?.AddServerError(string.Empty, userMessage);
             formRef?.EditContext?.NotifyValidationStateChanged();
+
+            statusMessage = userMessage;
             isError = true;
         }
         catch (Exception ex)
         {
-            statusMessage = $"Błąd połączenia: {ex.Message}";
+            var sanitizedEx = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitizedEx.StartsWith("Błąd"))
+                sanitizedEx = "Błąd: " + sanitizedEx;
+
+            statusMessage = sanitizedEx;
             isError = true;
         }
         finally
