@@ -128,6 +128,7 @@
     private async Task HandleRegister()
     {
         formRef?.ClearServerErrors();
+        formRef?.EditContext?.NotifyValidationStateChanged();
 
         if (string.IsNullOrWhiteSpace(_regModel.Email)) formRef?.AddServerError(nameof(_regModel.Email), "Wymagane");
         if (string.IsNullOrWhiteSpace(_regModel.Password)) formRef?.AddServerError(nameof(_regModel.Password), "Wymagane");
@@ -197,6 +198,7 @@
                         {
                             formRef?.EditContext?.NotifyValidationStateChanged();
                             isError = true;
+                            isSubmitting = false;
                             return;
                         }
                     }
@@ -209,12 +211,10 @@
             var userMessage = aex.GetUserMessage();
             if (!userMessage.StartsWith("Błąd"))
                 userMessage = "Błąd: " + userMessage;
-                            
-            formRef?.AddServerError(string.Empty, userMessage);
-            formRef?.EditContext?.NotifyValidationStateChanged();
 
             statusMessage = userMessage;
             isError = true;
+            formRef?.EditContext?.NotifyValidationStateChanged();
         }
         catch (Exception ex)
         {

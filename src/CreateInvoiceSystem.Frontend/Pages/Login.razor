@@ -92,6 +92,8 @@
     private async Task HandleLoginSubmit()
     {
         formRef?.ClearServerErrors();
+        formRef?.EditContext?.NotifyValidationStateChanged();
+
         _statusMessage = "Łączenie z serwerem...";
 
         try
@@ -170,9 +172,7 @@
             if (!userMessage.StartsWith("Błąd"))
                 userMessage = "Błąd: " + userMessage;
 
-            formRef?.AddServerError(string.Empty, userMessage);
             formRef?.EditContext?.NotifyValidationStateChanged();
-
             _statusMessage = userMessage;
         }
         catch (Exception ex)
