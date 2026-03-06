@@ -482,9 +482,20 @@
             await InvoiceService.UpdateInvoiceAsync(_invoice);
             Navigation.NavigateTo("/invoices");
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas zapisu faktury." : userMessage;
+            if (!msg.StartsWith("Błąd"))
+                msg = "Błąd: " + msg;
+            _validatedForm?.AddServerError(string.Empty, msg);
+        }
         catch (Exception ex)
         {
-            _validatedForm?.AddServerError(string.Empty, $"Błąd zapisu: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _validatedForm?.AddServerError(string.Empty, sanitized);
         }
     }
 

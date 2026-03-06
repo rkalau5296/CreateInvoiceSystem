@@ -49,6 +49,10 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
         invoice.MethodOfPayment = Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
 
+        invoice.ClientAddress = Parametr.ClientAddress ?? invoice.ClientAddress;
+        invoice.ClientName = Parametr.ClientName ?? invoice.ClientName;        
+        invoice.ClientNip = Parametr.ClientNip ?? invoice.ClientNip;
+
         invoice.SellerName = Parametr.SellerName ?? invoice.SellerName;
         invoice.SellerNip = Parametr.SellerNip ?? invoice.SellerNip;
         invoice.SellerAddress = Parametr.SellerAddress ?? invoice.SellerAddress;

@@ -1,5 +1,6 @@
 ﻿@page "/settings"
 @using System.ComponentModel.DataAnnotations
+@using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
 @using CreateInvoiceSystem.Frontend.Components
 @using CreateInvoiceSystem.Frontend.Models
@@ -7,6 +8,7 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 @inject UserService UserService
+@inject NavigationManager Navigation
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -27,7 +29,7 @@
                         <h5 class="mb-0">Dane profilu i firmy</h5>
                     </div>
                     <div class="card-body p-4">
-                        <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit">
+                        <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit" @ref="formRef">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <ValidatedInputText @bind-Value="userModel.Name"
@@ -146,6 +148,8 @@
     private string statusMessage = "";
     private string statusClass = "";
 
+    private ValidatedEditForm<UpdateUserDto>? formRef;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -174,17 +178,42 @@
                 };
             }
         }
-        catch (Exception)
+        catch (ApiException aex)
         {
-            statusMessage = "Błąd autoryzacji sesji.";
+            statusMessage = aex.GetUserMessage();
+            statusClass = "alert-danger";
+            userModel = new UpdateUserDto();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = ApiExceptionExtensions.SanitizeMessage(ex.Message);
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();
         }
     }
 
+    private static string NormalizeFieldName(string original)
+    {
+        if (string.IsNullOrWhiteSpace(original))
+            return original ?? string.Empty;
+
+        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var p = parts[i];
+            if (p.Length == 0) continue;
+            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
+        }
+        return string.Join('.', parts);
+    }
+
     private async Task HandleValidSubmit()
     {
         if (userModel == null) return;
+
+        formRef?.ClearServerErrors();
+        formRef?.EditContext?.NotifyValidationStateChanged();
+
         isSubmitting = true;
         statusMessage = "";
         statusClass = "";
@@ -199,10 +228,109 @@
             }
             else
             {
-                string serverMsg = await response.Content.ReadAsStringAsync();
-                statusMessage = string.IsNullOrWhiteSpace(serverMsg) ? "Błąd podczas zapisu na serwerze." : serverMsg;
+                var serverMsg = await response.Content.ReadAsStringAsync();
+
+                if (!string.IsNullOrWhiteSpace(serverMsg))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(serverMsg);
+                        var root = doc.RootElement;
+
+                        if (root.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                        {
+                            bool addedAny = false;
+                            foreach (var prop in errorsElement.EnumerateObject())
+                            {
+                                var rawField = prop.Name;
+                                var fieldName = NormalizeFieldName(rawField);
+                                foreach (var msgElem in prop.Value.EnumerateArray())
+                                {
+                                    var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
+                                    formRef?.AddServerError(fieldName, fieldMsg);
+                                    addedAny = true;
+                                }
+                            }
+
+                            if (addedAny)
+                            {
+                                formRef?.EditContext?.NotifyValidationStateChanged();
+                                statusMessage = "Wystąpiły błędy walidacji.";
+                                statusClass = "alert-danger";
+                                return;
+                            }
+                        }
+
+                        var detail = root.TryGetProperty("detail", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null;
+                        var title = root.TryGetProperty("title", out var t) && t.ValueKind == JsonValueKind.String ? t.GetString() : null;
+                        var candidate = detail ?? title ?? serverMsg;
+                        var sanitized = ApiExceptionExtensions.SanitizeMessage(candidate);
+                        if (!sanitized.StartsWith("Błąd"))
+                            sanitized = "Błąd: " + sanitized;
+                        statusMessage = sanitized;
+                        statusClass = "alert-danger";
+                        return;
+                    }
+                    catch
+                    {
+                        var sanitized = ApiExceptionExtensions.SanitizeMessage(serverMsg);
+                        if (!sanitized.StartsWith("Błąd"))
+                            sanitized = "Błąd: " + sanitized;
+                        statusMessage = sanitized;
+                        statusClass = "alert-danger";
+                        return;
+                    }
+                }
+
+                statusMessage = "Błąd podczas zapisu na serwerze.";
                 statusClass = "alert-danger";
             }
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            statusMessage = userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}";
+            statusClass = "alert-danger";
+
+            if (!string.IsNullOrWhiteSpace(aex.Response))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(aex.Response);
+                    if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
+                    {
+                        bool addedAny = false;
+                        foreach (var prop in errorsElement.EnumerateObject())
+                        {
+                            var rawField = prop.Name;
+                            var fieldName = NormalizeFieldName(rawField);
+                            foreach (var msgElem in prop.Value.EnumerateArray())
+                            {
+                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
+                                formRef?.AddServerError(fieldName, fieldMsg);
+                                addedAny = true;
+                            }
+                        }
+
+                        if (addedAny)
+                        {
+                            formRef?.EditContext?.NotifyValidationStateChanged();
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            statusMessage = sanitized;
+            statusClass = "alert-danger";
         }
         finally
         {
@@ -221,15 +349,35 @@
 
         showDeleteModal = false;
         isSubmitting = true;
+        statusMessage = "";
+        statusClass = "";
 
         try
         {
             await UserService.DeleteUserAccountAsync(userModel.UserId);
+            statusMessage = "Konto zostało usunięte.";
+            statusClass = "alert-success";
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+            await Task.Delay(300);
+            Navigation.NavigateTo("/login");
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            statusMessage = userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}";
+            statusClass = "alert-danger";
         }
         catch (Exception ex)
         {
-            statusMessage = $"Błąd: {ex.Message}";
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            statusMessage = sanitized;
             statusClass = "alert-danger";
+        }
+        finally
+        {
             isSubmitting = false;
         }
     }

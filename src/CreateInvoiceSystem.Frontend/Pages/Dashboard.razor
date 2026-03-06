@@ -21,6 +21,17 @@
 else
 {
     <div class="container-fluid py-4 animate-fade-in">
+        @if (!string.IsNullOrEmpty(_pageErrorMessage))
+        {
+            <div class="row mb-3">
+                <div class="col">
+                    <div class="alert @(_pageErrorIsError ? "alert-danger" : "alert-info")">
+                        @_pageErrorMessage
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="row mb-4">
             <div class="col">
                 <h2 class="fw-bold">Witaj w systemie, @(_userName ?? "Użytkowniku")! 👋</h2>
@@ -175,19 +186,17 @@ else
     .animate-fade-in {
         animation: fadeIn 0.5s ease-in;
     }
+
     @@keyframes fadeIn {
-        from
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
 
-    {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .welcome-container {
@@ -210,6 +219,9 @@ else
 
     private List<InvoiceDto> _recentInvoices = new();
     private List<ClientDto> _recentClients = new();
+
+    private string? _pageErrorMessage;
+    private bool _pageErrorIsError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -244,9 +256,17 @@ else
             var productResponse = await productTask;
             if (productResponse != null) _productCount = productResponse.TotalCount;
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas ładowania danych.";
+            _pageErrorIsError = true;
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Dashboard Error: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Wystąpił nieoczekiwany błąd.";
+            _pageErrorIsError = true;
         }
         finally
         {

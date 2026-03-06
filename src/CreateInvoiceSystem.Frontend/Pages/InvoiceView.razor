@@ -188,10 +188,15 @@
                 _errorMessage = "Nie znaleziono faktury.";
             }
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _errorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas ładowania faktury.";
+        }
         catch (Exception ex)
         {
-            _errorMessage = "Błąd podczas ładowania danych.";
-            Console.WriteLine(ex.Message);
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _errorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Błąd podczas ładowania danych.";
         }
         finally
         {
@@ -222,9 +227,15 @@
                 await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
             }
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _errorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas pobierania PDF.";
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd PDF: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _errorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Wystąpił błąd podczas pobierania PDF.";
         }
         finally
         {

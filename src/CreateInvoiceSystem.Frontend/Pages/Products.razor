@@ -9,6 +9,13 @@
 <div class="container-fluid">
     <h3 class="mb-4">Zarządzanie Produktami</h3>
 
+    @if (!string.IsNullOrEmpty(_pageErrorMessage))
+    {
+        <div class="alert @(_pageErrorIsError ? "alert-danger" : "alert-info")">
+            @_pageErrorMessage
+        </div>
+    }
+
     <div class="row mb-4 align-items-end">
         <div class="col-md-6">
             <label class="form-label small fw-bold">Wyszukaj produkt</label>
@@ -52,6 +59,10 @@
                             <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                         </div>
                         <div class="modal-body">
+                            @if (!string.IsNullOrEmpty(_modalErrorMessage))
+                            {
+                                <div class="alert alert-danger small">@_modalErrorMessage</div>
+                            }
                             <div class="mb-3">
                                 <ValidatedInputText @bind-Value="_newProductView.Name"
                                                     Label="Nazwa produktu"
@@ -190,6 +201,10 @@
     private System.Timers.Timer? _searchTimer;
     private bool _isModalOpen = false;
 
+    private string? _pageErrorMessage;
+    private bool _pageErrorIsError;
+    private string? _modalErrorMessage;
+
     private void OpenAddModal()
     {
         _newProduct = new ProductDto { Name = "", Value = null, Description = "" };
@@ -199,16 +214,23 @@
             Description = _newProduct.Description,
             ValueString = _newProduct.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
         };
+        _modalErrorMessage = null;
         _isModalOpen = true;
     }
 
-    private void CloseModal() => _isModalOpen = false;
+    private void CloseModal()
+    {
+        _isModalOpen = false;
+        _modalErrorMessage = null;
+    }
 
     private async Task LoadData()
     {
         var response = await ProductService.GetProductsAsync(_currentPage, _pageSize, _searchTerm);
         _products = response.Data;
         _totalCount = response.TotalCount;
+        _pageErrorMessage = null;
+        _pageErrorIsError = false;
         StateHasChanged();
     }
 
@@ -218,18 +240,33 @@
         {
             if (!TryBuildDtoFromView(_newProductView, out var dto, out var err))
             {
-                Console.WriteLine($"Walidacja: {err}");
+                _modalErrorMessage = err;
+                StateHasChanged();
                 return;
             }
 
             await ProductService.SaveProductAsync(dto);
             _isModalOpen = false;
             _newProduct = new ProductDto();
+            _modalErrorMessage = null;
             await LoadData();
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas zapisu produktu." : userMessage;
+            if (!msg.StartsWith("Błąd"))
+                msg = "Błąd: " + msg;
+            _modalErrorMessage = msg;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd zapisu: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _modalErrorMessage = sanitized;
+            StateHasChanged();
         }
     }
 
@@ -262,8 +299,30 @@
 
     private async Task HandleDelete(int productId)
     {
-        try { await ProductService.DeleteProductAsync(productId); await LoadData(); }
-        catch (Exception ex) { Console.WriteLine($"Błąd: {ex.Message}"); }
+        try
+        {
+            await ProductService.DeleteProductAsync(productId);
+            await LoadData();
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas usuwania produktu." : userMessage;
+            if (!msg.StartsWith("Błąd"))
+                msg = "Błąd: " + msg;
+            _pageErrorMessage = msg;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _pageErrorMessage = sanitized;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
     }
 
     private void StartEdit(ProductDto product)
@@ -286,6 +345,9 @@
             Description = _editModel.Description,
             ValueString = _editModel.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
         };
+
+        _pageErrorMessage = null;
+        _pageErrorIsError = false;
     }
 
     private void CancelEdit()
@@ -297,22 +359,68 @@
     {
         if (!TryBuildDtoFromView(_editViewModel, out var dto, out var err))
         {
-            Console.WriteLine($"Walidacja: {err}");
+            _pageErrorMessage = err;
+            _pageErrorIsError = true;
+            StateHasChanged();
             return;
         }
 
         dto.ProductId = _editViewModel.ProductId;
         dto.UserId = _editViewModel.UserId;
 
-        await ProductService.UpdateProductAsync(dto);
-        _editingProductId = null;
-        await LoadData();
+        try
+        {
+            await ProductService.UpdateProductAsync(dto);
+            _editingProductId = null;
+            _pageErrorMessage = null;
+            await LoadData();
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas zapisu produktu." : userMessage;
+            if (!msg.StartsWith("Błąd"))
+                msg = "Błąd: " + msg;
+            _pageErrorMessage = msg;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _pageErrorMessage = sanitized;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
     }
 
     private async Task ExportToCsv()
     {
-        try { await ProductService.DownloadProductsCsvAsync(); }
-        catch (Exception ex) { Console.WriteLine($"Błąd eksportu: {ex.Message}"); }
+        try
+        {
+            await ProductService.DownloadProductsCsvAsync();
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas eksportu produktów." : userMessage;
+            if (!msg.StartsWith("Błąd"))
+                msg = "Błąd: " + msg;
+            _pageErrorMessage = msg;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _pageErrorMessage = sanitized;
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
     }
 
     private bool TryBuildDtoFromView(ProductEditModel vm, out ProductDto dto, out string? error)

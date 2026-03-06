@@ -170,7 +170,11 @@
         }
         catch (ApiException aex)
         {
-            _statusMessage = aex.GetUserMessage();
+            var userMessage = aex.GetUserMessage();
+            if (!userMessage.StartsWith("Błąd"))
+                userMessage = "Błąd: " + userMessage;
+
+            _statusMessage = userMessage;
             _isError = true;
 
             if (!string.IsNullOrWhiteSpace(aex.Response))
@@ -185,11 +189,14 @@
                         {
                             foreach (var msgElem in prop.Value.EnumerateArray())
                             {
-                                var msg = msgElem.GetString();
-                                if (!string.IsNullOrWhiteSpace(msg))
+                                var raw = msgElem.GetString();
+                                if (!string.IsNullOrWhiteSpace(raw))
                                 {
+                                    var sanitized = ApiExceptionExtensions.SanitizeMessage(raw);
+                                    if (!sanitized.StartsWith("Błąd"))
+                                        sanitized = "Błąd: " + sanitized;
                                     if (sb.Length > 0) sb.Append(" ; ");
-                                    sb.Append(msg);
+                                    sb.Append(sanitized);
                                 }
                             }
                         }
@@ -206,7 +213,10 @@
         }
         catch (Exception ex)
         {
-            _statusMessage = $"Nieoczekiwany błąd: {ex.Message}";
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            if (!sanitized.StartsWith("Błąd"))
+                sanitized = "Błąd: " + sanitized;
+            _statusMessage = sanitized;
             _isError = true;
         }
         finally

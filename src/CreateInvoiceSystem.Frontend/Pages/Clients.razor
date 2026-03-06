@@ -3,6 +3,7 @@
 @using CreateInvoiceSystem.Frontend.Services
 @using System.ComponentModel.DataAnnotations
 @using System.Linq.Expressions
+@using System.Text.Json
 @inject ClientService ClientService
 
 <div class="container-fluid">
@@ -45,13 +46,18 @@
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog modal-lg shadow-lg">
                 <div class="modal-content">
-                    <ValidatedEditForm TModel="ClientDto" Model="_editingClient" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+                    <ValidatedEditForm TModel="ClientDto" Model="_editingClient" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit" @ref="modalFormRef">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title">@(_isEditMode ? "Edytuj Kontrahenta" : "Nowy Kontrahent")</h5>
                             <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                         </div>
 
                         <div class="modal-body">
+                            @if (!string.IsNullOrEmpty(_modalErrorMessage))
+                            {
+                                <div class="alert alert-danger small">@_modalErrorMessage</div>
+                            }
+
                             <div class="row g-3">
                                 <div class="col-md-8">
                                     <label class="form-label fw-bold">Nazwa firmy <span class="text-danger">*</span></label>
@@ -162,6 +168,9 @@
     private bool _submitAttempted = false;
     private HashSet<string> _invalidFields = new();
 
+    private ValidatedEditForm<ClientDto>? modalFormRef;
+    private string? _modalErrorMessage;
+
     protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task LoadData()
@@ -223,6 +232,7 @@
         _editingClient = new ClientDto { Address = new AddressDto() };
         _invalidFields.Clear();
         _submitAttempted = false;
+        _modalErrorMessage = null;
         _isModalOpen = true;
     }
 
@@ -248,6 +258,7 @@
         };
         _invalidFields.Clear();
         _submitAttempted = false;
+        _modalErrorMessage = null;
         _isModalOpen = true;
     }
 
@@ -330,6 +341,7 @@
 
     private async Task HandleSave()
     {
+        _modalErrorMessage = null;
         try
         {
             if (_isEditMode)
@@ -340,9 +352,13 @@
             _isModalOpen = false;
             await LoadData();
         }
+        catch (ApiException aex)
+        {
+            _modalErrorMessage = ExtractMessageFromApiException(aex) ?? "Wystąpił błąd serwera.";
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd: {ex.Message}");
+            _modalErrorMessage = ApiExceptionExtensions.SanitizeMessage(ex.Message);
         }
     }
 
@@ -353,9 +369,14 @@
             await ClientService.DeleteClientAsync(id);
             await LoadData();
         }
+        catch (ApiException aex)
+        {
+            var msg = ExtractMessageFromApiException(aex) ?? ApiExceptionExtensions.SanitizeMessage(aex.Message);
+            _modalErrorMessage = msg;
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd: {ex.Message}");
+            _modalErrorMessage = ApiExceptionExtensions.SanitizeMessage(ex.Message);
         }
     }
 
@@ -398,5 +419,47 @@
             e = me.Expression!;
         }
         return string.Join(".", parts);
+    }
+
+    private static string? ExtractMessageFromApiException(ApiException aex)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(aex.Response))
+            {
+                using var doc = JsonDocument.Parse(aex.Response);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("detail", out var d) && d.ValueKind == JsonValueKind.String)
+                    return d.GetString();
+
+                if (root.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String)
+                    return m.GetString();
+
+                if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
+                {
+                    var sb = new System.Text.StringBuilder();
+                    foreach (var prop in errors.EnumerateObject())
+                    {
+                        foreach (var item in prop.Value.EnumerateArray())
+                        {
+                            if (sb.Length > 0) sb.Append(" ; ");
+                            sb.Append(item.GetString());
+                        }
+                    }
+                    if (sb.Length > 0) return sb.ToString();
+                }
+
+                if (root.ValueKind == JsonValueKind.String)
+                    return root.GetString();
+
+                return aex.Response;
+            }
+        }
+        catch
+        {
+        }
+
+        return null;
     }
 }

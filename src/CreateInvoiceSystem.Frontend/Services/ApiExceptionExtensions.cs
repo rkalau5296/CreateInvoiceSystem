@@ -6,25 +6,12 @@ public static class ApiExceptionExtensions
 {
     public static string GetUserMessage(this ApiException ex)
     {
-        var candidate = TryGetMessageFromResponse(ex.Response) ?? ex.Message ?? string.Empty;
+        var msg = TryGetFirstValidationMessage(ex.Response)
+               ?? TryGetMessageFromResponse(ex.Response)
+               ?? (string.IsNullOrWhiteSpace(ex.Message) ? null : ex.Message)
+               ?? StatusFallback(ex.StatusCode);
 
-        var sanitizedCandidate = SanitizeInternalErrors(candidate);
-        if (!string.IsNullOrEmpty(sanitizedCandidate))
-            return sanitizedCandidate;
-
-        var validationMsg = TryGetFirstValidationMessage(ex.Response);
-        if (!string.IsNullOrEmpty(validationMsg))
-            return validationMsg;
-
-        return ex.StatusCode switch
-        {
-            400 => "Nieprawidłowe dane (sprawdź parametry).",
-            404 => "Brak danych dla podanych parametrów.",
-            409 => "Konflikt danych.",
-            401 => "Brak autoryzacji — zaloguj się ponownie.",
-            403 => "Brak uprawnień do wykonania tej operacji.",
-            _ => "Wystąpił błąd po stronie serwera. Spróbuj ponownie później."
-        };
+        return msg;
     }
 
     public static string SanitizeMessage(string? message)
@@ -63,12 +50,17 @@ public static class ApiExceptionExtensions
             {
                 foreach (var prop in errors.EnumerateObject())
                 {
-                    var arr = prop.Value;
-                    if (arr.ValueKind == JsonValueKind.Array && arr.GetArrayLength() > 0)
+                    if (prop.Value.ValueKind == JsonValueKind.Array && prop.Value.GetArrayLength() > 0)
                     {
-                        var first = arr[0].GetString();
+                        var first = prop.Value[0].GetString();
                         if (!string.IsNullOrWhiteSpace(first))
                             return first;
+                    }
+                    else if (prop.Value.ValueKind == JsonValueKind.String)
+                    {
+                        var s = prop.Value.GetString();
+                        if (!string.IsNullOrWhiteSpace(s))
+                            return s;
                     }
                 }
             }
@@ -133,4 +125,15 @@ public static class ApiExceptionExtensions
 
         return null;
     }
+
+    private static string StatusFallback(int statusCode) =>
+        statusCode switch
+        {
+            400 => "Nieprawidłowe dane (sprawdź parametry).",
+            404 => "Brak danych dla podanych parametrów.",
+            409 => "Konflikt danych.",
+            401 => "Brak autoryzacji — zaloguj się ponownie.",
+            403 => "Brak uprawnień do wykonania tej operacji.",
+            _ => "Wystąpił błąd po stronie serwera. Spróbuj ponownie później."
+        };
 }

@@ -192,6 +192,9 @@
     private readonly IDictionary<string, object> _productListAttributes = new Dictionary<string, object> { { "list", "productOptions" } };
     private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
 
+    private string? _pageErrorMessage;
+    private bool _pageErrorIsError;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -208,9 +211,19 @@
             if (string.IsNullOrWhiteSpace(_invoice.SellerNip)) _invoice.SellerNip = "0000000000";
             if (string.IsNullOrWhiteSpace(_invoice.SellerAddress)) _invoice.SellerAddress = "Adres sprzedawcy";
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas inicjalizacji.";
+            _pageErrorIsError = true;
+            StateHasChanged();
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd inicjalizacji: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Wystąpił błąd podczas inicjalizacji.";
+            _pageErrorIsError = true;
+            StateHasChanged();
         }
     }
 
@@ -440,7 +453,6 @@
     {
         if (_editContext == null) return;
 
-        // Ensure flat and seller fields are synchronized / populated before validation
         if (_invoice.Client != null)
         {
             if (string.IsNullOrWhiteSpace(_invoice.ClientName) && !string.IsNullOrWhiteSpace(_invoice.Client.Name))
@@ -541,7 +553,6 @@
             anyErrors = true;
         }
 
-        // Clear messages for fields that are now valid (prevent stale blocking messages)
         var fiClientName = new FieldIdentifier(_invoice, nameof(_invoice.ClientName));
         var fiClientNip = new FieldIdentifier(_invoice, nameof(_invoice.ClientNip));
         var fiClientAddress = new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress));
@@ -590,9 +601,18 @@
             var result = await InvoiceService.SaveInvoiceAsync(_invoice);
             if (result != null) Navigation.NavigateTo("/invoices");
         }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas zapisu faktury.";
+            _pageErrorIsError = true;
+            _editContext.NotifyValidationStateChanged();
+        }
         catch (Exception ex)
         {
-            Console.WriteLine("Błąd zapisu: " + ex.Message);
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Wystąpił błąd podczas zapisu faktury.";
+            _pageErrorIsError = true;
             _editContext.NotifyValidationStateChanged();
         }
     }

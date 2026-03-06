@@ -10,6 +10,13 @@
 <div class="container-fluid">
     <h3 class="mb-4">Zarządzanie Fakturami</h3>
 
+    @if (!string.IsNullOrEmpty(_pageErrorMessage))
+    {
+        <div class="alert @(_pageErrorIsError ? "alert-danger" : "alert-info")">
+            @_pageErrorMessage
+        </div>
+    }
+
     <div class="row mb-4 align-items-end">
         <div class="col-md-6">
             <label class="form-label small fw-bold">Wyszukaj fakturę</label>
@@ -96,6 +103,9 @@
     private string _searchTerm = "";
     private System.Timers.Timer? _searchTimer;
 
+    private string? _pageErrorMessage;
+    private bool _pageErrorIsError;
+
     protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task LoadData()
@@ -108,11 +118,23 @@
                 _invoices = response.Data;
                 _totalCount = response.TotalCount;
             }
+            _pageErrorMessage = null;
+            _pageErrorIsError = false;
+            StateHasChanged();
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(userMessage) ? (userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}") : "Wystąpił błąd podczas ładowania faktur.";
+            _pageErrorIsError = true;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd ładowania: {ex.Message}");
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+            _pageErrorMessage = !string.IsNullOrWhiteSpace(sanitized) ? (sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}") : "Wystąpił błąd podczas ładowania faktur.";
+            _pageErrorIsError = true;
+            StateHasChanged();
         }
     }
 
@@ -126,9 +148,24 @@
                 await InvoiceService.DeleteInvoiceAsync(id);
                 await LoadData();
             }
+            catch (ApiException aex)
+            {
+                var userMessage = aex.GetUserMessage();
+                var msg = string.IsNullOrWhiteSpace(userMessage) ? "Wystąpił błąd podczas usuwania faktury." : userMessage;
+                if (!msg.StartsWith("Błąd"))
+                    msg = "Błąd: " + msg;
+                _pageErrorMessage = msg;
+                _pageErrorIsError = true;
+                StateHasChanged();
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd usuwania: {ex.Message}");
+                var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
+                if (!sanitized.StartsWith("Błąd"))
+                    sanitized = "Błąd: " + sanitized;
+                _pageErrorMessage = sanitized;
+                _pageErrorIsError = true;
+                StateHasChanged();
             }
         }
     }

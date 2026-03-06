@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using FluentValidation;
+using System.Text.RegularExpressions;
 
 namespace CreateInvoiceSystem.API.Middleware;
 
@@ -27,7 +29,6 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            // Ensure we catch and attempt to handle any exception
             await HandleExceptionAsync(context, ex).ConfigureAwait(false);
         }
     }
@@ -58,7 +59,7 @@ public class ExceptionHandlingMiddleware
                 {
                     Title = "Validation failed",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? string.Join(" | ", fvEx.Errors.Select(e => e.ErrorMessage)) : null
+                    Detail = string.Join(" | ", fvEx.Errors.Select(e => e.ErrorMessage))
                 };
                 break;
 
@@ -72,17 +73,26 @@ public class ExceptionHandlingMiddleware
                 {
                     Title = "Validation failed",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? msg : null
+                    Detail = msg
                 };
                 break;
 
+            case UnauthorizedAccessException uaEx:
+                status = StatusCodes.Status401Unauthorized;
+                problem = new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Status = status,
+                    Detail = uaEx.Message
+                };
+                break;
             case InvalidOperationException ioe:
                 status = StatusCodes.Status404NotFound;
                 problem = new ProblemDetails
                 {
                     Title = "Invalid operation",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? ioe.Message : "Resource not found"
+                    Detail = ioe.Message
                 };
                 break;
 
@@ -92,7 +102,7 @@ public class ExceptionHandlingMiddleware
                 {
                     Title = "Bad request",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? ane.Message : "Required value was null"
+                    Detail = ane.Message
                 };
                 break;
 
@@ -102,19 +112,65 @@ public class ExceptionHandlingMiddleware
                 {
                     Title = "Bad request",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? aore.Message : "Argument out of range"
+                    Detail = aore.Message
                 };
                 break;
 
             case DbUpdateException dbEx:
-                status = StatusCodes.Status409Conflict;
-                var inner = GetInnermostMessage(dbEx);
-                problem = new ProblemDetails
                 {
-                    Title = "Database error",
-                    Status = status,
-                    Detail = _env.IsDevelopment() ? inner : "A database error occurred"
-                };
+                    var innermost = GetInnermostException(dbEx);
+
+                    if (innermost is SqlException sqlEx)
+                    {
+                        if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
+                        {
+                            var indexName = ExtractIndexNameFromSqlMessage(sqlEx.Message);
+                            var indexMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
+                            };
+
+                            if (!string.IsNullOrEmpty(indexName) && indexMap.TryGetValue(indexName, out var userMsg))
+                            {
+                                status = StatusCodes.Status409Conflict;
+                                problem = new ProblemDetails
+                                {
+                                    Title = "Conflict",
+                                    Status = status,
+                                    Detail = userMsg
+                                };
+                                break;
+                            }
+
+                            status = StatusCodes.Status409Conflict;
+                            problem = new ProblemDetails
+                            {
+                                Title = "Conflict",
+                                Status = status,
+                                Detail = sqlEx.Message
+                            };
+                            break;
+                        }
+
+                        status = StatusCodes.Status500InternalServerError;
+                        problem = new ProblemDetails
+                        {
+                            Title = "Database error",
+                            Status = status,
+                            Detail = sqlEx.Message
+                        };
+                        break;
+                    }
+
+                    status = StatusCodes.Status409Conflict;
+                    var inner = GetInnermostMessage(dbEx);
+                    problem = new ProblemDetails
+                    {
+                        Title = "Database error",
+                        Status = status,
+                        Detail = inner
+                    };
+                }
                 break;
 
             default:
@@ -123,7 +179,7 @@ public class ExceptionHandlingMiddleware
                 {
                     Title = "Internal Server Error",
                     Status = status,
-                    Detail = _env.IsDevelopment() ? exception.Message : "An unexpected error occurred"
+                    Detail = exception.Message
                 };
                 break;
         }
@@ -151,10 +207,7 @@ public class ExceptionHandlingMiddleware
 
             try
             {
-                var fallback = _env.IsDevelopment()
-                    ? $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"{EscapeForJson(exception.Message)}\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}"
-                    : $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"An unexpected error occurred\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}";
-
+                var fallback = $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"{EscapeForJson(exception.Message)}\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}";
                 await context.Response.WriteAsync(fallback).ConfigureAwait(false);
             }
             catch (Exception finalEx)
@@ -175,6 +228,28 @@ public class ExceptionHandlingMiddleware
     {
         if (string.IsNullOrEmpty(s)) return string.Empty;
         return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+    }
+    private static Exception GetInnermostException(Exception ex)
+    {
+        if (ex == null) throw new ArgumentNullException(nameof(ex));
+        while (ex.InnerException != null)
+            ex = ex.InnerException;
+        return ex;
+    }
+
+    private static string? ExtractIndexNameFromSqlMessage(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return null;
+
+        var m = Regex.Match(message, @"unique (?:index|constraint)\s+'(?<idx>[^']+)'", RegexOptions.IgnoreCase);
+        if (m.Success)
+            return m.Groups["idx"].Value;
+
+        m = Regex.Match(message, @"with unique index\s+(?<idx>\S+)", RegexOptions.IgnoreCase);
+        if (m.Success)
+            return m.Groups["idx"].Value;
+
+        return null;
     }
 }
 

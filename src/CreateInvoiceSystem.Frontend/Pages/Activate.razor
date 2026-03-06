@@ -1,4 +1,6 @@
 ﻿@page "/activate"
+@using System.Text.Json
+@using CreateInvoiceSystem.Frontend.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Authorization
@@ -40,7 +42,7 @@ else
         }
 
         try
-        {            
+        {
             var response = await Http.GetAsync($"api/Auth/activate?token={Token}");
 
             if (response.IsSuccessStatusCode)
@@ -50,14 +52,62 @@ else
             }
             else
             {
-                _isSuccess = false;
-                _message = "Link wygasł lub jest nieprawidłowy.";
+                var serverMsg = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(serverMsg))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(serverMsg);
+                        var root = doc.RootElement;
+
+                        if (root.TryGetProperty("detail", out var d) && d.ValueKind == JsonValueKind.String)
+                            serverMsg = d.GetString() ?? serverMsg;
+                        else if (root.TryGetProperty("title", out var t) && t.ValueKind == JsonValueKind.String)
+                            serverMsg = t.GetString() ?? serverMsg;
+                        else if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
+                        {
+                            var sb = new System.Text.StringBuilder();
+                            foreach (var prop in errors.EnumerateObject())
+                            {
+                                foreach (var item in prop.Value.EnumerateArray())
+                                {
+                                    var s = item.GetString();
+                                    if (!string.IsNullOrWhiteSpace(s))
+                                    {
+                                        if (sb.Length > 0) sb.Append(" ; ");
+                                        sb.Append(s);
+                                    }
+                                }
+                            }
+                            if (sb.Length > 0) serverMsg = sb.ToString();
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    var sanitized = ApiExceptionExtensions.SanitizeMessage(serverMsg);
+                    _isSuccess = false;
+                    _message = sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}";
+                }
+                else
+                {
+                    _isSuccess = false;
+                    _message = "Link wygasł lub jest nieprawidłowy.";
+                }
             }
+        }
+        catch (ApiException aex)
+        {
+            var userMessage = aex.GetUserMessage();
+            _isSuccess = false;
+            _message = userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}";
         }
         catch (Exception ex)
         {
+            var sanitized = ApiExceptionExtensions.SanitizeMessage(ex.Message);
             _isSuccess = false;
-            _message = $"Błąd połączenia: {ex.Message}"; // Zobaczysz prawdziwy powód błędu
+            _message = sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}";
         }
         finally
         {

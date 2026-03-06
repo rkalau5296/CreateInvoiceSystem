@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
+using System;
 using System.Net.Http.Json;
 using System.Linq;
 using System.Collections.Generic;
@@ -26,6 +27,9 @@ public class NbpService
 
     public async Task<List<CurrencyRatesTable>> GetTableHistoryAsync(string tableName, DateTime from, DateTime to)
     {
+        if (from > to)
+            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.", nameof(from));
+
         var dateFrom = from.ToString("yyyy-MM-dd");
         var dateTo = to.ToString("yyyy-MM-dd");
 
@@ -47,6 +51,9 @@ public class NbpService
 
     public async Task<CurrencyRatesTable?> GetSpecificCurrencyHistoryAsync(string tableName, string code, DateTime from, DateTime to)
     {
+        if (from > to)
+            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.", nameof(from));
+
         var dFrom = from.ToString("yyyy-MM-dd");
         var dTo = to.ToString("yyyy-MM-dd");
 
