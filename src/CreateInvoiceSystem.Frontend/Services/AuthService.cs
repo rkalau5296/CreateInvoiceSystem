@@ -49,6 +49,8 @@ namespace CreateInvoiceSystem.Frontend.Services
                     await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", result.RefreshToken);
                 }
 
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "sessionExpiredMessage");
+
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
                 ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
             }
@@ -113,19 +115,38 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             if (string.IsNullOrEmpty(currentRefreshToken)) return null;
 
-            var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken));
-            await response.EnsureSuccessOrThrowApiExceptionAsync();
-
-            var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
-            if (authData != null && !string.IsNullOrEmpty(authData.Token))
+            try
             {
-                await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
-                await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", authData.RefreshToken);
+                var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken));
+                await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-                return authData.Token;
+                var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                if (authData != null && !string.IsNullOrEmpty(authData.Token))
+                {
+                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
+                    await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "refreshToken", authData.RefreshToken);
+
+                    return authData.Token;
+                }
+
+                return null;
             }
+            catch (ApiException aex) when (aex.StatusCode == 401)
+            {
+                var msg = aex.GetUserMessage() ?? "Sesja wygasła";
 
-            return null;
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
+
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+                _authStateProvider.NotifyUserLogout();
+
+                await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "sessionExpiredMessage", msg);
+
+                return null;
+            }
         }
 
         public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email)

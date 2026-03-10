@@ -1,8 +1,10 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 @using CreateInvoiceSystem.Frontend.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthService AuthService
+@inject IJSRuntime JS
 
 <div class="page">
     <AuthorizeView>
@@ -61,6 +63,15 @@
         <div class="top-row px-4">
         </div>
 
+        @if (!string.IsNullOrEmpty(_globalStatusMessage))
+        {
+            <div class="container">
+                <div class="alert alert-danger mt-2 mb-2" role="alert">
+                    @_globalStatusMessage
+                </div>
+            </div>
+        }
+
         <article class="content px-4">
             @Body
         </article>
@@ -68,6 +79,46 @@
 </div>
 
 @code {
+    private string? _globalStatusMessage;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        _ = CheckSessionMessageAsync();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _ = CheckSessionMessageAsync();
+    }
+
+    private async Task CheckSessionMessageAsync()
+    {
+        try
+        {
+            var msg = await JS.InvokeAsync<string>("sessionStorage.getItem", "sessionExpiredMessage");
+            if (!string.IsNullOrWhiteSpace(msg))
+            {
+                _globalStatusMessage = msg;
+                await JS.InvokeVoidAsync("sessionStorage.removeItem", "sessionExpiredMessage");
+                StateHasChanged();
+            }
+            else
+            {
+                _globalStatusMessage = null;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
     private async Task HandleLogout()
     {
         await AuthService.LogoutAsync();
