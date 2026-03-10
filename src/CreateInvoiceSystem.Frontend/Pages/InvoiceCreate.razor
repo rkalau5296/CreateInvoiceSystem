@@ -41,6 +41,27 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
+                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="form-select">
+                            <option value="">-- Wybierz --</option>
+                            <option value="Przelew">Przelew</option>
+                            <option value="Gotówka">Gotówka</option>
+                            <option value="BLIK">BLIK</option>
+                            <option value="Karta">Karta</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _invoice.MethodOfPayment)" class="text-danger small" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Uwagi / Komentarz</label>
+                        <InputTextArea @bind-Value="_invoice.Comments" class="form-control" rows="3" />
+                    </div>
+                </div>
+
                 <div class="card mb-4 bg-light border-0">
                     <div class="card-body">
                         <h5 class="card-title text-secondary">Dane Nabywcy</h5>
@@ -109,6 +130,11 @@
                                                @oninput="(ChangeEventArgs e) => HandleProductChange(pos, e.Value?.ToString())"
                                                placeholder="Nazwa produktu..." />
                                         <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
+
+                                        <div class="mt-2">
+                                            <label class="form-label small text-muted">Opis</label>
+                                            <InputTextArea @bind-Value="pos.ProductDescription" class="form-control form-control-sm" />
+                                        </div>
                                     </td>
                                     <td style="width:110px">
                                         <ValidatedInputNumber TValue="int"
@@ -206,7 +232,6 @@
 
             if (!_invoice.InvoicePositions.Any()) AddPosition();
 
-            // if seller fields are empty, set safe defaults so validation won't block
             if (string.IsNullOrWhiteSpace(_invoice.SellerName)) _invoice.SellerName = "Twoja firma";
             if (string.IsNullOrWhiteSpace(_invoice.SellerNip)) _invoice.SellerNip = "0000000000";
             if (string.IsNullOrWhiteSpace(_invoice.SellerAddress)) _invoice.SellerAddress = "Adres sprzedawcy";
@@ -320,12 +345,13 @@
 
     private void HandleProductChange(InvoicePositionDto position, string? newValue)
     {
-        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(newValue ?? "", StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
             position.ProductId = match.ProductId;
             position.ProductName = match.Name;
             position.ProductValue = match.Value;
+            position.ProductDescription = match.Description;
         }
 
         if (_editContext == null) return;
@@ -592,7 +618,9 @@
                 pos.Product ??= new ProductDto();
                 pos.Product.Name = pos.ProductName;
                 pos.Product.Value = pos.ProductValue;
-                pos.Product.Description = "";
+                pos.Product.Description = !string.IsNullOrWhiteSpace(pos.ProductDescription)
+                    ? pos.ProductDescription
+                    : (pos.Product.Description ?? string.Empty);
             }
         }
 

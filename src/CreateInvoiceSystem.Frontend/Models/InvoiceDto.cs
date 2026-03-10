@@ -12,7 +12,7 @@ namespace CreateInvoiceSystem.Frontend.Models
         public string Comments { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Metoda płatności jest wymagana")]
-        public string MethodOfPayment { get; set; } = "Przelew";
+        public string MethodOfPayment { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Termin płatności jest wymagany")]
         public DateTime PaymentDate { get; set; } = DateTime.Today.AddDays(14);
