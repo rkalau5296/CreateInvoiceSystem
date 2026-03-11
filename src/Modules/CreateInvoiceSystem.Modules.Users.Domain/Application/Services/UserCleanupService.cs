@@ -27,7 +27,9 @@ public class UserCleanupService : BackgroundService
                 var _emailService = scope.ServiceProvider.GetRequiredService<IUserEmailSender>();
 
                 var cutoffDate = DateTime.UtcNow.AddDays(-30);
-                await _userRepository.RemoveInactiveUsersAsync(cutoffDate, cancellationToken);
+                var removedCount = await _userRepository.RemoveInactiveUsersAsync(cutoffDate, cancellationToken);
+
+                _logger.LogInformation("UserCleanupService: removed {RemovedCount} inactive users older than {CutoffDate}.", removedCount, cutoffDate);
 
                 var warningDate = DateTime.UtcNow.AddDays(-25);
                 var usersToWarn = await _userRepository.GetUsersForCleanupWarningAsync(warningDate, cancellationToken);
@@ -47,7 +49,7 @@ public class UserCleanupService : BackgroundService
                 _logger.LogError(ex, "Błąd w UserCleanupService.");
             }
 
-            await Task.Delay(TimeSpan.FromHours(24), cancellationToken);
+            await Task.Delay(TimeSpan.FromHours(24), cancellationToken);            
         }
     }
 }

@@ -529,17 +529,21 @@ public class UserRepository : IUserRepository
     }
     public async Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct)
     {
-        var inactiveUsers = _db.Set<UserEntity>()
-            .Where(u => !u.IsActive 
-                    && u.CreatedAt < cutoffDate
-                    && !(u.Invoices.Any() || u.Products.Any() || u.Clients.Any())
-            );        
+        var query = _db.Set<UserEntity>()
+        .Where(u => !u.IsActive && u.CreatedAt < cutoffDate)
+        .Where(u =>
+            !_db.Set<InvoiceEntity>().Any(i => i.UserId == u.Id) &&
+            !_db.Set<ProductEntity>().Any(p => p.UserId == u.Id) &&
+            !_db.Set<ClientEntity>().Any(c => c.UserId == u.Id)
+        );
 
-        int count = await inactiveUsers.CountAsync(ct);
+        var usersToRemove = await query.ToListAsync(ct);
+
+        var count = usersToRemove.Count;
 
         if (count > 0)
         {
-            _db.Set<UserEntity>().RemoveRange(inactiveUsers);
+            _db.Set<UserEntity>().RemoveRange(usersToRemove);
             await _db.SaveChangesAsync(ct);
         }
 
