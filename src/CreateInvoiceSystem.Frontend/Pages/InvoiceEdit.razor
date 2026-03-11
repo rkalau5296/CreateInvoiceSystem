@@ -54,6 +54,27 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
+                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="@($"form-select {GetFieldClass(() => _invoice.MethodOfPayment)}")">
+                            <option value="">-- Wybierz --</option>
+                            <option value="Przelew">Przelew</option>
+                            <option value="Gotówka">Gotówka</option>
+                            <option value="BLIK">BLIK</option>
+                            <option value="Karta">Karta</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _invoice.MethodOfPayment)" class="text-danger small" />
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Uwagi / Komentarz</label>
+                        <InputTextArea @bind-Value="_invoice.Comments" class="@($"form-control {GetFieldClass(() => _invoice.Comments)}")" rows="3" />
+                    </div>
+                </div>
+
                 <div class="row mb-5">
                     <div class="col-6">
                         <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
@@ -300,12 +321,15 @@
         NotifyIfPopulated(_invoice, nameof(_invoice.ClientName));
         NotifyIfPopulated(_invoice, nameof(_invoice.ClientAddress));
         NotifyIfPopulated(_invoice, nameof(_invoice.ClientNip));
+        NotifyIfPopulated(_invoice, nameof(_invoice.MethodOfPayment));
+        NotifyIfPopulated(_invoice, nameof(_invoice.Comments));
 
         foreach (var pos in _invoice.InvoicePositions)
         {
             NotifyIfPopulated(pos, nameof(pos.ProductName));
             NotifyIfPopulated(pos, nameof(pos.ProductValue));
             NotifyIfPopulated(pos, nameof(pos.Quantity));
+            NotifyIfPopulated(pos, nameof(pos.ProductDescription));
         }
     }
 
