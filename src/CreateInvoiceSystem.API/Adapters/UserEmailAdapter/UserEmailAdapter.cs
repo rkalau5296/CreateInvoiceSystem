@@ -51,18 +51,28 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
 
         await _emailService.SendResetPasswordEmailAsync(email, resetLink);
     }
-    public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft)
+    public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft, string activationLink)
     {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentNullException(nameof(email));
+        if (string.IsNullOrWhiteSpace(activationLink))
+            throw new ArgumentNullException(nameof(activationLink));
 
         var subject = "Twoje konto wkrótce wygaśnie";
-        var message = $"Witaj {name},<br/><br/>" +
-                      $"Zauważyliśmy, że Twoje konto nie zostało jeszcze aktywowane. " +
-                      $"Zgodnie z naszą polityką bezpieczeństwa, jeśli nie aktywujesz konta w ciągu <b>{daysLeft} dni</b>, " +
-                      "Twoje dane zostaną automatycznie usunięte.<br/><br/>" +
-                      "Jeśli chcesz zachować konto, odszukaj wiadomość z linkiem aktywacyjnym i kliknij go.";
-        
+
+        var message = $@"
+        Witaj {System.Net.WebUtility.HtmlEncode(name)},<br/><br/>
+        Zauważyliśmy, że Twoje konto nie zostało jeszcze aktywowane. Zgodnie z naszą polityką bezpieczeństwa, jeśli nie aktywujesz konta w ciągu <b>{daysLeft} dni</b>, Twoje dane zostaną automatycznie usunięte.<br/><br/>
+        Aby ułatwić aktywację, wygenerowaliśmy nowy, jednorazowy link aktywacyjny:<br/>
+        <p style='margin:20px 0;'>
+          <a href='{activationLink}' style='background-color:#007bff;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;'>Aktywuj konto</a>
+        </p>
+        <p>Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:</p>
+        <p style='color:#007bff;'>{System.Net.WebUtility.HtmlEncode(activationLink)}</p>
+        <br/>
+        Pozdrawiamy,<br/>Zespół
+    ";
+
         await _emailService.SendEmailAsync(email, subject, message, CancellationToken.None);
     }
 
