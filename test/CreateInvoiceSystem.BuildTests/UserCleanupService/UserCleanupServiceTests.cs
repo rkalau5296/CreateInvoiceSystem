@@ -21,7 +21,7 @@ public class UserCleanupServiceTests
     public UserCleanupServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-         _emailSenderMock = new Mock<IUserEmailSender>();
+        _emailSenderMock = new Mock<IUserEmailSender>();
         _emailSenderMock = new Mock<IUserEmailSender>();
         _scopeFactoryMock = new Mock<IServiceScopeFactory>();
         _serviceProviderMock = new Mock<IServiceProvider>();
@@ -40,7 +40,7 @@ public class UserCleanupServiceTests
         _serviceProviderMock.Setup(x => x.GetService(typeof(IUserTokenService))).Returns(_userTokenServiceMock.Object);
 
         _configurationMock.Setup(c => c["FrontendUrl"]).Returns("https://localhost:7022");
-        _userTokenServiceMock.Setup(t => t.GenerateActivationToken(It.IsAny<string>())).Returns("raw-token");        
+        _userTokenServiceMock.Setup(t => t.GenerateActivationToken(It.IsAny<string>())).Returns("raw-token");
     }
 
     [Fact]
