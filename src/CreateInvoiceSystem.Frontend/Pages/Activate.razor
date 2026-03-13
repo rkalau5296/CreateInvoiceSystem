@@ -44,27 +44,43 @@ else
         try
         {
             var response = await Http.GetAsync($"api/Auth/activate?token={Token}");
+            var content = await response.Content.ReadAsStringAsync();
 
-            if (response.IsSuccessStatusCode)
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            ServerActivateResponse? srv = null;
+            if (!string.IsNullOrWhiteSpace(content))
             {
-                _isSuccess = true;
-                _message = "Konto zostało pomyślnie aktywowane!";
+                try
+                {
+                    srv = System.Text.Json.JsonSerializer.Deserialize<ServerActivateResponse>(content, options);
+                }
+                catch
+                {
+                }
+            }
+
+            if (srv != null)
+            {
+                _isSuccess = srv.IsSuccess;
+                _message = !string.IsNullOrWhiteSpace(srv.Message)
+                    ? srv.Message
+                    : (!string.IsNullOrWhiteSpace(srv.Detail) ? srv.Detail : (!string.IsNullOrWhiteSpace(srv.Title) ? srv.Title : (srv.IsSuccess ? "Konto zostało pomyślnie aktywowane!" : "Link wygasł lub jest nieprawidłowy.")));
             }
             else
             {
-                var serverMsg = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(serverMsg))
+                string serverMsg = string.Empty;
+                if (!string.IsNullOrWhiteSpace(content))
                 {
                     try
                     {
-                        using var doc = JsonDocument.Parse(serverMsg);
+                        using var doc = System.Text.Json.JsonDocument.Parse(content);
                         var root = doc.RootElement;
 
-                        if (root.TryGetProperty("detail", out var d) && d.ValueKind == JsonValueKind.String)
-                            serverMsg = d.GetString() ?? serverMsg;
-                        else if (root.TryGetProperty("title", out var t) && t.ValueKind == JsonValueKind.String)
-                            serverMsg = t.GetString() ?? serverMsg;
-                        else if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
+                        if (root.TryGetProperty("detail", out var d) && d.ValueKind == System.Text.Json.JsonValueKind.String)
+                            serverMsg = d.GetString() ?? string.Empty;
+                        else if (root.TryGetProperty("title", out var t) && t.ValueKind == System.Text.Json.JsonValueKind.String)
+                            serverMsg = t.GetString() ?? string.Empty;
+                        else if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == System.Text.Json.JsonValueKind.Object)
                         {
                             var sb = new System.Text.StringBuilder();
                             foreach (var prop in errors.EnumerateObject())
@@ -81,19 +97,35 @@ else
                             }
                             if (sb.Length > 0) serverMsg = sb.ToString();
                         }
+                        else
+                        {
+                            serverMsg = content;
+                        }
                     }
                     catch
                     {
+                        serverMsg = content;
                     }
+                }
 
-                    var sanitized = ApiExceptionExtensions.SanitizeMessage(serverMsg);
-                    _isSuccess = false;
-                    _message = sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}";
+                if (response.IsSuccessStatusCode)
+                {
+                    _isSuccess = true;
+                    _message = !string.IsNullOrWhiteSpace(serverMsg) ? serverMsg : "Konto zostało pomyślnie aktywowane!";
                 }
                 else
                 {
-                    _isSuccess = false;
-                    _message = "Link wygasł lub jest nieprawidłowy.";
+                    if (!string.IsNullOrWhiteSpace(serverMsg))
+                    {
+                        var sanitized = ApiExceptionExtensions.SanitizeMessage(serverMsg);
+                        _isSuccess = false;
+                        _message = sanitized.StartsWith("Błąd") ? sanitized : $"Błąd: {sanitized}";
+                    }
+                    else
+                    {
+                        _isSuccess = false;
+                        _message = "Link wygasł lub jest nieprawidłowy.";
+                    }
                 }
             }
         }
@@ -113,5 +145,13 @@ else
         {
             _isProcessing = false;
         }
+    }
+
+    private class ServerActivateResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public string? Detail { get; set; }
+        public string? Title { get; set; }
     }
 }

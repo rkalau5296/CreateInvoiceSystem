@@ -80,7 +80,8 @@ public class UserCleanupService : BackgroundService
                 _logger.LogError(ex, "Błąd w UserCleanupService.");
             }
 
-            await Task.Delay(TimeSpan.FromHours(24), cancellationToken);
+            //await Task.Delay(TimeSpan.FromHours(24), cancellationToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
         }
     }
 

@@ -1,13 +1,14 @@
-﻿using System;
+﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
+
+using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 
 public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUserResponse, IUserRepository>
 {
@@ -18,22 +19,31 @@ public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUser
         _userTokenService = userTokenService;
     }
 
-    public override async Task<ActivateUserResponse> Execute(IUserRepository _userRepository, CancellationToken cancellationToken = default)
+    public override async Task<ActivateUserResponse> Execute(IUserRepository _user_repository, CancellationToken cancellationToken = default)
     {
-        if (Parametr is null || string.IsNullOrWhiteSpace(Parametr.Token))
-            return new ActivateUserResponse { IsSuccess = false, Message = "Brak tokena aktywacyjnego." };
-
-        var email = _userTokenService.GetEmailFromActivationToken(Parametr.Token);
+        var token = this.Parametr?.Token;
+                
+        if (string.IsNullOrWhiteSpace(token))
+            return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Brak tokena aktywacyjnego." };
+                
+        var email = _userTokenService.GetEmailFromActivationToken(token);
         if (string.IsNullOrWhiteSpace(email))
-            return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
-
-        var (jti, expiry) = ParseJtiAndExpiryFromJwt(Parametr.Token);
-        if (string.IsNullOrWhiteSpace(jti))
-            return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
-
-        var activated = await _userRepository.ValidateAndActivateUserByTokenAsync(email, jti, expiry, cancellationToken);
+            return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Link wygasł lub jest nieprawidłowy." };
+                
+        var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
+        if (string.IsNullOrWhiteSpace(jti) || expiry == null || expiry.Value <= DateTimeOffset.UtcNow)
+            return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Link wygasł lub jest nieprawidłowy." };
+                
+        var user = await _user_repository.FindByEmailAsync(email);
+        if (user == null)
+            return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Użytkownik nie istnieje." };
+                
+        if (user.IsActive)
+            return new ActivateUserResponse { IsSuccess = true, Message = "Konto jest już aktywne." };
+                
+        var activated = await _user_repository.ValidateAndActivateUserByTokenAsync(email, jti, expiry, cancellationToken);
         if (!activated)
-            return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
+            return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Link wygasł lub jest nieprawidłowy." };
 
         return new ActivateUserResponse { IsSuccess = true, Message = "Konto zostało aktywowane!" };
     }
@@ -45,13 +55,14 @@ public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUser
             var parts = jwt.Split('.');
             if (parts.Length < 2) return (null, null);
 
-            var payload = parts[1];
+            var payload = parts[1];            
             payload = payload.Replace('-', '+').Replace('_', '/');
             switch (payload.Length % 4)
             {
                 case 2: payload += "=="; break;
                 case 3: payload += "="; break;
                 case 0: break;
+                default: break;
             }
 
             var bytes = Convert.FromBase64String(payload);
