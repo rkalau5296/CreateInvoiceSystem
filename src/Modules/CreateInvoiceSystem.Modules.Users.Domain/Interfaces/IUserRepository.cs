@@ -29,4 +29,6 @@ public interface IUserRepository : ISaveChangesContext
     Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct);
     Task<List<User>> GetUsersForCleanupWarningAsync(DateTime warningDate, CancellationToken ct);
 
+    Task SaveActivationTokenJtiAsync(int userId, string jti, DateTimeOffset expiryUtc, CancellationToken ct = default);
+    Task<bool> ValidateAndActivateUserByTokenAsync(string email, string tokenJti, DateTimeOffset? tokenExpiry, CancellationToken ct = default);
 }

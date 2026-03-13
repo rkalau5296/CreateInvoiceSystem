@@ -47,16 +47,19 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
         return new TokenResponse(accessToken, refreshToken);
     }
     public string GenerateActivationToken(string email, int expiresHours)
-    {        
+    {
         var secretKey = _configuration["Jwt:Key"] ?? throw new Exception("Nie znaleziono Jwt:Key w konfiguracji");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-     
+
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Email, email),
             new("purpose", "activation")
         };
+
+        var jti = Guid.NewGuid().ToString();
+        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, jti));
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
@@ -78,7 +81,7 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
 
         var tokenHandler = new JwtSecurityTokenHandler();
         try
-        {            
+        {
             tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -90,24 +93,24 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
                 ValidateAudience = true,
                 ValidAudience = _configuration["Jwt:Audience"],
 
-                ValidateLifetime = true, 
+                ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
-            
+
             var purposeClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "purpose")?.Value;
             if (purposeClaim != "activation")
             {
                 return null;
             }
-            
+
             var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value;
 
             return emailClaim;
         }
         catch (Exception)
-        {            
+        {
             return null;
         }
     }

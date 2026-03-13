@@ -24,5 +24,9 @@ namespace CreateInvoiceSystem.API.Adapters.UserTokenAdapter
         {
             return _jwtProvider.GetEmailFromActivationToken(token);
         }
+        public string GenerateActivationToken(string email, int expiresHours)
+        {
+            return _jwtProvider.GenerateActivationToken(email, expiresHours);
+        }
     }
 }

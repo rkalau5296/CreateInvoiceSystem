@@ -571,5 +571,39 @@ public class UserRepository : IUserRepository
         }).ToList();
     }
 
-    
+    public async Task SaveActivationTokenJtiAsync(int userId, string jti, DateTimeOffset expiryUtc, CancellationToken ct = default)
+    {
+        var user = await _db.Set<UserEntity>().FindAsync(new object[] { userId }, ct) ?? throw new InvalidOperationException("User not found");
+        user.ActivationTokenJti = jti;
+        user.ActivationTokenExpiry = expiryUtc;
+       
+        await _db.SaveChangesAsync(ct);
+    }
+    public async Task<bool> ValidateAndActivateUserByTokenAsync(string email, string tokenJti, DateTimeOffset? tokenExpiry, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        var user = await _db.Set<UserEntity>()
+            .FirstOrDefaultAsync(u =>
+                u.Email == email &&
+                !u.IsActive &&
+                !string.IsNullOrWhiteSpace(u.ActivationTokenJti) &&
+                u.ActivationTokenJti == tokenJti &&
+                (u.ActivationTokenExpiry == null || u.ActivationTokenExpiry >= now),
+                ct);
+
+        if (user == null)
+            return false;
+
+        if (tokenExpiry.HasValue && tokenExpiry.Value < now)
+            return false;
+
+        user.IsActive = true;
+        user.ActivationTokenJti = null;
+        user.ActivationTokenExpiry = null;
+
+        await _db.SaveChangesAsync(ct);
+
+        return true;
+    }
 }

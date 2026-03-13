@@ -1,4 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -39,10 +45,29 @@ public class UserCleanupService : BackgroundService
 
                 foreach (var user in usersToWarn)
                 {
-                    var token = _userTokenService.GenerateActivationToken(user.Email);
-                    var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/') ?? "https://localhost:7022";
-                    var activationLink = $"{frontendUrl}/activate?token={System.Uri.EscapeDataString(token)}";                    
-                    await _emailService.SendCleanupWarningEmailAsync(user.Email, user.Name, 5, activationLink);
+                    try
+                    {
+                        var daysLeft = 5;
+
+                        var token = _userTokenService.GenerateActivationToken(user.Email);
+                        if (string.IsNullOrWhiteSpace(token))
+                            continue;
+
+                        var (jti, expiryUtc) = ParseJtiAndExpiryFromJwt(token);
+
+                        if (!string.IsNullOrWhiteSpace(jti) && expiryUtc != null)
+                        {
+                            await _userRepository.SaveActivationTokenJtiAsync(user.UserId, jti, expiryUtc.Value, cancellationToken);
+                        }
+
+                        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/') ?? "https://localhost:7022";
+                        var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
+                        await _emailService.SendCleanupWarningEmailAsync(user.Email, user.Name, daysLeft, activationLink);
+                    }
+                    catch (Exception exUser)
+                    {
+                        _logger.LogError(exUser, "UserCleanupService: failed to generate/send activation link for user {Email}.", user.Email);
+                    }
                 }
 
                 if (usersToWarn.Any())
@@ -56,6 +81,54 @@ public class UserCleanupService : BackgroundService
             }
 
             await Task.Delay(TimeSpan.FromHours(24), cancellationToken);
+        }
+    }
+
+    private static (string? jti, DateTimeOffset? expiryUtc) ParseJtiAndExpiryFromJwt(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length < 2) return (null, null);
+
+            string payload = parts[1];
+            // base64url -> base64
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+                case 0: break;
+                default: break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string? jti = null;
+            DateTimeOffset? expiry = null;
+
+            if (root.TryGetProperty("jti", out var jtiProp) && jtiProp.ValueKind == JsonValueKind.String)
+            {
+                jti = jtiProp.GetString();
+            }
+
+            if (root.TryGetProperty("exp", out var expProp) && expProp.ValueKind == JsonValueKind.Number)
+            {
+                if (expProp.TryGetInt64(out var expSeconds))
+                {
+                    var dt = DateTimeOffset.FromUnixTimeSeconds(expSeconds).UtcDateTime;
+                    expiry = new DateTimeOffset(dt);
+                }
+            }
+
+            return (jti, expiry);
+        }
+        catch
+        {
+            return (null, null);
         }
     }
 }

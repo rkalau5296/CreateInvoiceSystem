@@ -13,6 +13,9 @@ public class UserEntity : IdentityUser<int>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; }
 
+    public string? ActivationTokenJti { get; set; }
+    public DateTimeOffset? ActivationTokenExpiry { get; set; }
+
     [NotMapped]
     public IEnumerable<object> Invoices { get; set; } = [];
     [NotMapped]

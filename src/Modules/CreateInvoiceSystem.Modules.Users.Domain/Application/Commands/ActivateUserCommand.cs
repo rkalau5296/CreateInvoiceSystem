@@ -1,8 +1,13 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-
+﻿using System;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+
+namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 
 public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUserResponse, IUserRepository>
 {
@@ -15,39 +20,60 @@ public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUser
 
     public override async Task<ActivateUserResponse> Execute(IUserRepository _userRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null || string.IsNullOrEmpty(this.Parametr.Token))
-        {
+        if (Parametr is null || string.IsNullOrWhiteSpace(Parametr.Token))
             return new ActivateUserResponse { IsSuccess = false, Message = "Brak tokena aktywacyjnego." };
-        }
-        
-        var email = _userTokenService.GetEmailFromActivationToken(this.Parametr.Token);
 
-        if (string.IsNullOrEmpty(email))
-        {
+        var email = _userTokenService.GetEmailFromActivationToken(Parametr.Token);
+        if (string.IsNullOrWhiteSpace(email))
             return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
-        }
-        
-        var user = await _userRepository.FindByEmailAsync(email);
 
-        if (user == null)
-        {
-            return new ActivateUserResponse { IsSuccess = false, Message = "Użytkownik nie istnieje." };
-        }
+        var (jti, expiry) = ParseJtiAndExpiryFromJwt(Parametr.Token);
+        if (string.IsNullOrWhiteSpace(jti))
+            return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
 
-        if (user.IsActive)
-        {
-            return new ActivateUserResponse { IsSuccess = true, Message = "Konto jest już aktywne." };
-        }
-        
-        user.IsActive = true;
-        
-        await _userRepository.UpdateAsync(user, cancellationToken);
-        
+        var activated = await _userRepository.ValidateAndActivateUserByTokenAsync(email, jti, expiry, cancellationToken);
+        if (!activated)
+            return new ActivateUserResponse { IsSuccess = false, Message = "Link wygasł lub jest nieprawidłowy." };
 
-        return new ActivateUserResponse
+        return new ActivateUserResponse { IsSuccess = true, Message = "Konto zostało aktywowane!" };
+    }
+
+    private static (string? jti, DateTimeOffset? expiryUtc) ParseJtiAndExpiryFromJwt(string jwt)
+    {
+        try
         {
-            IsSuccess = true,
-            Message = "Konto zostało aktywowane!"
-        };
+            var parts = jwt.Split('.');
+            if (parts.Length < 2) return (null, null);
+
+            var payload = parts[1];
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+                case 0: break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string? jti = null;
+            DateTimeOffset? expiry = null;
+
+            if (root.TryGetProperty("jti", out var jtiProp) && jtiProp.ValueKind == JsonValueKind.String)
+                jti = jtiProp.GetString();
+
+            if (root.TryGetProperty("exp", out var expProp) && expProp.ValueKind == JsonValueKind.Number
+                && expProp.TryGetInt64(out var expSeconds))
+                expiry = DateTimeOffset.FromUnixTimeSeconds(expSeconds);
+
+            return (jti, expiry);
+        }
+        catch
+        {
+            return (null, null);
+        }
     }
 }
