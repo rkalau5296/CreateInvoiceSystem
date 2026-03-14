@@ -27,7 +27,7 @@ public static class UserMappers
         user == null
         ? throw new ArgumentNullException(nameof(user), "User cannot be null when mapping to UserDto.")
         :
-        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Nip, user.BankAccountNumber, user.IsActive, user.Address.ToUpdateAddressDto());
+        new(user.UserId, user.Name, user.CompanyName, user.Email, user.Nip, user.BankAccountNumber, user.Address.ToUpdateAddressDto());
 
     public static User ToEntity(this UserDto dto) =>
         dto == null

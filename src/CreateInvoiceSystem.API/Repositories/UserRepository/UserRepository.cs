@@ -18,12 +18,14 @@ public class UserRepository : IUserRepository
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IDbContext _db;
     private readonly UserManager<UserEntity> _userManager;
+    private readonly ILookupNormalizer _normalizer;
 
-    public UserRepository(IDbContext db, UserManager<UserEntity> userManager, IHttpContextAccessor httpContextAccessor)
+    public UserRepository(IDbContext db, UserManager<UserEntity> userManager, IHttpContextAccessor httpContextAccessor, ILookupNormalizer normalizer)
     {
         _db = db;
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
+        _normalizer = normalizer;
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken)
@@ -134,6 +136,7 @@ public class UserRepository : IUserRepository
             Nip = baseData.user.Nip,
             BankAccountNumber = baseData.user.BankAccountNumber,
             AddressId = baseData.user.AddressId,
+            IsActive = baseData.user.IsActive,
             Address = new Address
             {
                 AddressId = baseData.addr.AddressId,
@@ -353,17 +356,37 @@ public class UserRepository : IUserRepository
         var userEntity = await _db.Set<UserEntity>()
             .SingleOrDefaultAsync(u => u.Id == user.UserId, cancellationToken);
 
-        var addressEntity = await _db.Set<AddressEntity>()
-            .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
-
         if (userEntity == null) return;
 
+        var addressEntity = await _db.Set<AddressEntity>()
+            .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
+                
         userEntity.Name = user.Name;
         userEntity.CompanyName = user.CompanyName;        
-        userEntity.Nip = user.Nip;
-        userEntity.Email = user.Email;
+        userEntity.Nip = user.Nip;        
         userEntity.BankAccountNumber = user.BankAccountNumber;
-        userEntity.IsActive = user.IsActive;
+
+        var newEmail = user.Email;
+        if (!string.IsNullOrWhiteSpace(newEmail))
+        {
+            var oldEmail = userEntity.Email;
+            if (!string.Equals(oldEmail, newEmail, StringComparison.OrdinalIgnoreCase))
+            {                
+                var normalizedEmail = _normalizer.NormalizeEmail(newEmail);
+                var normalizedUserName = _normalizer.NormalizeName(newEmail);
+
+                userEntity.Email = newEmail;
+                userEntity.NormalizedEmail = normalizedEmail;
+                userEntity.UserName = newEmail;
+                userEntity.NormalizedUserName = normalizedUserName;             
+                
+            }
+            else
+            {                
+                userEntity.NormalizedEmail ??= _normalizer.NormalizeEmail(userEntity.Email ?? string.Empty);
+                userEntity.NormalizedUserName ??= _normalizer.NormalizeName(userEntity.UserName ?? string.Empty);
+            }
+        }
 
         if (addressEntity != null && user.Address != null)
         {
@@ -375,6 +398,7 @@ public class UserRepository : IUserRepository
         }
         await _db.SaveChangesAsync(cancellationToken);
     }
+
     public async Task<User> CheckPasswordAsync(User user, string password)
     {
         var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());

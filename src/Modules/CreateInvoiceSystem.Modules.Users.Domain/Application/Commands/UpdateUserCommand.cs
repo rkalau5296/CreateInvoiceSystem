@@ -17,7 +17,7 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto, IUser
         string oldCompanyName = user.CompanyName;
         string oldEmail = user.Email;        
         string oldNip = user.Nip;
-        string oldBankAccountNumber = user.BankAccountNumber;
+        string oldBankAccountNumber = user.BankAccountNumber;        
         string oldStreet = user.Address?.Street;
         string oldNumber = user.Address?.Number;
         string oldCity = user.Address?.City;
@@ -27,7 +27,7 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto, IUser
         user.Name = Parametr.Name ?? user.Name;
         user.CompanyName = Parametr.CompanyName ?? user.CompanyName;
         user.Email = Parametr.Email ?? user.Email;        
-        user.Nip = Parametr.Nip ?? user.Nip;
+        user.Nip = Parametr.Nip ?? user.Nip;        
         user.BankAccountNumber = Parametr.BankAccountNumber ?? user.BankAccountNumber;
         user.Address.Street = Parametr.Address?.Street ?? user.Address.Street;
         user.Address.Number = Parametr.Address?.Number ?? user.Address.Number;
@@ -44,7 +44,7 @@ public class UpdateUserCommand : CommandBase<UpdateUserDto, UpdateUserDto, IUser
             !string.Equals(oldCompanyName, persisted.CompanyName, StringComparison.Ordinal) ||
             !string.Equals(oldEmail, persisted.Email, StringComparison.Ordinal) ||            
             !string.Equals(oldNip, persisted.Nip, StringComparison.Ordinal) ||
-            !string.Equals(oldBankAccountNumber, persisted.BankAccountNumber, StringComparison.Ordinal) ||
+            !string.Equals(oldBankAccountNumber, persisted.BankAccountNumber, StringComparison.Ordinal) ||            
             !string.Equals(oldStreet, persisted.Address?.Street, StringComparison.Ordinal) ||
             !string.Equals(oldNumber, persisted.Address?.Number, StringComparison.Ordinal) ||
             !string.Equals(oldCity, persisted.Address?.City, StringComparison.Ordinal) ||

@@ -130,24 +130,16 @@ public class ExceptionHandlingMiddleware
                                 ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
                             };
 
-                            if (!string.IsNullOrEmpty(indexName) && indexMap.TryGetValue(indexName, out var userMsg))
-                            {
-                                status = StatusCodes.Status409Conflict;
-                                problem = new ProblemDetails
-                                {
-                                    Title = "Conflict",
-                                    Status = status,
-                                    Detail = userMsg
-                                };
-                                break;
-                            }
+                            var detailMsg = (!string.IsNullOrEmpty(indexName) && indexMap.TryGetValue(indexName, out var userMsg))
+                                ? userMsg
+                                : sqlEx.Message;
 
                             status = StatusCodes.Status409Conflict;
                             problem = new ProblemDetails
                             {
                                 Title = "Conflict",
                                 Status = status,
-                                Detail = sqlEx.Message
+                                Detail = detailMsg
                             };
                             break;
                         }

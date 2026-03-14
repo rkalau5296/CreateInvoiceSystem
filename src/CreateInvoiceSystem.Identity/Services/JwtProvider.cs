@@ -6,7 +6,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-
 namespace CreateInvoiceSystem.Identity.Services;
 
 public class JwtProvider(IConfiguration _configuration) : IJwtProvider
