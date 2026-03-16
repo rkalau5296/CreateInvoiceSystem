@@ -29,6 +29,42 @@ public class NbpService
         "VND", "VUV", "WST", "XAF", "XCD", "XOF", "XPF", "YER", "ZMW"
     };
 
+    private static readonly HashSet<string> _tableA = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "THB","USD","AUD","HKD","CAD","NZD","SGD","EUR","HUF","CHF","GBP","UAH","JPY",
+        "CZK","DKK","ISK","NOK","SEK","RON","TRY","ILS","CLP","PHP","MXN","ZAR","BRL",
+        "MYR","IDR","INR","KRW","CNY","XDR"
+    };
+
+    private static readonly HashSet<string> _tableB = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AFN","MGA","PAB","ETB","VES","BOB","CRC","SVC","NIO","GMD",
+        "MKD","DZD","BHD","IQD","JOD","KWD","LYD","RSD","TND","MAD",
+        "AED","STN","BSD","BBD","BZD","BND","FJD","GYD","JMD","LRD",
+        "NAD","SRD","TTD","XCD","SBD","VND","AMD","CVE","AWG","BIF",
+        "XOF","XAF","XPF","DJF","GNF","KMF","CDF","RWF","EGP","GIP",
+        "LBP","SSP","SDG","SYP","GHS","HTG","PYG","XCG","PGK","LAK",
+        "MWK","ZMW","AOA","MMK","GEL","MDL","ALL","HNL","SLE","SZL",
+        "LSL","AZN","MZN","NGN","ERN","TWD","TMT","MRU","TOP","MOP",
+        "ARS","DOP","COP","CUP","UYU","BWP","GTQ","IRR","YER","QAR",
+        "OMR","SAR","KHR","BYN","RUB","LKR","MVR","MUR","NPR","PKR",
+        "SCR","PEN","KGS","TJS","UZS","KES","SOS","TZS","UGX","BDT",
+        "WST","KZT","MNT","VUV","BAM","ZWG"
+    };
+
+    private static readonly HashSet<string> _tableC = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "USD","AUD","CAD","EUR","HUF","CHF","GBP","JPY",
+        "CZK","DKK","NOK","SEK", "XDR"
+    };
+
+    private static readonly Dictionary<string, HashSet<string>> _tableMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["A"] = _tableA,
+        ["B"] = _tableB,
+        ["C"] = _tableC
+    };
+
     public NbpService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -60,7 +96,7 @@ public class NbpService
 
     public async Task<CurrencyRatesTable?> GetSpecificCurrencyRateAsync(string tableName, string code)
     {
-        ValidateCurrencyCode(code);
+        ValidateCurrencyCode(tableName, code);
 
         var normalizedCode = code.Trim().ToUpperInvariant();
         var response = await _httpClient.GetAsync($"CurrencyRates/{tableName}/{normalizedCode}");
@@ -75,7 +111,7 @@ public class NbpService
         if (from > to)
             throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.", nameof(from));
 
-        ValidateCurrencyCode(code);
+        ValidateCurrencyCode(tableName, code);
 
         var dFrom = from.ToString("yyyy-MM-dd");
         var dTo = to.ToString("yyyy-MM-dd");
@@ -88,13 +124,27 @@ public class NbpService
         return dto?.Data;
     }
 
-    private static void ValidateCurrencyCode(string? code)
+    private static void ValidateCurrencyCode(string? tableName, string? code)
     {
         if (string.IsNullOrWhiteSpace(code))
             throw new ArgumentException("Kod waluty nie może być pusty.");
 
-        var trimmed = code.Trim();
+        var trimmed = code.Trim().ToUpperInvariant();
+
         if (!_validCurrencyCodes.Contains(trimmed))
-            throw new ArgumentException("Podany kod waluty jest błędny lub nie występuje w NBP.");
+            throw new ArgumentException("Podany kod waluty jest błędny lub nie występuje w NBP.", nameof(code));
+
+        if (string.IsNullOrWhiteSpace(tableName))
+            return;
+        
+        var key = tableName.Trim().ToUpperInvariant();
+        if (key.Length != 1 || (key != "A" && key != "B" && key != "C"))
+            throw new ArgumentException("Nieznana tabela.");
+
+        if (!_tableMap.TryGetValue(key, out var set))
+            throw new ArgumentException("Nieznana tabela.");
+
+        if (!set.Contains(trimmed))
+            throw new ArgumentException("Kod waluty z poza tabeli");
     }
 }
