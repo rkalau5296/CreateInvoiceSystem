@@ -1,10 +1,20 @@
-﻿using FluentValidation;
+﻿using System;
+using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Net.Sockets;
+
+using FluentValidation;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using System.Text.RegularExpressions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace CreateInvoiceSystem.API.Middleware;
 
@@ -43,11 +53,68 @@ public class ExceptionHandlingMiddleware
             return;
         }
 
+        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
         ProblemDetails problem;
         int status;
 
+        var innermost = GetInnermostException(exception);
+        if (IsConnectionIssue(innermost))
+        {
+            status = StatusCodes.Status500InternalServerError;
+            problem = new ProblemDetails
+            {
+                Title = "Database error",
+                Status = status,
+                Detail = "Nie można nawiązać połączenia z bazą danych."
+            };
+
+            if (!string.IsNullOrEmpty(context.TraceIdentifier))
+            {
+                problem.Extensions["traceId"] = context.TraceIdentifier;
+            }
+
+            context.Response.Clear();
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = status;
+
+            var json = JsonSerializer.Serialize(problem, jsonOptions);
+            await context.Response.WriteAsync(json).ConfigureAwait(false);
+            return;
+        }
+
         switch (exception)
         {
+            case SqlException sqlEx:
+                status = StatusCodes.Status500InternalServerError;
+                problem = new ProblemDetails
+                {
+                    Title = "Database error",
+                    Status = status,
+                    Detail = ShortenSqlMessage(sqlEx.Message)
+                };
+                break;
+
+            case SocketException sockEx:
+                status = StatusCodes.Status500InternalServerError;
+                problem = new ProblemDetails
+                {
+                    Title = "Network error",
+                    Status = status,
+                    Detail = "Nie można nawiązać połączenia z bazą danych."
+                };
+                break;
+
+            case Win32Exception win32Ex:
+                status = StatusCodes.Status500InternalServerError;
+                problem = new ProblemDetails
+                {
+                    Title = "System error",
+                    Status = status,
+                    Detail = "Nie można nawiązać połączenia z bazą danych."
+                };
+                break;
+
             case FluentValidation.ValidationException fvEx:
                 status = StatusCodes.Status400BadRequest;
                 problem = new ValidationProblemDetails(fvEx.Errors
@@ -86,6 +153,7 @@ public class ExceptionHandlingMiddleware
                     Detail = uaEx.Message
                 };
                 break;
+
             case InvalidOperationException ioe:
                 status = StatusCodes.Status404NotFound;
                 problem = new ProblemDetails
@@ -118,13 +186,13 @@ public class ExceptionHandlingMiddleware
 
             case DbUpdateException dbEx:
                 {
-                    var innermost = GetInnermostException(dbEx);
+                    var innermostEx = GetInnermostException(dbEx);
 
-                    if (innermost is SqlException sqlEx)
+                    if (innermostEx is SqlException innerSqlEx)
                     {
-                        if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
+                        if (innerSqlEx.Number == 2627 || innerSqlEx.Number == 2601)
                         {
-                            var indexName = ExtractIndexNameFromSqlMessage(sqlEx.Message);
+                            var indexName = ExtractIndexNameFromSqlMessage(innerSqlEx.Message);
                             var indexMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                             {
                                 ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
@@ -132,7 +200,7 @@ public class ExceptionHandlingMiddleware
 
                             var detailMsg = (!string.IsNullOrEmpty(indexName) && indexMap.TryGetValue(indexName, out var userMsg))
                                 ? userMsg
-                                : sqlEx.Message;
+                                : ShortenSqlMessage(innerSqlEx.Message);
 
                             status = StatusCodes.Status409Conflict;
                             problem = new ProblemDetails
@@ -149,7 +217,7 @@ public class ExceptionHandlingMiddleware
                         {
                             Title = "Database error",
                             Status = status,
-                            Detail = sqlEx.Message
+                            Detail = ShortenSqlMessage(innerSqlEx.Message)
                         };
                         break;
                     }
@@ -166,13 +234,29 @@ public class ExceptionHandlingMiddleware
                 break;
 
             default:
-                status = StatusCodes.Status500InternalServerError;
-                problem = new ProblemDetails
                 {
-                    Title = "Internal Server Error",
-                    Status = status,
-                    Detail = exception.Message
-                };
+                    var innermostDefault = GetInnermostException(exception);
+                    if (innermostDefault is SqlException sqlEx2)
+                    {
+                        status = StatusCodes.Status500InternalServerError;
+                        problem = new ProblemDetails
+                        {
+                            Title = "Database error",
+                            Status = status,
+                            Detail = ShortenSqlMessage(sqlEx2.Message)
+                        };
+                    }
+                    else
+                    {
+                        status = StatusCodes.Status500InternalServerError;
+                        problem = new ProblemDetails
+                        {
+                            Title = "Internal Server Error",
+                            Status = status,
+                            Detail = exception.Message
+                        };
+                    }
+                }
                 break;
         }
 
@@ -185,12 +269,10 @@ public class ExceptionHandlingMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = status;
 
-        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
         try
         {
             _logger.LogInformation("Writing ProblemDetails response for {Path} with status {Status}. TraceId={TraceId}", context.Request?.Path, status, context.TraceIdentifier);
-            var json = JsonSerializer.Serialize(problem, options);
+            var json = JsonSerializer.Serialize(problem, jsonOptions);
             await context.Response.WriteAsync(json).ConfigureAwait(false);
         }
         catch (Exception writeEx)
@@ -199,7 +281,7 @@ public class ExceptionHandlingMiddleware
 
             try
             {
-                var fallback = $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"{EscapeForJson(exception.Message)}\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}";
+                var fallback = $"{{\"title\":\"{EscapeForJson(problem.Title)}\",\"status\":{status},\"detail\":\"{EscapeForJson(problem.Detail)}\",\"traceId\":\"{EscapeForJson(context.TraceIdentifier)}\"}}";
                 await context.Response.WriteAsync(fallback).ConfigureAwait(false);
             }
             catch (Exception finalEx)
@@ -221,12 +303,39 @@ public class ExceptionHandlingMiddleware
         if (string.IsNullOrEmpty(s)) return string.Empty;
         return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
     }
+
     private static Exception GetInnermostException(Exception ex)
     {
         if (ex == null) throw new ArgumentNullException(nameof(ex));
         while (ex.InnerException != null)
             ex = ex.InnerException;
         return ex;
+    }
+
+    private static bool IsConnectionIssue(Exception? ex)
+    {
+        if (ex == null) return false;
+
+        if (ex is SqlException) return true;
+        if (ex is SocketException) return true;
+        if (ex is Win32Exception) return true;
+
+        var msg = ex.Message ?? string.Empty;
+        var lower = msg.ToLowerInvariant();
+
+        if (lower.Contains("a network-related or instance-specific error")
+            || lower.Contains("nie można nawiązać połączenia")
+            || lower.Contains("actively refused")
+            || lower.Contains("tcp provider")
+            || lower.Contains("cannot open database")
+            || lower.Contains("login failed")
+            || lower.Contains("microsoft.data.sqlclient")
+            || lower.Contains("sqlexception"))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static string? ExtractIndexNameFromSqlMessage(string message)
@@ -242,6 +351,26 @@ public class ExceptionHandlingMiddleware
             return m.Groups["idx"].Value;
 
         return null;
+    }
+
+    private static string ShortenSqlMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return "Wystąpił błąd z bazą danych.";
+
+        var lower = message.ToLowerInvariant();
+
+        if (lower.Contains("a network-related or instance-specific error")
+            || lower.Contains("nie można nawiązać połączenia")
+            || lower.Contains("actively refused")
+            || lower.Contains("tcp provider")
+            || lower.Contains("sqlexception")
+            || lower.Contains("microsoft.data.sqlclient")
+            || lower.Contains("provider: tcp provider"))
+        {
+            return "Nie można nawiązać połączenia z bazą danych.";
+        }
+
+        return "Wystąpił błąd z bazą danych.";
     }
 }
 
