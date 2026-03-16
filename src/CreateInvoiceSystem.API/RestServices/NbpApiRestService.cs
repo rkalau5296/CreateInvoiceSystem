@@ -26,7 +26,7 @@ namespace CreateInvoiceSystem.API.RestServices
             if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK )
                 throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
 
-            return JsonConvert.DeserializeObject< CurrencyRatesTable>(response.Content);
+            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content);
         }
 
         public async Task<List<CurrencyRatesTable>> GetActualCurrencyRatesAsync(string baseUrl, string table, CancellationToken cancellationToken)

@@ -76,7 +76,9 @@
                             <tr>
                                 <th>Waluta</th>
                                 <th>Kod</th>
+                                <th class="text-end">Kurs (Bid)</th>
                                 <th class="text-end">Kurs (Mid)</th>
+                                <th class="text-end">Kurs (Ask)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,9 +87,11 @@
                                 <tr>
                                     <td>@(string.IsNullOrEmpty(rate.Currency) ? table.Currency : rate.Currency)</td>
                                     <td><span class="badge bg-secondary">@(string.IsNullOrEmpty(rate.Code) ? table.Code : rate.Code)</span></td>
-                                    <td class="text-end fw-bold">@rate.Mid.ToString("F4")</td>
-                                </tr>
-                            }
+                                    <td class="text-end fw-bold">@((rate.Bid is double b ? b.ToString("F4") : "-"))</td>
+                                    <td class="text-end fw-bold">@((rate.Mid.ToString("F4")))</td>
+                                    <td class="text-end fw-bold">@((rate.Ask is double a ? a.ToString("F4") : "-"))</td>
+                            </tr>
+                                        }
                         </tbody>
                     </table>
                 </div>
@@ -167,6 +171,13 @@
                     }
                 }
             }
+        }
+        catch (ArgumentException aex)
+        {
+            var msg = aex.Message ?? "Nieprawidłowy parametr.";
+            if (!msg.StartsWith("Błąd")) msg = "Błąd: " + msg;
+            _statusMessage = msg;
+            _isError = true;
         }
         catch (ApiException aex)
         {

@@ -26,8 +26,7 @@ public class CurrencyRatesController : ApiControllerBase
         GetActualCurrencyRatesRequest request = new(tableName);
         return await HandleRequest<GetActualCurrencyRatesRequest, GetActualCurrencyRatesResponse>(request, cancellationToken);
     }
-
-    // removed :datetime constraint - parse inside
+    
     [HttpGet]
     [Route("/CurrencyRates/{tableName}/{dateFrom}/{dateTo}")]
     public async Task<IActionResult> GetSeriesCurrencyRatesFromToAsync([FromRoute] string tableName, string dateFrom, string dateTo, CancellationToken cancellationToken)
