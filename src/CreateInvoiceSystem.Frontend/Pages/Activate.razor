@@ -1,5 +1,6 @@
 ﻿@page "/activate"
 @using System.Text.Json
+@using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -147,11 +148,11 @@ else
         }
     }
 
-    private class ServerActivateResponse
-    {
-        public bool IsSuccess { get; set; }
-        public string? Message { get; set; }
-        public string? Detail { get; set; }
-        public string? Title { get; set; }
-    }
+    // private class ServerActivateResponse
+    // {
+    //     public bool IsSuccess { get; set; }
+    //     public string? Message { get; set; }
+    //     public string? Detail { get; set; }
+    //     public string? Title { get; set; }
+    // }
 }

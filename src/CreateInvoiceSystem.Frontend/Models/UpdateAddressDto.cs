@@ -1,10 +1,22 @@
-﻿namespace CreateInvoiceSystem.Frontend.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CreateInvoiceSystem.Frontend.Models;
 
 public class UpdateAddressDto
 {
-    public string Street { get; init; } = string.Empty;
-    public string Number { get; init; } = string.Empty;
-    public string City { get; init; } = string.Empty;
-    public string PostalCode { get; init; } = string.Empty;
-    public string Country { get; init; } = "Polska";
+    [Required(ErrorMessage = "Ulica jest wymagana.")]
+    public string Street { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Nr budynku jest wymagany.")]
+    public string Number { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Kod pocztowy jest wymagany.")]
+    [RegularExpression(@"^\d{2}-\d{3}$", ErrorMessage = "Kod pocztowy musi mieć format XX-XXX.")]
+    public string PostalCode { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Miasto jest wymagane.")]
+    public string City { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Kraj jest wymagany.")]
+    public string Country { get; set; } = "Polska";
 }

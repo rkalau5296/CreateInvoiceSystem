@@ -382,65 +382,65 @@
         }
     }
 
-    public class UpdateUserDto
-    {
-        public int UserId { get; set; }
+    // public class UpdateUserDto
+    // {
+    //     public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Imię i nazwisko jest wymagane.")]
-        [StringLength(100, ErrorMessage = "Maksymalnie 100 znaków.")]
-        public string Name { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Imię i nazwisko jest wymagane.")]
+    //     [StringLength(100, ErrorMessage = "Maksymalnie 100 znaków.")]
+    //     public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Nazwa firmy jest wymagana.")]
-        [StringLength(200, ErrorMessage = "Maksymalnie 200 znaków.")]
-        public string CompanyName { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Nazwa firmy jest wymagana.")]
+    //     [StringLength(200, ErrorMessage = "Maksymalnie 200 znaków.")]
+    //     public string CompanyName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email jest wymagany.")]
-        [EmailAddress(ErrorMessage = "Nieprawidłowy format email.")]
-        public string Email { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Email jest wymagany.")]
+    //     [EmailAddress(ErrorMessage = "Nieprawidłowy format email.")]
+    //     public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "NIP jest wymagany.")]
-        [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi zawierać 10 cyfr.")]
-        public string Nip { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "NIP jest wymagany.")]
+    //     [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi zawierać 10 cyfr.")]
+    //     public string Nip { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Numer konta jest wymagany.")]
-        [StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
-        public string BankAccountNumber { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Numer konta jest wymagany.")]
+    //     [StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
+    //     public string BankAccountNumber { get; set; } = string.Empty;
 
-        public UpdateAddressDto Address { get; set; } = new();
-    }
+    //     public UpdateAddressDto Address { get; set; } = new();
+    // }
 
-    public class UpdateAddressDto
-    {
-        [Required(ErrorMessage = "Ulica jest wymagana.")]
-        public string Street { get; set; } = string.Empty;
+    // public class UpdateAddressDto
+    // {
+    //     [Required(ErrorMessage = "Ulica jest wymagana.")]
+    //     public string Street { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Nr budynku jest wymagany.")]
-        public string Number { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Nr budynku jest wymagany.")]
+    //     public string Number { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Kod pocztowy jest wymagany.")]
-        [RegularExpression(@"^\d{2}-\d{3}$", ErrorMessage = "Kod pocztowy musi mieć format XX-XXX.")]
-        public string PostalCode { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Kod pocztowy jest wymagany.")]
+    //     [RegularExpression(@"^\d{2}-\d{3}$", ErrorMessage = "Kod pocztowy musi mieć format XX-XXX.")]
+    //     public string PostalCode { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Miasto jest wymagane.")]
-        public string City { get; set; } = string.Empty;
+    //     [Required(ErrorMessage = "Miasto jest wymagane.")]
+    //     public string City { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Kraj jest wymagany.")]
-        public string Country { get; set; } = "Poland";
-    }
+    //     [Required(ErrorMessage = "Kraj jest wymagany.")]
+    //     public string Country { get; set; } = "Polska";
+    // }
 
-    public class GetMeResponse
-    {
-        public UserDtoData? Data { get; set; }
-    }
+    // public class GetMeResponse
+    // {
+    //     public UserDtoData? Data { get; set; }
+    // }
 
-    public class UserDtoData
-    {
-        public int UserId { get; set; }
-        public string Name { get; set; } = "";
-        public string CompanyName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string Nip { get; set; } = "";
-        public string BankAccountNumber { get; set; } = "";
-        public UpdateAddressDto Address { get; set; } = new();
-    }
+    // public class UserDtoData
+    // {
+    //     public int UserId { get; set; }
+    //     public string Name { get; set; } = "";
+    //     public string CompanyName { get; set; } = "";
+    //     public string Email { get; set; } = "";
+    //     public string Nip { get; set; } = "";
+    //     public string BankAccountNumber { get; set; } = "";
+    //     public UpdateAddressDto Address { get; set; } = new();
+    // }
 }
