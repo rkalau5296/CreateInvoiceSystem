@@ -2,7 +2,7 @@
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 
-namespace CreateInvoiceSystem.API.Mappers.ClientMappers;
+namespace CreateInvoiceSystem.API.Mappers.ClientMapper;
 
 public static class ClientMapper
 {

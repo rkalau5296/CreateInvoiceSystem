@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
-using CreateInvoiceSystem.API.Mappers.ClientMappers;
+using CreateInvoiceSystem.API.Mappers.ClientMapper;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;

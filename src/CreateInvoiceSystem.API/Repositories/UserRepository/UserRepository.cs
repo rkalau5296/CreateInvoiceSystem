@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.API.Mappers.UserMapper;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
@@ -30,59 +31,30 @@ public class UserRepository : IUserRepository
 
     public async Task AddAsync(User user, CancellationToken cancellationToken)
     {
-        var addressEntity = new AddressEntity
-        {
-            Street = user.Address.Street,
-            Number = user.Address.Number,
-            City = user.Address.City,
-            PostalCode = user.Address.PostalCode,
-            Country = user.Address.Country
-        };        
-        
+        var addressEntity = UserMapper.ToAddressEntity(user.Address);
         await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
 
         user.AddressId = addressEntity.AddressId;
 
-        var userEntity = new UserEntity
-        {            
-            Name = user.Name,
-            CompanyName = user.CompanyName,
-            Email = user.Email,            
-            Nip = user.Nip,
-            AddressId = user.AddressId
-        };
-
+        var userEntity = UserMapper.ToUserEntity(user);
         await _db.Set<UserEntity>().AddAsync(userEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);        
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IdentityResult> CreateWithPasswordAsync(User user, string password)
     {
-        var addressEntity = new AddressEntity
-        {
-            City = user.Address.City,
-            Street = user.Address.Street,
-            Number = user.Address.Number,
-            PostalCode = user.Address.PostalCode,
-            Country = user.Address.Country
-        };
-
+        var addressEntity = UserMapper.ToAddressEntity(user.Address);
         await _db.Set<AddressEntity>().AddAsync(addressEntity);
         await _db.SaveChangesAsync();
 
         user.AddressId = addressEntity.AddressId;
 
-        var userEntity = new UserEntity
-        {
-            Name = user.Name,
-            CompanyName = user.CompanyName,
-            Email = user.Email,            
-            Nip = user.Nip,
-            AddressId = user.AddressId,
-            UserName = user.Email,            
-            BankAccountNumber = user.BankAccountNumber
-        };
+        var userEntity = UserMapper.ToUserEntity(user);
+        userEntity.UserName = user.Email;
+        userEntity.NormalizedUserName = _normalizer.NormalizeName(user.Email);
+        userEntity.NormalizedEmail = _normalizer.NormalizeEmail(user.Email);
+        userEntity.BankAccountNumber = user.BankAccountNumber;
 
         user.Name = user.Email;
 
@@ -127,84 +99,7 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return new User
-        {
-            UserId = baseData.user.Id,
-            Name = baseData.user.Name,
-            CompanyName = baseData.user.CompanyName,
-            Email = baseData.user.Email,
-            Nip = baseData.user.Nip,
-            BankAccountNumber = baseData.user.BankAccountNumber,
-            AddressId = baseData.user.AddressId,
-            IsActive = baseData.user.IsActive,
-            Address = new Address
-            {
-                AddressId = baseData.addr.AddressId,
-                Street = baseData.addr.Street,
-                Number = baseData.addr.Number,
-                City = baseData.addr.City,
-                PostalCode = baseData.addr.PostalCode,
-                Country = baseData.addr.Country,
-            },
-            Invoices = invoices.Select(i => new Invoice
-            {
-                InvoiceId = i.InvoiceId,
-                Title = i.Title,
-                TotalNet = i.TotalNet,
-                TotalVat = i.TotalVat,
-                TotalGross = i.TotalGross,
-                PaymentDate = i.PaymentDate,
-                CreatedDate = i.CreatedDate,
-                Comments = i.Comments,
-                ClientId = i.ClientId,
-                UserId = i.UserId,
-                MethodOfPayment = i.MethodOfPayment,
-                ClientName = i.ClientName,
-                ClientAddress = i.ClientAddress,
-                ClientNip = i.ClientNip,
-                InvoicePositions = invoicePositions
-                    .Where(ip => ip.InvoiceId == i.InvoiceId)
-                    .Select(ip => new InvoicePosition
-                    {
-                        InvoicePositionId = ip.InvoicePositionId,
-                        InvoiceId = ip.InvoiceId,
-                        ProductId = ip.ProductId,
-                        Quantity = ip.Quantity,
-                        ProductDescription = ip.ProductDescription,
-                        ProductName = ip.ProductName,
-                        ProductValue = ip.ProductValue,
-                        VatRate = ip.VatRate
-                    }).ToList()
-            }).ToList(),
-            Products = products.Select(p => new Product
-            {
-                ProductId = p.ProductId,
-                Name = p.Name,
-                Description = p.Description,
-                Value = p.Value,
-                UserId = p.UserId
-            }).ToList(),
-            Clients = clients.Select(c =>
-            {
-                var clientAddr = clientAddresses.FirstOrDefault(a => a.AddressId == c.AddressId);
-                return new Client
-                {
-                    ClientId = c.ClientId,
-                    Name = c.Name,
-                    Nip = c.Nip,
-                    UserId = c.UserId,
-                    Address = clientAddr != null ? new Address
-                    {
-                        AddressId = clientAddr.AddressId,
-                        Street = clientAddr.Street,
-                        Number = clientAddr.Number,
-                        City = clientAddr.City,
-                        PostalCode = clientAddr.PostalCode,
-                        Country = clientAddr.Country
-                    } : null
-                };
-            }).ToList()
-        };
+        return UserMapper.MapFull(baseData.user, baseData.addr, invoices, invoicePositions, products, clients, clientAddresses);
     }
 
     public async Task<List<User>> GetUsersAsync(CancellationToken cancellationToken)
@@ -221,93 +116,7 @@ public class UserRepository : IUserRepository
         var allClientAddresses = await _db.Set<AddressEntity>().AsNoTracking().ToListAsync(cancellationToken);
         var allInvoicePositions = await _db.Set<InvoicePositionEntity>().AsNoTracking().ToListAsync(cancellationToken);
 
-        return userBase.Select(x => new User
-        {
-            UserId = x.user.Id,
-            Name = x.user.Name,
-            CompanyName = x.user.CompanyName,
-            Email = x.user.Email,
-            AddressId = x.user.AddressId,
-            Address = new Address
-            {
-                AddressId = x.addr.AddressId,
-                Street = x.addr.Street,
-                City = x.addr.City,
-                Number = x.addr.Number,
-                PostalCode = x.addr.PostalCode,
-                Country = x.addr.Country,
-            },
-            Nip = x.user.Nip,
-            Invoices = allInvoices
-                    .Where(i => i.UserId == x.user.Id)
-                    .Select(i => new Invoice
-                    {
-                        InvoiceId = i.InvoiceId,
-                        Title = i.Title,
-                        TotalNet = i.TotalNet,
-                        TotalVat = i.TotalVat,
-                        TotalGross = i.TotalGross,
-                        PaymentDate = i.PaymentDate,
-                        CreatedDate = i.CreatedDate,
-                        Comments = i.Comments,
-                        ClientId = i.ClientId,
-                        UserId = i.UserId,
-                        MethodOfPayment = i.MethodOfPayment,
-                        ClientName = i.ClientName,
-                        ClientAddress = i.ClientAddress,
-                        ClientNip = i.ClientNip,
-                        InvoicePositions = allInvoicePositions
-                            .Where(ip => ip.InvoiceId == i.InvoiceId)
-                            .Select(ip => new InvoicePosition
-                            {
-                                InvoiceId = ip.InvoiceId,
-                                InvoicePositionId = ip.InvoicePositionId,
-                                ProductId = ip.ProductId,
-                                Quantity = ip.Quantity,
-                                ProductDescription = ip.ProductDescription,
-                                ProductName = ip.ProductName,
-                                ProductValue = ip.ProductValue,
-                                VatRate = ip.VatRate
-                            })
-                            .ToList()
-                    })
-                    .ToList(),
-            Products = allProducts
-                    .Where(p => p.UserId == x.user.Id)
-                    .Select(p => new Product
-                    {
-                        ProductId = p.ProductId,
-                        Name = p.Name,
-                        Description = p.Description,
-                        Value = p.Value,
-                        UserId = p.UserId
-                    })
-                    .ToList(),
-            Clients = allClients
-                    .Where(c => c.UserId == x.user.Id)
-                    .Select(c =>
-                    {
-                        var clientAddrEntity = allClientAddresses.FirstOrDefault(a => a.AddressId == c.AddressId);
-
-                        return new Client
-                        {
-                            ClientId = c.ClientId,
-                            Name = c.Name,
-                            Nip = c.Nip,
-                            UserId = c.UserId,
-                            Address = clientAddrEntity != null ? new Address
-                            {
-                                AddressId = clientAddrEntity.AddressId,
-                                Street = clientAddrEntity.Street,
-                                Number = clientAddrEntity.Number,
-                                City = clientAddrEntity.City,
-                                PostalCode = clientAddrEntity.PostalCode,
-                                Country = clientAddrEntity.Country
-                            } : null
-                        };
-                    })
-                    .ToList()
-        }).ToList();
+        return userBase.Select(x => UserMapper.MapSummary(x.user, x.addr, allInvoices, allInvoicePositions, allProducts, allClients, allClientAddresses)).ToList();
     }
 
     public async Task<bool> IsAddressExists(int addressId, CancellationToken cancellationToken)
@@ -335,13 +144,12 @@ public class UserRepository : IUserRepository
     }
 
     public async Task RemoveAsync(int userId, CancellationToken ct)
-    {        
+    {
         var user = await _db.Set<UserEntity>().FirstOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user != null)
         {
             _db.Set<UserEntity>().Remove(user);
-
             await _db.SaveChangesAsync(ct);
         }
     }
@@ -352,7 +160,7 @@ public class UserRepository : IUserRepository
     }
 
     public async Task UpdateAsync(User user, CancellationToken cancellationToken)
-    {        
+    {
         var userEntity = await _db.Set<UserEntity>()
             .SingleOrDefaultAsync(u => u.Id == user.UserId, cancellationToken);
 
@@ -360,10 +168,10 @@ public class UserRepository : IUserRepository
 
         var addressEntity = await _db.Set<AddressEntity>()
             .SingleOrDefaultAsync(a => a.AddressId == user.AddressId, cancellationToken);
-                
+
         userEntity.Name = user.Name;
-        userEntity.CompanyName = user.CompanyName;        
-        userEntity.Nip = user.Nip;        
+        userEntity.CompanyName = user.CompanyName;
+        userEntity.Nip = user.Nip;
         userEntity.BankAccountNumber = user.BankAccountNumber;
 
         var newEmail = user.Email;
@@ -371,84 +179,78 @@ public class UserRepository : IUserRepository
         {
             var oldEmail = userEntity.Email;
             if (!string.Equals(oldEmail, newEmail, StringComparison.OrdinalIgnoreCase))
-            {                
+            {
                 var normalizedEmail = _normalizer.NormalizeEmail(newEmail);
                 var normalizedUserName = _normalizer.NormalizeName(newEmail);
 
                 userEntity.Email = newEmail;
                 userEntity.NormalizedEmail = normalizedEmail;
                 userEntity.UserName = newEmail;
-                userEntity.NormalizedUserName = normalizedUserName;             
-                
+                userEntity.NormalizedUserName = normalizedUserName;
             }
             else
-            {                
+            {
                 userEntity.NormalizedEmail ??= _normalizer.NormalizeEmail(userEntity.Email ?? string.Empty);
                 userEntity.NormalizedUserName ??= _normalizer.NormalizeName(userEntity.UserName ?? string.Empty);
             }
         }
 
-        if (addressEntity != null && user.Address != null)
+        if (user.Address != null)
         {
-            addressEntity.Street = user.Address.Street;
-            addressEntity.Number = user.Address.Number;
-            addressEntity.City = user.Address.City;
-            addressEntity.PostalCode = user.Address.PostalCode;
-            addressEntity.Country = user.Address.Country;
+            if (addressEntity == null)
+            {
+                // create new address if user provided one but none exists in DB
+                var newAddress = UserMapper.ToAddressEntity(user.Address);
+                await _db.Set<AddressEntity>().AddAsync(newAddress, cancellationToken);
+                await _db.SaveChangesAsync(cancellationToken);
+                userEntity.AddressId = newAddress.AddressId;
+            }
+            else
+            {
+                // update existing address with provided values
+                addressEntity.Street = user.Address.Street;
+                addressEntity.Number = user.Address.Number;
+                addressEntity.City = user.Address.City;
+                addressEntity.PostalCode = user.Address.PostalCode;
+                addressEntity.Country = user.Address.Country;
+            }
         }
+
         await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<User> CheckPasswordAsync(User user, string password)
     {
         var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());
-        return (userEntity != null && await _userManager.CheckPasswordAsync(userEntity, password))
-         ? new User
-         {
-             UserId = userEntity.Id,
-             Email = userEntity.Email,
-             CompanyName = userEntity.CompanyName,
-             Nip = userEntity.Nip,
-             AddressId = userEntity.AddressId
-         }
-         : null;
+        if (userEntity == null) return null;
+
+        var valid = await _userManager.CheckPasswordAsync(userEntity, password);
+        return valid ? UserMapper.MapLight(userEntity) : null;
     }
 
     public async Task<User> FindByEmailAsync(string email)
     {
         var userEntity = await _userManager.FindByEmailAsync(email);
-        return userEntity != null
-            ? new User
-            {
-                UserId = userEntity.Id,
-                Email = userEntity.Email,
-                Name = userEntity.Name,
-                CompanyName = userEntity.CompanyName,
-                Nip = userEntity.Nip,
-                AddressId = userEntity.AddressId,
-                BankAccountNumber = userEntity.BankAccountNumber,
-                IsActive = userEntity.IsActive
-            }
-            : null;
+        return userEntity == null ? null : UserMapper.MapLight(userEntity);
     }
 
     public async Task<List<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
     {
         var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
 
-        if (identityUser == null) return [];
-        
+        if (identityUser == null) return new List<string>();
+
         var roles = await _userManager.GetRolesAsync(identityUser);
 
-        return [.. roles];
+        return roles.ToList();
     }
 
     public async Task<string> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken)
-    {        
+    {
         var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
 
         if (identityUser == null) return string.Empty;
-     
+
         return await _userManager.GeneratePasswordResetTokenAsync(identityUser);
     }
 
@@ -463,61 +265,45 @@ public class UserRepository : IUserRepository
 
     public async Task AddSessionAsync(UserSession session, CancellationToken cancellationToken)
     {
-        var entity = new UserSessionEntity
-        {
-            UserId = session.UserId,
-            RefreshToken = session.RefreshToken,
-            LastActivityAt = session.LastActivityAt,
-            IsRevoked = session.IsRevoked
-        };
-        
+        var entity = UserMapper.ToUserSessionEntity(session);
         await _db.Set<UserSessionEntity>().AddAsync(entity, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
+        session.Id = entity.Id;
     }
 
     public async Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken)
-    {        
+    {
         var entity = await _db.Set<UserSessionEntity>()
             .FirstOrDefaultAsync(s => s.RefreshToken == session.RefreshToken, cancellationToken);
 
         if (entity is not null)
-        {            
-            entity.LastActivityAt = DateTime.UtcNow;            
-            session.LastActivityAt = entity.LastActivityAt;            
+        {
+            entity.LastActivityAt = DateTime.UtcNow;
+            session.LastActivityAt = entity.LastActivityAt;
             await _db.SaveChangesAsync(cancellationToken);
         }
     }
 
     public async Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken)
     {
-
         var entity = await _db.Set<UserSessionEntity>()
             .FirstOrDefaultAsync(s => s.Id == session.Id, cancellationToken);
 
         if (entity is not null)
         {
-            entity.RefreshToken = session.RefreshToken; 
+            entity.RefreshToken = session.RefreshToken;
             entity.LastActivityAt = session.LastActivityAt;
             entity.IsRevoked = session.IsRevoked;
-
             await _db.SaveChangesAsync(cancellationToken);
         }
     }
+
     public async Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken)
-    {        
+    {
         var entity = await _db.Set<UserSessionEntity>()
             .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken, cancellationToken);
-     
-        if (entity is null) return null;
-        
-        return new UserSession
-        {
-            Id = entity.Id,
-            UserId = entity.UserId,
-            RefreshToken = entity.RefreshToken,
-            LastActivityAt = entity.LastActivityAt,
-            IsRevoked = entity.IsRevoked
-        };
+
+        return UserMapper.ToUserSession(entity);
     }
 
     public async Task<int> GetLoggedUserId(CancellationToken cancellationToken = default)
@@ -533,24 +319,25 @@ public class UserRepository : IUserRepository
     }
 
     public async Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string oldPassword, string newPassword)
-    {        
+    {
         var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());
 
         if (userEntity == null)
         {
             return (false, "Nie odnaleziono profilu użytkownika w systemie Identity.");
         }
-        
+
         var result = await _userManager.ChangePasswordAsync(userEntity, oldPassword, newPassword);
 
         if (result.Succeeded)
         {
             return (true, null);
         }
-        
+
         var error = result.Errors.FirstOrDefault()?.Description ?? "Błąd podczas zmiany hasła.";
         return (false, error);
     }
+
     public async Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct)
     {
         var query = _db.Set<UserEntity>()
@@ -575,7 +362,7 @@ public class UserRepository : IUserRepository
     }
 
     public async Task<List<User>> GetUsersForCleanupWarningAsync(DateTime warningDate, CancellationToken ct)
-    {        
+    {
         var dayStart = warningDate.Date;
         var dayEnd = dayStart.AddDays(1);
 
@@ -584,15 +371,8 @@ public class UserRepository : IUserRepository
                      && u.CreatedAt >= dayStart
                      && u.CreatedAt < dayEnd)
             .ToListAsync(ct);
-        
-        return entities.Select(e => new User
-        {
-            UserId = e.Id,
-            Email = e.Email,
-            Name = e.Name,
-            IsActive = e.IsActive,
-            CreatedAt = e.CreatedAt
-        }).ToList();
+
+        return entities.Select(UserMapper.MapLight).ToList();
     }
 
     public async Task SaveActivationTokenJtiAsync(int userId, string jti, DateTimeOffset expiryUtc, CancellationToken ct = default)
@@ -600,9 +380,10 @@ public class UserRepository : IUserRepository
         var user = await _db.Set<UserEntity>().FindAsync(new object[] { userId }, ct) ?? throw new InvalidOperationException("User not found");
         user.ActivationTokenJti = jti;
         user.ActivationTokenExpiry = expiryUtc;
-       
+
         await _db.SaveChangesAsync(ct);
     }
+
     public async Task<bool> ValidateAndActivateUserByTokenAsync(string email, string tokenJti, DateTimeOffset? tokenExpiry, CancellationToken ct = default)
     {
         var now = DateTimeOffset.UtcNow;

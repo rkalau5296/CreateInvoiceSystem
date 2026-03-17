@@ -82,7 +82,7 @@ public class NbpService
     public async Task<List<CurrencyRatesTable>> GetTableHistoryAsync(string tableName, DateTime from, DateTime to)
     {
         if (from > to)
-            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.", nameof(from));
+            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.");
 
         var dateFrom = from.ToString("yyyy-MM-dd");
         var dateTo = to.ToString("yyyy-MM-dd");
@@ -109,7 +109,7 @@ public class NbpService
     public async Task<CurrencyRatesTable?> GetSpecificCurrencyHistoryAsync(string tableName, string code, DateTime from, DateTime to)
     {
         if (from > to)
-            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.", nameof(from));
+            throw new ArgumentException("Data 'from' nie może być późniejsza niż data 'to'.");
 
         ValidateCurrencyCode(tableName, code);
 
@@ -132,7 +132,7 @@ public class NbpService
         var trimmed = code.Trim().ToUpperInvariant();
 
         if (!_validCurrencyCodes.Contains(trimmed))
-            throw new ArgumentException("Podany kod waluty jest błędny lub nie występuje w NBP.", nameof(code));
+            throw new ArgumentException("Podany kod waluty jest błędny lub nie występuje w NBP.");
 
         if (string.IsNullOrWhiteSpace(tableName))
             return;
