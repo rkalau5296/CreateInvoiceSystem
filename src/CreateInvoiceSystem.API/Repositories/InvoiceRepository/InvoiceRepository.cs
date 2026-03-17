@@ -8,14 +8,8 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 

@@ -4,7 +4,7 @@ using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 
 namespace CreateInvoiceSystem.API.Mappers.ClientMappers;
 
-internal static class ClientMapper
+public static class ClientMapper
 {
     public static Client ToDomain(ClientEntity c, AddressEntity a)
     {

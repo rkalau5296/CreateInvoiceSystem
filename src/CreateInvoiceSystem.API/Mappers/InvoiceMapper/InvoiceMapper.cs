@@ -8,7 +8,7 @@ using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 namespace CreateInvoiceSystem.API.Mappers.InvoiceMapper;
 
-internal static class InvoiceMapper
+public static class InvoiceMapper
 {
     public static AddressEntity ToAddressEntity(Address a)
     {
