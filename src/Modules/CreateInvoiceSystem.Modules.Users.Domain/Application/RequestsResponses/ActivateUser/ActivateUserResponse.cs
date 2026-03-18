@@ -1,6 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
 
 public class ActivateUserResponse
 {

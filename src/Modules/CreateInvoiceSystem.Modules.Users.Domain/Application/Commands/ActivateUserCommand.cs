@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
 public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUserResponse, IUserRepository>

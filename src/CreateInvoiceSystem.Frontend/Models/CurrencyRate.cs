@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CreateInvoiceSystem.Frontend.Models;
+﻿namespace CreateInvoiceSystem.Frontend.Models;
 
 public record CurrencyRate
 {

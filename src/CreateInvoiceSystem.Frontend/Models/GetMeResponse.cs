@@ -1,6 +1,4 @@
-﻿using static CreateInvoiceSystem.Frontend.Pages.Settings;
-
-namespace CreateInvoiceSystem.Frontend.Models
+﻿namespace CreateInvoiceSystem.Frontend.Models
 {
     public class GetMeResponse
     {

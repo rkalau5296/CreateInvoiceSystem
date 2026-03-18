@@ -3,7 +3,6 @@ using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 

@@ -1,6 +1,5 @@
 ﻿using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Identity.Models;
-using CreateInvoiceSystem.Identity.Services;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.UserTokenAdapter

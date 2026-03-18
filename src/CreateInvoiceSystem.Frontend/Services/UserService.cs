@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System.Net.Http;
 using System.Net.Http.Json;
 
 namespace CreateInvoiceSystem.Frontend.Services
