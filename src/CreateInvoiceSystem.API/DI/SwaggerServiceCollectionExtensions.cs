@@ -46,17 +46,13 @@ public static class SwaggerServiceCollectionExtensions
     }
     
     public static WebApplication UseSwaggerModule(this WebApplication app)
-    {
-        if (app.Environment.IsDevelopment())
+    {      
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
-                c.RoutePrefix = string.Empty;
-            });
-        }
-
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreateInvoiceSystem API v1");
+            c.RoutePrefix = string.Empty;
+        });
         return app;
     }
 }

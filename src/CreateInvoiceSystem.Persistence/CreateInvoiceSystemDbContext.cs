@@ -75,5 +75,9 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .WithMany()
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<InvoicePositionEntity>()
+            .Property(p => p.ProductValue)
+            .HasPrecision(18, 2);
     }
 }

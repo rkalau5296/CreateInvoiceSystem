@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /src/CreateInvoiceSystem.API/appsettings.local.json
+
+# Ustawienia lokalne dewelopera
+**/appsettings.Development.json

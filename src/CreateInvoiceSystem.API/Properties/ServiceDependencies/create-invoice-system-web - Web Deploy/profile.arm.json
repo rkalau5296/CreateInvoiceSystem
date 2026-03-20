@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceName": {
+      "type": "string",
+      "defaultValue": "create-invoice-system-web"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "polandcentral"
+    }
+  },
+  "variables": {
+    "planName": "[concat(parameters('resourceName'), '-plan')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverFarms",
+      "apiVersion": "2021-02-01",
+      "name": "[variables('planName')]",
+      "location": "[parameters('location')]",
+      "kind": "linux",
+      "sku": {
+        "name": "B1",
+        "tier": "Basic"
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-02-01",
+      "name": "[parameters('resourceName')]",
+      "location": "[parameters('location')]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverFarms', variables('planName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverFarms', variables('planName'))]",
+        "reserved": true,
+        "siteConfig": {
+          "linuxFxVersion": "DOTNETCORE|9.0",
+          "ftpsState": "FtpsOnly"
+        }
+      }
+    }
+  ]
+}
