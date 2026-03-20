@@ -9,53 +9,56 @@
 <div class="page">
     <AuthorizeView>
         <Authorized>
-            <div class="sidebar d-flex flex-column" style="background: #2c3e50; color: white; min-width: 250px; height: 100vh;">
-                <div class="top-row ps-3 navbar navbar-dark">
-                    <a class="navbar-brand" href="dashboard">System Faktur</a>
-                </div>
+            @if (!_isLoginRoute)
+            {
+                <div class="sidebar d-flex flex-column" style="background: #2c3e50; color: white; min-width: 250px; height: 100vh;">
+                    <div class="top-row ps-3 navbar navbar-dark">
+                        <a class="navbar-brand" href="dashboard">System Faktur</a>
+                    </div>
 
-                <nav class="flex-column p-3 flex-grow-1">
-                    <div class="nav-item px-3 mb-2">
-                        <NavLink class="nav-link text-white" href="dashboard">
-                            🏠 Dashboard
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3 mb-2">
-                        <NavLink class="nav-link text-white" href="invoices">
-                            📄 Faktury
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3 mb-2">
-                        <NavLink class="nav-link text-white" href="clients">
-                            👥 Klienci
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3 mb-2">
-                        <NavLink class="nav-link text-white" href="products">
-                            📦 Produkty
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3 mb-2">
-                        <NavLink class="nav-link text-white" href="nbp-rates">
-                            💰 Kursy NBP
-                        </NavLink>
-                    </div>
-                </nav>
+                    <nav class="flex-column p-3 flex-grow-1">
+                        <div class="nav-item px-3 mb-2">
+                            <NavLink class="nav-link text-white" href="dashboard">
+                                🏠 Dashboard
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3 mb-2">
+                            <NavLink class="nav-link text-white" href="invoices">
+                                📄 Faktury
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3 mb-2">
+                            <NavLink class="nav-link text-white" href="clients">
+                                👥 Klienci
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3 mb-2">
+                            <NavLink class="nav-link text-white" href="products">
+                                📦 Produkty
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3 mb-2">
+                            <NavLink class="nav-link text-white" href="nbp-rates">
+                                💰 Kursy NBP
+                            </NavLink>
+                        </div>
+                    </nav>
 
-                <div class="mt-auto p-3 border-top border-secondary">
-                    <div class="nav-item px-3 mb-1">
-                        <NavLink class="nav-link text-white-50 small" href="settings">
-                            ⚙️ Ustawienia
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <button class="btn btn-link nav-link text-danger small w-100 text-start p-0 border-0 shadow-none"
-                                @onclick="HandleLogout">
-                            🚪 Wyloguj się
-                        </button>
+                    <div class="mt-auto p-3 border-top border-secondary">
+                        <div class="nav-item px-3 mb-1">
+                            <NavLink class="nav-link text-white-50 small" href="settings">
+                                ⚙️ Ustawienia
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3">
+                            <button class="btn btn-link nav-link text-danger small w-100 text-start p-0 border-0 shadow-none"
+                                    @onclick="HandleLogout">
+                                🚪 Wyloguj się
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </Authorized>
     </AuthorizeView>
 
@@ -80,16 +83,33 @@
 
 @code {
     private string? _globalStatusMessage;
+    private bool _isLoginRoute;
 
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += OnLocationChanged;
+        UpdateRoute(Navigation.Uri);
         _ = CheckSessionMessageAsync();
     }
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
+        UpdateRoute(e.Location);
         _ = CheckSessionMessageAsync();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateRoute(string absoluteUri)
+    {
+        try
+        {
+            var relative = Navigation.ToBaseRelativePath(absoluteUri).Split('?', '#')[0].Trim('/');            
+            _isLoginRoute = string.Equals(relative, "login", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            _isLoginRoute = false;
+        }
     }
 
     private async Task CheckSessionMessageAsync()
