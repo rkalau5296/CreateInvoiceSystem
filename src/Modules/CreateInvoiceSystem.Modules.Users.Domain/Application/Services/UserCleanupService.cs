@@ -56,8 +56,17 @@ public class UserCleanupService : BackgroundService
                             await _userRepository.SaveActivationTokenJtiAsync(user.UserId, jti, expiryUtc.Value, cancellationToken);
                         }
 
-                        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/') ?? "https://localhost:7022";
+                        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
+
+                        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+                        {
+                            throw new InvalidOperationException(
+                                $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
+                                "Sprawdź plik appsettings.json.");
+                        }
+
                         var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
+
                         await _emailService.SendCleanupWarningEmailAsync(user.Email, user.Name, daysLeft, activationLink);
                     }
                     catch (Exception exUser)

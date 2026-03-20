@@ -38,8 +38,17 @@ public class ResendActivationTokenCommand : CommandBase<ResendActivationTokenReq
         }
         
         var token = _userTokenService.GenerateActivationToken(user.Email);
-        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/') ?? "https://localhost:7022";
-        var activationLink = $"{frontendUrl}/activate?token={System.Uri.EscapeDataString(token)}";
+
+        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
+
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+        {
+            throw new InvalidOperationException(
+                $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
+                "Sprawdź plik appsettings.json.");
+        }
+
+        var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
 
         await _userEmailSender.SendActivationEmailAsync(user.Email, activationLink);
 

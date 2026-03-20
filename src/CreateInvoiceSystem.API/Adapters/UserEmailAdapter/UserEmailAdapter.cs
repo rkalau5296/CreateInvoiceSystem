@@ -44,8 +44,15 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
             throw new ArgumentNullException(nameof(email));
 
         var escapedToken = Uri.EscapeDataString(token);
-        
+
         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
+
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+        {
+            throw new InvalidOperationException(
+                $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
+                "Sprawdź plik appsettings.json.");
+        }
 
         var resetLink = $"{frontendUrl}/reset-password?token={escapedToken}&email={email}";
 

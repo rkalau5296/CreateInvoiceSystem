@@ -16,8 +16,18 @@ namespace CreateInvoiceSystem.Frontend
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
             
-            var apiBaseAddress = builder.Configuration["BaseApiUrl"] ?? "https://localhost:7168/";
-            var apiUri = new Uri(apiBaseAddress);
+            var apiBaseAddress = builder.Configuration["BaseApiUrl"];
+
+            var apiBaseUrlSetting = builder.Configuration["BaseApiUrl"];
+
+            if (!Uri.TryCreate(apiBaseUrlSetting, UriKind.Absolute, out var validatedUri))
+            {
+                throw new InvalidOperationException(
+                    $"B£¥D KONFIGURACJI: 'BaseApiUrl' jest nieprawid³owy lub nieobecny (Wartoœæ: '{apiBaseUrlSetting}'). " +
+                    "SprawdŸ plik appsettings.json.");
+            }
+
+            var apiUri = new Uri(apiBaseUrlSetting);
 
             builder.Services.AddTransient<AuthenticationHeaderHandler>();
             builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();

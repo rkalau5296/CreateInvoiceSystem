@@ -38,8 +38,16 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
         }
 
         var token = _userTokenService.GenerateActivationToken(entity.Email);
-       
-        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/') ?? "https://localhost:7022";
+
+        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
+
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+        {
+            throw new InvalidOperationException(
+                $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
+                "Sprawdź plik appsettings.json.");
+        }
+
         var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
         
         await _userEmailSender.SendActivationEmailAsync(entity.Email, activationLink);
