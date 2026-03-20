@@ -3,6 +3,11 @@ using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 
@@ -26,7 +31,7 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
     {
         if (this.Parametr is null)
             throw new ArgumentNullException(nameof(this.Parametr));
-        
+
         var entity = UserMappers.ToEntity(this.Parametr);
 
         var result = await _userRepository.CreateWithPasswordAsync(entity, this.Parametr.Password);
@@ -39,6 +44,18 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
 
         var token = _userTokenService.GenerateActivationToken(entity.Email);
 
+        // Zapisz JTI i expiry do DB dla nowo utworzonego użytkownika
+        var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
+        if (!string.IsNullOrWhiteSpace(jti) && expiry.HasValue)
+        {
+            // po utworzeniu użytkownika, pobierz jego encję z repo aby mieć UserId
+            var createdUser = await _userRepository.FindByEmailAsync(entity.Email);
+            if (createdUser != null)
+            {
+                await _userRepository.SaveActivationTokenJtiAsync(createdUser.UserId, jti, expiry.Value, cancellationToken);
+            }
+        }
+
         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
 
         if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
@@ -49,7 +66,7 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
         }
 
         var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
-        
+
         await _userEmailSender.SendActivationEmailAsync(entity.Email, activationLink);
 
         return entity.ToRegisterUserDto();
@@ -79,7 +96,7 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
             return "Nieprawidłowa nazwa użytkownika.";
 
         if (code.Equals("PasswordTooShort", StringComparison.OrdinalIgnoreCase))
-        {            
+        {
             return string.IsNullOrWhiteSpace(desc) ? "Hasło jest za krótkie." : desc;
         }
 
@@ -97,10 +114,50 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
 
         if (code.Equals("PasswordRequiresUniqueChars", StringComparison.OrdinalIgnoreCase))
             return "Hasło musi zawierać wymaganą liczbę różnych znaków.";
-        
+
         if (!string.IsNullOrWhiteSpace(desc))
             return desc;
 
         return "Wystąpił błąd podczas rejestracji.";
+    }
+
+    private static (string? jti, DateTimeOffset? expiryUtc) ParseJtiAndExpiryFromJwt(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length < 2) return (null, null);
+
+            var payload = parts[1];
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+                case 0: break;
+                default: break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string? jti = null;
+            DateTimeOffset? expiry = null;
+
+            if (root.TryGetProperty("jti", out var jtiProp) && jtiProp.ValueKind == JsonValueKind.String)
+                jti = jtiProp.GetString();
+
+            if (root.TryGetProperty("exp", out var expProp) && expProp.ValueKind == JsonValueKind.Number
+                && expProp.TryGetInt64(out var expSeconds))
+                expiry = DateTimeOffset.FromUnixTimeSeconds(expSeconds);
+
+            return (jti, expiry);
+        }
+        catch
+        {
+            return (null, null);
+        }
     }
 }

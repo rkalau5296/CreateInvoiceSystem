@@ -142,20 +142,25 @@ public class ClientRepository(IDbContext db) : IClientRepository
     public async Task RemoveAllByUserIdAsync(int userId, CancellationToken cancellationToken)
     {
         var clients = await _db.Set<ClientEntity>()
-            .Where(c => c.UserId == userId)
-            .ToListAsync(cancellationToken);
+        .Where(c => c.UserId == userId)
+        .ToListAsync(cancellationToken);
 
         if (clients.Count == 0) return;
 
         var addressIds = clients.Select(c => c.AddressId).Distinct().ToList();
 
+        _db.Set<ClientEntity>().RemoveRange(clients);
+
+        await _db.SaveChangesAsync(cancellationToken);
+
         var addresses = await _db.Set<AddressEntity>()
             .Where(a => addressIds.Contains(a.AddressId))
             .ToListAsync(cancellationToken);
 
-        _db.Set<ClientEntity>().RemoveRange(clients);
-
         if (addresses.Count != 0)
+        {
             _db.Set<AddressEntity>().RemoveRange(addresses);
+            await _db.SaveChangesAsync(cancellationToken); 
+        }
     }
 }
