@@ -159,7 +159,8 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
                 ProductId = product.ProductId,
                 ProductName = product.Name,
                 ProductDescription = product.Description,
-                ProductValue = product.Value
+                ProductValue = product.Value,
+                VatRate = position.VatRate
             };
             entity.InvoicePositions.Add(invoicePosition);
         }
