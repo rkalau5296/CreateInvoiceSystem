@@ -9,7 +9,11 @@ public static class NumberToWordsConverter
     private static readonly string[][] Groups = {
     new[] { "złoty", "złote", "złotych" },
     new[] { "tysiąc", "tysiące", "tysięcy" },
-    new[] { "milion", "miliony", "milionów" }
+    new[] { "milion", "miliony", "milionów" },
+    new[] { "miliard", "miliardy", "miliardów" },
+    new[] { "bilion", "biliony", "bilionów" },
+    new[] { "biliard", "biliardy", "biliardów" },
+    new[] { "trylion", "tryliony", "trylionów" }
 };
 
     public static string Convert(decimal value)
