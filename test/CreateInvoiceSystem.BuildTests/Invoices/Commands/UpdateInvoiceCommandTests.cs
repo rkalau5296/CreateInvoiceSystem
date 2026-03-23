@@ -75,8 +75,9 @@ public class UpdateInvoiceCommandTests
     }
 
     [Fact]
-    public async Task Execute_ShouldThrowException_WhenNoChangesDetected()
+    public async Task Execute_ShouldReturnDto_WhenNoChangesDetected()
     {
+        // arrange
         var userId = 1;
         var invoiceId = 1;
         var now = new DateTime(2026, 1, 1);
@@ -112,11 +113,24 @@ public class UpdateInvoiceCommandTests
 
         _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(invoiceEntity);
+                
+        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-        Func<Task> act = async () => await command.Execute(_repositoryMock.Object);
+        // act
+        var result = await command.Execute(_repositoryMock.Object);
 
-        await act.Should().ThrowAsync<Exception>()
-            .WithMessage("The invoice has not changed.");
+        // assert
+        result.Should().NotBeNull();
+        result.InvoiceId.Should().Be(invoiceId);
+        result.Title.Should().Be("Same");
+        result.TotalNet.Should().Be(100m);
+        result.TotalVat.Should().Be(23m);
+        result.TotalGross.Should().Be(123m);
+        result.MethodOfPayment.Should().Be("Card");
+        result.SellerName.Should().Be("Seller");
+        result.ClientName.Should().Be("Client");
+        result.InvoicePositions.Should().BeEmpty();
     }
 
     [Fact]
