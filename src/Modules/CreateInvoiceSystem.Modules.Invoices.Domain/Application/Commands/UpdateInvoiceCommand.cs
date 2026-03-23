@@ -32,10 +32,8 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
 
         var updatedInvoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
             ?? throw new InvalidOperationException("Invoice not found after update.");
-
-        return HasChanges(beforeUpdate, updatedInvoice)
-            ? InvoiceMappers.ToUpdateDto(updatedInvoice)
-            : throw new Exception("The invoice has not changed.");
+        
+        return InvoiceMappers.ToUpdateDto(updatedInvoice);
     }
 
     private void UpdateBasicInformation(Invoice invoice)
@@ -50,7 +48,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         invoice.MethodOfPayment = Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
 
         invoice.ClientAddress = Parametr.ClientAddress ?? invoice.ClientAddress;
-        invoice.ClientName = Parametr.ClientName ?? invoice.ClientName;        
+        invoice.ClientName = Parametr.ClientName ?? invoice.ClientName;
         invoice.ClientNip = Parametr.ClientNip ?? invoice.ClientNip;
 
         invoice.SellerName = Parametr.SellerName ?? invoice.SellerName;
@@ -92,15 +90,19 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         }
         else if (Parametr.ClientId.HasValue && Parametr.ClientId.Value > 0)
         {
-            var existing = await _invoiceRepository.GetClientByIdAsync(Parametr.ClientId.Value, cancellationToken)
-                ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId.Value} not found.");
-
+            var existing = await _invoiceRepositoryGetClientById(_invoiceRepository, Parametr.ClientId.Value, cancellationToken);
             invoice.Client = existing;
             invoice.ClientId = existing.ClientId;
             invoice.ClientName = existing.Name;
             invoice.ClientNip = existing.Nip;
             invoice.ClientAddress = FormatAddress(existing.Address);
         }
+    }
+    
+    private static async Task<Client> _invoiceRepositoryGetClientById(IInvoiceRepository repo, int clientId, CancellationToken ct)
+    {
+        return await repo.GetClientByIdAsync(clientId, ct)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
     }
 
     private async Task SyncInvoicePositions(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
@@ -124,14 +126,14 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             var nameToUse = incomingPosition.ProductName;
             var descToUse = incomingPosition.ProductDescription;
             var valToUse = incomingPosition.ProductValue;
-            
+
             var product = await GetOrCreateProductAsync(nameToUse, descToUse, valToUse, invoice.UserId, _invoiceRepository, cancellationToken);
 
             if (incomingPosition.InvoicePositionId > 0)
             {
                 var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == incomingPosition.InvoicePositionId);
                 if (existing != null)
-                {                    
+                {
                     existing.ProductId = product.ProductId;
                     existing.ProductName = nameToUse;
                     existing.ProductDescription = descToUse;
@@ -140,7 +142,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 }
             }
             else
-            {                
+            {
                 invoice.InvoicePositions.Add(new InvoicePosition
                 {
                     InvoiceId = invoice.InvoiceId,
@@ -163,11 +165,11 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                before.CreatedDate != after.CreatedDate ||
                before.PaymentDate != after.PaymentDate ||
                before.ClientName != after.ClientName ||
-               before.ClientId != after.ClientId ||               
+               before.ClientId != after.ClientId ||
                before.SellerName != after.SellerName ||
                before.SellerNip != after.SellerNip ||
                before.SellerAddress != after.SellerAddress ||
-               before.BankAccountNumber != after.BankAccountNumber ||               
+               before.BankAccountNumber != after.BankAccountNumber ||
                before.InvoicePositions.Count != after.InvoicePositions.Count ||
                !before.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue)
                    .SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue));
