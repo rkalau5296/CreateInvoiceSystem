@@ -87,8 +87,7 @@ else
             CascadedEditContext?.NotifyValidationStateChanged();
             return;
         }
-
-        // Optional: client-side max check if AdditionalAttributes contains "max"
+        
         if (AdditionalAttributes != null && AdditionalAttributes.TryGetValue("max", out var maxObj) && maxObj is string maxStr)
         {
             if (decimal.TryParse(maxStr, NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var maxInvariant))

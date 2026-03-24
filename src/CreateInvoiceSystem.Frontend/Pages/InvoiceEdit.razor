@@ -177,6 +177,8 @@
                                             <label class="visually-hidden">Ilość</label>
                                             <ValidatedInputNumber TValue="int"
                                                                   @bind-Value="pos.Quantity"
+                                                                  Placeholder="1"
+                                                                  AdditionalAttributes="@_minOneAttributes"
                                                                   CssClass="@($"form-control text-center {GetFieldClass(() => pos.Quantity)}")" />
                                         </td>
                                         <td>
@@ -184,7 +186,8 @@
                                             <ValidatedInputNumber TValue="decimal?"
                                                                   @bind-Value="pos.ProductValue"
                                                                   CssClass="@($"form-control text-end {GetFieldClass(() => pos.ProductValue)}")"
-                                                                  Step="0.01" />
+                                                                  Step="0.01"
+                                                                  AdditionalAttributes="@_priceAttributes" />
                                         </td>
                                         <td>
                                             <select @bind="pos.VatRate" class="form-select">
@@ -254,6 +257,15 @@
     private bool _isLoading = true;
 
     private EditContext? _editContext;
+
+    private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
+    private readonly IDictionary<string, object> _priceAttributes = new Dictionary<string, object>
+    {
+        { "max", "99999999999999999999.99" },
+        { "step", "0.01" },
+        { "inputmode", "decimal" },
+        { "maxlength", "24" }
+    };
 
     protected override async Task OnInitializedAsync()
     {
