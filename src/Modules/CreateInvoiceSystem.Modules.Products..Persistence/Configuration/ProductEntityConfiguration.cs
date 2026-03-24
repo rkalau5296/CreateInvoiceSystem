@@ -18,6 +18,6 @@ public class ProductEntityConfiguration : IEntityTypeConfiguration<ProductEntity
             .HasMaxLength(100);
 
         builder.Property(p => p.Value)
-            .HasColumnType("decimal(18,2)");
+            .HasColumnType("decimal(38,2)");
     }
 }
