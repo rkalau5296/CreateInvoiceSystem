@@ -60,6 +60,17 @@ else
             _stringValue = string.Empty;
     }
 
+    protected override void OnParametersSet()
+    {
+        if (IsDecimalType)
+        {
+            if (Value is not null)
+                _stringValue = Convert.ToDecimal(Value).ToString(CultureInfo.CurrentCulture);
+            else
+                _stringValue = string.Empty;
+        }
+    }
+
     private async Task OnInputChanged(ChangeEventArgs e)
     {
         _messageStore?.Clear(_fieldIdentifier);
@@ -87,7 +98,7 @@ else
             CascadedEditContext?.NotifyValidationStateChanged();
             return;
         }
-        
+
         if (AdditionalAttributes != null && AdditionalAttributes.TryGetValue("max", out var maxObj) && maxObj is string maxStr)
         {
             if (decimal.TryParse(maxStr, NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var maxInvariant))

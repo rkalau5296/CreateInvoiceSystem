@@ -49,8 +49,7 @@
                             <label class="small text-muted fw-bold">Termin płatności: <span class="text-danger">*</span></label>
                             <InputDate @bind-Value="_invoice.PaymentDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.PaymentDate)}")" />
                             <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
-                        </div>
-                        <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
+                        </div>                        
                     </div>
                 </div>
 
