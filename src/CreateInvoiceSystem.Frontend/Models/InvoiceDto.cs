@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CreateInvoiceSystem.Frontend.Models
 {
-    public class InvoiceDto
+    public class InvoiceDto : IValidatableObject
     {
         public int InvoiceId { get; set; }
 
@@ -26,10 +28,13 @@ namespace CreateInvoiceSystem.Frontend.Models
 
         [Required(ErrorMessage = "Nazwa sprzedawcy jest wymagana")]
         public string? SellerName { get; set; }
+
         [Required(ErrorMessage = "NIP sprzedawcy jest wymagany")]
         public string? SellerNip { get; set; }
+
         [Required(ErrorMessage = "Adres sprzedawcy jest wymagany")]
         public string? SellerAddress { get; set; }
+
         public string BankAccountNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Nazwa klienta jest wymagana")]
@@ -49,5 +54,18 @@ namespace CreateInvoiceSystem.Frontend.Models
         public decimal TotalNet { get; set; }
         public decimal TotalVat { get; set; }
         public decimal TotalGross { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var results = new List<ValidationResult>();
+
+            if (CreatedDate.Date > DateTime.Today)
+                results.Add(new ValidationResult("Data wystawienia nie może być datą przyszłą.", new[] { nameof(CreatedDate) }));
+
+            if (PaymentDate.Date < CreatedDate.Date)
+                results.Add(new ValidationResult("Termin płatności nie może być wcześniejszy niż data wystawienia.", new[] { nameof(PaymentDate) }));
+
+            return results;
+        }
     }
 }
