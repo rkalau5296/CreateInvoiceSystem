@@ -21,7 +21,7 @@ namespace CreateInvoiceSystem.API.Adapters.PdfAdapter
             {
                 decimal unitPrice = pos.ProductValue ?? 0;
                 decimal netValue = unitPrice * pos.Quantity;
-                int vatRate = 23; 
+                int vatRate = int.TryParse(pos.VatRate?.Replace("%", ""), out var rate) ? rate : 0;
                 decimal vatValue = Math.Round(netValue * (vatRate / 100m), 2);
                 decimal grossValue = netValue + vatValue;
 

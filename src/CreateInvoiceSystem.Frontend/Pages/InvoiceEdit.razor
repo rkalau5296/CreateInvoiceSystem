@@ -49,8 +49,7 @@
                             <label class="small text-muted fw-bold">Termin płatności: <span class="text-danger">*</span></label>
                             <InputDate @bind-Value="_invoice.PaymentDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.PaymentDate)}")" />
                             <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
-                        </div>
-                        <p class="mb-0 text-muted">Miejscowość: Ożarów Mazowiecki</p>
+                        </div>                        
                     </div>
                 </div>
 
@@ -177,6 +176,8 @@
                                             <label class="visually-hidden">Ilość</label>
                                             <ValidatedInputNumber TValue="int"
                                                                   @bind-Value="pos.Quantity"
+                                                                  Placeholder="1"
+                                                                  AdditionalAttributes="@_minOneAttributes"
                                                                   CssClass="@($"form-control text-center {GetFieldClass(() => pos.Quantity)}")" />
                                         </td>
                                         <td>
@@ -184,7 +185,8 @@
                                             <ValidatedInputNumber TValue="decimal?"
                                                                   @bind-Value="pos.ProductValue"
                                                                   CssClass="@($"form-control text-end {GetFieldClass(() => pos.ProductValue)}")"
-                                                                  Step="0.01" />
+                                                                  Step="0.01"
+                                                                  AdditionalAttributes="@_priceAttributes" />
                                         </td>
                                         <td>
                                             <select @bind="pos.VatRate" class="form-select">
@@ -254,6 +256,15 @@
     private bool _isLoading = true;
 
     private EditContext? _editContext;
+
+    private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
+    private readonly IDictionary<string, object> _priceAttributes = new Dictionary<string, object>
+    {
+        { "max", "99999999999999999999.99" },
+        { "step", "0.01" },
+        { "inputmode", "decimal" },
+        { "maxlength", "24" }
+    };
 
     protected override async Task OnInitializedAsync()
     {

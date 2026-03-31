@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CreateInvoiceSystem.Frontend.Validators;
+using System.ComponentModel.DataAnnotations;
 
 namespace CreateInvoiceSystem.Frontend.Models;
 
@@ -15,7 +16,8 @@ public class InvoicePositionDto
     public string? ProductName { get; set; }
 
     [Required(ErrorMessage = "Cena produktu jest wymagana")]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Cena musi być większa niż 0")]
+    [MinDecimal("0.01", ErrorMessage = "Cena musi być większa niż 0")]
+    [MaxDecimal("99999999999999999999.99", ErrorMessage = "Cena jest za duża")]
     public decimal? ProductValue { get; set; }
 
     public ProductDto Product { get; set; } = new();

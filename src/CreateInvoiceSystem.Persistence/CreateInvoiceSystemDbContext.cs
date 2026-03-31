@@ -78,6 +78,6 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
 
         modelBuilder.Entity<InvoicePositionEntity>()
             .Property(p => p.ProductValue)
-            .HasPrecision(18, 2);
+            .HasPrecision(38, 2);
     }
 }

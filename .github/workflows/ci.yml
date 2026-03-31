@@ -1,29 +1,154 @@
-﻿name: Build and Test
+﻿name: Build, Test and Deploy Full Stack
 
 on:
   push:
     branches:
-      - '*'
-  workflow_dispatch:  
+      - master
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-
+    outputs:
+      backend-artifact: backend
+      frontend-artifact: frontend
     steps:
-      - name: 🔄 Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🧩 Setup .NET SDK
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: 🔄 Restore NuGet packages
+      - name: Restore
         run: dotnet restore CreateInvoiceSystem.sln
 
-      - name: 🛠️ Build solution
+      - name: Build
         run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
 
-      - name: 🧪 Run build verification test
+      - name: Test
         run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build
+
+      - name: Publish backend
+        run: dotnet publish src/CreateInvoiceSystem.API/CreateInvoiceSystem.API.csproj -c Release -o ./publish-backend
+
+      - name: Zip backend
+        shell: pwsh
+        run: |
+          Remove-Item -Force -ErrorAction SilentlyContinue ./publish-backend.zip
+          Compress-Archive -Path ./publish-backend/* -DestinationPath ./publish-backend.zip
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend
+          path: publish-backend.zip
+
+      - name: Publish frontend
+        run: dotnet publish src/CreateInvoiceSystem.Frontend/CreateInvoiceSystem.Frontend.csproj -c Release -o ./publish-frontend
+
+      - name: Zip frontend
+        shell: pwsh
+        run: |
+          Remove-Item -Force -ErrorAction SilentlyContinue ./publish-frontend.zip
+          Compress-Archive -Path ./publish-frontend/* -DestinationPath ./publish-frontend.zip
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: publish-frontend.zip
+
+  deploy-backend:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend
+          path: .
+
+      - name: Deploy backend via ZipDeploy (using publish profile)
+        shell: pwsh
+        env:
+          PUBLISH_XML: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
+        run: |
+          if (-not $env:PUBLISH_XML) {
+            Write-Host "ERROR: AZURE_BACKEND_PUBLISH_PROFILE is empty"
+            exit 1
+          }
+          try { $xml = [xml]$env:PUBLISH_XML } catch { Write-Host "ERROR: AZURE_BACKEND_PUBLISH_PROFILE is not valid XML"; exit 1 }
+          $profile = $xml.publishData.publishProfile | Where-Object { $_.publishMethod -in @('ZipDeploy','MSDeploy') } | Select-Object -First 1
+          if (-not $profile) { Write-Host "ERROR: No suitable publishProfile found in backend profile"; exit 1 }
+
+          $publishUrl = $profile.publishUrl
+          $user = $profile.userName
+          $pwd = $profile.userPWD
+
+          if (-not $publishUrl -or -not $user -or -not $pwd) {
+            Write-Host "ERROR: publishUrl/userName/userPWD missing in backend publish profile"
+            exit 1
+          }
+
+          $uri = "https://$publishUrl/api/zipdeploy"
+          $auth = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$user`:$pwd"))
+
+          # Wysyłamy ZIP — nie wypisujemy w logach żadnych credentiali ani publishUrl/userName
+          $curl = "curl.exe"
+          $args = @("-sS","-X","POST","-H","Authorization: Basic $auth","-H","Content-Type: application/zip","--data-binary","@publish-backend.zip",$uri)
+
+          $proc = Start-Process -FilePath $curl -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput out-backend.txt -RedirectStandardError err-backend.txt
+          $exit = $proc.ExitCode
+          Write-Host "Backend upload finished with curl exit code: $exit"
+          if ($exit -ne 0) {
+            Write-Host "ERROR: Backend zip upload failed (see Kudu / Azure Portal for deployment logs)."
+            exit $exit
+          }
+
+  deploy-frontend:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: .
+
+      - name: Deploy frontend via ZipDeploy (using publish profile)
+        shell: pwsh
+        env:
+          PUBLISH_XML: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
+        run: |
+          if (-not $env:PUBLISH_XML) {
+            Write-Host "ERROR: AZURE_FRONTEND_PUBLISH_PROFILE is empty"
+            exit 1
+          }
+          try { $xml = [xml]$env:PUBLISH_XML } catch { Write-Host "ERROR: AZURE_FRONTEND_PUBLISH_PROFILE is not valid XML"; exit 1 }
+          $profile = $xml.publishData.publishProfile | Where-Object { $_.publishMethod -eq 'ZipDeploy' } | Select-Object -First 1
+          if (-not $profile) { Write-Host "ERROR: No publishProfile with publishMethod='ZipDeploy' found in secret"; exit 1 }
+
+          $publishUrl = $profile.publishUrl
+          $user = $profile.userName
+          $pwd = $profile.userPWD
+
+          if (-not $publishUrl -or -not $user -or -not $pwd) {
+            Write-Host "ERROR: publishUrl/userName/userPWD missing in publish profile"
+            exit 1
+          }
+
+          $uri = "https://$publishUrl/api/zipdeploy"
+          $auth = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$user`:$pwd"))
+
+          $curl = "curl.exe"
+          $args = @("-sS","-X","POST","-H","Authorization: Basic $auth","-H","Content-Type: application/zip","--data-binary","@publish-frontend.zip",$uri)
+
+          $proc = Start-Process -FilePath $curl -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput out-frontend.txt -RedirectStandardError err-frontend.txt
+          $exit = $proc.ExitCode
+          Write-Host "Frontend upload finished with curl exit code: $exit"
+          if ($exit -ne 0) {
+            Write-Host "ERROR: Frontend zip upload failed (see Kudu / Azure Portal for deployment logs)."
+            exit $exit
+          }

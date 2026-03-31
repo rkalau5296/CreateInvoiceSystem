@@ -26,9 +26,20 @@ namespace CreateInvoiceSystem.Frontend.Services
                 url += $"&SearchTerm={Uri.EscapeDataString(searchTerm)}";
             }
 
-            var response = await _http.GetFromJsonAsync<GetClientsResponse>(url);
+            using var response = await _http.GetAsync(url);
 
-            return response ?? new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
+            }
+
+            var data = await response.Content.ReadFromJsonAsync<GetClientsResponse>();
+            return data ?? new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
         }
 
         public class GetClientsResponse

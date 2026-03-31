@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Pdf;
+﻿using System.Numerics;
+
+namespace CreateInvoiceSystem.Pdf;
 
 public static class NumberToWordsConverter
 {
@@ -7,35 +9,39 @@ public static class NumberToWordsConverter
     private static readonly string[] Teens = { "dziesięć", "jedenaście", "dwanaście", "trzynaście", "czternaście", "piętnaście", "szesnaście", "siedemnaście", "osiemnaście", "dziewiętnaście" };
     private static readonly string[] Hundreds = { "", "sto", "dwieście", "trzysta", "czterysta", "pięćset", "sześćset", "siedemset", "osiemset", "dziewięćset" };
     private static readonly string[][] Groups = {
-    new[] { "złoty", "złote", "złotych" },
-    new[] { "tysiąc", "tysiące", "tysięcy" },
-    new[] { "milion", "miliony", "milionów" }
-};
+        new[] { "złoty", "złote", "złotych" },
+        new[] { "tysiąc", "tysiące", "tysięcy" },
+        new[] { "milion", "miliony", "milionów" },
+        new[] { "miliard", "miliardy", "miliardów" },
+        new[] { "bilion", "biliony", "bilionów" },
+        new[] { "biliard", "biliardy", "biliardów" },
+        new[] { "trylion", "tryliony", "trylionów" }
+    };
 
     public static string Convert(decimal value)
     {
-        long gold = (long)Math.Floor(value);
-        int cents = (int)((value - gold) * 100);
-
-        string result = ConvertLong(gold) + " " + GetDeclension(gold, Groups[0]);
+        if (value < 0) return "minus " + Convert(decimal.Negate(value));
+        decimal integerPartDecimal = decimal.Truncate(value);
+        decimal fractional = decimal.Round((value - integerPartDecimal) * 100, 0, MidpointRounding.ToZero);
+        int cents = (int)fractional;
+        BigInteger gold = new BigInteger(integerPartDecimal);
+        string result = ConvertBigInteger(gold) + " " + GetDeclension(gold, Groups[0]);
         if (cents > 0) result += $" i {cents}/100 gr";
-
         return result.Trim();
     }
 
-    private static string ConvertLong(long n)
+    private static string ConvertBigInteger(BigInteger n)
     {
         if (n == 0) return "zero";
         string res = "";
         int groupIdx = 0;
-
         while (n > 0)
         {
             int part = (int)(n % 1000);
             if (part > 0)
             {
                 string partStr = ConvertPart(part);
-                string groupName = groupIdx > 0 ? " " + GetDeclension(part, Groups[groupIdx]) : "";
+                string groupName = groupIdx > 0 ? " " + GetDeclension(new BigInteger(part), Groups[groupIdx]) : "";
                 res = partStr + groupName + " " + res;
             }
             n /= 1000;
@@ -53,10 +59,13 @@ public static class NumberToWordsConverter
         return res.Trim();
     }
 
-    private static string GetDeclension(long n, string[] forms)
+    private static string GetDeclension(BigInteger number, string[] forms)
     {
-        if (n == 1) return forms[0];
-        if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return forms[1];
+        int lastTwo = (int)(number % 100);
+        int lastDigit = (int)(number % 10);
+        if (lastTwo >= 10 && lastTwo <= 20) return forms[2];
+        if (lastDigit == 1) return forms[0];
+        if (lastDigit >= 2 && lastDigit <= 4) return forms[1];
         return forms[2];
     }
 }

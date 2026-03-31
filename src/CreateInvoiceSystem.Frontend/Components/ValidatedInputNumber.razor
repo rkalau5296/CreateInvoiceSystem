@@ -1,17 +1,34 @@
-﻿@using System.Linq.Expressions
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+@using System.Linq.Expressions
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Forms
 @typeparam TValue
 
-<InputNumber TValue="TValue"
-             Value="Value"
-             ValueChanged="ValueChanged"
-             ValueExpression="ValueExpression"
-             class="@CssClass"
-             placeholder="@Placeholder"
-             step="@Step"
-             @attributes="AdditionalAttributes" />
+@if (IsDecimalType)
+{
+    <input class="@CssClass"
+           value="@_stringValue"
+           placeholder="@Placeholder"
+           @oninput="OnInputChanged"
+           @attributes="AdditionalAttributes" />
+}
+else
+{
+    <InputNumber TValue="TValue"
+                 Value="Value"
+                 ValueChanged="ValueChanged"
+                 ValueExpression="ValueExpression"
+                 class="@CssClass"
+                 placeholder="@Placeholder"
+                 step="@Step"
+                 @attributes="AdditionalAttributes" />
+}
+
 <ValidationMessage For="@ValueExpression" class="text-danger small" />
 
 @code {
+    [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
+
     [Parameter] public TValue? Value { get; set; }
     [Parameter] public EventCallback<TValue?> ValueChanged { get; set; }
     [Parameter] public Expression<Func<TValue?>> ValueExpression { get; set; } = default!;
@@ -19,4 +36,96 @@
     [Parameter] public string? Step { get; set; }
     [Parameter] public string CssClass { get; set; } = "form-control";
     [Parameter(CaptureUnmatchedValues = true)] public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private ValidationMessageStore? _messageStore;
+    private FieldIdentifier _fieldIdentifier;
+    private string? _stringValue;
+
+    private static bool IsDecimal(Type t) => t == typeof(decimal) || t == typeof(decimal?);
+    private bool IsDecimalType => IsDecimal(typeof(TValue));
+
+    protected override void OnInitialized()
+    {
+        if (ValueExpression == null)
+            throw new InvalidOperationException("ValidatedInputNumber requires a ValueExpression.");
+
+        if (CascadedEditContext != null)
+            _messageStore = new ValidationMessageStore(CascadedEditContext);
+
+        _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+
+        if (IsDecimalType && Value is not null)
+            _stringValue = Convert.ToDecimal(Value).ToString(CultureInfo.CurrentCulture);
+        else
+            _stringValue = string.Empty;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (IsDecimalType)
+        {
+            if (Value is not null)
+                _stringValue = Convert.ToDecimal(Value).ToString(CultureInfo.CurrentCulture);
+            else
+                _stringValue = string.Empty;
+        }
+    }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        _messageStore?.Clear(_fieldIdentifier);
+
+        _stringValue = e?.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_stringValue))
+        {
+            await ValueChanged.InvokeAsync(default);
+            CascadedEditContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        var s = _stringValue.Trim();
+
+        bool parsed = decimal.TryParse(s, NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out var dec);
+        if (!parsed)
+        {
+            parsed = decimal.TryParse(s.Replace(',', '.'), NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out dec);
+        }
+
+        if (!parsed)
+        {
+            _messageStore?.Add(_fieldIdentifier, "Pole musi być liczbą.");
+            CascadedEditContext?.NotifyValidationStateChanged();
+            return;
+        }
+
+        if (AdditionalAttributes != null && AdditionalAttributes.TryGetValue("max", out var maxObj) && maxObj is string maxStr)
+        {
+            if (decimal.TryParse(maxStr, NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var maxInvariant))
+            {
+                if (dec > maxInvariant)
+                {
+                    _messageStore?.Add(_fieldIdentifier, "Wartość jest większa niż dozwolona.");
+                    CascadedEditContext?.NotifyValidationStateChanged();
+                    return;
+                }
+            }
+            else if (decimal.TryParse(maxStr.Replace(',', '.'), NumberStyles.Number | NumberStyles.AllowLeadingSign, CultureInfo.CurrentCulture, out var maxLocal))
+            {
+                if (dec > maxLocal)
+                {
+                    _messageStore?.Add(_fieldIdentifier, "Wartość jest większa niż dozwolona.");
+                    CascadedEditContext?.NotifyValidationStateChanged();
+                    return;
+                }
+            }
+        }
+
+        object boxed = dec;
+        var typed = (TValue?)(object?)boxed;
+        await ValueChanged.InvokeAsync(typed);
+
+        _messageStore?.Clear(_fieldIdentifier);
+        CascadedEditContext?.NotifyValidationStateChanged();
+    }
 }

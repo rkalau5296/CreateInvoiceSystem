@@ -13,9 +13,9 @@ public class InvoiceEntityConfiguration : IEntityTypeConfiguration<InvoiceEntity
         builder.HasKey(i => i.InvoiceId);
         builder.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
 
-        builder.Property(i => i.TotalNet).HasPrecision(18, 2);
-        builder.Property(i => i.TotalVat).HasPrecision(18, 2);
-        builder.Property(i => i.TotalGross).HasPrecision(18, 2);
+        builder.Property(i => i.TotalNet).HasPrecision(38, 2);
+        builder.Property(i => i.TotalVat).HasPrecision(38, 2);
+        builder.Property(i => i.TotalGross).HasPrecision(38, 2);
 
         builder.Property(i => i.Title).HasMaxLength(250);
         builder.Property(i => i.MethodOfPayment).HasMaxLength(100);

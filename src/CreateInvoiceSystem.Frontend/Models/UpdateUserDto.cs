@@ -23,7 +23,8 @@ namespace CreateInvoiceSystem.Frontend.Models
         public string Nip { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Numer konta jest wymagany.")]
-        [StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
+        //[StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
+        [RegularExpression(@"^PL\d{26}$", ErrorMessage = "IBAN musi zaczynać się od PL i zawierać dokładnie 26 cyfr.")]
         public string BankAccountNumber { get; set; } = string.Empty;
 
         public UpdateAddressDto Address { get; set; } = new();
