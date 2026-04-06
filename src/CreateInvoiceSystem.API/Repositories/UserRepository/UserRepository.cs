@@ -245,23 +245,58 @@ public class UserRepository : IUserRepository
         return roles.ToList();
     }
 
-    public async Task<string> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken)
+    public async Task<(string Token, string Version)?> GeneratePasswordResetTokenAsync(
+    User user,
+    CancellationToken cancellationToken)
     {
         var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
 
-        if (identityUser == null) return string.Empty;
+        if (identityUser is null)
+            return null;
 
-        return await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+        identityUser.PasswordResetVersion = Guid.NewGuid().ToString("N");
+
+        var updateResult = await _userManager.UpdateAsync(identityUser);
+
+        if (!updateResult.Succeeded)
+            return null;
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+
+        return (token, identityUser.PasswordResetVersion!);
     }
 
-    public async Task<bool> ResetPasswordAsync(User user, string token, string newPassword, CancellationToken cancellationToken)
+
+    public async Task<bool> ResetPasswordAsync(
+    User user,
+    string token,
+    string version,
+    string newPassword,
+    CancellationToken cancellationToken)
     {
         var identityUser = await _userManager.FindByIdAsync(user.UserId.ToString());
-        if (identityUser == null) return false;
+
+        if (identityUser is null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(identityUser.PasswordResetVersion))
+            return false;
+
+        if (identityUser.PasswordResetVersion != version)
+            return false;
 
         var result = await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
-        return result.Succeeded;
+
+        if (!result.Succeeded)
+            return false;
+
+        identityUser.PasswordResetVersion = Guid.NewGuid().ToString("N");
+
+        var updateResult = await _userManager.UpdateAsync(identityUser);
+
+        return updateResult.Succeeded;
     }
+
 
     public async Task AddSessionAsync(UserSession session, CancellationToken cancellationToken)
     {

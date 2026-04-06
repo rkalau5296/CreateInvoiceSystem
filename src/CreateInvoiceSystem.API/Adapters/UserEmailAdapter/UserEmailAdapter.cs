@@ -38,26 +38,35 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
         await _emailService.SendEmailAsync(email, subject, body, CancellationToken.None);
     }
 
-    public async Task SendResetPasswordEmailAsync(string email, string token)
+    public async Task SendResetPasswordEmailAsync(string email, string token, string version)
     {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentNullException(nameof(email));
 
+        if (string.IsNullOrWhiteSpace(token))
+            throw new ArgumentNullException(nameof(token));
+
+        if (string.IsNullOrWhiteSpace(version))
+            throw new ArgumentNullException(nameof(version));
+
+        var escapedEmail = Uri.EscapeDataString(email);
         var escapedToken = Uri.EscapeDataString(token);
+        var escapedVersion = Uri.EscapeDataString(version);
 
         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
 
-        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out _))
         {
             throw new InvalidOperationException(
                 $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
                 "Sprawdź plik appsettings.json.");
         }
 
-        var resetLink = $"{frontendUrl}/reset-password?token={escapedToken}&email={email}";
+        var resetLink = $"{frontendUrl}/reset-password?token={escapedToken}&email={escapedEmail}&version={escapedVersion}";
 
         await _emailService.SendResetPasswordEmailAsync(email, resetLink);
     }
+
     public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft, string activationLink)
     {
         if (string.IsNullOrWhiteSpace(email))

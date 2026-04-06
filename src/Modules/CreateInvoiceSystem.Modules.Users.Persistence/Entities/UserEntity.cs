@@ -15,7 +15,7 @@ public class UserEntity : IdentityUser<int>
 
     public string? ActivationTokenJti { get; set; }
     public DateTimeOffset? ActivationTokenExpiry { get; set; }
-
+    public string? PasswordResetVersion { get; set; }
     [NotMapped]
     public IEnumerable<object> Invoices { get; set; } = [];
     [NotMapped]

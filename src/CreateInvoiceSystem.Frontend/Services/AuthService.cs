@@ -161,9 +161,9 @@ namespace CreateInvoiceSystem.Frontend.Services
                    ?? new ForgotPasswordResponse(false, "Błąd odpowiedzi.");
         }
 
-        public async Task<ResetPasswordResponse> ResetPasswordAsync(string email, string token, string newPassword)
+        public async Task<ResetPasswordResponse> ResetPasswordAsync(string email, string token, string version, string newPassword)
         {
-            var request = new { Email = email, Token = token, NewPassword = newPassword };
+            var request = new { Email = email, Token = token, Version = version, NewPassword = newPassword };
             var response = await _httpClient.PostAsJsonAsync("api/Auth/reset-password", request);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 

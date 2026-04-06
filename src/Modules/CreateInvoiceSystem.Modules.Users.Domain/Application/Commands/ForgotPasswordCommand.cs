@@ -21,14 +21,18 @@ public class ForgotPasswordCommand : CommandBase<ForgotPasswordDto, ForgotPasswo
             throw new ArgumentNullException(nameof(this.Parametr));
         
         var user = await _userRepository.FindByEmailAsync(this.Parametr.Email);
-        
+
         if (user is not null)
         {
-            var token = await _userRepository.GeneratePasswordResetTokenAsync(user, cancellationToken);
-
-            await _userEmailSender.SendResetPasswordEmailAsync(user.Email, token);
+            var resetData = await _userRepository.GeneratePasswordResetTokenAsync(user, cancellationToken);
+            if (resetData.HasValue)
+            {
+                var (token, version) = resetData.Value;
+                await _userEmailSender.SendResetPasswordEmailAsync(user.Email, token, version);
+            }
         }
-       
-        return new ForgotPasswordResponse(true, "If your email is in our database, you will receive a reset link.");
+        return new ForgotPasswordResponse(
+            true,
+            "If your email is in our database, you will receive a reset link.");
     }
 }

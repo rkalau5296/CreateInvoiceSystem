@@ -29,12 +29,13 @@ public class ForgotPasswordHandlerTests
         var request = new ForgotPasswordRequest(new ForgotPasswordDto(email));
         var user = new User { UserId = 1, Email = email };
         var token = "secret-token";
+        var version = "reset-version-123";
 
         _userRepositoryMock.Setup(x => x.FindByEmailAsync(email))
             .ReturnsAsync(user);
 
         _userRepositoryMock.Setup(x => x.GeneratePasswordResetTokenAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(token);
+            .ReturnsAsync((token, version));
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -42,8 +43,8 @@ public class ForgotPasswordHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Message.Should().Be("If your email is in our database, you will receive a reset link.");
-        
-        _emailSenderMock.Verify(x => x.SendResetPasswordEmailAsync(email, token), Times.Once);
+
+        _emailSenderMock.Verify(x => x.SendResetPasswordEmailAsync(email, token, version), Times.Once);
     }
 
     [Fact]
@@ -60,16 +61,22 @@ public class ForgotPasswordHandlerTests
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue(); 
-        _emailSenderMock.Verify(x => x.SendResetPasswordEmailAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        _userRepositoryMock.Verify(x => x.GeneratePasswordResetTokenAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.IsSuccess.Should().BeTrue();
+        _emailSenderMock.Verify(x => x.SendResetPasswordEmailAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
+
+        _userRepositoryMock.Verify(x => x.GeneratePasswordResetTokenAsync(
+            It.IsAny<User>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowArgumentNullException_WhenDtoIsNull()
     {
         // Arrange
-        var request = new ForgotPasswordRequest(null); // Parametr is null
+        var request = new ForgotPasswordRequest(null);
 
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);

@@ -18,8 +18,8 @@ public interface IUserRepository : ISaveChangesContext
     Task<User> CheckPasswordAsync(User user, string password);
     Task<User> FindByEmailAsync(string email);    
     Task<List<string>> GetRolesAsync(User user, CancellationToken cancellationToken);
-    Task<string> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken);
-    Task<bool> ResetPasswordAsync(User user, string token, string newPassword, CancellationToken cancellationToken);
+    Task<(string Token, string Version)?> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken);
+    Task<bool> ResetPasswordAsync(User user, string token, string version, string newPassword, CancellationToken cancellationToken);
     Task AddSessionAsync(UserSession session, CancellationToken cancellationToken);
     Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken);
     public Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken);

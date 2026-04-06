@@ -18,7 +18,7 @@ public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUser
         _userTokenService = userTokenService;
     }
 
-    public override async Task<ActivateUserResponse> Execute(IUserRepository _user_repository, CancellationToken cancellationToken = default)
+    public override async Task<ActivateUserResponse> Execute(IUserRepository _userRepository, CancellationToken cancellationToken = default)
     {
         var token = this.Parametr?.Token;
                 
@@ -33,14 +33,14 @@ public class ActivateUserCommand : CommandBase<ActivateUserRequest, ActivateUser
         if (string.IsNullOrWhiteSpace(jti) || expiry == null || expiry.Value <= DateTimeOffset.UtcNow)
             return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Link wygasł lub jest nieprawidłowy." };
                 
-        var user = await _user_repository.FindByEmailAsync(email);
+        var user = await _userRepository.FindByEmailAsync(email);
         if (user == null)
             return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Użytkownik nie istnieje." };
                 
         if (user.IsActive)
             return new ActivateUserResponse { IsSuccess = true, Message = "Konto jest już aktywne." };
                 
-        var activated = await _user_repository.ValidateAndActivateUserByTokenAsync(email, jti, expiry, cancellationToken);
+        var activated = await _userRepository.ValidateAndActivateUserByTokenAsync(email, jti, expiry, cancellationToken);
         if (!activated)
             return new ActivateUserResponse { IsSuccess = false, Message = "Błąd: Link wygasł lub jest nieprawidłowy." };
 

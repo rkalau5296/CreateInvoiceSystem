@@ -6,5 +6,6 @@ public class ResetPasswordRequest : IRequest<ResetPasswordResponse>
 {
     public string Email { get; set; }
     public string Token { get; set; }
+    public string Version { get; set; }
     public string NewPassword { get; set; }
 }
