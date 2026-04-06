@@ -1,4 +1,4 @@
-using CreateInvoiceSystem.Identity.DI;
+using CreateInvoiceSystem.Abstractions.DI;
 using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
@@ -6,15 +6,17 @@ using CreateInvoiceSystem.API.TransactionBehavior;
 using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.DI;
+using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
 using CreateInvoiceSystem.Modules.Nbp.Domain.DI;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Domain.DI;
 using CreateInvoiceSystem.Pdf.Extensions;
+using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Persistence.DI;
-using CreateInvoiceSystem.Abstractions.DI;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -76,6 +78,22 @@ builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<CreateInvoiceSystemDbContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "B³¹d podczas automatycznej migracji bazy danych.");
+    }
+}
+
 app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
