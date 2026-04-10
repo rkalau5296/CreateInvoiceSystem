@@ -1,4 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
@@ -40,21 +41,40 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
     [Fact]
     public async Task Should_CreateInvoice_And_SendPdfEmail()
     {
+        int actualUserId;
+
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == 1);
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == "sprzedawca@test.local");
             if (user == null)
             {
-                db.Users.Add(new UserEntity
+                // 1. Tworzymy najpierw adres, bo User go wymaga (FK Constraint)
+                var address = new AddressEntity
                 {
-                    Id = 1,
+                    Street = "Testowa",
+                    Number = "1",
+                    City = "Warszawa",
+                    PostalCode = "00-100",
+                    Country = "Polska"
+                };
+                db.Set<AddressEntity>().Add(address);
+                await db.SaveChangesAsync();
+
+                // 2. Tworzymy użytkownika z przypisanym AddressId
+                user = new UserEntity
+                {
                     Email = "sprzedawca@test.local",
-                    Name = "Sprzedawca"
-                });
+                    Name = "Sprzedawca",
+                    CompanyName = "Testowa Firma Sprzedawcy",
+                    Nip = "1234567890",
+                    AddressId = address.AddressId // Przypisanie klucza obcego
+                };
+                db.Users.Add(user);
                 await db.SaveChangesAsync();
             }
+            actualUserId = user.Id;
         }
 
         var invoiceData = new
@@ -67,7 +87,7 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
             TotalGross = 1230m,
             PaymentDate = DateTime.UtcNow.AddDays(7),
             CreatedDate = DateTime.UtcNow,
-            UserId = 1,
+            UserId = actualUserId,
             UserEmail = "sprzedawca@test.local",
             ClientId = (int?)null,
             Client = new
@@ -82,7 +102,7 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
                     PostalCode = "00-100",
                     Country = "Polska"
                 },
-                UserId = 1,
+                UserId = actualUserId,
                 Email = "klient@test.local"
             },
             SellerName = "Moja Firma",
@@ -106,7 +126,7 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
                         Name = "Produkt",
                         Description = "Opis",
                         Value = 1000m,
-                        UserId = 1,
+                        UserId = actualUserId,
                         IsDeleted = false
                     },
                     ProductName = "Usługa Testowa",
