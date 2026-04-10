@@ -15,5 +15,6 @@ public record CreateInvoiceDto
     public string ClientName { get; set; }
     public string ClientAddress { get; set; }
     public string ClientNip { get; set; }
+    public string ClientEmail { get; set; }
     public List<InvoicePositionDto> InvoicePositions { get; set; }
 }

@@ -71,13 +71,14 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         product.ProductId = entity.ProductId;
     }
 
-    public async Task<Client?> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, CancellationToken cancellationToken)
+    public async Task<Client?> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, string email, CancellationToken cancellationToken)
     {
         var clientEntity = await (from client in _db.Set<ClientEntity>().AsNoTracking()
                                   join address in _db.Set<AddressEntity>().AsNoTracking()
                                   on client.AddressId equals address.AddressId
                                   where client.Name == name &&
                                         client.UserId == userId &&
+                                        client.Email == email &&
                                         address.Street == street &&
                                         address.Number == number &&
                                         address.City == city &&

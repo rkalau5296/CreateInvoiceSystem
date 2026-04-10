@@ -20,5 +20,6 @@ public class Invoice
     public string ClientName { get; set; }
     public string ClientAddress { get; set; }
     public string ClientNip { get; set; }
+    public string ClientEmail { get; set; }
     public ICollection<InvoicePosition> InvoicePositions { get; set; } = [];    
 }

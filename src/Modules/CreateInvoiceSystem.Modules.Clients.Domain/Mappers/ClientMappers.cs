@@ -8,13 +8,13 @@ public static class ClientMappers
          client == null
         ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to ClientDto.")
         :
-        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(),  client.UserId, client.IsDeleted);
+        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(),  client.UserId, client.Email);
 
     public static UpdateClientDto ToUpdateDto(this Client client) =>
         client == null
         ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to UpdateClientDto.")
         :
-        new(client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.AddressId, client.UserId);
+        new(client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.AddressId, client.UserId, client.Email);
 
     public static Client ToEntity(this ClientDto dto)
     {
@@ -28,7 +28,8 @@ public static class ClientMappers
             Nip = dto.Nip,
             Address = dto.Address.ToEntity(),
             UserId = dto.UserId,
-            IsDeleted = dto.IsDeleted
+            Email = dto.Email
+
         };
     }
 
@@ -42,7 +43,7 @@ public static class ClientMappers
             Nip = dto.Nip,
             Address = dto.Address.ToEntity(),            
             UserId = dto.UserId,
-            IsDeleted = dto.IsDeleted
+            Email = dto.Email
         };
 
     public static CreateClientDto ToCreateDto(this Client client) =>
@@ -53,7 +54,7 @@ public static class ClientMappers
             client.Nip,
             client.Address.ToDto(), 
             client.UserId,
-            client.IsDeleted
+            client.Email
         );
 
 

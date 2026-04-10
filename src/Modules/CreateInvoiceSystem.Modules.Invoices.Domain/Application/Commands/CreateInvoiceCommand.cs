@@ -51,6 +51,12 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             createdInvoice.InvoiceId,
             cancellationToken);
 
+        if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
+        {            
+            var dto = entity.ToDto();         
+            await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
+        }
+
         bool added = persisted is not null
             && persisted.Client is not null
             && persisted.InvoicePositions is not null;
@@ -114,7 +120,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
                     string.IsNullOrEmpty(client.Address.PostalCode) &&
                     string.IsNullOrEmpty(client.Address.Country)
                 
-            );
+            )
+            && string.IsNullOrEmpty(client.Email);
+
     }
 
     private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
@@ -127,6 +135,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             param.Client.Address.PostalCode,
             param.Client.Address.Country,
             param.UserId,
+            param.ClientEmail,
             cancellationToken);
 
         if (client is not null)

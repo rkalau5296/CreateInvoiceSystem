@@ -159,6 +159,7 @@ public static class InvoiceMappers
                 .ToList() ?? [],
             invoice.ClientName,
             invoice.ClientNip,
-            invoice.ClientAddress
+            invoice.ClientAddress,
+            invoice.ClientEmail
         );       
 }

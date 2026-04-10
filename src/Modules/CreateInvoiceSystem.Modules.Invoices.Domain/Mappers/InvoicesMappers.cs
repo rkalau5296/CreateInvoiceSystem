@@ -24,11 +24,12 @@ public static class InvoiceMappers
         invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList(),
         invoice.SellerName,     
         invoice.SellerNip,
-        invoice.SellerAddress,
+        invoice.SellerAddress,        
         invoice.BankAccountNumber,
         invoice.ClientName,
         invoice.ClientNip,
-        invoice.ClientAddress
+        invoice.ClientAddress,
+        invoice.ClientEmail
     );
 
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
@@ -134,6 +135,7 @@ public static class InvoiceMappers
             ClientName = client.Name,
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
+            ClientEmail = dto.ClientEmail,
             InvoicePositions = []
         };
     }
@@ -172,6 +174,7 @@ public static class InvoiceMappers
             ClientName = client.Name,
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
+            ClientEmail = client.Email,
             InvoicePositions = []
         };
     }
@@ -204,7 +207,7 @@ public static class InvoiceMappers
             invoice.Client != null ? new UpdateClientDto(
                 invoice.Client.ClientId,
                 invoice.Client.Name,
-                invoice.Client.Nip,
+                invoice.Client.Nip,                
                 invoice.Client.Address != null ? new AddressDto(
                     invoice.Client.Address.AddressId,
                     invoice.Client.Address.Street,
@@ -214,7 +217,7 @@ public static class InvoiceMappers
                     invoice.Client.Address.Country
                 ) : null,
                 invoice.Client.UserId,
-                false
+                invoice.Client.Email                
             ) : null,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
@@ -242,7 +245,8 @@ public static class InvoiceMappers
             invoice.BankAccountNumber,
             invoice.ClientName,
             invoice.ClientNip,
-            invoice.ClientAddress
+            invoice.ClientAddress,
+            invoice.ClientEmail
         );
 
     public static Client ToEntity(this CreateClientDto dto) =>
@@ -255,7 +259,7 @@ public static class InvoiceMappers
             Nip = dto.Nip,
             Address = dto.Address.ToEntity(),
             UserId = dto.UserId,
-            IsDeleted = dto.IsDeleted
+            Email = dto.Email
         };
 
     public static Address ToEntity(this AddressDto dto) =>

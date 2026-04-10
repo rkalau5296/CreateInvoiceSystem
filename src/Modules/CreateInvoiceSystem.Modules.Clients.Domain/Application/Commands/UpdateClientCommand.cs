@@ -17,6 +17,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         
         string oldName = client.Name;
         string oldNip = client.Nip;
+        string oldEmail = client.Email;
         string oldStreet = client.Address?.Street;
         string oldNumber = client.Address?.Number;
         string oldCity = client.Address?.City;
@@ -25,6 +26,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
 
         client.Name = Parametr.Name ?? client.Name;
         client.Nip = Parametr.Nip ?? client.Nip;
+        client.Email = Parametr.Email ?? client.Email;
 
         if (client.Address is null && Parametr.Address is not null)
         {
@@ -54,6 +56,7 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
         bool hasChanged = persisted is not null && (
             !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
             !string.Equals(oldNip, persisted.Nip, StringComparison.Ordinal) ||
+            !string.Equals(oldEmail, persisted.Email, StringComparison.Ordinal) ||
             !string.Equals(oldStreet, persisted.Address?.Street, StringComparison.Ordinal) ||
             !string.Equals(oldNumber, persisted.Address?.Number, StringComparison.Ordinal) ||
             !string.Equals(oldCity, persisted.Address?.City, StringComparison.Ordinal) ||

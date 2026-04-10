@@ -20,26 +20,15 @@ namespace CreateInvoiceSystem.Frontend.Services
         public async Task<GetClientsResponse> GetClientsAsync(int pageNumber, int pageSize, string? searchTerm = null)
         {
             var url = $"api/Client?PageNumber={pageNumber}&PageSize={pageSize}";
-
             if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
                 url += $"&SearchTerm={Uri.EscapeDataString(searchTerm)}";
-            }
 
             using var response = await _http.GetAsync(url);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                return new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
-            }
-
             if (!response.IsSuccessStatusCode)
-            {
                 return new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
-            }
 
-            var data = await response.Content.ReadFromJsonAsync<GetClientsResponse>();
-            return data ?? new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
+            return await response.Content.ReadFromJsonAsync<GetClientsResponse>()
+                   ?? new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
         }
 
         public class GetClientsResponse
@@ -64,6 +53,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                 client.ClientId,
                 client.Name,
                 client.Nip,
+                client.Email, 
                 Address = new
                 {
                     client.Address.Street,
@@ -72,8 +62,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                     client.Address.PostalCode,
                     client.Address.Country
                 },
-                client.UserId,
-                client.IsDeleted
+                client.UserId
             };
 
             var response = await _http.PutAsJsonAsync($"api/Client/update/{client.ClientId}", updateDto);
@@ -94,14 +83,12 @@ namespace CreateInvoiceSystem.Frontend.Services
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
             var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
-
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
         public async Task DownloadClientsCsvAsync()
         {
             var response = await _http.GetAsync("api/export/clients");
-
             if (response.IsSuccessStatusCode)
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();

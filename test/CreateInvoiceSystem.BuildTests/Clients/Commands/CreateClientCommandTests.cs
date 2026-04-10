@@ -21,7 +21,7 @@ public class CreateClientCommandTests
     {
         // Arrange        
         var addressDto = new AddressDto(1, "Testowa", "1", "Miasto", "00-000", "Polska");
-        var createDto = new CreateClientDto("Nowy Klient", "1234567890", addressDto, 1, false);
+        var createDto = new CreateClientDto("Nowy Klient", "1234567890", addressDto, 1, "testc@test.com");
 
         var command = new CreateClientCommand { Parametr = createDto };
         
@@ -64,7 +64,7 @@ public class CreateClientCommandTests
     {
         // Arrange
         var addressDto = new AddressDto(0, "Testowa", "1", "Miasto", "00-000", "Polska");
-        var createDto = new CreateClientDto("Istniejący", "123", addressDto, 1, false);
+        var createDto = new CreateClientDto("Istniejący", "123", addressDto, 1, "testc@test.com");
         var command = new CreateClientCommand { Parametr = createDto };
 
         _repositoryMock.Setup(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
@@ -97,7 +97,7 @@ public class CreateClientCommandTests
     public async Task Execute_ShouldThrowArgumentNullException_WhenAddressIsNull()
     {
         // Arrange
-        var createDto = new CreateClientDto("Test", "123", null!, 1, false);
+        var createDto = new CreateClientDto("Test", "123", null!, 1, "testc@test.com");
         var command = new CreateClientCommand { Parametr = createDto };
 
         // Act
@@ -113,7 +113,7 @@ public class CreateClientCommandTests
     {
         // Arrange
         var addressDto = new AddressDto(0, "Test", "1", "Test", "00-000", "PL");
-        var createDto = new CreateClientDto("Test", "123", addressDto, 1, false);
+        var createDto = new CreateClientDto("Test", "123", addressDto, 1, "testc@test.com");
         var command = new CreateClientCommand { Parametr = createDto };
 
         _repositoryMock.Setup(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),

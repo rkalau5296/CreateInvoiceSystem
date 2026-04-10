@@ -36,23 +36,24 @@ public class DeleteInvoiceHandlerTests
         var returnDto = new InvoiceDto(
             invoiceId,
             "Deleted Invoice",
-            100m,       // TotalNet
-            23m,        // TotalVat
-            123m,       // TotalGross
+            100m,       
+            23m,        
+            123m,       
             DateTime.Now,
             DateTime.Now,
             "Comment",
-            null,       // ClientId
+            null,       
             userId,
-            "Transfer", // MethodOfPayment
-            null,       // Client (Dto)
+            "Transfer", 
+            null,       
             "SellerName",
             "SellerNip",
             "SellerAddress",
             "BankAccount",
             "ClientName",
             "ClientNip",
-            "ClientAddress"
+            "ClientAddress",
+            "testc@test.com"
         );
 
         _commandExecutorMock

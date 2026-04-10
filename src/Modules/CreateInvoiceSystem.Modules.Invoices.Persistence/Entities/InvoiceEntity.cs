@@ -17,6 +17,8 @@ public class InvoiceEntity
     public string ClientName { get; set; }
     public string ClientAddress { get; set; }
     public string ClientNip { get; set; }
+    public string ClientEmail { get; set; }
+
     public IEnumerable<object> InvoicePositions { get; set; } = [];
 
     public decimal TotalNet { get; set; }

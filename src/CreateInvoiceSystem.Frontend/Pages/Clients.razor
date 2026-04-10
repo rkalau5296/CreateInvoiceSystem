@@ -68,6 +68,11 @@
                                     <ValidatedInputText @bind-Value="_editingClient.Nip" />
                                 </div>
 
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">E-mail <span class="text-danger">*</span></label>
+                                    <ValidatedInputText @bind-Value="_editingClient.Email" placeholder="adres@klienta.pl" />
+                                </div>
+
                                 <hr class="my-2 text-muted" />
                                 <h6 class="text-muted mb-2">Adres kontrahenta</h6>
 
@@ -105,11 +110,12 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light">Twoja lista kontrahentów</div>
         <div class="card-body p-0">
-            <DataTable Items="_clients" Cols="4" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="c => c.ClientId" NoItemsMessage="Brak kontrahentów w bazie.">
+            <DataTable Items="_clients" Cols="5" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="c => c.ClientId" NoItemsMessage="Brak kontrahentów w bazie.">
                 <HeaderTemplate>
                     <tr>
                         <th>Nazwa</th>
                         <th>NIP</th>
+                        <th>E-mail</th>
                         <th>Adres</th>
                         <th class="text-center">Akcje</th>
                     </tr>
@@ -118,6 +124,7 @@
                 <RowTemplate Context="c">
                     <td class="align-middle"><strong>@c.Name</strong></td>
                     <td class="align-middle">@c.Nip</td>
+                    <td class="align-middle">@c.Email</td>
                     <td class="align-middle small">
                         @if (c.Address != null)
                         {
@@ -244,6 +251,7 @@
             ClientId = client.ClientId,
             Name = client.Name,
             Nip = client.Nip,
+            Email = client.Email,
             UserId = client.UserId,
             AddressId = client.Address?.AddressId ?? 0,
             Address = new AddressDto
@@ -304,6 +312,9 @@
                     _invalidFields.Add(m);
             }
         }
+
+        if (string.IsNullOrWhiteSpace(_editingClient.Email))
+            AddInvalid("Email");
 
         if (_editingClient.Address != null)
         {

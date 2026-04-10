@@ -4,5 +4,5 @@ public record CreateClientDto(
     string Nip,
     AddressDto Address,
     int UserId,
-    bool IsDeleted
+    string Email
 );

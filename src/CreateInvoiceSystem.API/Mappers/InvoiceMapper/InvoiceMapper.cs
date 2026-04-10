@@ -32,7 +32,7 @@ public static class InvoiceMapper
             Nip = c?.Nip,
             AddressId = c?.AddressId ?? 0,
             UserId = c?.UserId ?? 0,
-            IsDeleted = c?.IsDeleted ?? false
+            Email = c?.Email
         };
     }
 
@@ -57,7 +57,8 @@ public static class InvoiceMapper
             BankAccountNumber = invoice.BankAccountNumber,
             ClientName = invoice.ClientName,
             ClientAddress = invoice.ClientAddress,
-            ClientNip = invoice.ClientNip
+            ClientNip = invoice.ClientNip,            
+            ClientEmail = invoice.ClientEmail
         };
     }
 
@@ -105,7 +106,7 @@ public static class InvoiceMapper
             Nip = clientEntity.Nip,
             AddressId = clientEntity.AddressId,
             UserId = clientEntity.UserId,
-            IsDeleted = clientEntity.IsDeleted,
+            Email = clientEntity.Email,
             Address = addressEntity == null ? null : new Address
             {
                 AddressId = addressEntity.AddressId,
@@ -183,6 +184,7 @@ public static class InvoiceMapper
             SellerAddress = e.SellerAddress,
             BankAccountNumber = e.BankAccountNumber,
             ClientName = e.ClientName,
+            ClientEmail = e.ClientEmail,
             ClientAddress = e.ClientAddress,
             ClientNip = e.ClientNip,
             Client = MapClient(clientEntity, addressEntity),

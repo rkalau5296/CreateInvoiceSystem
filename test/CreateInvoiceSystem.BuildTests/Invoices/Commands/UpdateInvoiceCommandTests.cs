@@ -32,7 +32,7 @@ public class UpdateInvoiceCommandTests
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "New Title", 1000m, 230m, 1230m, DateTime.Now.AddDays(7), DateTime.Now, "Updated",
             null, userId, null!, "Transfer", incomingPositions, "My Company", "9876543210", "Main St 1",
-            "PL00112233", "Client Name", "123456789", "Client Address"
+            "PL00112233", "Client Name", "123456789", "Client Address", "testc@test.com"
         );
 
         var command = new UpdateInvoiceCommand { Parametr = updateDto };
@@ -84,7 +84,7 @@ public class UpdateInvoiceCommandTests
 
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "Same", 100m, 23m, 123m, now, now, "Same", null, userId, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "Seller", "NIP", "Address", "Bank", "Client", "C-NIP", "C-ADDR"
+            new List<UpdateInvoicePositionDto>(), "Seller", "NIP", "Address", "Bank", "Client", "C-NIP", "C-ADDR", "testc@test.com"
         );
         var command = new UpdateInvoiceCommand { Parametr = updateDto };
 
@@ -142,7 +142,7 @@ public class UpdateInvoiceCommandTests
 
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C", newClientId, userId, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR"
+            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
         );
         var command = new UpdateInvoiceCommand { Parametr = updateDto };
 
@@ -173,7 +173,7 @@ public class UpdateInvoiceCommandTests
     {
         var updateDto = new UpdateInvoiceDto(
             999, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C", 1, 1, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR"
+            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
         );
         var command = new UpdateInvoiceCommand { Parametr = updateDto };
 

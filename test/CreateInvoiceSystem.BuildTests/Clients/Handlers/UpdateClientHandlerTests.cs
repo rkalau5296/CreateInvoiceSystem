@@ -24,7 +24,7 @@ public class UpdateClientHandlerTests : BaseTest<IClientRepository>
         // Arrange
         var clientId = 1;
         var address = new AddressDto(50, "Testowa", "1", "Miasto", "00-000", "Polska");
-        var updateDto = new UpdateClientDto(0, "Firma", "123", address, 50, 100);
+        var updateDto = new UpdateClientDto(0, "Firma", "123", address, 50, 100, "testc@test.com");
         var request = new UpdateClientRequest(updateDto, clientId);
         
         var expectedResult = updateDto with { ClientId = clientId };
@@ -48,7 +48,7 @@ public class UpdateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(1, "", "", "", "", "");
-        var updateDto = new UpdateClientDto(1, "", "", address, 1, 1);
+        var updateDto = new UpdateClientDto(1, "", "", address, 1, 1, "testc@test.com");
         var request = new UpdateClientRequest(updateDto, 1);
         using var cts = new CancellationTokenSource();
 
@@ -73,7 +73,7 @@ public class UpdateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(1, "", "", "", "", "");
-        var updateDto = new UpdateClientDto(1, "", "", address, 1, 1);
+        var updateDto = new UpdateClientDto(1, "", "", address, 1, 1, "testc@test.com");
         var request = new UpdateClientRequest(updateDto, 1);
 
         ExecutorMock.Setup(e => e.Execute(
@@ -94,7 +94,7 @@ public class UpdateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(1, "", "", "", "", "");
-        var updateDto = new UpdateClientDto(0, "", "", address, 1, 1);
+        var updateDto = new UpdateClientDto(0, "", "", address, 1, 1, "testc@test.com");
 
         // Act
         Action act = () => new UpdateClientRequest(updateDto, 0);

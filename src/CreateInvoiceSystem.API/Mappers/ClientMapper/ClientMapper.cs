@@ -15,7 +15,7 @@ public static class ClientMapper
             Nip = c.Nip,
             AddressId = c.AddressId,
             UserId = c.UserId,
-            IsDeleted = c.IsDeleted,
+            Email = c.Email,
             Address = a is null ? null : new Address
             {
                 AddressId = a.AddressId,
@@ -37,7 +37,7 @@ public static class ClientMapper
             Nip = c.Nip,
             AddressId = c.AddressId,
             UserId = c.UserId,
-            IsDeleted = c.IsDeleted
+            Email = c.Email
         };
     }
 

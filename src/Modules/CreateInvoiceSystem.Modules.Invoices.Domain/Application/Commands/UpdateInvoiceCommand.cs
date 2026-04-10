@@ -50,7 +50,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         invoice.ClientAddress = Parametr.ClientAddress ?? invoice.ClientAddress;
         invoice.ClientName = Parametr.ClientName ?? invoice.ClientName;
         invoice.ClientNip = Parametr.ClientNip ?? invoice.ClientNip;
-
+        invoice.ClientEmail = Parametr.ClientEmail ?? invoice.ClientEmail;
         invoice.SellerName = Parametr.SellerName ?? invoice.SellerName;
         invoice.SellerNip = Parametr.SellerNip ?? invoice.SellerNip;
         invoice.SellerAddress = Parametr.SellerAddress ?? invoice.SellerAddress;
@@ -69,6 +69,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 Parametr.Client.Address.PostalCode,
                 Parametr.Client.Address.Country,
                 invoice.UserId,
+                Parametr.Client.Email,
                 cancellationToken);
 
             if (existingClient != null)
@@ -86,6 +87,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
 
             invoice.ClientName = Parametr.Client.Name;
             invoice.ClientNip = Parametr.Client.Nip;
+            invoice.ClientEmail = Parametr.Client.Email;
             invoice.ClientAddress = FormatAddress(Parametr.Client.Address);
         }
         else if (Parametr.ClientId.HasValue && Parametr.ClientId.Value > 0)
@@ -95,6 +97,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             invoice.ClientId = existing.ClientId;
             invoice.ClientName = existing.Name;
             invoice.ClientNip = existing.Nip;
+            invoice.ClientEmail = existing.Email;
             invoice.ClientAddress = FormatAddress(existing.Address);
         }
     }
@@ -165,6 +168,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                before.CreatedDate != after.CreatedDate ||
                before.PaymentDate != after.PaymentDate ||
                before.ClientName != after.ClientName ||
+               before.ClientEmail != after.ClientEmail ||
                before.ClientId != after.ClientId ||
                before.SellerName != after.SellerName ||
                before.SellerNip != after.SellerNip ||
@@ -182,6 +186,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         ClientId = 0,
         Name = dto.Name,
         Nip = dto.Nip,
+        Email = dto.Email,
         UserId = userId,
         Address = new Address
         {

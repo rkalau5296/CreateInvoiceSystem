@@ -18,5 +18,6 @@ public record InvoiceDto(
      string BankAccountNumber,
      string ClientName,
      string ClientNip,
-     string ClientAddress
+     string ClientAddress,
+     string ClientEmail
 );

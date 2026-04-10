@@ -9,8 +9,8 @@ public static class ClientFaker
     private static Faker<ClientEntity> Faker => new Faker<ClientEntity>()
         .RuleFor(c => c.Name, f => f.Company.CompanyName())
         .RuleFor(c => c.Nip, f => f.Random.ReplaceNumbers("##########"))
-        .RuleFor(c => c.IsDeleted, f => false)
-    ;
+        .RuleFor(c => c.Email, f => f.Internet.Email()) 
+        ;
 
     public static ClientEntity Generate(UserEntity user)
     {

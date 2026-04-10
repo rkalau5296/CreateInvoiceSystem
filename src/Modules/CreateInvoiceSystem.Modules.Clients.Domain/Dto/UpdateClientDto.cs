@@ -5,5 +5,6 @@ public record UpdateClientDto(
     string Nip,    
     AddressDto Address,
     int AddressId,    
-    int UserId         
+    int UserId,
+    string Email
 );

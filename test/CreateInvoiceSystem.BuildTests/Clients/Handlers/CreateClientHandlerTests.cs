@@ -23,9 +23,9 @@ public class CreateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(1, "Warszawska", "10A", "Warszawa", "00-001", "Polska");        
-        var createDto = new CreateClientDto("Firma XYZ", "1234567890", address, 1, false);        
+        var createDto = new CreateClientDto("Firma XYZ", "1234567890", address, 1, "testc@test.com");        
         var request = new CreateClientRequest(createDto) { UserId = 1 };        
-        var expectedResult = new ClientDto(1, "Firma XYZ", "1234567890", address, 1, false);
+        var expectedResult = new ClientDto(1, "Firma XYZ", "1234567890", address, 1, "testc@test.com");
 
         ExecutorMock.Setup(e => e.Execute(
                 It.IsAny<CreateClientCommand>(),
@@ -53,7 +53,7 @@ public class CreateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(0, "", "", "", "", "");
-        var createDto = new CreateClientDto("", "", address, 1, false);
+        var createDto = new CreateClientDto("", "", address, 1, "testc@test.com");
         var request = new CreateClientRequest(createDto);
         using var cts = new CancellationTokenSource();
 
@@ -72,7 +72,7 @@ public class CreateClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var address = new AddressDto(0, "", "", "", "", "");
-        var createDto = new CreateClientDto("Error", "000", address, 1, false);
+        var createDto = new CreateClientDto("Error", "000", address, 1, "testc@test.com");
         var request = new CreateClientRequest(createDto);
 
         ExecutorMock.Setup(e => e.Execute(

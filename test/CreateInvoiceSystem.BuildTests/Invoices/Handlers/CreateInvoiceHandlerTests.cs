@@ -63,7 +63,8 @@ public class CreateInvoiceHandlerTests
             BankAccountNumber: "12 3456 7890 1234 5678 9012 3456",
             ClientName: "Client Name",
             ClientNip: "1234567890",
-            ClientAddress: "Address"
+            ClientAddress: "Address",
+            ClientEmail: "testc@test.com"
         );
 
         _commandExecutorMock

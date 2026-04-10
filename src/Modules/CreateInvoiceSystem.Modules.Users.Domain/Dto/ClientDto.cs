@@ -4,6 +4,6 @@ public record ClientDto(
     string Name,
     string Nip,
     AddressDto AddressDto,
-    int UserId,
-    bool IsDeleted
+    int UserId, 
+    string Email
 );

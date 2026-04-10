@@ -28,7 +28,7 @@ public class DeleteClientHandlerTests : BaseTest<IClientRepository>
         var request = new DeleteClientRequest(clientId) { UserId = userId };
 
         var address = new AddressDto(1, "Testowa", "1", "Miasto", "00-000", "Polska");
-        var expectedResult = new ClientDto(clientId, "Firma do usunięcia", "1234567890", address, userId, true);
+        var expectedResult = new ClientDto(clientId, "Firma do usunięcia", "1234567890", address, userId, "testc@test.com");
 
         ExecutorMock.Setup(e => e.Execute(
                 It.IsAny<DeleteClientCommand>(),

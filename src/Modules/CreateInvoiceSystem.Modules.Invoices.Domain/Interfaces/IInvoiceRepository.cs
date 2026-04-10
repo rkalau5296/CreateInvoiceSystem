@@ -12,7 +12,7 @@ public interface IInvoiceRepository : ISaveChangesContext
     Task<Client> GetClientByIdAsync(int? clientId, CancellationToken cancellationToken);
     Task<Product> GetProductByIdAsync(int productId, CancellationToken cancellationToken);
     Task<Client> GetClientAsync(string name, string street, string number, string city, string postalCode,
-        string country, int userId, CancellationToken cancellationToken);
+        string country, int userId, string email, CancellationToken cancellationToken);
     Task<Product> GetProductAsync(string name, string description, decimal? value, int userId, CancellationToken cancellationToken);
     Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken);
     Task AddInvoicePositionAsync(ICollection<InvoicePosition> invoicePositions, CancellationToken cancellationToken);

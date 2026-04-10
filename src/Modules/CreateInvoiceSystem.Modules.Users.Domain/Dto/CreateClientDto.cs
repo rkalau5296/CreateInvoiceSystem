@@ -3,6 +3,6 @@ public record CreateClientDto(
     string Name,
     string Nip,
     AddressDto Address,
-    int UserId,
-    bool IsDeleted
+    int UserId, 
+    string Email
 );

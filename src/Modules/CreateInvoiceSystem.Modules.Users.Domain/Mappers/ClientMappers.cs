@@ -8,13 +8,7 @@ public static class ClientMappers
          client == null
         ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to ClientDto.")
         :
-        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.UserId, client.IsDeleted);
-
-    public static UpdateClientDto ToUpdateDto(this Client client) =>
-        client == null
-        ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to UpdateClientDto.")
-        :
-        new(client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.AddressId, client.UserId);
+        new (client.ClientId, client.Name, client.Nip, client.Address.ToDto(), client.UserId, client.Email);    
 
     public static Client ToEntity(this ClientDto dto)
     {
@@ -28,39 +22,7 @@ public static class ClientMappers
             Nip = dto.Nip,
             Address = dto.AddressDto.ToEntity(),
             UserId = dto.UserId,
-            IsDeleted = dto.IsDeleted
+            Email = dto.Email
         };
     }    
-
-    public static CreateClientDto ToCreateDto(this Client client) =>
-    client == null
-        ? throw new ArgumentNullException(nameof(client), "Client cannot be null when mapping to CreateClientDto.")
-        : new CreateClientDto(
-            client.Name,
-            client.Nip,
-            client.Address.ToDto(), 
-            client.UserId,
-            client.IsDeleted
-        );
-
-
-    public static List<ClientDto> ToDtoList(this IEnumerable<Client> clients) =>
-        clients == null
-        ? throw new ArgumentNullException(nameof(clients), "Client's list cannot be null when mapping to ClientDto's list.")
-        :
-         [.. clients.Select(a => a.ToDto())];
-
-    //public static Address ToEntity(this AddressDto dto) =>
-    //    dto == null
-    //    ? throw new ArgumentNullException(nameof(dto), "Address cannot be null when mapping to Address.")
-    //    :
-    //    new()
-    //    {
-    //        AddressId = dto.AddressId,
-    //        Street = dto.Street,
-    //        Number = dto.Number,
-    //        City = dto.City,
-    //        PostalCode = dto.PostalCode,
-    //        Country = dto.Country
-    //    };
 }

@@ -96,7 +96,8 @@ public static class UserMappers
         invoice.BankAccountNumber,
         invoice.ClientName,
         invoice.ClientNip,
-        invoice.ClientAddress
+        invoice.ClientAddress,
+        invoice.ClientEmail
     );
 
     public static User ToEntity(RegisterUserDto dto) =>

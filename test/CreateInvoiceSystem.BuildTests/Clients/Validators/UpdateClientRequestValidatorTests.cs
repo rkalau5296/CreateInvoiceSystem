@@ -30,7 +30,7 @@ public class UpdateClientRequestValidatorTests
     public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
     {
         // Arrange
-        var clientDto = new UpdateClientDto(0, "Name", "1234567890", null!, 0, 1);
+        var clientDto = new UpdateClientDto(0, "Name", "1234567890", null!, 0, 1, "testc@test.com");
 
         // Act
         Action act = () => new UpdateClientRequest(clientDto, 0);
@@ -44,7 +44,7 @@ public class UpdateClientRequestValidatorTests
     public void Should_Have_Error_When_Name_Is_Empty()
     {
         // Arrange
-        var clientDto = new UpdateClientDto(1, "", "1234567890", null!, 0, 1);
+        var clientDto = new UpdateClientDto(1, "", "1234567890", null!, 0, 1, "testc@test.com");
         var request = new UpdateClientRequest(clientDto, 1);
 
         // Act
@@ -59,7 +59,7 @@ public class UpdateClientRequestValidatorTests
     public void Should_Have_Error_When_Nip_Is_Invalid()
     {
         // Arrange
-        var clientDto = new UpdateClientDto(1, "Test", "123", null!, 0, 1);
+        var clientDto = new UpdateClientDto(1, "Test", "123", null!, 0, 1, "testc@test.com");
         var request = new UpdateClientRequest(clientDto, 1);
 
         // Act
@@ -77,7 +77,7 @@ public class UpdateClientRequestValidatorTests
     {
         // Arrange
         var addressDto = new AddressDto(1, "Street", "1", "City", invalidPostal, "Country");
-        var clientDto = new UpdateClientDto(1, "Name", "1234567890", addressDto, 1, 1);
+        var clientDto = new UpdateClientDto(1, "Name", "1234567890", addressDto, 1, 1, "testc@test.com");
         var request = new UpdateClientRequest(clientDto, 1);
 
         // Act
@@ -93,7 +93,7 @@ public class UpdateClientRequestValidatorTests
     {
         // Arrange
         var addressDto = new AddressDto(1, "Ulica", "10", "Miasto", "12-345", "Kraj");
-        var clientDto = new UpdateClientDto(1, "Zaktualizowany", "1234567890", addressDto, 1, 1);
+        var clientDto = new UpdateClientDto(1, "Zaktualizowany", "1234567890", addressDto, 1, 1, "testc@test.com");
         var request = new UpdateClientRequest(clientDto, 1);
 
         // Act

@@ -12,7 +12,6 @@ public class UserEntity : IdentityUser<int>
     public string? BankAccountNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; }
-
     public string? ActivationTokenJti { get; set; }
     public DateTimeOffset? ActivationTokenExpiry { get; set; }
     public string? PasswordResetVersion { get; set; }

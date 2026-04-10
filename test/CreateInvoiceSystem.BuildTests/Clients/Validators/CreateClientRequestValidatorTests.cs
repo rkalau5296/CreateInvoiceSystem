@@ -18,7 +18,7 @@ public class CreateClientRequestValidatorTests
     public void Should_Have_Error_When_Name_Is_Empty()
     {
         // Arrange
-        var clientDto = new CreateClientDto("", "1234567890", null!, 1, false);
+        var clientDto = new CreateClientDto("", "1234567890", null!, 1, "testc@test.com");
         var request = new CreateClientRequest(clientDto);
 
         // Act
@@ -36,7 +36,7 @@ public class CreateClientRequestValidatorTests
     public void Should_Have_Error_When_Nip_Is_Invalid(string invalidNip)
     {
         // Arrange
-        var clientDto = new CreateClientDto("Test", invalidNip, null!, 1, false);
+        var clientDto = new CreateClientDto("Test", invalidNip, null!, 1, "testc@test.com");
         var request = new CreateClientRequest(clientDto);
 
         // Act
@@ -51,7 +51,7 @@ public class CreateClientRequestValidatorTests
     public void Should_Have_Error_When_Address_Is_Null()
     {
         // Arrange
-        var clientDto = new CreateClientDto("Test", "1234567890", null!, 1, false);
+        var clientDto = new CreateClientDto("Test", "1234567890", null!, 1, "testc@test.com");
         var request = new CreateClientRequest(clientDto);
 
         // Act
@@ -70,7 +70,7 @@ public class CreateClientRequestValidatorTests
     {
         // Arrange
         var addressDto = new AddressDto(0, "Street", "1", "City", invalidPostalCode, "Country");
-        var clientDto = new CreateClientDto("Test", "1234567890", addressDto, 1, false);
+        var clientDto = new CreateClientDto("Test", "1234567890", addressDto, 1, "testc@test.com");
         var request = new CreateClientRequest(clientDto);
 
         // Act
@@ -86,7 +86,7 @@ public class CreateClientRequestValidatorTests
     {
         // Arrange
         var addressDto = new AddressDto(0, "Wiejska", "10", "Warszawa", "00-902", "Polska");
-        var clientDto = new CreateClientDto("Poprawny Klient", "1234567890", addressDto, 1, false);
+        var clientDto = new CreateClientDto("Poprawny Klient", "1234567890", addressDto, 1, "testc@test.com");
         var request = new CreateClientRequest(clientDto);
 
         // Act

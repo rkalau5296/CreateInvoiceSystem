@@ -123,4 +123,41 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }
+    public async Task SendEmailWithAttachmentAsync(
+        string toEmail,
+        string subject,
+        string htmlBody,
+        byte[] attachmentBytes,
+        string attachmentFileName,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(toEmail))
+            throw new ArgumentNullException(nameof(toEmail));
+        if (attachmentBytes is null || attachmentBytes.Length == 0)
+            throw new ArgumentException("Brak załącznika PDF.", nameof(attachmentBytes));
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        message.To.Add(new MailboxAddress("", toEmail));
+        message.Subject = subject;
+        var builder = new BodyBuilder
+        {
+            HtmlBody = htmlBody
+        };
+        
+        builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse("application/pdf"));
+        message.Body = builder.ToMessageBody();
+        using var client = new SmtpClient();
+        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+        await client.ConnectAsync(
+            _configuration["Smtp:Host"],
+            int.Parse(_configuration["Smtp:Port"]!),
+            SecureSocketOptions.StartTls,
+            cancellationToken);
+        await client.AuthenticateAsync(
+            _configuration["Smtp:Username"],
+            _configuration["Smtp:Password"],
+            cancellationToken);
+        await client.SendAsync(message, cancellationToken);
+        await client.DisconnectAsync(true, cancellationToken);
+    }
 }

@@ -21,7 +21,7 @@ public class UpdateClientCommandTests
     {
         // Arrange
         var addressDto = new AddressDto(5, "Nowa Ulica", "2", "Gdynia", "81-000", "Polska");
-        var updateDto = new UpdateClientDto(1, "Zaktualizowany Klient", "9876543210", addressDto, 5, 10);
+        var updateDto = new UpdateClientDto(1, "Zaktualizowany Klient", "9876543210", addressDto, 5, 10, "testc@test.com");
 
         var existingClient = new Client
         {
@@ -71,7 +71,7 @@ public class UpdateClientCommandTests
     public async Task Execute_ShouldThrowInvalidOperationException_WhenClientNotFound()
     {
         // Arrange
-        var updateDto = new UpdateClientDto(99, "Nieistniejący", "123", null!, 0, 1);
+        var updateDto = new UpdateClientDto(99, "Nieistniejący", "123", null!, 0, 1, "testc@test.com");
         var command = new UpdateClientCommand { Parametr = updateDto };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(99, 1, It.IsAny<CancellationToken>()))
@@ -90,7 +90,7 @@ public class UpdateClientCommandTests
     {
         // Arrange
         var addressDto = new AddressDto(0, "Nowa Ulica", "1", "Warszawa", "00-001", "Polska");
-        var updateDto = new UpdateClientDto(1, "Klient", "123", addressDto, 0, 1);
+        var updateDto = new UpdateClientDto(1, "Klient", "123", addressDto, 0, 1, "testc@test.com");
 
         var existingClient = new Client { ClientId = 1, UserId = 1, Name = "Klient", Address = null };
         var command = new UpdateClientCommand { Parametr = updateDto };

@@ -45,9 +45,12 @@ public class TransactionTests
         {
             UserName = "test_user_" + Guid.NewGuid(),
             Email = "test@example.com",
+            Name = "Test User",
+            CompanyName = "Test Company",   
             Nip = Guid.NewGuid().ToString().Substring(0, 10),
             AddressId = testAddress.AddressId
         };
+
         context.Users.Add(testUser);
         await context.SaveChangesAsync();
 

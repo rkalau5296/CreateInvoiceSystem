@@ -45,6 +45,7 @@ namespace CreateInvoiceSystem.Frontend.Models
 
         [Required(ErrorMessage = "Adres klienta jest wymagany")]
         public string? ClientAddress { get; set; }
+        public string? ClientEmail { get; set; }
 
         public ClientDto? Client { get; set; }
 

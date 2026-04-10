@@ -15,5 +15,6 @@ public record UpdateInvoiceDto
     ICollection<UpdateInvoicePositionDto> InvoicePositions,
     string ClientName,
     string ClientNip,
-    string ClientAddress
+    string ClientAddress,
+    string ClientEmail
 ); 

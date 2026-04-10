@@ -35,7 +35,7 @@ public class UpdateInvoiceHandlerTests
             invoiceId, "Title", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Comments",
             null, userId, null!, "Card", new List<UpdateInvoicePositionDto>(),
             "SellerName", "SellerNip", "SellerAddr", "BankAcc",
-            "ClientName", "ClientNip", "ClientAddr"
+            "ClientName", "ClientNip", "ClientAddr", "testc@test.com"
         );
 
         var request = new UpdateInvoiceRequest(invoiceId, updateDto);
@@ -64,7 +64,7 @@ public class UpdateInvoiceHandlerTests
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "Title", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Comments",
             null, 1, null!, "Card", new List<UpdateInvoicePositionDto>(),
-            "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR"
+            "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
         );
 
         var request = new UpdateInvoiceRequest(invoiceId, updateDto);
