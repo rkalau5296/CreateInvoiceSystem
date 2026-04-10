@@ -1,4 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+﻿using CreateInvoiceSystem.Mail;
+using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using FluentAssertions;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq; 
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -27,12 +29,24 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
-            {
+            {                
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "TestScheme";
                     options.DefaultChallengeScheme = "TestScheme";
                 }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
+                                
+                var emailMock = new Mock<IEmailService>();
+                emailMock.Setup(x => x.SendEmailAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>())) 
+                    .Returns(Task.CompletedTask);
+
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
+                if (descriptor != null) services.Remove(descriptor);
+                services.AddSingleton(emailMock.Object);
             });
         });
         _client = _factory.CreateClient();
@@ -50,7 +64,6 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
             var user = await db.Users.FirstOrDefaultAsync(u => u.Email == "sprzedawca@test.local");
             if (user == null)
             {
-                // 1. Tworzymy najpierw adres, bo User go wymaga (FK Constraint)
                 var address = new AddressEntity
                 {
                     Street = "Testowa",
@@ -62,14 +75,13 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
                 db.Set<AddressEntity>().Add(address);
                 await db.SaveChangesAsync();
 
-                // 2. Tworzymy użytkownika z przypisanym AddressId
                 user = new UserEntity
                 {
                     Email = "sprzedawca@test.local",
                     Name = "Sprzedawca",
                     CompanyName = "Testowa Firma Sprzedawcy",
                     Nip = "1234567890",
-                    AddressId = address.AddressId // Przypisanie klucza obcego
+                    AddressId = address.AddressId
                 };
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
