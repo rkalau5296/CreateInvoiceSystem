@@ -45,7 +45,7 @@
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
-                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="form-select">
+                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="@FormSelectClass(() => _invoice.MethodOfPayment)">
                             <option value="">-- Wybierz --</option>
                             <option value="Przelew">Przelew</option>
                             <option value="Gotówka">Gotówka</option>
@@ -133,10 +133,10 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <ValidatedInputNumber TValue="int" @bind-Value="pos.Quantity" AdditionalAttributes="@_minOneAttributes" />
+                                        <ValidatedInputNumber TValue="int" @bind-Value="pos.Quantity" AdditionalAttributes="@_minOneAttributes" CssClass="@FormControlClass(() => pos.Quantity)" />
                                     </td>
                                     <td>
-                                        <ValidatedInputNumber TValue="decimal?" @bind-Value="pos.ProductValue" Step="0.01" AdditionalAttributes="@_priceAttributes" />
+                                        <ValidatedInputNumber TValue="decimal?" @bind-Value="pos.ProductValue" Step="0.01" AdditionalAttributes="@_priceAttributes" CssClass="@FormControlClass(() => pos.ProductValue)" />
                                     </td>
                                     <td>
                                         <select @bind="pos.VatRate" class="form-select">
@@ -292,7 +292,14 @@
     {
         if (_editContext == null || !_submitAttempted) return "form-control";
         var fieldId = FieldIdentifier.Create(accessor);
-        return _editContext.GetValidationMessages(fieldId).Any() ? "form-control is-invalid" : "form-control";
+        return _editContext.GetValidationMessages(fieldId).Any() ? "form-control is-invalid" : "form-control is-valid";
+    }
+
+    private string FormSelectClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    {
+        if (_editContext == null || !_submitAttempted) return "form-select";
+        var fieldId = FieldIdentifier.Create(accessor);
+        return _editContext.GetValidationMessages(fieldId).Any() ? "form-select is-invalid" : "form-select is-valid";
     }
 
     private async Task HandleValidSubmit() { _submitAttempted = true; await ValidateAndSubmit(); }

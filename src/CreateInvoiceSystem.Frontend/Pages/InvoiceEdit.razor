@@ -332,7 +332,7 @@
     {
         if (_editContext == null) return "";
         var fieldId = FieldIdentifier.Create(accessor);
-        return _editContext.GetValidationMessages(fieldId).Any() ? "is-invalid" : "";
+        return _editContext.GetValidationMessages(fieldId).Any() ? "is-invalid" : "is-valid";
     }
 
     private Task OnInvalidSubmitHandler(EditContext ctx) => Task.CompletedTask;
@@ -354,8 +354,17 @@
         }
     }
 
-    private void OnClientAddressInput(ChangeEventArgs e) { _invoice.ClientAddress = e.Value?.ToString(); }
-    private void OnSellerAddressInput(ChangeEventArgs e) { _invoice.SellerAddress = e.Value?.ToString(); }
+    private void OnClientAddressInput(ChangeEventArgs e)
+    {
+        _invoice.ClientAddress = e.Value?.ToString();
+        _editContext?.NotifyFieldChanged(new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress)));
+    }
+
+    private void OnSellerAddressInput(ChangeEventArgs e)
+    {
+        _invoice.SellerAddress = e.Value?.ToString();
+        _editContext?.NotifyFieldChanged(new FieldIdentifier(_invoice, nameof(_invoice.SellerAddress)));
+    }
 
     public void Dispose() { _validatedForm = null; }
 }
