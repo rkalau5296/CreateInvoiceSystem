@@ -178,9 +178,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
     private static async Task<Product> GetOrCreateProductAsync(InvoicePositionDto position, int userId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
     {
         var existing = await _invoiceRepository.GetProductAsync(
-            position.Product.Name,
-            position.Product.Description,
-            position.Product.Value,
+            position.ProductName,
+            position.ProductDescription,
+            position.ProductValue,
             userId,
             cancellationToken);
         
@@ -189,9 +189,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         var newProduct = new Product
         {
             UserId = userId,
-            Name = position.Product.Name,
-            Description = position.Product.Description,
-            Value = position.Product.Value
+            Name = position.ProductName,
+            Description = position.ProductDescription,
+            Value = position.ProductValue
         };
         await _invoiceRepository.AddProductAsync(newProduct, cancellationToken);        
         return newProduct;
