@@ -12,8 +12,7 @@ public static class ProductMappers
         product.Name,
         product.Description,
         product.Value,
-        product.UserId,
-        product.IsDeleted
+        product.UserId
         );
 
     public static Product ToEntity(this ProductDto dto) =>
@@ -59,8 +58,7 @@ public static class ProductMappers
             product.Name,
             product.Description,
             product.Value,
-            product.UserId,
-            product.IsDeleted
+            product.UserId
         );
 
     public static List<ProductDto> ToDtoList(this IEnumerable<Product> products) =>

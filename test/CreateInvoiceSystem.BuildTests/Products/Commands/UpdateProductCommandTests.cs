@@ -24,7 +24,7 @@ public class UpdateProductCommandTests
         // Arrange
         var productId = 1;
         var userId = 100;
-        var inputDto = new UpdateProductDto(productId, "Nowa Nazwa", "Nowy Opis", 200m, userId, false);
+        var inputDto = new UpdateProductDto(productId, "Nowa Nazwa", "Nowy Opis", 200m, userId);
         _command.Parametr = inputDto;
 
         var existingProduct = new Product
@@ -72,7 +72,7 @@ public class UpdateProductCommandTests
     public async Task Execute_ShouldThrowInvalidOperationException_WhenProductNotFound()
     {
         // Arrange
-        var inputDto = new UpdateProductDto(99, "Test", "Test", 10m, 1, false);
+        var inputDto = new UpdateProductDto(99, "Test", "Test", 10m, 1);
         _command.Parametr = inputDto;
 
         _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
@@ -93,7 +93,7 @@ public class UpdateProductCommandTests
         var productId = 1;
         var userId = 100;
         
-        var inputDto = new UpdateProductDto(productId, null!, null!, null, userId, false);
+        var inputDto = new UpdateProductDto(productId, null!, null!, null, userId);
         _command.Parametr = inputDto;
 
         var existingProduct = new Product

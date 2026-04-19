@@ -61,8 +61,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                 product.Name,
                 product.Description,
                 product.Value,
-                product.UserId,
-                product.IsDeleted
+                product.UserId
             };
 
             var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);

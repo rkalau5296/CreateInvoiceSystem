@@ -30,8 +30,7 @@ public class DeleteProductCommandTests
         {
             ProductId = productId,
             Name = "Do usunięcia",
-            UserId = userId,
-            IsDeleted = false
+            UserId = userId
         };
         
         _repositoryMock.Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))

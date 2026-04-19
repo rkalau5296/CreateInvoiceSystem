@@ -9,8 +9,7 @@ public static class ProductFaker
     private static Faker<ProductEntity> Faker => new Faker<ProductEntity>()
         .RuleFor(p => p.Name, f => f.Commerce.ProductName())
         .RuleFor(p => p.Description, f => f.Commerce.ProductDescription())
-        .RuleFor(p => p.Value, f => Math.Round(f.Random.Decimal(1m, 5000m), 2))
-        .RuleFor(p => p.IsDeleted, f => false);
+        .RuleFor(p => p.Value, f => Math.Round(f.Random.Decimal(1m, 5000m), 2));        
 
     public static ProductEntity Generate(UserEntity user)
     {

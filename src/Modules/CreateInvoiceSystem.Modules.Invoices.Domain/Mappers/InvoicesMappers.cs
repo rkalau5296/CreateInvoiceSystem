@@ -45,8 +45,7 @@ public static class InvoiceMappers
                     invoicePosition.Product.Name,
                     invoicePosition.Product.Description,
                     invoicePosition.Product.Value,
-                    invoicePosition.Product.UserId,
-                    invoicePosition.Product.IsDeleted
+                    invoicePosition.Product.UserId                    
                   )
                 : null,
             invoicePosition.ProductName,
@@ -235,8 +234,7 @@ public static class InvoiceMappers
                         ip.Product.Name,
                         ip.Product.Description,
                         ip.Product.Value,
-                        ip.Product.UserId,
-                        ip.Product.IsDeleted
+                        ip.Product.UserId
                     ) : null
                 )).ToList() ?? [],
             invoice.SellerName,

@@ -31,7 +31,7 @@ public class DeleteProductHandlerTests
         var userId = 1;
         var request = new DeleteProductRequest(productId) { UserId = userId };
 
-        var expectedDto = new ProductDto(productId, "Usunięty", "Opis", 0, userId, true);
+        var expectedDto = new ProductDto(productId, "Usunięty", "Opis", 0, userId);
 
         _executorMock
             .Setup(x => x.Execute<Product, ProductDto, IProductRepository>(
@@ -46,8 +46,7 @@ public class DeleteProductHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.ProductId.Should().Be(productId);
-        result.Data.IsDeleted.Should().BeTrue();
+        result.Data.ProductId.Should().Be(productId);        
 
         _executorMock.Verify(x => x.Execute<Product, ProductDto, IProductRepository>(
             It.Is<CommandBase<Product, ProductDto, IProductRepository>>(c =>

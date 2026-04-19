@@ -28,10 +28,10 @@ public class UpdateProductHandlerTests
     {
         // Arrange
         var productId = 10;
-        var inputDto = new UpdateProductDto(0, "Nowa Nazwa", "Opis", 150m, 1, false);
+        var inputDto = new UpdateProductDto(0, "Nowa Nazwa", "Opis", 150m, 1);
         var request = new UpdateProductRequest(productId, inputDto);
         
-        var expectedDto = new UpdateProductDto(productId, "Nowa Nazwa", "Opis", 150m, 1, false);
+        var expectedDto = new UpdateProductDto(productId, "Nowa Nazwa", "Opis", 150m, 1);
         
         _executorMock
             .Setup(x => x.Execute<UpdateProductDto, UpdateProductDto, IProductRepository>(
@@ -70,7 +70,7 @@ public class UpdateProductHandlerTests
     public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsZero()
     {
         // Arrange
-        var dto = new UpdateProductDto(0, "Test", "Test", 10m, 1, false);
+        var dto = new UpdateProductDto(0, "Test", "Test", 10m, 1);
 
         // Act
         Action act = () => new UpdateProductRequest(0, dto);
@@ -83,7 +83,7 @@ public class UpdateProductHandlerTests
     public async Task Handle_ShouldThrowException_WhenExecutorFails()
     {
         // Arrange
-        var dto = new UpdateProductDto(1, "Test", "Test", 10m, 1, false);
+        var dto = new UpdateProductDto(1, "Test", "Test", 10m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         _executorMock

@@ -18,7 +18,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Have_Error_When_Name_Is_Empty_String()
     {
         // Arrange
-        var dto = new UpdateProductDto(1, "", "Desc", 10m, 1, false);
+        var dto = new UpdateProductDto(1, "", "Desc", 10m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -31,7 +31,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Not_Have_Error_When_Name_Is_Null()
     {
         // Arrange 
-        var dto = new UpdateProductDto(1, null!, "Desc", 10m, 1, false);
+        var dto = new UpdateProductDto(1, null!, "Desc", 10m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -43,7 +43,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Have_Error_When_Name_Exceeds_100_Characters()
     {
         // Arrange
-        var dto = new UpdateProductDto(1, new string('A', 101), "Desc", 10m, 1, false);
+        var dto = new UpdateProductDto(1, new string('A', 101), "Desc", 10m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -57,7 +57,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Have_Error_When_Value_Has_Invalid_Decimal_Places(decimal invalidValue)
     {
         // Arrange
-        var dto = new UpdateProductDto(1, "Name", "Desc", invalidValue, 1, false);
+        var dto = new UpdateProductDto(1, "Name", "Desc", invalidValue, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -70,7 +70,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Not_Have_Error_When_Value_Is_Null()
     {
         // Arrange 
-        var dto = new UpdateProductDto(1, "Name", "Desc", null, 1, false);
+        var dto = new UpdateProductDto(1, "Name", "Desc", null, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -82,7 +82,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Have_Error_When_Description_Exceeds_100_Characters()
     {
         // Arrange
-        var dto = new UpdateProductDto(1, "Name", new string('B', 101), 10m, 1, false);
+        var dto = new UpdateProductDto(1, "Name", new string('B', 101), 10m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert
@@ -94,7 +94,7 @@ public class UpdateProductRequestValidatorTests
     public void Should_Not_Have_Errors_When_Request_Is_Valid()
     {
         // Arrange
-        var dto = new UpdateProductDto(1, "Valid Name", "Short Desc", 49.99m, 1, false);
+        var dto = new UpdateProductDto(1, "Valid Name", "Short Desc", 49.99m, 1);
         var request = new UpdateProductRequest(1, dto);
 
         // Act & Assert

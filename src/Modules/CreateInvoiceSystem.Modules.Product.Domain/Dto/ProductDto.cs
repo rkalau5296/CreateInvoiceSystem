@@ -5,6 +5,5 @@ public record ProductDto(
     string Name,
     string Description,
     decimal? Value,
-    int UserId,
-    bool IsDeleted
+    int UserId
 );

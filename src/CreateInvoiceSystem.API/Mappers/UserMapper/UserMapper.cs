@@ -65,8 +65,7 @@ internal static class UserMapper
             Name = e.Name,
             Description = e.Description,
             Value = e.Value,
-            UserId = e.UserId,
-            IsDeleted = e.IsDeleted
+            UserId = e.UserId
         };
     }
 

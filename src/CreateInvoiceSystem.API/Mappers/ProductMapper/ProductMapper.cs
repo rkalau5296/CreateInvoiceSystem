@@ -13,8 +13,7 @@ public static class ProductMapper
             Name = p.Name,
             Description = p.Description,
             Value = p.Value,
-            UserId = p.UserId,
-            IsDeleted = p.IsDeleted
+            UserId = p.UserId
         };
     }
 
@@ -28,8 +27,7 @@ public static class ProductMapper
             Name = e.Name,
             Description = e.Description,
             Value = e.Value,
-            UserId = e.UserId,
-            IsDeleted = e.IsDeleted
+            UserId = e.UserId
         };
     }
 

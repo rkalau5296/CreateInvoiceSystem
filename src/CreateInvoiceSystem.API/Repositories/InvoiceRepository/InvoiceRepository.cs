@@ -216,8 +216,7 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .Where(p =>
                 p.Name == name &&
                 p.Description == description &&
-                p.UserId == userId &&
-                p.IsDeleted == false &&
+                p.UserId == userId &&                
                 p.Value.HasValue == value.HasValue)
             .FirstOrDefaultAsync(cancellationToken);
 

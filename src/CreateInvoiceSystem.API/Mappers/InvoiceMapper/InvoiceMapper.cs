@@ -90,8 +90,7 @@ public static class InvoiceMapper
             Name = p.Name,
             Description = p.Description,
             Value = p.Value,
-            UserId = p.UserId,
-            IsDeleted = p.IsDeleted
+            UserId = p.UserId
         };
     }
 
@@ -129,8 +128,7 @@ public static class InvoiceMapper
             Name = p.Name,
             Description = p.Description,
             Value = p.Value,
-            UserId = p.UserId,
-            IsDeleted = p.IsDeleted
+            UserId = p.UserId
         };
     }
 

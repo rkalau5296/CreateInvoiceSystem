@@ -124,7 +124,7 @@ public class CreateInvoiceCommandTests
         dto.InvoicePositions = new List<InvoicePositionDto>
         {
             new(0, 0, null,
-                new ProductDto(0, "Nowy Produkt", "Opis", 500m, 1, false),
+                new ProductDto(0, "Nowy Produkt", "Opis", 500m, 1),
                 "Nowy Produkt", "Opis", 500m, 1, "23%")
         };
 
