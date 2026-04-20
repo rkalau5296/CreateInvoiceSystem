@@ -1,0 +1,33 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+
+<input type="number"
+       min="@Min"
+       class="@CssClass"
+       value="@Value"
+       @oninput="OnInput" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public int Min { get; set; } = 1;
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "Wartość jest wymagana";
+
+    private bool IsInvalid => Value < Min;
+    private bool ShowError => IsActive && IsInvalid;
+
+    private string CssClass =>
+        !IsActive ? "form-control" :
+        IsInvalid ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v))
+            await ValueChanged.InvokeAsync(v);
+    }
+}

@@ -1,0 +1,39 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+
+<input list="@DataList"
+       type="@Type"
+       class="@CssClass"
+       value="@Value"
+       placeholder="@Placeholder"
+       @oninput="OnInput" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string? DataList { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
+    [Parameter] public EventCallback OnAfterValueChanged { get; set; }
+
+    private bool IsEmpty => string.IsNullOrWhiteSpace(Value);
+    private bool ShowError => IsActive && IsEmpty;
+
+    private string CssClass =>
+        !IsActive ? "form-control" :
+        IsEmpty ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var newVal = e.Value?.ToString();
+        await ValueChanged.InvokeAsync(newVal);
+        if (OnAfterValueChanged.HasDelegate)
+            await OnAfterValueChanged.InvokeAsync();
+    }
+}

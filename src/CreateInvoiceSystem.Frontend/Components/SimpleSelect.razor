@@ -1,0 +1,30 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+
+<select class="@CssClass" @onchange="OnChange">
+    @ChildContent
+</select>
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsEmpty => string.IsNullOrWhiteSpace(Value);
+    private bool ShowError => IsActive && IsEmpty;
+
+    private string CssClass =>
+        !IsActive ? "form-select" :
+        IsEmpty ? "form-select is-invalid" : "form-select is-valid";
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        await ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+}

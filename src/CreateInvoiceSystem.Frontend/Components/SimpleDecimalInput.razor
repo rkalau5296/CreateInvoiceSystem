@@ -1,0 +1,42 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+@using System.Globalization
+
+<input type="number"
+       step="@Step"
+       inputmode="decimal"
+       class="@CssClass"
+       value="@StringValue"
+       @oninput="OnInput" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public decimal? Value { get; set; }
+    [Parameter] public EventCallback<decimal?> ValueChanged { get; set; }
+    [Parameter] public string StringValue { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> StringValueChanged { get; set; }
+    [Parameter] public string Step { get; set; } = "0.01";
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
+
+    private bool IsInvalid => Value == null || Value <= 0;
+    private bool ShowError => IsActive && IsInvalid;
+
+    private string CssClass =>
+        !IsActive ? "form-control" :
+        IsInvalid ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var s = e.Value?.ToString() ?? string.Empty;
+        await StringValueChanged.InvokeAsync(s);
+
+        if (decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+            await ValueChanged.InvokeAsync(v);
+        else
+            await ValueChanged.InvokeAsync(null);
+    }
+}
