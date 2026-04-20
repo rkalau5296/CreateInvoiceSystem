@@ -1,9 +1,8 @@
 ﻿@page "/invoices/create"
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components.Forms
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
-@using CreateInvoiceSystem.Frontend.Components
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
 @inject InvoiceService InvoiceService
 @inject ClientService ClientService
 @inject ProductService ProductService
@@ -13,162 +12,182 @@
     <div class="card shadow">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0">Nowa Faktura</h3>
-            <button class="btn btn-sm btn-outline-light" @onclick='() => Navigation.NavigateTo("/invoices")'>
+            <button class="btn btn-sm btn-outline-light" type="button" @onclick='() => Navigation.NavigateTo("/invoices")'>
                 <i class="bi bi-arrow-left"></i> Powrót do listy
             </button>
         </div>
         <div class="card-body">
-            <ValidatedEditForm TModel="InvoiceDto"
-                               Model="_invoice"
-                               OnValidSubmit="HandleValidSubmit"
-                               OnInvalidSubmit="HandleInvalidSubmit"
-                               OnEditContextInitialized="OnEditContextInitialized"
-                               @ref="_validatedForm">
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Tytuł faktury <span class="text-danger">*</span></label>
-                        <ValidatedInputText @bind-Value="_invoice.Title" Placeholder="np. FV 01/2026" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Data wystawienia <span class="text-danger">*</span></label>
-                        <InputDate @bind-Value="_invoice.CreatedDate" class="@FormControlClass(() => _invoice.CreatedDate)" />
-                        <ValidationMessage For="@(() => _invoice.CreatedDate)" class="text-danger small" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Termin płatności <span class="text-danger">*</span></label>
-                        <InputDate @bind-Value="_invoice.PaymentDate" class="@FormControlClass(() => _invoice.PaymentDate)" />
-                        <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
-                    </div>
+            @if (_errorMessage != null)
+            {
+                <div class="alert alert-danger">@_errorMessage</div>
+            }
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tytuł faktury <span class="text-danger">*</span></label>
+                    <input class="@CssField(_title, nameof(_title))" value="@_title" placeholder="np. FV 01/2026"
+                           @oninput="e => { _title = e.Value?.ToString(); Touch(nameof(_title)); }" />
+                    @ErrField(_title, nameof(_title), "Tytuł faktury jest wymagany")
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
-                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="@FormSelectClass(() => _invoice.MethodOfPayment)">
-                            <option value="">-- Wybierz --</option>
-                            <option value="Przelew">Przelew</option>
-                            <option value="Gotówka">Gotówka</option>
-                            <option value="BLIK">BLIK</option>
-                            <option value="Karta">Karta</option>
-                        </InputSelect>
-                        <ValidationMessage For="@(() => _invoice.MethodOfPayment)" class="text-danger small" />
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data wystawienia <span class="text-danger">*</span></label>
+                    <input type="date" class="@CssField(_createdDate, nameof(_createdDate))" value="@_createdDate"
+                           @oninput="e => { _createdDate = e.Value?.ToString(); Touch(nameof(_createdDate)); }" />
+                    @ErrField(_createdDate, nameof(_createdDate), "Data wystawienia jest wymagana")
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Termin płatności <span class="text-danger">*</span></label>
+                    <input type="date" class="@CssField(_paymentDate, nameof(_paymentDate))" value="@_paymentDate"
+                           @oninput="e => { _paymentDate = e.Value?.ToString(); Touch(nameof(_paymentDate)); }" />
+                    @ErrField(_paymentDate, nameof(_paymentDate), "Termin płatności jest wymagany")
+                </div>
+            </div>
 
-                <div class="card mb-4 bg-light border-0">
-                    <div class="card-body">
-                        <h5 class="card-title text-secondary">Dane Nabywcy</h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="small fw-bold">Wybierz klienta lub wpisz nową nazwę <span class="text-danger">*</span></label>
-                                <input list="clientOptions"
-                                       class="@FormControlClass(() => _invoice.ClientName)"
-                                       @bind="_invoice.ClientName"
-                                       @oninput="(ChangeEventArgs e) => HandleClientChange(e.Value?.ToString())"
-                                       placeholder="Nazwa klienta..." />
-                                <ValidationMessage For="@(() => _invoice.ClientName)" class="text-danger small" />
-                            </div>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
+                    <select class="@CssSelect(_methodOfPayment, nameof(_methodOfPayment))"
+                            @onchange="e => { _methodOfPayment = e.Value?.ToString(); Touch(nameof(_methodOfPayment)); }">
+                        <option value="">-- Wybierz --</option>
+                        <option value="Przelew">Przelew</option>
+                        <option value="Gotówka">Gotówka</option>
+                        <option value="BLIK">BLIK</option>
+                        <option value="Karta">Karta</option>
+                    </select>
+                    @ErrSelect(_methodOfPayment, nameof(_methodOfPayment), "Metoda płatności jest wymagana")
+                </div>
+            </div>
 
-                            <div class="col-md-3">
-                                <label class="small fw-bold">NIP <span class="text-danger">*</span></label>
-                                <ValidatedInputText @bind-Value="_invoice.ClientNip" Placeholder="NIP" />
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="small fw-bold">Email klienta</label>
-                                <InputText @bind-Value="_invoice.ClientEmail" class="form-control" placeholder="email@klienta.pl" />
-                            </div>
-
-                            <div class="col-md-5">
-                                <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
-                                <ValidatedInputText @bind-Value="_invoice.Client.Address.Street" Placeholder="Ulica" />
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small fw-bold">Nr domu/lok. <span class="text-danger">*</span></label>
-                                <ValidatedInputText @bind-Value="_invoice.Client.Address.Number" Placeholder="Nr" />
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
-                                <ValidatedInputText @bind-Value="_invoice.Client.Address.PostalCode" Placeholder="00-000" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-bold">Miasto <span class="text-danger">*</span></label>
-                                <ValidatedInputText @bind-Value="_invoice.Client.Address.City" Placeholder="Miasto" />
-                            </div>
+            <div class="card mb-4 bg-light border-0">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary">Dane Nabywcy</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold">Wybierz klienta lub wpisz nową nazwę <span class="text-danger">*</span></label>
+                            <input list="clientOptions" class="@CssField(_clientName, nameof(_clientName))" value="@_clientName"
+                                   placeholder="Nazwa klienta..."
+                                   @oninput="e => { _clientName = e.Value?.ToString(); Touch(nameof(_clientName)); OnClientInput(e.Value?.ToString()); }" />
+                            @ErrField(_clientName, nameof(_clientName), "Nazwa klienta jest wymagana")
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">NIP <span class="text-danger">*</span></label>
+                            <input class="@CssField(_clientNip, nameof(_clientNip))" value="@_clientNip" placeholder="NIP"
+                                   @oninput="e => { _clientNip = e.Value?.ToString(); Touch(nameof(_clientNip)); }" />
+                            @ErrField(_clientNip, nameof(_clientNip), "NIP klienta jest wymagany")
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Email klienta</label>
+                            <input class="form-control" value="@_clientEmail" placeholder="email@klienta.pl"
+                                   @oninput="e => _clientEmail = e.Value?.ToString()" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
+                            <input class="@CssField(_street, nameof(_street))" value="@_street" placeholder="Ulica"
+                                   @oninput="e => { _street = e.Value?.ToString(); Touch(nameof(_street)); }" />
+                            @ErrField(_street, nameof(_street), "Ulica jest wymagana")
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small fw-bold">Nr domu/lok. <span class="text-danger">*</span></label>
+                            <input class="@CssField(_streetNumber, nameof(_streetNumber))" value="@_streetNumber" placeholder="Nr"
+                                   @oninput="e => { _streetNumber = e.Value?.ToString(); Touch(nameof(_streetNumber)); }" />
+                            @ErrField(_streetNumber, nameof(_streetNumber), "Numer domu/lokalu jest wymagany")
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
+                            <input class="@CssField(_postalCode, nameof(_postalCode))" value="@_postalCode" placeholder="00-000"
+                                   @oninput="e => { _postalCode = e.Value?.ToString(); Touch(nameof(_postalCode)); }" />
+                            @ErrField(_postalCode, nameof(_postalCode), "Kod pocztowy jest wymagany")
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Miasto <span class="text-danger">*</span></label>
+                            <input class="@CssField(_city, nameof(_city))" value="@_city" placeholder="Miasto"
+                                   @oninput="e => { _city = e.Value?.ToString(); Touch(nameof(_city)); }" />
+                            @ErrField(_city, nameof(_city), "Miasto jest wymagane")
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th style="width:48px">Lp.</th>
-                                <th>Produkt / Usługa <span class="text-danger">*</span></th>
-                                <th style="width: 110px">Ilość <span class="text-danger">*</span></th>
-                                <th style="width: 160px">Cena netto <span class="text-danger">*</span></th>
-                                <th style="width: 100px">VAT</th>
-                                <th style="width: 130px">Kwota VAT</th>
-                                <th style="width: 150px">Wartość BRUTTO</th>
-                                <th style="width: 80px"></th>
+            <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width:48px">Lp.</th>
+                            <th>Produkt / Usługa <span class="text-danger">*</span></th>
+                            <th style="width:110px">Ilość <span class="text-danger">*</span></th>
+                            <th style="width:160px">Cena netto <span class="text-danger">*</span></th>
+                            <th style="width:100px">VAT</th>
+                            <th style="width:130px">Kwota VAT</th>
+                            <th style="width:150px">Wartość BRUTTO</th>
+                            <th style="width:80px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < _positions.Count; i++)
+                        {
+                            var pos = _positions[i];
+                            var idx = i;
+                            <tr @key="pos.Id">
+                                <td>@(idx + 1)</td>
+                                <td>
+                                    <input list="productOptions"
+                                           class="@CssPos(pos, nameof(pos.ProductName))"
+                                           value="@pos.ProductName"
+                                           placeholder="Nazwa produktu..."
+                                           @oninput="e => { pos.ProductName = e.Value?.ToString(); TouchPos(pos, nameof(pos.ProductName)); OnProductInput(pos, e.Value?.ToString()); }" />
+                                    @ErrPos(pos, nameof(pos.ProductName), "Nazwa produktu jest wymagana")
+                                    <div class="mt-2">
+                                        <textarea class="form-control form-control-sm" placeholder="Opis..."
+                                                  @oninput="e => pos.ProductDescription = e.Value?.ToString() ?? string.Empty">@pos.ProductDescription</textarea>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number" min="1"
+                                           class="@CssPos(pos, nameof(pos.Quantity))"
+                                           value="@pos.Quantity"
+                                           @oninput="e => { if (int.TryParse(e.Value?.ToString(), out var q)) { pos.Quantity = q; TouchPos(pos, nameof(pos.Quantity)); } }" />
+                                    @ErrPos(pos, nameof(pos.Quantity), "Ilość jest wymagana")
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" inputmode="decimal"
+                                           class="@CssPos(pos, nameof(pos.ProductValue))"
+                                           value="@pos.ProductValueString"
+                                           @oninput="e => { pos.ProductValueString = e.Value?.ToString() ?? string.Empty; if (decimal.TryParse(pos.ProductValueString, NumberStyles.Any, CultureInfo.InvariantCulture, out var v)) { pos.ProductValue = v; } else { pos.ProductValue = null; } TouchPos(pos, nameof(pos.ProductValue)); }" />
+                                    @ErrPos(pos, nameof(pos.ProductValue), "Cena produktu jest wymagana")
+                                </td>
+                                <td>
+                                    <select class="form-select" @onchange="e => OnVatChanged(pos, e)">
+                                        <option value="23%" selected="@(pos.VatRate == "23%")">23%</option>
+                                        <option value="8%" selected="@(pos.VatRate == "8%")">8%</option>
+                                        <option value="5%" selected="@(pos.VatRate == "5%")">5%</option>
+                                        <option value="zw" selected="@(pos.VatRate == "zw")">zw</option>
+                                        <option value="0%" selected="@(pos.VatRate == "0%")">0%</option>
+                                    </select>
+                                </td>
+                                <td class="text-end">@CalcVat(pos).ToString("N2")</td>
+                                <td class="fw-bold text-end">@CalcGross(pos).ToString("N2")</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => _positions.Remove(pos)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @for (int i = 0; i < _invoice.InvoicePositions.Count; i++)
-                            {
-                                var pos = _invoice.InvoicePositions[i];
-                                <tr @key="pos">
-                                    <td>@(i + 1)</td>
-                                    <td>
-                                        <input list="productOptions"
-                                               class="@FormControlClass(() => pos.ProductName)"
-                                               @bind="pos.ProductName"
-                                               @oninput="(ChangeEventArgs e) => HandleProductChange(pos, e.Value?.ToString())"
-                                               placeholder="Nazwa produktu..." />
-                                        <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
-                                        <div class="mt-2">
-                                            <InputTextArea @bind-Value="pos.ProductDescription" class="form-control form-control-sm" placeholder="Opis..." />
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <ValidatedInputNumber TValue="int" @bind-Value="pos.Quantity" AdditionalAttributes="@_minOneAttributes" CssClass="@FormControlClass(() => pos.Quantity)" />
-                                    </td>
-                                    <td>
-                                        <ValidatedInputNumber TValue="decimal?" @bind-Value="pos.ProductValue" Step="0.01" AdditionalAttributes="@_priceAttributes" CssClass="@FormControlClass(() => pos.ProductValue)" />
-                                    </td>
-                                    <td>
-                                        <select @bind="pos.VatRate" class="form-select">
-                                            <option value="23%">23%</option>
-                                            <option value="8%">8%</option>
-                                            <option value="5%">5%</option>
-                                            <option value="zw">zw</option>
-                                            <option value="0%">0%</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-end">@CalculatePositionVat(pos).ToString("N2")</td>
-                                    <td class="fw-bold text-end">@CalculatePositionGross(pos).ToString("N2")</td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-danger shadow-sm" @onclick="() => RemovePosition(pos)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
-                <button type="button" class="btn btn-outline-secondary btn-sm mb-4" @onclick="AddPosition">
-                    <i class="bi bi-plus-lg"></i> Dodaj pozycję
-                </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mb-4" @onclick="AddPosition">
+                <i class="bi bi-plus-lg"></i> Dodaj pozycję
+            </button>
 
-                <div class="d-flex justify-content-end gap-3">
-                    <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
-                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">Zapisz fakturę</button>
-                </div>
-            </ValidatedEditForm>
+            <div class="d-flex justify-content-end gap-3">
+                <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
+                <button type="button" class="btn btn-success btn-lg px-5 shadow" @onclick="HandleSave">Zapisz fakturę</button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -188,59 +207,119 @@
 </datalist>
 
 @code {
-    private InvoiceDto _invoice = new()
-    {
-        CreatedDate = DateTime.Today,
-        PaymentDate = DateTime.Today.AddDays(14),
-        InvoicePositions = new List<InvoicePositionDto>(),
-        Client = new ClientDto { Address = new AddressDto() }
-    };
+    private string? _title;
+    private string? _createdDate = DateTime.Today.ToString("yyyy-MM-dd");
+    private string? _paymentDate = DateTime.Today.AddDays(14).ToString("yyyy-MM-dd");
+    private string? _methodOfPayment;
+    private string? _clientName;
+    private string? _clientNip;
+    private string? _clientEmail;
+    private string? _street;
+    private string? _streetNumber;
+    private string? _postalCode;
+    private string? _city;
+    private int? _selectedClientId;
 
+    private List<PositionRow> _positions = new();
     private List<ProductDto> _availableProducts = new();
     private List<ClientDto> _availableClients = new();
-    private ValidatedEditForm<InvoiceDto>? _validatedForm;
-    private EditContext? _editContext;
-    private ValidationMessageStore? _pageMessageStore;
+    private string? _errorMessage;
+    private HashSet<string> _touched = new();
     private bool _submitAttempted;
-    private string? _pageErrorMessage;
-    private bool _pageErrorIsError;
 
-    private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
-    private readonly IDictionary<string, object> _priceAttributes = new Dictionary<string, object> { { "step", "0.01" }, { "inputmode", "decimal" } };
+    private class PositionRow
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public string? ProductName { get; set; }
+        public string ProductDescription { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+        public decimal? ProductValue { get; set; }
+        public string ProductValueString { get; set; } = string.Empty;
+        public string VatRate { get; set; } = "23%";
+        public int? ProductId { get; set; }
+        public HashSet<string> Touched { get; } = new();
+    }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var pResponse = await ProductService.GetProductsAsync(1, 1000);
-            var cResponse = await ClientService.GetClientsAsync(1, 1000);
-            _availableProducts = pResponse?.Data ?? new();
-            _availableClients = cResponse?.Data ?? new();
-
-            if (!_invoice.InvoicePositions.Any()) AddPosition();
-
-            _invoice.SellerName ??= "Twoja firma";
-            _invoice.SellerNip ??= "0000000000";
-            _invoice.SellerAddress ??= "Adres sprzedawcy";
+            var pResp = await ProductService.GetProductsAsync(1, 1000);
+            var cResp = await ClientService.GetClientsAsync(1, 1000);
+            _availableProducts = pResp?.Data ?? new();
+            _availableClients = cResp?.Data ?? new();
         }
-        catch (Exception ex)
-        {
-            _pageErrorMessage = ex.Message;
-            _pageErrorIsError = true;
-        }
+        catch (Exception ex) { _errorMessage = ex.Message; }
+
+        AddPosition();
     }
 
-    private Task OnEditContextInitialized(EditContext ctx)
+    private void AddPosition() => _positions.Add(new PositionRow());
+    private void Touch(string field) => _touched.Add(field);
+    private void TouchPos(PositionRow pos, string field) => pos.Touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
+    private bool IsActivePos(PositionRow pos, string field) => _submitAttempted || pos.Touched.Contains(field);
+
+    private string CssField(string? value, string field) =>
+        !IsActive(field) ? "form-control" :
+        string.IsNullOrWhiteSpace(value) ? "form-control is-invalid" : "form-control is-valid";
+
+    private string CssSelect(string? value, string field) =>
+        !IsActive(field) ? "form-select" :
+        string.IsNullOrWhiteSpace(value) ? "form-select is-invalid" : "form-select is-valid";
+
+    private RenderFragment ErrField(string? value, string field, string msg) => builder =>
     {
-        _editContext = ctx;
-        _pageMessageStore = new ValidationMessageStore(_editContext);
-        return Task.CompletedTask;
+        if (!IsActive(field) || !string.IsNullOrWhiteSpace(value)) return;
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "text-danger small");
+        builder.AddContent(2, msg);
+        builder.CloseElement();
+    };
+
+    private RenderFragment ErrSelect(string? value, string field, string msg) => builder =>
+    {
+        if (!IsActive(field) || !string.IsNullOrWhiteSpace(value)) return;
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "text-danger small");
+        builder.AddContent(2, msg);
+        builder.CloseElement();
+    };
+
+    private string CssPos(PositionRow pos, string field)
+    {
+        if (!IsActivePos(pos, field)) return "form-control";
+        return field switch
+        {
+            nameof(PositionRow.ProductName) => string.IsNullOrWhiteSpace(pos.ProductName) ? "form-control is-invalid" : "form-control is-valid",
+            nameof(PositionRow.Quantity) => pos.Quantity < 1 ? "form-control is-invalid" : "form-control is-valid",
+            nameof(PositionRow.ProductValue) => (pos.ProductValue == null || pos.ProductValue <= 0) ? "form-control is-invalid" : "form-control is-valid",
+            _ => "form-control"
+        };
     }
 
-    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, VatRate = "23%", Product = new ProductDto() });
-    private void RemovePosition(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
+    private RenderFragment ErrPos(PositionRow pos, string field, string msg) => builder =>
+    {
+        bool show = IsActivePos(pos, field) && field switch
+        {
+            nameof(PositionRow.ProductName) => string.IsNullOrWhiteSpace(pos.ProductName),
+            nameof(PositionRow.Quantity) => pos.Quantity < 1,
+            nameof(PositionRow.ProductValue) => pos.ProductValue == null || pos.ProductValue <= 0,
+            _ => false
+        };
+        if (!show) return;
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "text-danger small");
+        builder.AddContent(2, msg);
+        builder.CloseElement();
+    };
 
-    private decimal CalculatePositionVat(InvoicePositionDto pos)
+    private void OnVatChanged(PositionRow pos, ChangeEventArgs e)
+    {
+        pos.VatRate = e.Value?.ToString() ?? "23%";
+    }
+
+    private decimal CalcVat(PositionRow pos)
     {
         var net = (pos.ProductValue ?? 0) * pos.Quantity;
         if (pos.VatRate == "zw" || !pos.VatRate.Contains("%")) return 0;
@@ -248,88 +327,141 @@
         return Math.Round(net * (rate / 100m), 2);
     }
 
-    private decimal CalculatePositionGross(InvoicePositionDto pos) => Math.Round(((pos.ProductValue ?? 0) * pos.Quantity) + CalculatePositionVat(pos), 2);
+    private decimal CalcGross(PositionRow pos) =>
+        Math.Round((pos.ProductValue ?? 0) * pos.Quantity + CalcVat(pos), 2);
 
-    private void HandleClientChange(string? newValue)
+    private void OnClientInput(string? value)
     {
-        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(value, StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
-            _invoice.ClientId = match.ClientId;
-            _invoice.ClientName = match.Name;
-            _invoice.ClientNip = match.Nip;
-            _invoice.ClientEmail = match.Email;
-            _invoice.Client ??= new ClientDto { Address = new AddressDto() };
-            _invoice.Client.Address.Street = match.Address.Street;
-            _invoice.Client.Address.Number = match.Address.Number;
-            _invoice.Client.Address.City = match.Address.City;
-            _invoice.Client.Address.PostalCode = match.Address.PostalCode;
-            _invoice.Client.Address.Country = match.Address.Country;
-            _invoice.ClientAddress = BuildAddressString(_invoice.Client.Address);
+            _selectedClientId = match.ClientId;
+            _clientNip = match.Nip;
+            _clientEmail = match.Email;
+            _street = match.Address.Street;
+            _streetNumber = match.Address.Number;
+            _postalCode = match.Address.PostalCode;
+            _city = match.Address.City;
+            Touch(nameof(_clientNip));
+            Touch(nameof(_street));
+            Touch(nameof(_streetNumber));
+            Touch(nameof(_postalCode));
+            Touch(nameof(_city));
         }
-        else { _invoice.ClientId = null; }
+        else
+        {
+            _selectedClientId = null;
+        }
     }
 
-    private void HandleProductChange(InvoicePositionDto position, string? newValue)
+    private void OnProductInput(PositionRow pos, string? value)
     {
-        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(newValue, StringComparison.OrdinalIgnoreCase));
+        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(value, StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
-            position.ProductId = match.ProductId;
-            position.ProductName = match.Name;
-            position.ProductValue = match.Value;
-            position.ProductDescription = match.Description;
+            pos.ProductId = match.ProductId;
+            pos.ProductValue = match.Value;
+            pos.ProductValueString = match.Value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+            pos.ProductDescription = match.Description;
+            TouchPos(pos, nameof(pos.ProductValue));
         }
     }
 
-    private static string BuildAddressString(AddressDto? addr)
+    private bool IsValid()
     {
-        if (addr == null) return "";
-        return $"{addr.Street} {addr.Number}, {addr.PostalCode} {addr.City}";
-    }
-
-    private string FormControlClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
-    {
-        if (_editContext == null || !_submitAttempted) return "form-control";
-        var fieldId = FieldIdentifier.Create(accessor);
-        return _editContext.GetValidationMessages(fieldId).Any() ? "form-control is-invalid" : "form-control is-valid";
-    }
-
-    private string FormSelectClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
-    {
-        if (_editContext == null || !_submitAttempted) return "form-select";
-        var fieldId = FieldIdentifier.Create(accessor);
-        return _editContext.GetValidationMessages(fieldId).Any() ? "form-select is-invalid" : "form-select is-valid";
-    }
-
-    private async Task HandleValidSubmit() { _submitAttempted = true; await ValidateAndSubmit(); }
-    private async Task HandleInvalidSubmit(EditContext ctx) { _submitAttempted = true; await ValidateAndSubmit(); }
-
-    private async Task ValidateAndSubmit()
-    {
-        if (_invoice.Client?.Address != null)
-            _invoice.ClientAddress = BuildAddressString(_invoice.Client.Address);
-
-        _invoice.TotalNet = _invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity);
-        _invoice.TotalVat = _invoice.InvoicePositions.Sum(p => CalculatePositionVat(p));
-        _invoice.TotalGross = _invoice.TotalNet + _invoice.TotalVat;
-
-        if (_invoice.ClientId == null && _invoice.Client != null)
+        if (string.IsNullOrWhiteSpace(_title)) return false;
+        if (string.IsNullOrWhiteSpace(_createdDate)) return false;
+        if (string.IsNullOrWhiteSpace(_paymentDate)) return false;
+        if (string.IsNullOrWhiteSpace(_methodOfPayment)) return false;
+        if (string.IsNullOrWhiteSpace(_clientName)) return false;
+        if (string.IsNullOrWhiteSpace(_clientNip)) return false;
+        if (string.IsNullOrWhiteSpace(_street)) return false;
+        if (string.IsNullOrWhiteSpace(_streetNumber)) return false;
+        if (string.IsNullOrWhiteSpace(_postalCode)) return false;
+        if (string.IsNullOrWhiteSpace(_city)) return false;
+        if (!_positions.Any()) return false;
+        foreach (var pos in _positions)
         {
-            _invoice.Client.Name = _invoice.ClientName;
-            _invoice.Client.Nip = _invoice.ClientNip;
-            _invoice.Client.Email = _invoice.ClientEmail;
+            if (string.IsNullOrWhiteSpace(pos.ProductName)) return false;
+            if (pos.Quantity < 1) return false;
+            if (pos.ProductValue == null || pos.ProductValue <= 0) return false;
         }
+        return true;
+    }
+
+    private async Task HandleSave()
+    {
+        _submitAttempted = true;
+
+        foreach (var pos in _positions)
+        {
+            TouchPos(pos, nameof(pos.ProductName));
+            TouchPos(pos, nameof(pos.Quantity));
+            TouchPos(pos, nameof(pos.ProductValue));
+        }
+
+        if (!IsValid()) return;
 
         try
         {
-            var result = await InvoiceService.SaveInvoiceAsync(_invoice);
+            DateTime.TryParse(_createdDate, out var created);
+            DateTime.TryParse(_paymentDate, out var payment);
+
+            var invoice = new InvoiceDto
+            {
+                Title = _title!,
+                CreatedDate = created,
+                PaymentDate = payment,
+                MethodOfPayment = _methodOfPayment!,
+                ClientId = _selectedClientId,
+                ClientName = _clientName,
+                ClientNip = _clientNip,
+                ClientEmail = _clientEmail,
+                ClientAddress = $"{_street} {_streetNumber}, {_postalCode} {_city}",
+                Client = new ClientDto
+                {
+                    ClientId = _selectedClientId ?? 0,
+                    Name = _clientName!,
+                    Nip = _clientNip!,
+                    Email = _clientEmail ?? string.Empty,
+                    Address = new AddressDto
+                    {
+                        Street = _street!,
+                        Number = _streetNumber!,
+                        PostalCode = _postalCode!,
+                        City = _city!
+                    }
+                },
+                SellerName = "Twoja firma",
+                SellerNip = "0000000000",
+                SellerAddress = "Adres sprzedawcy",
+                InvoicePositions = _positions.Select(p => new InvoicePositionDto
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductDescription = p.ProductDescription,
+                    Quantity = p.Quantity,
+                    ProductValue = p.ProductValue,
+                    VatRate = p.VatRate
+                }).ToList()
+            };
+
+            invoice.TotalNet = invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity);
+            invoice.TotalVat = invoice.InvoicePositions.Sum(p =>
+            {
+                var net = (p.ProductValue ?? 0) * p.Quantity;
+                if (p.VatRate == "zw" || !p.VatRate.Contains("%")) return 0;
+                decimal.TryParse(p.VatRate.Replace("%", ""), out var rate);
+                return Math.Round(net * (rate / 100m), 2);
+            });
+            invoice.TotalGross = invoice.TotalNet + invoice.TotalVat;
+
+            var result = await InvoiceService.SaveInvoiceAsync(invoice);
             if (result != null) Navigation.NavigateTo("/invoices");
         }
         catch (Exception ex)
         {
-            _pageErrorMessage = ex.Message;
-            _pageErrorIsError = true;
+            _errorMessage = ex.Message;
         }
     }
 }

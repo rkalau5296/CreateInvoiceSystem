@@ -23,6 +23,11 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             ? await GetOrCreateClientAsync(Parametr, _invoiceRepository, cancellationToken)
             : await GetClientByIdAsync(Parametr.ClientId.Value, _invoiceRepository, cancellationToken);
 
+        if(Parametr.ClientEmail is not null)
+        {
+            client.Email = Parametr.ClientEmail;             
+        }
+
         User user = await _invoiceRepository.GetUserByIdAsync(Parametr.UserId, cancellationToken)
             ?? throw new InvalidOperationException($"User with ID {Parametr.UserId} not found.");
 
