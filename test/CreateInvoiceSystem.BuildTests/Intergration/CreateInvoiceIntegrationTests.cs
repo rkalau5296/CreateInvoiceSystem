@@ -29,19 +29,19 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
-            {                
+            {
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "TestScheme";
                     options.DefaultChallengeScheme = "TestScheme";
                 }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
-                                
+
                 var emailMock = new Mock<IEmailService>();
                 emailMock.Setup(x => x.SendEmailAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<CancellationToken>())) 
+                    It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
                 var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
@@ -56,6 +56,8 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
     public async Task Should_CreateInvoice_And_SendPdfEmail()
     {
         int actualUserId;
+        const string expectedSellerName = "Runte Inc";
+        const string clientName = "Firma Klienta";
 
         using (var scope = _factory.Services.CreateScope())
         {
@@ -79,7 +81,7 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
                 {
                     Email = "sprzedawca@test.local",
                     Name = "Sprzedawca",
-                    CompanyName = "Testowa Firma Sprzedawcy",
+                    CompanyName = expectedSellerName,
                     Nip = "1234567890",
                     AddressId = address.AddressId
                 };
@@ -104,24 +106,17 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
             ClientId = (int?)null,
             Client = new
             {
-                Name = "Firma Klienta",
+                Name = clientName,
                 Nip = "0987654321",
-                Address = new
-                {
-                    Street = "Testowa",
-                    Number = "1",
-                    City = "Warszawa",
-                    PostalCode = "00-100",
-                    Country = "Polska"
-                },
-                UserId = actualUserId,
-                Email = "klient@test.local"
+                Email = "klient@test.local",
+                Address = new { Street = "Testowa", Number = "1", City = "Warszawa", PostalCode = "00-100", Country = "Polska" },
+                UserId = actualUserId
             },
-            SellerName = "Moja Firma",
+            SellerName = expectedSellerName,
             SellerNip = "1234567890",
             SellerAddress = "Testowa 1, Warszawa",
             BankAccountNumber = "1234567890",
-            ClientName = "Firma Klienta",
+            ClientName = clientName,
             ClientAddress = "Ulica 2, Warszawa",
             ClientNip = "0987654321",
             ClientEmail = "klient@test.local",
@@ -158,6 +153,11 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
         var resultBody = await response.Content.ReadAsStringAsync();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK, because: resultBody);
+
+        using var doc = JsonDocument.Parse(resultBody);
+        var data = doc.RootElement.GetProperty("data");
+
+        data.GetProperty("sellerName").GetString().Should().Be(expectedSellerName);
     }
 }
 
