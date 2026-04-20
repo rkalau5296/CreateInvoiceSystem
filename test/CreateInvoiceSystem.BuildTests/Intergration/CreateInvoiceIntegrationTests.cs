@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq; 
+using Moq;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -17,7 +17,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Xunit;
 
-namespace CreateInvoiceSystem.BuildTests.Invoices.Commands;
+namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
