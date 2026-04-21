@@ -27,7 +27,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Key"] = "TwojBardzoDlugiISuperTajnyKluczDoGenerowaniaTokenow123!",
                 ["Jwt:Issuer"] = "CreateInvoiceSystem",
                 ["Jwt:Audience"] = "CreateInvoiceSystemUsers",
-                ["Jwt:ExpiryMinutes"] = "15"
+                ["Jwt:ExpiryMinutes"] = "15",
+                ["FrontendUrl"] = "https://localhost:4200"
             });
         });
 
