@@ -311,10 +311,7 @@
                 if (!string.IsNullOrWhiteSpace(m))
                     _invalidFields.Add(m);
             }
-        }
-
-        if (string.IsNullOrWhiteSpace(_editingClient.Email))
-            AddInvalid("Email");
+        }        
 
         if (_editingClient.Address != null)
         {

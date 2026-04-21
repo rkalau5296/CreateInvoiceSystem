@@ -190,8 +190,8 @@
                                 <td class="text-end">@CalcVat(pos).ToString("N2")</td>
                                 <td class="fw-bold text-end">@CalcGross(pos).ToString("N2")</td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => _positions.Remove(pos)">
-                                        <i class="bi bi-trash"></i>
+                                    <button type="button" class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => _positions.Remove(pos)">
+                                        <i class="bi bi-trash me-1"></i> Usuń
                                     </button>
                                 </td>
                             </tr>

@@ -13,10 +13,7 @@ public class ClientDto
     [Required(ErrorMessage = "NIP jest obowiązkowy")]
     [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi mieć dokładnie 10 cyfr")]
     public string Nip { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Adres e-mail jest obowiązkowy")]
-    [EmailAddress(ErrorMessage = "Podaj poprawny format adresu e-mail")]
-    [MaxLength(100, ErrorMessage = "Adres e-mail jest za długi")]
+    
     public string Email { get; set; } = string.Empty;
         
     public AddressDto Address { get; set; } = new AddressDto();
