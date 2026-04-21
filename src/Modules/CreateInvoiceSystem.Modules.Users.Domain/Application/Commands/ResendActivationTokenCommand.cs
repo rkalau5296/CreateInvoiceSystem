@@ -43,8 +43,7 @@ public class ResendActivationTokenCommand : CommandBase<ResendActivationTokenReq
         }
 
         var token = _userTokenService.GenerateActivationToken(user.Email);
-
-        // Zapisz JTI i expiry do DB, aby walidacja aktywacji mogła przebiec pomyślnie
+                
         var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
         if (!string.IsNullOrWhiteSpace(jti) && expiry.HasValue)
         {

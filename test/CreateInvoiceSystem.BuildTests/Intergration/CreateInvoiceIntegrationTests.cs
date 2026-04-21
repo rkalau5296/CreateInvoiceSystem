@@ -1,95 +1,40 @@
-﻿using CreateInvoiceSystem.Mail;
+﻿using CreateInvoiceSystem.BuildTests.Infrastructure;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System.Net;
-using System.Security.Claims;
+using System.Net.Http.Json;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using Xunit;
+using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class CreateInvoiceIntegrationTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
+    private readonly ITestOutputHelper _output;
 
-    public CreateInvoiceIntegrationTests(WebApplicationFactory<Program> factory)
+    public CreateInvoiceIntegrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = "TestScheme";
-                    options.DefaultChallengeScheme = "TestScheme";
-                }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
-
-                var emailMock = new Mock<IEmailService>();
-                emailMock.Setup(x => x.SendEmailAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
-                    .Returns(Task.CompletedTask);
-
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
-                if (descriptor != null) services.Remove(descriptor);
-                services.AddSingleton(emailMock.Object);
-            });
-        });
+        _factory = factory;
+        _output = output;
+        _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
 
     [Fact]
     public async Task Should_CreateInvoice_And_SendPdfEmail()
     {
-        int actualUserId;
-        const string expectedSellerName = "Runte Inc";
+        var userId = await SeedUserAsync();
         const string clientName = "Firma Klienta";
-
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
-
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == "sprzedawca@test.local");
-            if (user == null)
-            {
-                var address = new AddressEntity
-                {
-                    Street = "Testowa",
-                    Number = "1",
-                    City = "Warszawa",
-                    PostalCode = "00-100",
-                    Country = "Polska"
-                };
-                db.Set<AddressEntity>().Add(address);
-                await db.SaveChangesAsync();
-
-                user = new UserEntity
-                {
-                    Email = "sprzedawca@test.local",
-                    Name = "Sprzedawca",
-                    CompanyName = expectedSellerName,
-                    Nip = "1234567890",
-                    AddressId = address.AddressId
-                };
-                db.Users.Add(user);
-                await db.SaveChangesAsync();
-            }
-            actualUserId = user.Id;
-        }
 
         var invoiceData = new
         {
@@ -101,7 +46,7 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
             TotalGross = 1230m,
             PaymentDate = DateTime.UtcNow.AddDays(7),
             CreatedDate = DateTime.UtcNow,
-            UserId = actualUserId,
+            UserId = userId,
             UserEmail = "sprzedawca@test.local",
             ClientId = (int?)null,
             Client = new
@@ -110,9 +55,9 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
                 Nip = "0987654321",
                 Email = "klient@test.local",
                 Address = new { Street = "Testowa", Number = "1", City = "Warszawa", PostalCode = "00-100", Country = "Polska" },
-                UserId = actualUserId
+                UserId = userId
             },
-            SellerName = expectedSellerName,
+            SellerName = "Testowa Firma Sprzedawcy",
             SellerNip = "1234567890",
             SellerAddress = "Testowa 1, Warszawa",
             BankAccountNumber = "1234567890",
@@ -122,27 +67,27 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
             ClientEmail = "klient@test.local",
             InvoicePositions = new[]
             {
-                new
+            new
+            {
+                InvoicePositionId = 0,
+                InvoiceId = 0,
+                ProductId = (int?)null,
+                Product = new
                 {
-                    InvoicePositionId = 0,
-                    InvoiceId = 0,
-                    ProductId = (int?)null,
-                    Product = new
-                    {
-                        ProductId = 0,
-                        Name = "Produkt",
-                        Description = "Opis",
-                        Value = 1000m,
-                        UserId = actualUserId,
-                        IsDeleted = false
-                    },
-                    ProductName = "Usługa Testowa",
-                    ProductDescription = "Opis usługi",
-                    ProductValue = 1000m,
-                    Quantity = 1,
-                    VatRate = "23%"
-                }
+                    ProductId = 0,
+                    Name = "Produkt",
+                    Description = "Opis",
+                    Value = 1000m,
+                    UserId = userId,
+                    IsDeleted = false
+                },
+                ProductName = "Usługa Testowa",
+                ProductDescription = "Opis usługi",
+                ProductValue = 1000m,
+                Quantity = 1,
+                VatRate = "23%"
             }
+        }
         };
 
         var options = new JsonSerializerOptions { PropertyNamingPolicy = null };
@@ -156,26 +101,231 @@ public class CreateInvoiceIntegrationTests : IClassFixture<WebApplicationFactory
 
         using var doc = JsonDocument.Parse(resultBody);
         var data = doc.RootElement.GetProperty("data");
-
-        data.GetProperty("sellerName").GetString().Should().Be(expectedSellerName);
+        data.GetProperty("sellerName").GetString().Should().Be("Testowa Firma Sprzedawcy");
+        data.GetProperty("clientName").GetString().Should().Be(clientName);
+        data.GetProperty("methodOfPayment").GetString().Should().Be("Przelew");
     }
-}
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
-{
-    public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
-        : base(options, logger, encoder) { }
-
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    [Fact]
+    public async Task Should_CreateInvoice_And_SaveToDatabase_When_RequestIsValid()
     {
-        var claims = new[] {
-            new Claim(ClaimTypes.Name, "TestUser"),
-            new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim("nameid", "1")
+        var userId = await SeedUserAsync();
+        var invoice = BuildInvoicePayload(userId, clientEmail: "klient@test.local");
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var saved = await db.Set<InvoiceEntity>().FirstOrDefaultAsync();
+        saved.Should().NotBeNull();
+        saved!.TotalGross.Should().Be(1230m);
+        saved.ClientName.Should().Be("Firma Klienta");
+        saved.ClientNip.Should().Be("0987654321");
+        saved.MethodOfPayment.Should().Be("Przelew");
+
+        var positions = await db.Set<InvoicePositionEntity>()
+            .Where(p => p.InvoiceId == saved.InvoiceId)
+            .ToListAsync();
+
+        positions.Should().HaveCount(1);
+        positions.First().ProductName.Should().Be("Usługa Testowa");
+        positions.First().ProductValue.Should().Be(1000m);
+        positions.First().Quantity.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Should_SendPdfToClient_When_ClientEmailIsProvided()
+    {
+        var userId = await SeedUserAsync();
+        var invoice = BuildInvoicePayload(userId, clientEmail: "klient@test.local");
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        _factory.EmailMock.Verify(x => x.SendEmailWithAttachmentAsync(
+            "klient@test.local",
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Should_NotSendPdfToClient_When_ClientEmailIsNotProvided()
+    {
+        var userId = await SeedUserAsync();
+        var invoice = BuildInvoicePayload(userId, clientEmail: null);
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        _factory.EmailMock.Verify(x => x.SendEmailWithAttachmentAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Should_AlwaysSendConfirmationEmailToSeller()
+    {
+        var userId = await SeedUserAsync();
+        var invoice = BuildInvoicePayload(userId, clientEmail: null);
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        _factory.EmailMock.Verify(x => x.SendEmailAsync(
+            "sprzedawca@test.local",
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_TitleIsMissing()
+    {
+        var userId = await SeedUserAsync();
+        var invoice = BuildInvoicePayload(userId, clientEmail: "klient@test.local");
+        var payload = (dynamic)invoice;
+        var brokenPayload = new
+        {
+            Title = "",
+            payload.Comments,
+            payload.MethodOfPayment,
+            payload.TotalNet,
+            payload.TotalVat,
+            payload.TotalGross,
+            payload.PaymentDate,
+            payload.CreatedDate,
+            payload.UserId,
+            payload.UserEmail,
+            payload.ClientId,
+            payload.Client,
+            payload.SellerName,
+            payload.SellerNip,
+            payload.SellerAddress,
+            payload.BankAccountNumber,
+            payload.ClientName,
+            payload.ClientAddress,
+            payload.ClientNip,
+            payload.ClientEmail,
+            payload.InvoicePositions
         };
-        var identity = new ClaimsIdentity(claims, "TestScheme");
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "TestScheme");
-        return Task.FromResult(AuthenticateResult.Success(ticket));
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", brokenPayload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    private async Task<int> SeedUserAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(1);
+        if (existing != null) return existing.Id;
+
+        var address = new AddressEntity
+        {
+            Street = "Testowa",
+            Number = "1",
+            City = "Warszawa",
+            PostalCode = "00-100",
+            Country = "Polska"
+        };
+        db.Set<AddressEntity>().Add(address);
+        await db.SaveChangesAsync();
+
+        var user = new UserEntity
+        {
+            Id = 1,
+            Email = "sprzedawca@test.local",
+            Name = "Sprzedawca",
+            CompanyName = "Testowa Firma Sprzedawcy",
+            Nip = "1234567890",
+            AddressId = address.AddressId
+        };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        return user.Id;
+    }
+
+    private static object BuildInvoicePayload(int userId, string? clientEmail)
+    {
+        return new
+        {
+            Title = "Faktura testowa API",
+            Comments = "Brak uwag",
+            MethodOfPayment = "Przelew",
+            TotalNet = 1000m,
+            TotalVat = 230m,
+            TotalGross = 1230m,
+            PaymentDate = DateTime.UtcNow.AddDays(7),
+            CreatedDate = DateTime.UtcNow,
+            UserId = userId,
+            UserEmail = "sprzedawca@test.local",
+            ClientId = (int?)null,
+            Client = new
+            {
+                Name = "Firma Klienta",
+                Nip = "0987654321",
+                Address = new
+                {
+                    Street = "Testowa",
+                    Number = "1",
+                    City = "Warszawa",
+                    PostalCode = "00-100",
+                    Country = "Polska"
+                },
+                UserId = userId,
+                Email = clientEmail ?? string.Empty
+            },
+            SellerName = "Moja Firma",
+            SellerNip = "1234567890",
+            SellerAddress = "Testowa 1, Warszawa",
+            BankAccountNumber = "1234567890",
+            ClientName = "Firma Klienta",
+            ClientAddress = "Ulica 2, Warszawa",
+            ClientNip = "0987654321",
+            ClientEmail = clientEmail,
+            InvoicePositions = new[]
+            {
+                new
+                {
+                    InvoicePositionId = 0,
+                    InvoiceId = 0,
+                    ProductId = (int?)null,
+                    Product = new
+                    {
+                        ProductId = 0,
+                        Name = "Produkt",
+                        Description = "Opis",
+                        Value = 1000m,
+                        UserId = userId,
+                        IsDeleted = false
+                    },
+                    ProductName = "Usługa Testowa",
+                    ProductDescription = "Opis usługi",
+                    ProductValue = 1000m,
+                    Quantity = 1,
+                    VatRate = "23%"
+                }
+            }
+        };
     }
 }
