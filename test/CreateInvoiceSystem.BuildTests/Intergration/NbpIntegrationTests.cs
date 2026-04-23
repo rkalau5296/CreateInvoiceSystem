@@ -4,7 +4,7 @@ using System.Net;
 using System.Text.Json;
 using Xunit.Abstractions;
 
-namespace CreateInvoiceSystem.BuildTests.Integration;
+namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 public class NbpIntegrationTests : IClassFixture<TestWebApplicationFactory>
 {
