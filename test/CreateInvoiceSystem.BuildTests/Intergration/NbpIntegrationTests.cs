@@ -34,14 +34,11 @@ public class NbpIntegrationTests : IClassFixture<TestWebApplicationFactory>
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-
-        // Elastyczne sprawdzanie: czy dane są w polu 'data' (z ApiControllerBase) czy w korzeniu
+                
         var elementToVerify = root.TryGetProperty("data", out var dataEl) ? dataEl : root;
 
-        // NBP zwraca 'code' w obiekcie głównym
         elementToVerify.GetProperty("code").GetString().Should().Be(currencyCode);
 
-        // NBP zwraca kursy w tablicy 'rates' lub bezpośrednio w polu 'mid'
         if (elementToVerify.TryGetProperty("rates", out var rates) && rates.ValueKind == JsonValueKind.Array)
         {
             rates[0].GetProperty("mid").GetDecimal().Should().BeGreaterThan(0);
@@ -91,8 +88,7 @@ public class NbpIntegrationTests : IClassFixture<TestWebApplicationFactory>
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-
-        // Obsługa różnych struktur (bezpośrednia tablica lub obiekt z polem data/rates)
+                
         if (root.ValueKind == JsonValueKind.Array)
         {
             root.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
@@ -100,8 +96,7 @@ public class NbpIntegrationTests : IClassFixture<TestWebApplicationFactory>
         else
         {
             var target = root.TryGetProperty("data", out var data) ? data : root;
-
-            // Jeśli target to tablica, sprawdź długość, jeśli obiekt - szukaj pola 'rates'
+                        
             if (target.ValueKind == JsonValueKind.Array)
             {
                 target.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
