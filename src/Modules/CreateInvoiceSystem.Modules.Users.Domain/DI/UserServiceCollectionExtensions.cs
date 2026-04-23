@@ -9,12 +9,5 @@ public static class UserServiceCollectionExtensions
     {
         services.AddHostedService<UserCleanupService>();
         return services;
-    }
-
-    public static IServiceCollection AddUserModule(this IServiceCollection services, Action<IServiceCollection> registerImplementations)
-    {
-        services.AddHostedService<UserCleanupService>();
-        registerImplementations?.Invoke(services);
-        return services;
-    }
+    }    
 }

@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.BuildTests.Infrastructure;
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Net;
 using System.Text.Json;
 using Xunit.Abstractions;

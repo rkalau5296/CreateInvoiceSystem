@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.BuildTests.Intergration;
-using CreateInvoiceSystem.Mail;
+﻿using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace CreateInvoiceSystem.BuildTests.Infrastructure;
+namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {

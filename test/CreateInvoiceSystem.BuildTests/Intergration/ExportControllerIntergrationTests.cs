@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.BuildTests.Infrastructure;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
