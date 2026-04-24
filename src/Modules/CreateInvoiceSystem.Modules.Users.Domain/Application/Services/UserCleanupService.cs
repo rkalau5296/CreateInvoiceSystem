@@ -96,8 +96,7 @@ public class UserCleanupService : BackgroundService
             var parts = jwt.Split('.');
             if (parts.Length < 2) return (null, null);
 
-            string payload = parts[1];
-            // base64url -> base64
+            string payload = parts[1];            
             payload = payload.Replace('-', '+').Replace('_', '/');
             switch (payload.Length % 4)
             {

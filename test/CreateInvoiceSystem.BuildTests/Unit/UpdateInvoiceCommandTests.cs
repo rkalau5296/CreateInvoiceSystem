@@ -21,8 +21,7 @@ public class UpdateInvoiceCommandTests
     {
         var invoiceId = 1;
         var userId = 100;
-
-        // Id, InvId, ProdId, Name, Desc, Value, Qty, VatRate, ProductDto
+                
         var incomingPositions = new List<UpdateInvoicePositionDto>
         {
             new(10, invoiceId, 500, "Updated Product", "Desc", 100m, 5, "23%", null),

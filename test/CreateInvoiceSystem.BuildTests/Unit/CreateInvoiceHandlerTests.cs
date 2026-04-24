@@ -35,15 +35,13 @@ public class CreateInvoiceHandlerTests
         var inputDto = new CreateInvoiceDto
         {
             Title = "FV/2026/01",
-            UserId = 1,
-            // Zakładając, że CreateInvoiceDto ma teraz te pola:
+            UserId = 1,            
             TotalNet = 100m,
             TotalVat = 23m,
             TotalGross = 123m
         };
         var request = new CreateInvoiceRequest(inputDto);
-
-        // Dopasowanie do nowej struktury InvoiceDto (ok. 19 parametrów)
+                
         var expectedInvoice = new InvoiceDto(
             InvoiceId: 500,
             Title: "FV/2026/01",

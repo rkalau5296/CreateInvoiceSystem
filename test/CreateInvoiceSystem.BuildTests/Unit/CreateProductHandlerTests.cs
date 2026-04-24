@@ -28,8 +28,7 @@ public class CreateProductHandlerTests
         // Arrange
         var productDto = new CreateProductDto("Produkt A", "Opis", 100m, 1);
         var request = new CreateProductRequest(productDto);
-
-        // Moq musi zwrócić CreateProductDto, bo tego oczekuje Twój Handler w linii: Data = ProductFromDb
+                
         var expectedDto = new CreateProductDto("Produkt A", "Opis", 100m, 1);
 
         _executorMock

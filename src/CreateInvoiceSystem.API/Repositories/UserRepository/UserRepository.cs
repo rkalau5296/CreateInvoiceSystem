@@ -198,16 +198,14 @@ public class UserRepository : IUserRepository
         if (user.Address != null)
         {
             if (addressEntity == null)
-            {
-                // create new address if user provided one but none exists in DB
+            {                
                 var newAddress = UserMapper.ToAddressEntity(user.Address);
                 await _db.Set<AddressEntity>().AddAsync(newAddress, cancellationToken);
                 await _db.SaveChangesAsync(cancellationToken);
                 userEntity.AddressId = newAddress.AddressId;
             }
             else
-            {
-                // update existing address with provided values
+            {             
                 addressEntity.Street = user.Address.Street;
                 addressEntity.Number = user.Address.Number;
                 addressEntity.City = user.Address.City;

@@ -20,26 +20,6 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
         builder.Property(x => x.BankAccountNumber)
-            .HasMaxLength(34);
-        //builder.HasMany(u => u.Clients)
-        //    .WithOne(c => c.User)
-        //    .HasForeignKey(c => c.UserId)
-        //    .OnDelete(DeleteBehavior.NoAction);
-        //builder.HasMany(u => u.Products)
-        //    .WithOne(p => p.User)
-        //    .HasForeignKey(p => p.UserId)
-        //    .OnDelete(DeleteBehavior.NoAction);
-
-        //builder.HasMany(u => u.Invoices)
-        //        .WithOne(i => i.User)
-        //        .HasForeignKey(i => i.UserId)
-        //        .OnDelete(DeleteBehavior.Cascade);
-
-        //builder.HasMany(u => u.MethodOfPayments)
-        //        .WithOne(i => i.User)
-        //        .HasForeignKey(i => i.UserId)
-        //        .OnDelete(DeleteBehavior.Cascade);
-
-
+            .HasMaxLength(34);        
     }
 }

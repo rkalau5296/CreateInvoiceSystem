@@ -22,8 +22,7 @@ namespace CreateInvoiceSystem.Frontend.Models
         [RegularExpression(@"^\d{10}$", ErrorMessage = "NIP musi zawierać 10 cyfr.")]
         public string Nip { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Numer konta jest wymagany.")]
-        //[StringLength(34, MinimumLength = 16, ErrorMessage = "Numer konta musi mieć od 16 do 34 znaków.")]
+        [Required(ErrorMessage = "Numer konta jest wymagany.")]        
         [RegularExpression(@"^PL\d{26}$", ErrorMessage = "IBAN musi zaczynać się od PL i zawierać dokładnie 26 cyfr.")]
         public string BankAccountNumber { get; set; } = string.Empty;
 

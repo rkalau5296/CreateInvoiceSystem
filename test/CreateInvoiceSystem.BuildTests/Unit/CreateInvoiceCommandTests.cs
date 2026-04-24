@@ -16,8 +16,7 @@ public class CreateInvoiceCommandTests
     {
         _repositoryMock = new Mock<IInvoiceRepository>();
         _emailSenderMock = new Mock<IInvoiceEmailSender>();
-
-        // Globalny setup dla numeracji: udajemy, że to zawsze pierwsza faktura w miesiącu
+                
         _repositoryMock.Setup(r => r.GetInvoicesCountInMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
     }
@@ -80,8 +79,7 @@ public class CreateInvoiceCommandTests
 
         _repositoryMock.Setup(r => r.GetProductByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Product { ProductId = 10, Name = "Laptop", Value = 1000m });
-
-        // Zwracamy obiekt przekazany do metody (z wyliczonymi sumami i numerem)
+                
         _repositoryMock.Setup(r => r.AddInvoiceAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Invoice inv, CancellationToken ct) => inv);
 

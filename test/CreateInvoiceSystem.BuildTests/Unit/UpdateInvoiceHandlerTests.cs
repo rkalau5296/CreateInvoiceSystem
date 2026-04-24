@@ -29,8 +29,7 @@ public class UpdateInvoiceHandlerTests
         // Arrange
         var invoiceId = 55;
         var userId = 1;
-
-        // Mapowanie 20 parametrów UpdateInvoiceDto
+                
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "Title", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Comments",
             null, userId, null!, "Card", new List<UpdateInvoicePositionDto>(),

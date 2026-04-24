@@ -31,8 +31,7 @@ public class DeleteInvoiceHandlerTests
         var invoiceId = 123;
         var userId = 1;
         var request = new DeleteInvoiceRequest(invoiceId) { UserId = userId };
-
-        // Zakładamy strukturę InvoiceDto zbliżoną do Update (łącznie ok 18-20 parametrów)
+                
         var returnDto = new InvoiceDto(
             invoiceId,
             "Deleted Invoice",

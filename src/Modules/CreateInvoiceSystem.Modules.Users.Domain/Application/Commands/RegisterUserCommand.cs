@@ -43,12 +43,10 @@ public class RegisterUserCommand : CommandBase<RegisterUserDto, RegisterUserDto,
         }
 
         var token = _userTokenService.GenerateActivationToken(entity.Email);
-
-        // Zapisz JTI i expiry do DB dla nowo utworzonego użytkownika
+                
         var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
         if (!string.IsNullOrWhiteSpace(jti) && expiry.HasValue)
-        {
-            // po utworzeniu użytkownika, pobierz jego encję z repo aby mieć UserId
+        {        
             var createdUser = await _userRepository.FindByEmailAsync(entity.Email);
             if (createdUser != null)
             {

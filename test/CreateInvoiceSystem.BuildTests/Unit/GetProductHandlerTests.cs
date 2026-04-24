@@ -89,7 +89,7 @@ public class GetProductHandlerTests
                 It.IsAny<QueryBase<Product, IProductRepository>>(),
                 _repositoryMock.Object,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product)null!); // Executor zwraca null
+            .ReturnsAsync((Product)null!); 
 
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
