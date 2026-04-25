@@ -75,7 +75,7 @@ jobs:
       - name: Deploy Backend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'create-invoice-system-web'
+          app-name: 'CreateInvoiceSystem-backend'
           publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
           package: publish-backend.zip
 
@@ -92,6 +92,6 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'create-invoice-system-frontend-rkalau'
+          app-name: 'CreateInvoiceSystem-frontend'
           publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
           package: publish-frontend.zip
