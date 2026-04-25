@@ -22,7 +22,7 @@ public class InvoiceEmailAdapter(
 
         await _emailService.SendEmailAsync(email, subject, body, cancellationToken);
     }
-    public async Task SendInvoiceToClientCreatedAsync(InvoiceDto invoiceDto,       CancellationToken cancellationToken)
+    public async Task SendInvoiceToClientCreatedAsync(InvoiceDto invoiceDto, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(invoiceDto.ClientEmail))
             return;
