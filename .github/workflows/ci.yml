@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item -Force -ErrorAction SilentlyContinue ./publish-frontend.zip
-          Compress-Archive -Path ./publish-frontend/* -DestinationPath ./publish-frontend.zip
+          Compress-Archive -Path ./publish-frontend/wwwroot/* -DestinationPath ./publish-frontend.zip
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
