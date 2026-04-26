@@ -10,7 +10,7 @@ namespace CreateInvoiceSystem.Identity.Services;
 
 public class JwtProvider(IConfiguration _configuration) : IJwtProvider
 {
-    public TokenResponse Generate(IdentityUserModel userModel)
+    public TokenResponse Generate(IdentityUserModel userModel, Guid? refreshToken = null)
     {
         var claims = new List<Claim>
         {
@@ -23,6 +23,11 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
         foreach (var role in userModel.Roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        if (refreshToken.HasValue && refreshToken.Value != Guid.Empty)
+        {
+            claims.Add(new Claim("refresh_token", refreshToken.Value.ToString()));
         }
 
         var signingKey = new SymmetricSecurityKey(
@@ -41,10 +46,11 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
             credentials);
 
         var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-        var refreshToken = Guid.NewGuid();
+        var newRefreshToken = refreshToken ?? Guid.NewGuid();
 
-        return new TokenResponse(accessToken, refreshToken);
+        return new TokenResponse(accessToken, newRefreshToken);
     }
+
     public string GenerateActivationToken(string email, int expiresHours)
     {
         var secretKey = _configuration["Jwt:Key"] ?? throw new Exception("Nie znaleziono Jwt:Key w konfiguracji");
@@ -114,4 +120,3 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
         }
     }
 }
-

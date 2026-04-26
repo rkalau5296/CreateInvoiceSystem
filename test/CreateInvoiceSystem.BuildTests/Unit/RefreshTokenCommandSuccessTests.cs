@@ -13,7 +13,7 @@ namespace CreateInvoiceSystem.BuildTests.Unit
         private readonly Mock<IUserAuthService> _userAuthServiceMock = new();
 
         [Fact]
-        public async Task ExecuteAsync_ShouldThrowUnauthorizedAccessException_WhenSessionIsOlderThan5Minutes()
+        public async Task ExecuteAsync_ShouldThrowUnauthorizedAccessException_WhenSessionIsOlderThan30Minutes()
         {
             // Arrange
             var refreshToken = Guid.NewGuid();
@@ -24,12 +24,25 @@ namespace CreateInvoiceSystem.BuildTests.Unit
                 UserId = 1,
                 RefreshToken = refreshToken,
                 IsRevoked = false,
-                LastActivityAt = DateTime.UtcNow.AddMinutes(-6) 
+                LastActivityAt = DateTime.UtcNow.AddMinutes(-31)
+            };
+
+            var user = new User
+            {
+                UserId = 1,
+                Email = "test@example.com",
+                CompanyName = "Test Company",
+                Nip = "1234567890",
+                IsActive = true
             };
 
             _userRepositoryMock
                 .Setup(x => x.GetSessionByTokenAsync(refreshToken, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expiredSession);
+
+            _userRepositoryMock
+                .Setup(x => x.GetUserByIdAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(user);
 
             var command = new RefreshTokenCommand(
                 request,

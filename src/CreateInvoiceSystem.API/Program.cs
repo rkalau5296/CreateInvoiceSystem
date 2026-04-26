@@ -105,6 +105,7 @@ app.UseRouting();
 app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSessionActivityTracking();
 app.UseSwaggerModule();
 app.MapControllers();
 app.Run();

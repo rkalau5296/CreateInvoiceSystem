@@ -16,7 +16,7 @@ namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands
             if (session is null || session.IsRevoked)
                 throw new UnauthorizedAccessException("Sesja jest nieważna.");
 
-            if (DateTime.UtcNow - session.LastActivityAt > TimeSpan.FromMinutes(5))
+            if (DateTime.UtcNow - session.LastActivityAt > TimeSpan.FromMinutes(30))
             {
                 session.IsRevoked = true;
                 await _userRepository.UpdateSessionAsync(session, cancellationToken);
