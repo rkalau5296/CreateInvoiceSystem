@@ -7,11 +7,11 @@
 @inject ClientService ClientService
 
 <div class="container-fluid">
-    <h3 class="mb-4">Kontrahenci</h3>
+    <h3 class="mb-4">Klienci</h3>
 
     <div class="row mb-4 align-items-end">
         <div class="col-md-6">
-            <label class="form-label small fw-bold">Wyszukaj kontrahenta</label>
+            <label class="form-label small fw-bold">Wyszukaj klienta</label>
             <div class="input-group">
                 <span class="input-group-text bg-white border-end-0">
                     <i class="bi bi-search text-muted"></i>
@@ -48,7 +48,7 @@
                 <div class="modal-content">
                     <ValidatedEditForm TModel="ClientDto" Model="_editingClient" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit" @ref="modalFormRef">
                         <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title">@(_isEditMode ? "Edytuj Kontrahenta" : "Nowy Kontrahent")</h5>
+                            <h5 class="modal-title">@(_isEditMode ? "Edytuj Klienta" : "Nowy Klient")</h5>
                             <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
                         </div>
 
@@ -74,7 +74,7 @@
                                 </div>
 
                                 <hr class="my-2 text-muted" />
-                                <h6 class="text-muted mb-2">Adres kontrahenta</h6>
+                                <h6 class="text-muted mb-2">Adres klienta</h6>
 
                                 <div class="col-md-9">
                                     <label class="form-label fw-bold">Ulica <span class="text-danger">*</span></label>
@@ -108,9 +108,9 @@
     }
 
     <div class="card shadow-sm">
-        <div class="card-header bg-light">Twoja lista kontrahentów</div>
+        <div class="card-header bg-light">Twoja lista klientów</div>
         <div class="card-body p-0">
-            <DataTable Items="_clients" Cols="5" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="c => c.ClientId" NoItemsMessage="Brak kontrahentów w bazie.">
+            <DataTable Items="_clients" Cols="5" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="c => c.ClientId" NoItemsMessage="Brak klientów w bazie.">
                 <HeaderTemplate>
                     <tr>
                         <th>Nazwa</th>
