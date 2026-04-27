@@ -386,7 +386,9 @@
             try
             {
                 DateTime.TryParse(_createdDate, out var created);
-                DateTime.TryParse(_paymentDate, out var payment);
+                created = DateTime.SpecifyKind(created, DateTimeKind.Local);
+                DateTime.TryParse(_paymentDate, out var payment);  
+                payment = DateTime.SpecifyKind(payment, DateTimeKind.Local);
                 var invoice = new InvoiceDto
                 {
                     Title = _title!,

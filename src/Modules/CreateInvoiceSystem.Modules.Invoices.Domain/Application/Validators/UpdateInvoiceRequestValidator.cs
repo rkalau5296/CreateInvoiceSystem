@@ -14,7 +14,13 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
             .GreaterThan(0).WithMessage("ClientId is required.");
 
         RuleFor(x => x.Invoice.CreatedDate)
-            .NotEmpty().WithMessage("CreatedDate is required.");            
+            .NotEmpty().WithMessage("CreatedDate is required.")
+            .Must(date =>
+            {
+                var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
+                return date.Date <= polandNow.Date;
+            })
+            .WithMessage("CreatedDate cannot be in the future.");
 
         RuleFor(x => x.Invoice.PaymentDate)
             .NotEmpty().WithMessage("PaymentDate is required.")
