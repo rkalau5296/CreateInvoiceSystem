@@ -206,7 +206,17 @@
 
             <div class="d-flex justify-content-end gap-3">
                 <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
-                <button type="button" class="btn btn-success btn-lg px-5 shadow" @onclick="HandleSave">Zapisz fakturę</button>
+                <button type="button" class="btn btn-success btn-lg px-5 shadow" @onclick="HandleSave" disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span>Zapisywanie...</span>
+                }
+                else
+                {
+                    <span>Zapisz fakturę</span>
+                }
+            </button>
             </div>
 
         </div>
@@ -240,6 +250,7 @@
     private string? _postalCode;
     private string? _city;
     private int? _selectedClientId;
+    private bool _isSaving;
 
     private List<PositionRow> _positions = new();
     private List<ProductDto> _availableProducts = new();
@@ -358,77 +369,82 @@
 
     private async Task HandleSave()
     {
-        _submitAttempted = true;
-
-        foreach (var pos in _positions)
-        {
-            TouchPos(pos, nameof(pos.ProductName));
-            TouchPos(pos, nameof(pos.Quantity));
-            TouchPos(pos, nameof(pos.ProductValue));
-        }
-
-        if (!IsValid()) return;
+        if (_isSaving) return;
+        _isSaving = true;
 
         try
         {
-            DateTime.TryParse(_createdDate, out var created);
-            DateTime.TryParse(_paymentDate, out var payment);
-
-            var invoice = new InvoiceDto
+            _submitAttempted = true;
+            foreach (var pos in _positions)
             {
-                Title = _title!,
-                CreatedDate = created,
-                PaymentDate = payment,
-                MethodOfPayment = _methodOfPayment!,
-                ClientId = _selectedClientId,
-                ClientName = _clientName,
-                ClientNip = _clientNip,
-                ClientEmail = _clientEmail,
-                ClientAddress = $"{_street} {_streetNumber}, {_postalCode} {_city}",
-                Client = new ClientDto
+                TouchPos(pos, nameof(pos.ProductName));
+                TouchPos(pos, nameof(pos.Quantity));
+                TouchPos(pos, nameof(pos.ProductValue));
+            }
+            if (!IsValid()) return;
+
+            try
+            {
+                DateTime.TryParse(_createdDate, out var created);
+                DateTime.TryParse(_paymentDate, out var payment);
+                var invoice = new InvoiceDto
                 {
-                    ClientId = _selectedClientId ?? 0,
-                    Name = _clientName!,
-                    Nip = _clientNip!,
-                    Email = _clientEmail ?? string.Empty,
-                    Address = new AddressDto
+                    Title = _title!,
+                    CreatedDate = created,
+                    PaymentDate = payment,
+                    MethodOfPayment = _methodOfPayment!,
+                    ClientId = _selectedClientId,
+                    ClientName = _clientName,
+                    ClientNip = _clientNip,
+                    ClientEmail = _clientEmail,
+                    ClientAddress = $"{_street} {_streetNumber}, {_postalCode} {_city}",
+                    Client = new ClientDto
                     {
-                        Street = _street!,
-                        Number = _streetNumber!,
-                        PostalCode = _postalCode!,
-                        City = _city!
-                    }
-                },
-                SellerName = "Twoja firma",
-                SellerNip = "0000000000",
-                SellerAddress = "Adres sprzedawcy",
-                InvoicePositions = _positions.Select(p => new InvoicePositionDto
+                        ClientId = _selectedClientId ?? 0,
+                        Name = _clientName!,
+                        Nip = _clientNip!,
+                        Email = _clientEmail ?? string.Empty,
+                        Address = new AddressDto
+                        {
+                            Street = _street!,
+                            Number = _streetNumber!,
+                            PostalCode = _postalCode!,
+                            City = _city!
+                        }
+                    },
+                    SellerName = "Twoja firma",
+                    SellerNip = "0000000000",
+                    SellerAddress = "Adres sprzedawcy",
+                    InvoicePositions = _positions.Select(p => new InvoicePositionDto
+                    {
+                        ProductId = p.ProductId,
+                        ProductName = p.ProductName,
+                        ProductDescription = p.ProductDescription,
+                        Quantity = p.Quantity,
+                        ProductValue = p.ProductValue,
+                        VatRate = p.VatRate
+                    }).ToList()
+                };
+                invoice.TotalNet = invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity);
+                invoice.TotalVat = invoice.InvoicePositions.Sum(p =>
                 {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    ProductDescription = p.ProductDescription,
-                    Quantity = p.Quantity,
-                    ProductValue = p.ProductValue,
-                    VatRate = p.VatRate
-                }).ToList()
-            };
-
-            invoice.TotalNet = invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity);
-            invoice.TotalVat = invoice.InvoicePositions.Sum(p =>
+                    var net = (p.ProductValue ?? 0) * p.Quantity;
+                    if (p.VatRate == "zw" || !p.VatRate.Contains("%")) return 0;
+                    decimal.TryParse(p.VatRate.Replace("%", ""), out var rate);
+                    return Math.Round(net * (rate / 100m), 2);
+                });
+                invoice.TotalGross = invoice.TotalNet + invoice.TotalVat;
+                var result = await InvoiceService.SaveInvoiceAsync(invoice);
+                if (result != null) Navigation.NavigateTo("/invoices");
+            }
+            catch (Exception ex)
             {
-                var net = (p.ProductValue ?? 0) * p.Quantity;
-                if (p.VatRate == "zw" || !p.VatRate.Contains("%")) return 0;
-                decimal.TryParse(p.VatRate.Replace("%", ""), out var rate);
-                return Math.Round(net * (rate / 100m), 2);
-            });
-            invoice.TotalGross = invoice.TotalNet + invoice.TotalVat;
-
-            var result = await InvoiceService.SaveInvoiceAsync(invoice);
-            if (result != null) Navigation.NavigateTo("/invoices");
+                _errorMessage = ex.Message;
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            _errorMessage = ex.Message;
+            _isSaving = false;
         }
     }
 }
