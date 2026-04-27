@@ -58,11 +58,10 @@ public class CreateInvoiceRequestValidatorTests
     [Fact]
     public void Should_Have_Error_When_CreatedDate_Is_In_Future()
     {
-        var dto = CreateValidDto() with { CreatedDate = DateTime.UtcNow.AddDays(1) };
+        var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
+        var dto = CreateValidDto() with { CreatedDate = polandNow.Date.AddDays(1) };
         var request = new CreateInvoiceRequest(dto);
-
         var result = _validator.TestValidate(request);
-
         result.ShouldHaveValidationErrorFor(x => x.Invoice.CreatedDate)
             .WithErrorMessage("CreatedDate cannot be in the future.");
     }
