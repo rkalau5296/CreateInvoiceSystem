@@ -106,7 +106,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         int count = await invoiceRepository.GetInvoicesCountInMonthAsync(userId, now.Month, now.Year, ct);
         int nextNumber = count + 1;
 
-        return $"{nextNumber}/{now.Month:D2}/{now.Year}";
+        return $"{nextNumber}/{now.Month:00}/{now.Year}";
     }
 
     private static bool IsClientDtoEmpty(CreateClientDto client)
