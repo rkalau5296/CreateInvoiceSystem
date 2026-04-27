@@ -46,7 +46,7 @@ public class InvoiceEmailAdapter(
             subject,
             body,
             pdfBytes,
-            $"{invoiceDto.Title}.pdf",
+            $"{invoiceDto.Title.Replace("/", "-")}.pdf",
             cancellationToken);
     }
 }
