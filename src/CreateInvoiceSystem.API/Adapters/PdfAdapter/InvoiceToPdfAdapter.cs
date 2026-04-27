@@ -4,6 +4,7 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Pdf.Interfaces;
 using CreateInvoiceSystem.Pdf.Models;
+using System.Globalization;
 
 namespace CreateInvoiceSystem.API.Adapters.PdfAdapter
 {
@@ -38,9 +39,11 @@ namespace CreateInvoiceSystem.API.Adapters.PdfAdapter
 
             decimal totalGross = rows.Sum(x => x.TotalPrice);
 
+            var pl = CultureInfo.GetCultureInfo("pl-PL");
+
             var pdfRequest = new PdfDocumentRequest(
             Title: $"Faktura nr {invoice.Title}",
-            Subtitle: $"Data wystawienia: {invoice.CreatedDate:dd.MM.yyyy}",
+            Subtitle: $"Data wystawienia: {invoice.CreatedDate:dd.MM.yyyy, pl}",
             ClientName: invoice.ClientName ?? "Brak danych",
             ClientAddress: invoice.ClientAddress ?? "Brak adresu",
             ClientNip: invoice.ClientNip ?? "-",
