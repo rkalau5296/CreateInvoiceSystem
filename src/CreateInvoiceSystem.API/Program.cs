@@ -102,7 +102,7 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowBlazor");
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSessionActivityTracking();
