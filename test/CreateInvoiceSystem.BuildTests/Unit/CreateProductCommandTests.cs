@@ -62,7 +62,7 @@ public class CreateProductCommandTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("The product with the same name already exists.");
+            .WithMessage("Istnieje już produkt o takiej nazwie.");
 
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
     }

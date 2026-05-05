@@ -1,0 +1,48 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+@using System.Globalization
+
+<input type="text"
+       inputmode="decimal"
+       class="@CssClass"
+       value="@StringValue"
+       @oninput="OnInput"
+       @onblur="OnBlur"
+       autocomplete="off" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public string StringValue { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> StringValueChanged { get; set; }
+    [Parameter] public bool Touched { get; set; }  
+    [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
+
+    private bool IsInvalid => !decimal.TryParse(
+        (StringValue ?? "").Trim().Replace(',', '.'),
+        NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+        CultureInfo.InvariantCulture, out var v) || v <= 0;
+
+    private bool ShowError => Touched && IsInvalid;
+
+    private string CssClass =>
+        !Touched ? "form-control" :
+        IsInvalid ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString() ?? string.Empty;
+        await StringValueChanged.InvokeAsync(raw);
+    }
+
+    private async Task OnBlur(FocusEventArgs _)
+    {
+        var normalized = (StringValue ?? "").Trim().Replace(',', '.');
+        if (decimal.TryParse(normalized,
+                NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+                CultureInfo.InvariantCulture, out var v))
+            await StringValueChanged.InvokeAsync(v.ToString(CultureInfo.InvariantCulture));
+    }
+}

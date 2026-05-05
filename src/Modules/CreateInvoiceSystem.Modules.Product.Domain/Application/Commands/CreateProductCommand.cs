@@ -14,7 +14,7 @@ public class CreateProductCommand : CommandBase<CreateProductDto, CreateProductD
         var exists = await _productRepository.ExistsAsync(Parametr.Name, Parametr.UserId, cancellationToken);
 
         if (exists)
-            throw new InvalidOperationException("The product with the same name already exists.");
+            throw new InvalidOperationException("Istnieje już produkt o takiej nazwie.");
 
         var entity = ProductMappers.ToEntity(Parametr);
 
