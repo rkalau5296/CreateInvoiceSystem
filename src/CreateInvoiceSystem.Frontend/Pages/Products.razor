@@ -79,7 +79,8 @@
                             <div class="mb-3">
                                 <TextDecimalInput @bind-StringValue="_newProductView.ValueString"
                                                   Touched="@_formTouched"
-                                                  ErrorMessage="Wartość jest wymagana" />
+                                                  Label="Wartość"
+                                                  ErrorMessage="Podaj prawidłową cenę (maksymalnie 2 miejsca po przecinku)" />
                                 <div class="mt-1"><small class="text-muted">PLN</small></div>
                             </div>
                         </div>
@@ -121,7 +122,7 @@
                                     <div class="text-end">
                                         <TextDecimalInput @bind-StringValue="_editViewModel.ValueString"
                                                           Touched="true"
-                                                          ErrorMessage="Nieprawidłowa wartość" />
+                                                          ErrorMessage="Podaj prawidłową cenę (maksymalnie 2 miejsca po przecinku)" />
                                     </div>
                                     <div class="text-center">
                                         <div class="d-flex justify-content-center gap-2">

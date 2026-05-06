@@ -1,6 +1,10 @@
 ﻿@namespace CreateInvoiceSystem.Frontend.Components
 @using System.Globalization
 
+@if (!string.IsNullOrEmpty(Label))
+{
+    <label class="form-label">@Label</label>
+}
 <input type="text"
        inputmode="decimal"
        class="@CssClass"
@@ -15,15 +19,28 @@
 }
 
 @code {
+    [Parameter] public string Label { get; set; } = string.Empty;
     [Parameter] public string StringValue { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> StringValueChanged { get; set; }
-    [Parameter] public bool Touched { get; set; }  
+    [Parameter] public bool Touched { get; set; }
     [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
 
-    private bool IsInvalid => !decimal.TryParse(
-        (StringValue ?? "").Trim().Replace(',', '.'),
-        NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-        CultureInfo.InvariantCulture, out var v) || v <= 0;
+    private bool IsInvalid
+    {
+        get
+        {
+            var s = (StringValue ?? "").Trim().Replace(',', '.');
+            if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+                    CultureInfo.InvariantCulture, out var v) || v <= 0)
+                return true;
+
+            var dotIndex = s.IndexOf('.');
+            if (dotIndex >= 0 && s.Length - dotIndex - 1 > 2)
+                return true;
+
+            return false;
+        }
+    }
 
     private bool ShowError => Touched && IsInvalid;
 

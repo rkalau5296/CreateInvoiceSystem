@@ -19,9 +19,10 @@ public class ProductEditModel : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var results = new List<ValidationResult>();
-
         var s = (ValueString ?? string.Empty).Trim().Replace(',', '.');
-        if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var val))
+
+        if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+                CultureInfo.InvariantCulture, out var val))
         {
             results.Add(new ValidationResult("Nieprawidłowa wartość ceny.", new[] { nameof(ValueString) }));
             return results;
@@ -30,6 +31,13 @@ public class ProductEditModel : IValidatableObject
         if (val < 0m)
         {
             results.Add(new ValidationResult("Cena nie może być ujemna.", new[] { nameof(ValueString) }));
+        }
+        
+        var dotIndex = s.IndexOf('.');
+        if (dotIndex >= 0 && s.Length - dotIndex - 1 > 2)
+        {
+            results.Add(new ValidationResult("Cena może mieć maksymalnie 2 miejsca po przecinku.",
+                new[] { nameof(ValueString) }));
         }
 
         return results;
