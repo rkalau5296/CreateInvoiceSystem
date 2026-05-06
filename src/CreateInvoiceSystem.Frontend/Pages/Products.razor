@@ -79,7 +79,8 @@
                             <div class="mb-3">
                                 <TextDecimalInput @bind-StringValue="_newProductView.ValueString"
                                                   Touched="@_formTouched"
-                                                  Label="Wartość"
+                                                  Label="Cena"
+                                                  Placeholder="np. 12.99"
                                                   ErrorMessage="Podaj prawidłową cenę (maksymalnie 2 miejsca po przecinku)" />
                                 <div class="mt-1"><small class="text-muted">PLN</small></div>
                             </div>
@@ -121,6 +122,7 @@
                                     </div>
                                     <div class="text-end">
                                         <TextDecimalInput @bind-StringValue="_editViewModel.ValueString"
+                                                          Placeholder="np. 12.99"
                                                           Touched="true"
                                                           ErrorMessage="Podaj prawidłową cenę (maksymalnie 2 miejsca po przecinku)" />
                                     </div>

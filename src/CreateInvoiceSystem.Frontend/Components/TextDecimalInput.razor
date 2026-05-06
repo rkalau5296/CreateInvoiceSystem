@@ -9,6 +9,7 @@
        inputmode="decimal"
        class="@CssClass"
        value="@StringValue"
+       placeholder="@Placeholder"
        @oninput="OnInput"
        @onblur="OnBlur"
        autocomplete="off" />
@@ -20,6 +21,7 @@
 
 @code {
     [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
     [Parameter] public string StringValue { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> StringValueChanged { get; set; }
     [Parameter] public bool Touched { get; set; }
