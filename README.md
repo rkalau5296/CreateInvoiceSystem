@@ -53,3 +53,4 @@ dotnet run --project ./src/CreateInvoiceSystem.Persistence.Seed.Mock -cs "Server
 Argument `connectionString` powinien zawierać pełny connection string do Twojej bazy danych SQL Server.
 Po uruchomieniu tego polecenia baza zostanie zapełniona przykładowymi użytkownikami i klientami.
 Po wykonaniu tych kroków aplikacja powinna być gotowa do uruchomienia lokalnie.
+to do zmiany
