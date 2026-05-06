@@ -3,7 +3,13 @@
 
 @if (!string.IsNullOrEmpty(Label))
 {
-    <label class="form-label">@Label</label>
+    <label class="form-label">
+        @Label
+        @if (Required)
+        {
+            <span class="text-danger ms-1" title="Pole wymagane">*</span>
+        }
+    </label>
 }
 <input type="text"
        inputmode="decimal"
@@ -25,6 +31,7 @@
     [Parameter] public string StringValue { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> StringValueChanged { get; set; }
     [Parameter] public bool Touched { get; set; }
+    [Parameter] public bool Required { get; set; } = false;
     [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
 
     private bool IsInvalid
