@@ -366,3 +366,5 @@ FodyWeavers.xsd
 
 # Ustawienia lokalne dewelopera
 **/appsettings.Development.json
+
+.github/copilot-instructions.md
