@@ -76,7 +76,7 @@ public class CreateClientCommandTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("A client with the same name and address already exists.");
+            .WithMessage("Istnieje już taki klient z identycznymi danymi.");
     }
 
     [Fact]
@@ -108,8 +108,8 @@ public class CreateClientCommandTests
             .WithParameterName("Address");
     }
 
-    [Fact]
-    public async Task Execute_ShouldThrowInvalidOperationException_WhenClientCouldNotBeReloaded()
+    [Fact]    
+    public async Task Execute_ShouldReturnDtoEvenWhenClientCouldNotBeReloaded()
     {
         // Arrange
         var addressDto = new AddressDto(0, "Test", "1", "Test", "00-000", "PL");
@@ -121,16 +121,24 @@ public class CreateClientCommandTests
             .ReturnsAsync(false);
 
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Client>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Client { ClientId = 99, UserId = 1 });
+            .ReturnsAsync(new Client
+            {
+                ClientId = 99,
+                UserId = 1,
+                Name = "Test",
+                Address = new Address { Street = "Test", Number = "1", City = "Test", PostalCode = "00-000", Country = "PL" }
+            });
 
         _repositoryMock.Setup(r => r.GetByIdAsync(99, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Client)null!);
 
         // Act
-        Func<Task> act = async () => await command.Execute(_repositoryMock.Object, CancellationToken.None);
+        var result = await command.Execute(_repositoryMock.Object, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Client was saved but could not be reloaded.");
+        result.Should().NotBeNull();
+        result.ClientId.Should().Be(99);
+        result.Name.Should().Be("Test");
+        result.Address.Should().NotBeNull();
     }
 }

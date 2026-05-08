@@ -37,18 +37,14 @@ public class ExceptionHandlingMiddleware
     {
         _logger.LogError(exception, "Unhandled exception while processing request {Method} {Path}", context.Request?.Method, context.Request?.Path);
 
-        if (context.Response.HasStarted)
-        {
-            _logger.LogWarning("Response has already started for {Path}. Cannot write ProblemDetails. TraceId={TraceId}", context.Request?.Path, context.TraceIdentifier);
-            return;
-        }
+        if (context.Response.HasStarted) return;
 
         var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         ProblemDetails problem;
         int status;
 
         var innermost = GetInnermostException(exception);
-                
+
         if (IsConnectionIssue(innermost))
         {
             status = StatusCodes.Status500InternalServerError;
@@ -58,7 +54,6 @@ public class ExceptionHandlingMiddleware
                 Status = status,
                 Detail = "Nie można nawiązać połączenia z bazą danych."
             };
-
             await WriteResponseAsync(context, problem, status, jsonOptions);
             return;
         }
@@ -66,65 +61,66 @@ public class ExceptionHandlingMiddleware
         switch (exception)
         {
             case DbUpdateException dbEx:
+                var innermostEx = GetInnermostException(dbEx);
+                if (innermostEx is SqlException innerSqlEx && (innerSqlEx.Number == 2627 || innerSqlEx.Number == 2601))
                 {
-                    var innermostEx = GetInnermostException(dbEx);
-
-                    if (innermostEx is SqlException innerSqlEx && (innerSqlEx.Number == 2627 || innerSqlEx.Number == 2601))
+                    status = StatusCodes.Status409Conflict;
+                    var indexName = ExtractIndexNameFromSqlMessage(innerSqlEx.Message);
+                    var indexMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                     {
-                        var indexName = ExtractIndexNameFromSqlMessage(innerSqlEx.Message);
-                        var indexMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
-                        };
+                        ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
+                    };
 
-                        var detailMsg = (!string.IsNullOrEmpty(indexName) && indexMap.TryGetValue(indexName, out var userMsg))
-                            ? userMsg
-                            : "Istnieje już w bazie klient z tymi danymi.";
-
-                        status = StatusCodes.Status409Conflict;
-                        problem = new ProblemDetails
-                        {
-                            Title = "Conflict",
-                            Status = status,
-                            Detail = detailMsg
-                        };
-                    }
-                    else
+                    problem = new ProblemDetails
                     {
-                        status = StatusCodes.Status500InternalServerError;
-                        problem = new ProblemDetails
-                        {
-                            Title = "Database error",
-                            Status = status,
-                            Detail = ShortenSqlMessage(innermostEx.Message)
-                        };
-                    }
+                        Title = "Conflict",
+                        Status = status,
+                        Detail = (indexName != null && indexMap.TryGetValue(indexName, out var msg)) ? msg : "Istnieje już w bazie klient z tymi danymi."
+                    };
                 }
+                else
+                {
+                    status = StatusCodes.Status500InternalServerError;
+                    problem = new ProblemDetails { Title = "Database error", Status = status, Detail = ShortenSqlMessage(innermostEx.Message) };
+                }
+                break;
+
+            case ArgumentException:
+                status = StatusCodes.Status400BadRequest;
+                problem = new ProblemDetails { Title = "Bad Request", Status = status, Detail = exception.Message };
+                break;
+
+            case InvalidOperationException:
+                if (exception.Message.Contains("Sequence contains no elements") || exception.Message.Contains("not found"))
+                {
+                    status = StatusCodes.Status404NotFound;
+                    problem = new ProblemDetails { Title = "Not Found", Status = status, Detail = "Szukany zasób nie istnieje." };
+                }
+                else
+                {
+                    status = StatusCodes.Status400BadRequest;
+                    problem = new ProblemDetails { Title = "Invalid Operation", Status = status, Detail = exception.Message };
+                }
+                break;
+
+            case KeyNotFoundException:
+                status = StatusCodes.Status404NotFound;
+                problem = new ProblemDetails { Title = "Not Found", Status = status, Detail = exception.Message };
                 break;
 
             case FluentValidation.ValidationException fvEx:
                 status = StatusCodes.Status400BadRequest;
-                problem = new ValidationProblemDetails(fvEx.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key ?? string.Empty,
-                        g => g.Select(e => e.ErrorMessage ?? string.Empty).Distinct().ToArray()
-                    ))
+                problem = new ValidationProblemDetails(fvEx.Errors.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key ?? string.Empty, g => g.Select(e => e.ErrorMessage).ToArray()))
                 {
                     Title = "Validation failed",
                     Status = status,
-                    Detail = string.Join(" | ", fvEx.Errors.Select(e => e.ErrorMessage))
+                    Detail = "Wystąpiły błędy walidacji."
                 };
                 break;
 
             case UnauthorizedAccessException:
                 status = StatusCodes.Status401Unauthorized;
                 problem = new ProblemDetails { Title = "Unauthorized", Status = status, Detail = exception.Message };
-                break;
-
-            case InvalidOperationException:
-                status = StatusCodes.Status404NotFound;
-                problem = new ProblemDetails { Title = "Not Found", Status = status, Detail = exception.Message };
                 break;
 
             default:
@@ -143,35 +139,22 @@ public class ExceptionHandlingMiddleware
 
     private async Task WriteResponseAsync(HttpContext context, ProblemDetails problem, int status, JsonSerializerOptions options)
     {
-        if (!string.IsNullOrEmpty(context.TraceIdentifier))
-        {
-            problem.Extensions["traceId"] = context.TraceIdentifier;
-        }
-
+        problem.Extensions["traceId"] = context.TraceIdentifier;
         context.Response.Clear();
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = status;
-
-        var json = JsonSerializer.Serialize(problem, options);
-        await context.Response.WriteAsync(json).ConfigureAwait(false);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(problem, options)).ConfigureAwait(false);
     }
 
     private static bool IsConnectionIssue(Exception? ex)
     {
-        if (ex is null) return false;
-
         if (ex is SqlException sqlEx)
-        {            
+        {
             if (sqlEx.Number == 2627 || sqlEx.Number == 2601) return false;
-                     
-            int[] connectionErrors = { -1, -2, 2, 53, 4060, 10054, 10060, 10061, 18456 };
-            if (connectionErrors.Contains(sqlEx.Number)) return true;
+            int[] connErrors = { -1, -2, 2, 53, 4060, 10054, 10060, 10061, 18456 };
+            return connErrors.Contains(sqlEx.Number);
         }
-
-        if (ex is SocketException || ex is Win32Exception) return true;
-
-        var lower = ex.Message.ToLowerInvariant();
-        return lower.Contains("a network-related") || lower.Contains("tcp provider") || lower.Contains("login failed");
+        return ex is SocketException || ex is Win32Exception;
     }
 
     private static string? ExtractIndexNameFromSqlMessage(string message)
@@ -183,10 +166,8 @@ public class ExceptionHandlingMiddleware
 
     private static string ShortenSqlMessage(string? message)
     {
-        if (string.IsNullOrWhiteSpace(message)) return "Wystąpił błąd z bazą danych.";
-        var lower = message.ToLowerInvariant();
-        if (lower.Contains("unique key") || lower.Contains("duplicate")) return "Istnieje już rekord o tych danych.";
-        return "Wystąpił błąd z bazą danych.";
+        if (string.IsNullOrWhiteSpace(message)) return "Wystąpił błąd bazy danych.";
+        return message.ToLower().Contains("unique") ? "Istnieje już taki rekord." : "Wystąpił błąd z bazą danych.";
     }
 
     private static Exception GetInnermostException(Exception ex)
