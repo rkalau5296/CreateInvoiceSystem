@@ -24,7 +24,7 @@ public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClie
             cancellationToken);
 
         if (exists)
-            throw new InvalidOperationException("A client with the same name and address already exists.");
+            throw new InvalidOperationException("Istnieje już taki klient z identycznymi danymi.");
 
         var domainModel = ClientMappers.ToEntity(this.Parametr);
 
@@ -37,6 +37,6 @@ public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClie
 
         return persisted is not null
             ? savedClient.ToDto()
-            : throw new InvalidOperationException("Client was saved but could not be reloaded.");
+            : savedClient.ToDto();
     }
 }          
