@@ -79,8 +79,7 @@ public class TransactionTests
 
             await context.SaveChangesAsync();
 
-            throw new InvalidOperationException("Simulated error");
-            return true;
+            throw new InvalidOperationException("Simulated error");            
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>

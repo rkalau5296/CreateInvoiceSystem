@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CreateInvoiceSystem.Frontend.Dto;
+namespace CreateInvoiceSystem.Frontend.Models;
 
 public class LoginUserDto
 {
