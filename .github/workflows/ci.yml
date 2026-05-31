@@ -21,10 +21,19 @@ jobs:
         run: dotnet restore CreateInvoiceSystem.sln
       - name: Build
         run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
-      - name: Test
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Test with coverage
         env:
           ConnectionStrings__DefaultConnection: "Server=(localdb)\\mssqllocaldb;Database=TestDb;Trusted_Connection=True;"
-        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build
+        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Generate coverage report
+        run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage/report
       - name: Publish backend
         run: dotnet publish src/CreateInvoiceSystem.API/CreateInvoiceSystem.API.csproj -c Release -o ./publish-backend
       - name: Zip backend
