@@ -12,7 +12,7 @@ jobs:
       frontend-artifact: frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v5
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
