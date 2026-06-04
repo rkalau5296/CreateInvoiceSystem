@@ -12,7 +12,7 @@ jobs:
       frontend-artifact: frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -30,7 +30,7 @@ jobs:
       - name: Generate coverage report
         run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: ./coverage/report
@@ -42,7 +42,7 @@ jobs:
           Remove-Item -Force -ErrorAction SilentlyContinue ./publish-backend.zip
           Compress-Archive -Path ./publish-backend/* -DestinationPath ./publish-backend.zip
       - name: Upload backend artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend
           path: publish-backend.zip
@@ -57,7 +57,7 @@ jobs:
           }
           Compress-Archive -Path ./publish-frontend/wwwroot/* -DestinationPath ./publish-frontend.zip
       - name: Upload frontend artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend
           path: publish-frontend.zip
@@ -66,7 +66,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download backend artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: backend
           path: .
@@ -82,7 +82,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download frontend artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: frontend
           path: .
