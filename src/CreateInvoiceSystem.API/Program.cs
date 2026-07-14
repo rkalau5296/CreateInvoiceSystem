@@ -1,4 +1,5 @@
 using CreateInvoiceSystem.Abstractions.DI;
+using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
@@ -7,6 +8,7 @@ using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.DI;
 using CreateInvoiceSystem.Identity.DI;
+using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Mail.DI;
 using CreateInvoiceSystem.Modules.Nbp.Domain.DI;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
@@ -14,6 +16,7 @@ using CreateInvoiceSystem.Modules.Users.Domain.DI;
 using CreateInvoiceSystem.Pdf.Extensions;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Persistence.DI;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +79,22 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("https://localhost:7022", "http://localhost:5004")
               .AllowAnyMethod()
               .AllowAnyHeader();
+    });
+});
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<InvoiceCreatedEmailConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h => { h.Username("guest"); h.Password("guest"); });
+
+        cfg.ReceiveEndpoint("invoice-created-email", e =>
+        {
+            e.ConfigureConsumer<InvoiceCreatedEmailConsumer>(context);
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); // retry z opóŸnieniem
+            // po wyczerpaniu retry MassTransit sam tworzy invoice-created-email_error (DLQ)
+        });
     });
 });
 builder.Logging.ClearProviders();

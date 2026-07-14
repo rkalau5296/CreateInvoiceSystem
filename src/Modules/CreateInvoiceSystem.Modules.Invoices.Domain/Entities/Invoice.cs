@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+
+namespace CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 public class Invoice
 {
     public int InvoiceId { get; set; }
@@ -29,5 +31,5 @@ public class Invoice
         TotalNet = InvoicePositions.Sum(p => p.GetNetValue());
         TotalVat = InvoicePositions.Sum(p => p.GetVatValue());
         TotalGross = TotalNet + TotalVat;
-    }
+    }   
 }

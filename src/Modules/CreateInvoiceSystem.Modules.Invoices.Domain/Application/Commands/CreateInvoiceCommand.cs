@@ -56,9 +56,9 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             createdInvoice.InvoiceId,
             cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
+        if (!string.IsNullOrWhiteSpace(persisted.Client?.Email))
         {            
-            var dto = entity.ToDto();         
+            var dto = persisted.ToDto();         
             await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
         }
 
