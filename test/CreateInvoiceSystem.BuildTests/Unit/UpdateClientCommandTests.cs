@@ -20,8 +20,22 @@ public class UpdateClientCommandTests
     public async Task Execute_ShouldUpdateClientAndReturnDto_WhenDataIsValid()
     {
         // Arrange
-        var addressDto = new AddressDto(5, "Nowa Ulica", "2", "Gdynia", "81-000", "Polska");
-        var updateDto = new UpdateClientDto(1, "Zaktualizowany Klient", "9876543210", addressDto, 5, 10, "testc@test.com");
+        var addressDto = new AddressDto(
+            5,
+            "Nowa Ulica",
+            "2",
+            "Gdynia",
+            "81-000",
+            "Polska");
+
+        var updateDto = new UpdateClientDto(
+            1,
+            "Zaktualizowany Klient",
+            "9876543210",
+            addressDto,
+            5,
+            10,
+            "testc@test.com");
 
         var existingClient = new Client
         {
@@ -30,27 +44,68 @@ public class UpdateClientCommandTests
             Name = "Stary Klient",
             Nip = "0000000000",
             AddressId = 5,
-            Address = new Address { AddressId = 5, Street = "Stara Ulica", Number = "1", City = "Gdańsk", PostalCode = "80-000", Country = "Polska" }
+            Address = new Address
+            {
+                AddressId = 5,
+                Street = "Stara Ulica",
+                Number = "1",
+                City = "Gdańsk",
+                PostalCode = "80-000",
+                Country = "Polska"
+            }
         };
 
-        var command = new UpdateClientCommand { Parametr = updateDto };
+        var command = new UpdateClientCommand
+        {
+            Parametr = updateDto
+        };
 
-        _repositoryMock.Setup(r => r.GetByIdAsync(1, 10, It.IsAny<CancellationToken>()))
+        _repositoryMock
+            .Setup(repository => repository.GetByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingClient);
 
-        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Client>(), It.IsAny<CancellationToken>()))
+        _repositoryMock
+            .Setup(repository => repository.UpdateAsync(
+                It.IsAny<Client>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingClient);
 
         // Act
-        var result = await command.Execute(_repositoryMock.Object, CancellationToken.None);
+        var result = await command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be("Zaktualizowany Klient");
         result.Address.Street.Should().Be("Nowa Ulica");
 
-        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Client>(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(
+            repository => repository.GetByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.UpdateAsync(
+                It.Is<Client>(client =>
+                    client.ClientId == 1
+                    && client.UserId == 10
+                    && client.Name == "Zaktualizowany Klient"
+                    && client.Nip == "9876543210"
+                    && client.Address!.Street == "Nowa Ulica"
+                    && client.Address.Number == "2"
+                    && client.Address.City == "Gdynia"
+                    && client.Address.PostalCode == "81-000"
+                    && client.Address.Country == "Polska"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]

@@ -69,7 +69,7 @@ public class ExportControllerIntergrationTests : IClassFixture<TestWebApplicatio
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
-        var user = new UserEntity { Id = 1, Email = "sprzedawca@test.local", Name = "Sprzedawca", CompanyName = "Testowa Firma", Nip = "1234567890", AddressId = address.AddressId };
+        var user = new UserEntity { Email = "sprzedawca@test.local", Name = "Sprzedawca", CompanyName = "Testowa Firma", Nip = "1234567890", AddressId = address.AddressId };
         db.Users.Add(user);
 
         db.Set<ClientEntity>().Add(new ClientEntity { Name = "Klient Testowy", Nip = "1111111111", UserId = 1, AddressId = address.AddressId });
@@ -90,7 +90,7 @@ public class ExportControllerIntergrationTests : IClassFixture<TestWebApplicatio
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
-        db.Users.Add(new UserEntity { Id = 1, Email = "pusty@test.local", Name = "Pusty", CompanyName = "Firma", Nip = "0000000000", AddressId = address.AddressId });
+        db.Users.Add(new UserEntity { Email = "pusty@test.local", Name = "Pusty", CompanyName = "Firma", Nip = "0000000000", AddressId = address.AddressId });
         await db.SaveChangesAsync();
     }
 }

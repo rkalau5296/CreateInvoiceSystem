@@ -120,8 +120,7 @@ public class CreateClientIntegrationTests : IClassFixture<TestWebApplicationFact
         await db.SaveChangesAsync();
 
         var user = new UserEntity
-        {
-            Id = 1,
+        {            
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma Sprzedawcy",

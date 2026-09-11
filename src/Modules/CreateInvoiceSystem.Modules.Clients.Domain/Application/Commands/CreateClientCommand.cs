@@ -9,7 +9,7 @@ public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClie
     public override async Task<ClientDto> Execute(IClientRepository clientRepository, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(Parametr);
-        ArgumentNullException.ThrowIfNull(Parametr.Address);
+        ArgumentNullException.ThrowIfNull(Parametr.Address, "Address");
 
         var exists = await clientRepository.ExistsAsync(
             Parametr.Name,

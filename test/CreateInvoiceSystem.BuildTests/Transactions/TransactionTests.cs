@@ -6,6 +6,7 @@ using CreateInvoiceSystem.Shared.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CreateInvoiceSystem.Abstractions.CQRS;
 using Moq;
 
 namespace CreateInvoiceSystem.BuildTests.Transactions;
@@ -38,34 +39,42 @@ public class TransactionTests
             PostalCode = "00-000",
             Country = "Poland"
         };
+
         context.Addresses.Add(testAddress);
         await context.SaveChangesAsync();
 
         var testUser = new UserEntity
         {
             UserName = "test_user_" + Guid.NewGuid(),
-            Email = "test@example.com",
+            Email = "test_" + Guid.NewGuid() + "@example.com",
             Name = "Test User",
-            CompanyName = "Test Company",   
-            Nip = Guid.NewGuid().ToString().Substring(0, 10),
+            CompanyName = "Test Company",
+            Nip = Guid.NewGuid().ToString("N")[..10],
             AddressId = testAddress.AddressId
         };
 
         context.Users.Add(testUser);
         await context.SaveChangesAsync();
 
-        var loggerMock = new Mock<ILogger<TransactionBehavior<TestCommand, bool>>>();
-        var behavior = new TransactionBehavior<TestCommand, bool>(context, loggerMock.Object);
-        var command = new TestCommand("Faktura Testowa");
+        var invoiceTitle = "Faktura Testowa " + Guid.NewGuid();
+
+        var loggerMock =
+            new Mock<ILogger<TransactionBehavior<TestCommand, bool>>>();
+
+        var behavior = new TransactionBehavior<TestCommand, bool>(
+            context,
+            loggerMock.Object);
+
+        var command = new TestCommand(invoiceTitle);
 
         RequestHandlerDelegate<bool> next = async (_) =>
         {
             context.Invoices.Add(new InvoiceEntity
             {
-                Title = command.Title,
+                Title = invoiceTitle,
                 UserId = testUser.Id,
-                CreatedDate = DateTime.Now,
-                PaymentDate = DateTime.Now.AddDays(7),
+                CreatedDate = DateTime.UtcNow,
+                PaymentDate = DateTime.UtcNow.AddDays(7),
                 SellerName = "Test Seller",
                 ClientName = "Test Client",
                 MethodOfPayment = "Transfer",
@@ -79,17 +88,21 @@ public class TransactionTests
 
             await context.SaveChangesAsync();
 
-            throw new InvalidOperationException("Simulated error");            
+            throw new InvalidOperationException("Simulated error");
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             behavior.Handle(command, next, CancellationToken.None));
 
         using var checkContext = new CreateInvoiceSystemDbContext(_options);
-        var count = await checkContext.Invoices.CountAsync();
 
-        Assert.Equal(0, count);
+        var invoiceExists = await checkContext.Invoices
+            .AnyAsync(invoice =>
+                invoice.Title == invoiceTitle
+                && invoice.UserId == testUser.Id);
+
+        Assert.False(invoiceExists);
     }
 }
 
-public record TestCommand(string Title) : IRequest<bool>;
+public record TestCommand(string Title) : IRequest<bool>, ITransactionalRequest;

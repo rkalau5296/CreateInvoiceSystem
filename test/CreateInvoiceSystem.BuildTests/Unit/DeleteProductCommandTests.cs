@@ -21,10 +21,17 @@ public class DeleteProductCommandTests
     public async Task Execute_ShouldReturnProductDto_WhenProductIsSuccessfullyDeleted()
     {
         // Arrange
-        var productId = 10;
-        var userId = 1;
-        var productParam = new Product { ProductId = productId, UserId = userId };
-        _command.Parametr = productParam;
+        const int productId = 10;
+        const int userId = 1;
+
+        var product = new Product
+        {
+            ProductId = productId,
+            Name = "Do usunięcia",
+            UserId = userId
+        };
+
+        _command.Parametr = product;
 
         var existingProduct = new Product
         {
@@ -32,22 +39,37 @@ public class DeleteProductCommandTests
             Name = "Do usunięcia",
             UserId = userId
         };
-        
-        _repositoryMock.Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
+
+        _repositoryMock
+            .Setup(repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProduct);
-        
-        _repositoryMock.Setup(r => r.ExistsByIdAsync(productId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
 
         // Act
-        var result = await _command.Execute(_repositoryMock.Object, CancellationToken.None);
+        var result = await _command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.ProductId.Should().Be(productId);
 
-        _repositoryMock.Verify(r => r.RemoveAsync(productId, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(
+            repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAsync(
+                productId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -71,27 +93,64 @@ public class DeleteProductCommandTests
     }
 
     [Fact]
-    public async Task Execute_ShouldThrowInvalidOperationException_WhenDeleteFails()
+    public async Task Execute_ShouldPropagateException_WhenDeleteFails()
     {
         // Arrange
-        var productId = 5;
-        var productParam = new Product { ProductId = productId, UserId = 1 };
-        _command.Parametr = productParam;
+        const int productId = 5;
+        const int userId = 1;
 
-        var existingProduct = new Product { ProductId = productId, UserId = 1 };
+        var product = new Product
+        {
+            ProductId = productId,
+            UserId = userId
+        };
 
-        _repositoryMock.Setup(r => r.GetByIdAsync(productId, 1, It.IsAny<CancellationToken>()))
+        _command.Parametr = product;
+
+        var existingProduct = new Product
+        {
+            ProductId = productId,
+            UserId = userId
+        };
+
+        _repositoryMock
+            .Setup(repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProduct);
-        
-        _repositoryMock.Setup(r => r.ExistsByIdAsync(productId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+
+        _repositoryMock
+            .Setup(repository => repository.RemoveAsync(
+                productId,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(
+                $"Failed to delete Product with ID {productId}."));
 
         // Act
-        Func<Task> act = async () => await _command.Execute(_repositoryMock.Object, CancellationToken.None);
+        Func<Task> act = () => _command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Failed to delete Product with ID {productId}.");
+
+        _repositoryMock.Verify(
+            repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAsync(
+                productId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]

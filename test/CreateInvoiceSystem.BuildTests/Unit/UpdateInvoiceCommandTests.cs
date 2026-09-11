@@ -133,38 +133,124 @@ public class UpdateInvoiceCommandTests
     }
 
     [Fact]
-    public async Task Execute_ShouldUpdateClient_WhenNewClientIdIsProvided()
+    public async Task Execute_ShouldUpdateClientSnapshot_WhenNewClientIdIsProvided()
     {
-        var userId = 1;
-        var invoiceId = 1;
-        var newClientId = 500;
+        // Arrange
+        const int userId = 1;
+        const int invoiceId = 1;
+        const int clientId = 500;
 
         var updateDto = new UpdateInvoiceDto(
-            invoiceId, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C", newClientId, userId, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
-        );
-        var command = new UpdateInvoiceCommand { Parametr = updateDto };
+            invoiceId,
+            "T",
+            100m,
+            23m,
+            123m,
+            DateTime.Now,
+            DateTime.Now,
+            "C",
+            clientId,
+            userId,
+            null!,
+            "Card",
+            new List<UpdateInvoicePositionDto>(),
+            "S",
+            "SN",
+            "SA",
+            "SB",
+            "CN",
+            "CNIP",
+            "CADDR",
+            "testc@test.com");
 
-        var invoice = new Invoice { UserId = userId, InvoiceId = invoiceId, ClientId = 10, InvoicePositions = new List<InvoicePosition>() };
-        var newClient = new Client
+        var command = new UpdateInvoiceCommand
         {
-            ClientId = newClientId,
-            Name = "New Corp",
-            Address = new Address { Street = "S", Number = "1", City = "C", PostalCode = "0", Country = "PL" }
+            Parametr = updateDto
         };
 
-        _repositoryMock.SetupSequence(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoice)
-            .ReturnsAsync(invoice)
-            .ReturnsAsync(new Invoice { Title = "Changed" });
+        var invoice = new Invoice
+        {
+            UserId = userId,
+            InvoiceId = invoiceId,
+            ClientId = 10,
+            ClientName = "Old Corp",
+            InvoicePositions = new List<InvoicePosition>()
+        };
 
-        _repositoryMock.Setup(r => r.GetClientByIdAsync(newClientId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(newClient);
+        var existingClient = new Client
+        {
+            ClientId = clientId,
+            UserId = userId,
+            Name = "New Corp",
+            Nip = "9876543210",
+            Email = "new@test.com",
+            Address = new Address
+            {
+                Street = "S",
+                Number = "1",
+                City = "C",
+                PostalCode = "0",
+                Country = "PL"
+            }
+        };
 
-        await command.Execute(_repositoryMock.Object);
+        _repositoryMock
+            .Setup(repository => repository.GetInvoiceByIdAsync(
+                userId,
+                invoiceId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invoice);
 
-        invoice.ClientId.Should().Be(newClientId);
+        _repositoryMock
+            .Setup(repository => repository.GetClientByIdAsync(
+                clientId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingClient);
+
+        _repositoryMock
+            .Setup(repository => repository.UpdateAsync(
+                It.IsAny<Invoice>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
+
+        // Assert
+        invoice.ClientId.Should().Be(10);
+
         invoice.ClientName.Should().Be("New Corp");
+        invoice.ClientNip.Should().Be("9876543210");
+        invoice.ClientEmail.Should().Be("new@test.com");
+        invoice.ClientAddress.Should()
+            .Be("S 1, 0 C, PL");
+
+        _repositoryMock.Verify(
+            repository => repository.GetInvoiceByIdAsync(
+                userId,
+                invoiceId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.GetClientByIdAsync(
+                clientId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.UpdateAsync(
+                It.Is<Invoice>(updatedInvoice =>
+                    updatedInvoice.ClientName == "New Corp"
+                    && updatedInvoice.ClientNip == "9876543210"
+                    && updatedInvoice.ClientEmail == "new@test.com"
+                    && updatedInvoice.ClientAddress == "S 1, 0 C, PL"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]

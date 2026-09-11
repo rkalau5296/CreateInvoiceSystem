@@ -168,7 +168,8 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
         string password,
         bool isActive = true,
         string? jti = null,
-        DateTimeOffset? expiry = null)
+        DateTimeOffset? expiry = null
+        )
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
@@ -196,7 +197,7 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
             NormalizedEmail = email.ToUpperInvariant(),
             Name = "Test",
             CompanyName = "Test",
-            Nip = "1234567890",
+            Nip = $"T{Random.Shared.Next(100000000, 999999999)}",
             IsActive = isActive,
             ActivationTokenJti = jti,
             ActivationTokenExpiry = expiry,
