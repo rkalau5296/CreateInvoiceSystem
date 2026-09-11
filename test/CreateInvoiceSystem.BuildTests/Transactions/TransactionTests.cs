@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.API.TransactionBehavior;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

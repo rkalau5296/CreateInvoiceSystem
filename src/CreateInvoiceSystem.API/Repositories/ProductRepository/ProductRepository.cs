@@ -16,8 +16,7 @@ public class ProductRepository(IDbContext db) : IProductRepository
     {
         var productEntity = ProductMapper.ToEntity(entity);
         await _db.Set<ProductEntity>().AddAsync(productEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
-
+        
         return ProductMapper.ToDomain(productEntity);
     }
 
@@ -82,23 +81,21 @@ public class ProductRepository(IDbContext db) : IProductRepository
     public async Task RemoveAsync(int productId, CancellationToken cancellationToken)
     {
         var productEntity = await _db.Set<ProductEntity>()
-            .SingleOrDefaultAsync(c => c.ProductId == productId, cancellationToken)
+            .SingleOrDefaultAsync(p => p.ProductId == productId, cancellationToken)
             ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
 
-        _db.Set<ProductEntity>().Remove(productEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+        _db.Set<ProductEntity>().Remove(productEntity);        
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         _db.SaveChangesAsync(cancellationToken);
 
-    public async Task<Product> UpdateAsync(Product entity, CancellationToken cancellationToken)
+    public Task<Product> UpdateAsync(Product entity, CancellationToken cancellationToken)
     {
         var productEntity = ProductMapper.ToEntity(entity);
 
-        _db.Set<ProductEntity>().Update(productEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+        _db.Set<ProductEntity>().Update(productEntity);        
 
-        return ProductMapper.ToDomain(productEntity);
+        return Task.FromResult(ProductMapper.ToDomain(productEntity));
     }
 }

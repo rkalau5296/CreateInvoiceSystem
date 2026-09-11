@@ -16,8 +16,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<CreateInvoiceSystemDbContext>(db =>
-            db.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
-                sql => sql.EnableRetryOnFailure()));
+            db.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IAddressDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
         services.AddScoped<IClientDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());

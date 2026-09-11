@@ -50,7 +50,7 @@ public class DeleteInvoiceCommandTests
         result.InvoiceId.Should().Be(10);
         
         _repositoryMock.Verify(r => r.RemoveRangeAsync(invoiceEntity.InvoicePositions, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity), Times.Once);
+        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -117,6 +117,6 @@ public class DeleteInvoiceCommandTests
 
         // Assert
         _repositoryMock.Verify(r => r.RemoveRangeAsync(It.IsAny<IEnumerable<InvoicePosition>>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity), Times.Once);
+        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

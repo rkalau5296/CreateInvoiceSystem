@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+﻿using CreateInvoiceSystem.Shared.Persistence;
+
+namespace CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 public class ClientEntity
 {
     public int ClientId { get; set; }
@@ -7,4 +9,5 @@ public class ClientEntity
     public string Email { get; set; } 
     public int AddressId { get; set; }
     public int UserId { get; set; }
+    public AddressEntity Address { get; set; } = null!;
 }

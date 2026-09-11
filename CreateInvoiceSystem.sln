@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12120.119
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet tool install --global dotnet-outdated-tool", "dotnet tool install --global dotnet-outdated-tool", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}"
 EndProject
@@ -73,6 +73,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Shared.Persistence", "CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj", "{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoices.Persistence.Shared", "CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj", "{073ECA68-C254-4343-8F1C-BD04EFD11119}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -336,6 +340,30 @@ Global
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x64.Build.0 = Release|Any CPU
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x86.ActiveCfg = Release|Any CPU
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x86.Build.0 = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|x64.Build.0 = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Debug|x86.Build.0 = Debug|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|x64.ActiveCfg = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|x64.Build.0 = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|x86.ActiveCfg = Release|Any CPU
+		{5DA66754-3FA6-40A5-B8DB-06ADFA8A6B7B}.Release|x86.Build.0 = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|x64.Build.0 = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Debug|x86.Build.0 = Debug|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|Any CPU.Build.0 = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|x64.ActiveCfg = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|x64.Build.0 = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|x86.ActiveCfg = Release|Any CPU
+		{073ECA68-C254-4343-8F1C-BD04EFD11119}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

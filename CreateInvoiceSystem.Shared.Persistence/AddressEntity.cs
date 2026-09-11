@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+﻿namespace CreateInvoiceSystem.Shared.Persistence;
 
 public class AddressEntity 
 {   
@@ -7,6 +7,5 @@ public class AddressEntity
     public string Number { get; set; }
     public string City { get; set; }
     public string PostalCode { get; set; }    
-    public string Country { get; set; }
-    
+    public string Country { get; set; }    
 }

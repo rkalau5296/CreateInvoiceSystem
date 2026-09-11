@@ -10,11 +10,8 @@ public class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
     {        
         builder.ToTable("Clients");
         builder.HasKey(c => c.ClientId);
-        builder.Property(c => c.ClientId).UseIdentityColumn();
-
-        builder.Property(c => c.ClientId)
-               .ValueGeneratedOnAdd();
-
+        builder.Property(c => c.ClientId).UseIdentityColumn().ValueGeneratedOnAdd();
+        
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(80);
@@ -30,6 +27,11 @@ public class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
 
         builder.HasIndex(c => c.AddressId)
             .IsUnique();
+
+        builder.HasOne(c => c.Address)
+           .WithMany()
+           .HasForeignKey(c => c.AddressId)
+           .OnDelete(DeleteBehavior.NoAction);
     }
 }
 

@@ -1,13 +1,12 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.API.Mappers.UserMapper;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -31,15 +30,16 @@ public class UserRepository : IUserRepository
 
     public async Task AddAsync(User user, CancellationToken cancellationToken)
     {
-        var addressEntity = UserMapper.ToAddressEntity(user.Address);
-        await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(user.Address);
 
-        user.AddressId = addressEntity.AddressId;
+        var addressEntity = UserMapper.ToAddressEntity(user.Address);
 
         var userEntity = UserMapper.ToUserEntity(user);
-        await _db.Set<UserEntity>().AddAsync(userEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        userEntity.Address = addressEntity;
+
+        await _db.Set<UserEntity>()
+            .AddAsync(userEntity, cancellationToken);
     }
 
     public async Task<IdentityResult> CreateWithPasswordAsync(User user, string password)
@@ -135,22 +135,31 @@ public class UserRepository : IUserRepository
 
     public async Task RemoveAddress(int addressId, CancellationToken cancellationToken)
     {
-        var addressEntity = await _db.Set<AddressEntity>().FirstOrDefaultAsync(a => a.AddressId == addressId, cancellationToken);
-        if (addressEntity != null)
+        var addressEntity = await _db
+        .Set<AddressEntity>()
+        .FirstOrDefaultAsync(
+            address => address.AddressId == addressId,
+            cancellationToken);
+
+        if (addressEntity is not null)
         {
-            _db.Set<AddressEntity>().Remove(addressEntity);
-            await _db.SaveChangesAsync(cancellationToken);
+            _db.Set<AddressEntity>()
+                .Remove(addressEntity);
         }
     }
 
-    public async Task RemoveAsync(int userId, CancellationToken ct)
+    public async Task RemoveAsync(int userId, CancellationToken cancellationToken)
     {
-        var user = await _db.Set<UserEntity>().FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var userEntity = await _db
+        .Set<UserEntity>()
+        .FirstOrDefaultAsync(
+            user => user.Id == userId,
+            cancellationToken);
 
-        if (user != null)
+        if (userEntity is not null)
         {
-            _db.Set<UserEntity>().Remove(user);
-            await _db.SaveChangesAsync(ct);
+            _db.Set<UserEntity>()
+                .Remove(userEntity);
         }
     }
 

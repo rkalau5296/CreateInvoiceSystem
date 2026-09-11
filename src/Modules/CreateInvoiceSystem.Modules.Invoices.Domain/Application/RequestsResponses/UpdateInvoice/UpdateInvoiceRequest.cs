@@ -1,9 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
-public class UpdateInvoiceRequest(int id, UpdateInvoiceDto updateInvoiceDto) : IRequest<UpdateInvoiceResponse>
+public class UpdateInvoiceRequest(int id, UpdateInvoiceDto updateInvoiceDto) : IRequest<UpdateInvoiceResponse>, ITransactionalRequest
 {
     public UpdateInvoiceDto Invoice { get; } = updateInvoiceDto with { InvoiceId = id };
     public int Id { get; set; } = id;

@@ -1,14 +1,13 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.API.Mappers.InvoiceMapper;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.InvoiceRepository;
@@ -19,56 +18,56 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
     public async Task AddClientAsync(Client client, CancellationToken cancellationToken)
     {
-        var addressEntity = InvoiceMapper.ToAddressEntity(client.Address!);
-        await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(client.Address);
+
+        var addressEntity = InvoiceMapper.ToAddressEntity(client.Address);
 
         var clientEntity = InvoiceMapper.ToClientEntity(client);
-        clientEntity.AddressId = addressEntity.AddressId;
-        await _db.Set<ClientEntity>().AddAsync(clientEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        clientEntity.Address = addressEntity;
 
-        client.ClientId = clientEntity.ClientId;
-        client.AddressId = addressEntity.AddressId;
+        await _db.Set<ClientEntity>()
+            .AddAsync(clientEntity, cancellationToken);
     }
 
-    public async Task<Invoice> AddInvoiceAsync(Invoice invoice, CancellationToken cancellationToken)
+    public Task<Invoice> AddInvoiceAsync(Invoice invoice, CancellationToken cancellationToken)
     {
         var invoiceEntity = InvoiceMapper.ToInvoiceEntity(invoice);
-        await _db.Set<InvoiceEntity>().AddAsync(invoiceEntity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
 
-        var positionsToSave = InvoiceMapper.ToInvoicePositionEntities(invoice.InvoicePositions, invoiceEntity.InvoiceId);
-        await _db.Set<InvoicePositionEntity>().AddRangeAsync(positionsToSave, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
-
-        var productIds = positionsToSave
-            .Select(p => p.ProductId)
-            .Where(id => id.HasValue)
-            .Cast<int>()
-            .Distinct()
+        var positionsToSave = invoice.InvoicePositions
+            .Select(InvoiceMapper.ToInvoicePositionEntity)
             .ToList();
 
-        var productsMap = await _db.Set<ProductEntity>()
-            .AsNoTracking()
-            .Where(p => productIds.Contains(p.ProductId))
-            .ToDictionaryAsync(p => p.ProductId, cancellationToken);
+        foreach (var positionEntity in positionsToSave)
+        {
+            invoiceEntity.InvoicePositions.Add(positionEntity);
+        }
 
-        return InvoiceMapper.MapDetailed(invoiceEntity, null, null, positionsToSave, productsMap);
+        _db.Set<InvoiceEntity>().Add(invoiceEntity);
+
+        return Task.FromResult(
+            InvoiceMapper.MapDetailed(
+                invoiceEntity,
+                null,
+                null,
+                positionsToSave,
+                new Dictionary<int, ProductEntity>()));
     }
 
     public Task AddInvoicePositionAsync(ICollection<InvoicePosition> invoicePositions, CancellationToken cancellationToken)
     {
-        var entities = invoicePositions.Select(ip => InvoiceMapper.ToInvoicePositionEntity(ip, ip.InvoiceId)).ToList();
+        var entities = invoicePositions.Select(ip => InvoiceMapper.ToInvoicePositionEntity(ip)).ToList();
         return _db.Set<InvoicePositionEntity>().AddRangeAsync(entities, cancellationToken);
     }
 
     public async Task AddProductAsync(Product product, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(product);
+
         var entity = InvoiceMapper.ToProductEntity(product);
-        await _db.Set<ProductEntity>().AddAsync(entity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
-        product.ProductId = entity.ProductId;
+
+        await _db.Set<ProductEntity>()
+            .AddAsync(entity, cancellationToken);
     }
 
     public async Task<Client?> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, string email, CancellationToken cancellationToken)
@@ -248,13 +247,19 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         .AsNoTracking()
         .AnyAsync(ip => ip.InvoiceId == invoiceId, cancellationToken);
 
-    public async Task RemoveAsync(Invoice invoice)
+    public async Task RemoveAsync(Invoice invoice, CancellationToken cancellationToken)
     {
-        var invoiceEntity = await _db.Set<InvoiceEntity>()
+        var invoiceEntity = await _db
+            .Set<InvoiceEntity>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId, CancellationToken.None)
-            ?? throw new InvalidOperationException($"Invoice with ID {invoice.InvoiceId} not found.");
-        _db.Set<InvoiceEntity>().Remove(invoiceEntity);
+            .SingleOrDefaultAsync(
+                entity => entity.InvoiceId == invoice.InvoiceId,
+                cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Invoice with ID {invoice.InvoiceId} not found.");
+
+        _db.Set<InvoiceEntity>()
+            .Remove(invoiceEntity);
     }
 
     public async Task RemoveInvoicePositionsAsync(InvoicePosition invoicePosition)
@@ -268,52 +273,47 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
     public async Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken)
     {
-        int? finalClientId = invoice.ClientId;
+        var invoiceEntity = InvoiceMapper.ToInvoiceEntity(invoice);
 
-        if ((invoice.ClientId == 0 || invoice.ClientId == null) && invoice.Client != null)
-        {
-            var addressEntity = InvoiceMapper.ToAddressEntity(invoice.Client.Address!);
-            await _db.Set<AddressEntity>().AddAsync(addressEntity, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
-
-            var newClient = InvoiceMapper.ToClientEntity(invoice.Client);
-            newClient.AddressId = addressEntity.AddressId;
-            newClient.UserId = invoice.UserId;
-            await _db.Set<ClientEntity>().AddAsync(newClient, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
-
-            finalClientId = newClient.ClientId;
-        }
-
-        var invoiceEntity = InvoiceMapper.ToInvoiceEntity(invoice, finalClientId);
         _db.Set<InvoiceEntity>().Update(invoiceEntity);
-        await _db.SaveChangesAsync(cancellationToken);
 
-        var positionsToProcess = invoice.InvoicePositions.Select(ip =>
+        foreach (var position in invoice.InvoicePositions)
         {
-            var entity = InvoiceMapper.ToInvoicePositionEntity(ip, invoiceEntity.InvoiceId);
-            if (entity.ProductId.HasValue == false && ip.ProductId > 0)
-                entity.ProductId = ip.ProductId;
-            return entity;
-        }).ToList();
+            var positionEntity = InvoiceMapper.ToInvoicePositionEntity(position);
+            positionEntity.InvoiceId = invoice.InvoiceId;
 
-        foreach (var posEntity in positionsToProcess)
-        {
-            if (posEntity.InvoicePositionId == 0)
-                await _db.Set<InvoicePositionEntity>().AddAsync(posEntity, cancellationToken);
+            if (positionEntity.InvoicePositionId == 0)
+            {
+                await _db.Set<InvoicePositionEntity>()
+                    .AddAsync(positionEntity, cancellationToken);
+            }
             else
-                _db.Set<InvoicePositionEntity>().Update(posEntity);
+            {
+                _db.Set<InvoicePositionEntity>()
+                    .Update(positionEntity);
+            }
         }
-        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveRangeAsync(IEnumerable<InvoicePosition> invoicePositions, CancellationToken cancellationToken)
     {
-        var invoicePosIds = invoicePositions.Select(ip => ip.InvoicePositionId).ToList();
-        var invoicePosEntities = await _db.Set<InvoicePositionEntity>()
-            .Where(ip => invoicePosIds.Contains(ip.InvoicePositionId))
+        var invoicePositionIds = invoicePositions
+            .Select(position => position.InvoicePositionId)
+            .ToList();
+
+        if (invoicePositionIds.Count == 0)
+        {
+            return;
+        }
+
+        var invoicePositionEntities = await _db
+            .Set<InvoicePositionEntity>()
+            .Where(position =>
+                invoicePositionIds.Contains(position.InvoicePositionId))
             .ToListAsync(cancellationToken);
-        _db.Set<InvoicePositionEntity>().RemoveRange(invoicePosEntities);
+
+        _db.Set<InvoicePositionEntity>()
+            .RemoveRange(invoicePositionEntities);
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>

@@ -1,14 +1,12 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Configuration;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Addresses.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Configuration;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Persistence;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
 using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Configuration;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Products.Persistence.Configuration;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
@@ -16,6 +14,7 @@ using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Persistence.Configuration;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -42,13 +41,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);
-
-        modelBuilder.Entity<UserEntity>()
-            .HasOne<AddressEntity>()
-            .WithMany()
-            .HasForeignKey(u => u.AddressId)
-            .OnDelete(DeleteBehavior.NoAction);
-
+        
         modelBuilder.Entity<InvoiceEntity>()
             .HasOne<ClientEntity>()
             .WithMany()
@@ -65,9 +58,9 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .HasKey(p => p.InvoicePositionId);
 
         modelBuilder.Entity<InvoicePositionEntity>()
-            .HasOne<InvoiceEntity>()
-            .WithMany()
-            .HasForeignKey(p => p.InvoiceId)
+            .HasOne(position => position.Invoice)
+            .WithMany(invoice => invoice.InvoicePositions)
+            .HasForeignKey(position => position.InvoiceId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<InvoicePositionEntity>()
@@ -79,5 +72,9 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.Entity<InvoicePositionEntity>()
             .Property(p => p.ProductValue)
             .HasPrecision(38, 2);
+
+        modelBuilder.Entity<InvoicePositionEntity>()
+            .Property(p => p.ProductDescription)
+            .IsRequired(false);
     }
 }

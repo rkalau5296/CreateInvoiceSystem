@@ -6,25 +6,19 @@ using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Commands;
 public class CreateProductCommand : CommandBase<CreateProductDto, CreateProductDto, IProductRepository>
 {
-    public override async Task<CreateProductDto> Execute(IProductRepository _productRepository, CancellationToken cancellationToken = default)
+    public override async Task<CreateProductDto> Execute(IProductRepository productRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(_productRepository));
+        ArgumentNullException.ThrowIfNull(Parametr);
 
-        var exists = await _productRepository.ExistsAsync(Parametr.Name, Parametr.UserId, cancellationToken);
+        var exists = await productRepository.ExistsAsync(Parametr.Name, Parametr.UserId, cancellationToken);
 
         if (exists)
             throw new InvalidOperationException("Istnieje już produkt o takiej nazwie.");
 
         var entity = ProductMappers.ToEntity(Parametr);
 
-        var savedProduct = await _productRepository.AddAsync(entity, cancellationToken);
-        await _productRepository.SaveChangesAsync(cancellationToken);
+        var savedProduct = await productRepository.AddAsync(entity, cancellationToken);
 
-        var persisted = await _productRepository.GetByIdAsync(savedProduct.ProductId, savedProduct.UserId, cancellationToken);
-
-        return persisted is not null
-            ? ProductMappers.ToCreateDto(persisted)
-            : throw new InvalidOperationException("Product was saved but could not be reloaded.");
+        return ProductMappers.ToCreateDto(savedProduct);            
     }
 }

@@ -1,10 +1,10 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.API.Mappers.ClientMapper;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.ClientRepository;
@@ -82,52 +82,59 @@ public class ClientRepository(IDbContext db) : IClientRepository
         return new PagedResult<Client>(items, totalCount, pageNumber, pageSize);
     }
 
-    public async Task<Client> AddAsync(Client entity, CancellationToken cancellationToken)
+    public Task<Client> AddAsync(Client entity, CancellationToken cancellationToken)
     {
         var addressEntity = ClientMapper.ToAddressEntity(entity.Address!);
-        _db.Set<AddressEntity>().Add(addressEntity);
-        await _db.SaveChangesAsync(cancellationToken);
-
-        entity.AddressId = addressEntity.AddressId;
 
         var clientEntity = ClientMapper.ToClientEntity(entity);
-        _db.Set<ClientEntity>().Add(clientEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+        clientEntity.Address = addressEntity;
 
-        return ClientMapper.ToDomain(clientEntity, addressEntity);
+        _db.Set<ClientEntity>().Add(clientEntity);
+
+        return Task.FromResult(
+            ClientMapper.ToDomain(clientEntity, addressEntity));
     }
 
-    public async Task<Client> UpdateAsync(Client entity, CancellationToken cancellationToken)
+    public Task<Client> UpdateAsync(Client entity, CancellationToken cancellationToken)
     {
-        var addressEntity = ClientMapper.ToAddressEntity(entity.Address!);
-        _db.Set<AddressEntity>().Update(addressEntity);
-        await _db.SaveChangesAsync(cancellationToken);
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(entity.Address);
 
+        var addressEntity = ClientMapper.ToAddressEntity(entity.Address);
         var clientEntity = ClientMapper.ToClientEntity(entity);
-        _db.Set<ClientEntity>().Update(clientEntity);
-        await _db.SaveChangesAsync(cancellationToken);
 
-        return ClientMapper.ToDomain(clientEntity, addressEntity);
+        _db.Set<AddressEntity>().Update(addressEntity);
+        _db.Set<ClientEntity>().Update(clientEntity);
+
+        var updatedClient = ClientMapper.ToDomain(
+            clientEntity,
+            addressEntity);
+
+        return Task.FromResult(updatedClient);
     }
 
     public async Task RemoveAsync(int clientId, CancellationToken cancellationToken)
     {
         var clientEntity = await _db.Set<ClientEntity>()
-            .SingleOrDefaultAsync(c => c.ClientId == clientId, cancellationToken)
-            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
+            .SingleOrDefaultAsync(
+                client => client.ClientId == clientId,
+                cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Client with ID {clientId} not found.");
 
         _db.Set<ClientEntity>().Remove(clientEntity);
-        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAddressAsync(int addressId, CancellationToken cancellationToken)
     {
         var addressEntity = await _db.Set<AddressEntity>()
-            .SingleOrDefaultAsync(a => a.AddressId == addressId, cancellationToken)
-            ?? throw new InvalidOperationException($"Address with ID {addressId} not found.");
+            .SingleOrDefaultAsync(
+                address => address.AddressId == addressId,
+                cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Address with ID {addressId} not found.");
 
         _db.Set<AddressEntity>().Remove(addressEntity);
-        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public Task<bool> ExistsByIdAsync(int clientId, CancellationToken cancellationToken) =>

@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Identity.Interfaces;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

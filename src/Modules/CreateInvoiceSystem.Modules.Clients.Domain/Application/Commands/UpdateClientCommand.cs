@@ -7,22 +7,13 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
 public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto, IClientRepository>
 {
-    public override async Task<UpdateClientDto> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
+    public override async Task<UpdateClientDto> Execute(IClientRepository clientRepository, CancellationToken cancellationToken = default)
     {
-        if (Parametr is null)
-            throw new ArgumentNullException(nameof(Parametr));
+        ArgumentNullException.ThrowIfNull(Parametr);
 
-        var client = await _clientRepository.GetByIdAsync(Parametr.ClientId, Parametr.UserId, cancellationToken)
-            ?? throw new InvalidOperationException($"Client with ID {Parametr.ClientId} not found.");
-        
-        string oldName = client.Name;
-        string oldNip = client.Nip;
-        string oldEmail = client.Email;
-        string oldStreet = client.Address?.Street;
-        string oldNumber = client.Address?.Number;
-        string oldCity = client.Address?.City;
-        string oldPostal = client.Address?.PostalCode;
-        string oldCountry = client.Address?.Country;
+        var client = await clientRepository.GetByIdAsync(Parametr.ClientId, Parametr.UserId, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Client with ID {Parametr.ClientId} not found.");
 
         client.Name = Parametr.Name ?? client.Name;
         client.Nip = Parametr.Nip ?? client.Nip;
@@ -39,33 +30,28 @@ public class UpdateClientCommand : CommandBase<UpdateClientDto, UpdateClientDto,
                 Country = Parametr.Address.Country
             };
         }
-        else if (client.Address is not null)
+        else if (client.Address is not null && Parametr.Address is not null)
         {
-            client.Address.Street = Parametr.Address?.Street ?? client.Address.Street;
-            client.Address.Number = Parametr.Address?.Number ?? client.Address.Number;
-            client.Address.City = Parametr.Address?.City ?? client.Address.City;
-            client.Address.PostalCode = Parametr.Address?.PostalCode ?? client.Address.PostalCode;
-            client.Address.Country = Parametr.Address?.Country ?? client.Address.Country;
+            client.Address.Street =
+                Parametr.Address.Street ?? client.Address.Street;
+
+            client.Address.Number =
+                Parametr.Address.Number ?? client.Address.Number;
+
+            client.Address.City =
+                Parametr.Address.City ?? client.Address.City;
+
+            client.Address.PostalCode =
+                Parametr.Address.PostalCode ?? client.Address.PostalCode;
+
+            client.Address.Country =
+                Parametr.Address.Country ?? client.Address.Country;
         }
 
-        var updatedClient = await _clientRepository.UpdateAsync(client, cancellationToken);
-        await _clientRepository.SaveChangesAsync(cancellationToken);
+        var updatedClient = await clientRepository.UpdateAsync(
+            client,
+            cancellationToken);
 
-        var persisted = await _clientRepository.GetByIdAsync(updatedClient.ClientId, updatedClient.UserId, cancellationToken);
-
-        bool hasChanged = persisted is not null && (
-            !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
-            !string.Equals(oldNip, persisted.Nip, StringComparison.Ordinal) ||
-            !string.Equals(oldEmail, persisted.Email, StringComparison.Ordinal) ||
-            !string.Equals(oldStreet, persisted.Address?.Street, StringComparison.Ordinal) ||
-            !string.Equals(oldNumber, persisted.Address?.Number, StringComparison.Ordinal) ||
-            !string.Equals(oldCity, persisted.Address?.City, StringComparison.Ordinal) ||
-            !string.Equals(oldPostal, persisted.Address?.PostalCode, StringComparison.Ordinal) ||
-            !string.Equals(oldCountry, persisted.Address?.Country, StringComparison.Ordinal)
-        );
-
-        return hasChanged
-            ? ClientMappers.ToUpdateDto(persisted)
-            : ClientMappers.ToUpdateDto(persisted);
+        return ClientMappers.ToUpdateDto(updatedClient);
     }
 }

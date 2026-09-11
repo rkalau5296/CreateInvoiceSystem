@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
@@ -7,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using Xunit.Abstractions;
+using CreateInvoiceSystem.Shared.Persistence;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
