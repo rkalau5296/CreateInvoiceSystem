@@ -10,9 +10,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.19" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj" />
+  <ItemGroup>    
     <ProjectReference Include="..\..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\..\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

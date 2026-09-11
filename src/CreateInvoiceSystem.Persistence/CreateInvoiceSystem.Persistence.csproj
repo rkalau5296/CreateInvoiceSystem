@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj" />
-    <ProjectReference Include="..\..\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Addresses.Persistence\CreateInvoiceSystem.Modules.Addresses.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.InvoicePositions.Persistence\CreateInvoiceSystem.Modules.InvoicePositions.Persistence.csproj" />

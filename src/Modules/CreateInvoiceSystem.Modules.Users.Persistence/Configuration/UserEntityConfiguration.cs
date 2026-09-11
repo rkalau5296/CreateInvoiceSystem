@@ -1,5 +1,4 @@
 ﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
-using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Reflection.Emit;
