@@ -10,16 +10,15 @@ using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class DeleteClientIntegrationTests : IClassFixture<TestWebApplicationFactory>
+[Collection("Integration tests")]
+public class DeleteClientIntegrationTests
 {
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
-    private readonly ITestOutputHelper _output;
 
-    public DeleteClientIntegrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
+    public DeleteClientIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
     {
-        _factory = factory;
-        _output = output;
+        _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }

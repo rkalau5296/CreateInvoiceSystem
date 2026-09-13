@@ -13,14 +13,16 @@ namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _connectionString =
-        "Server=(localdb)\\MSSQLLocalDB;"
-        + $"Database=CreateInvoiceSystem_IntegrationTests_"
-        + $"{Guid.NewGuid():N};"
-        + "Trusted_Connection=True;"
-        + "TrustServerCertificate=True;";
+    private readonly string _connectionString;
 
     public Mock<IEmailService> EmailMock { get; } = new();
+
+    public TestWebApplicationFactory(string connectionString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+
+        _connectionString = connectionString;
+    }    
 
     public void ResetEmailMock()
     {

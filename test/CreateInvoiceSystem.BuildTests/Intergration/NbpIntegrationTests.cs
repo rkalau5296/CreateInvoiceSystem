@@ -5,14 +5,15 @@ using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class NbpIntegrationTests : IClassFixture<TestWebApplicationFactory>
+[Collection("Integration tests")]
+public class NbpIntegrationTests
 {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public NbpIntegrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
+    public NbpIntegrationTests(IntegrationTestFixture fixture, ITestOutputHelper output)
     {
-        _client = factory.CreateClient();
+        _client = fixture.Factory.CreateClient();
         _output = output;
     }
 

@@ -37,10 +37,17 @@ jobs:
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Test with coverage
+      - name: Test unit tests with coverage
         env:
           ConnectionStrings__DefaultConnection: 'Server=(localdb)\MSSQLLocalDB;Database=TestDb;Trusted_Connection=True;'
-        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~Transactions" --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: >
+          dotnet test
+          test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Intergration"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
 
       - name: Generate coverage report
         run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
@@ -73,9 +80,11 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item -Force -ErrorAction SilentlyContinue ./publish-frontend.zip
+
           if (Test-Path ./publish-frontend/web.config) {
             Copy-Item ./publish-frontend/web.config ./publish-frontend/wwwroot/web.config
           }
+
           Compress-Archive -Path ./publish-frontend/wwwroot/* -DestinationPath ./publish-frontend.zip
 
       - name: Upload frontend artifact
@@ -84,7 +93,7 @@ jobs:
           name: frontend
           path: publish-frontend.zip
 
-  transaction-tests:
+  container-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -102,14 +111,19 @@ jobs:
       - name: Build
         run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
 
-      - name: Run transaction tests
-        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Transactions"
+      - name: Run Testcontainers tests
+        run: >
+          dotnet test
+          test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~Transactions|FullyQualifiedName~Intergration"
 
   deploy-backend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs:
       - build
-      - transaction-tests
+      - container-tests
     runs-on: windows-latest
 
     steps:
@@ -131,7 +145,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs:
       - build
-      - transaction-tests
+      - container-tests
     runs-on: windows-latest
 
     steps:
