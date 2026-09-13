@@ -40,7 +40,7 @@ jobs:
       - name: Test with coverage
         env:
           ConnectionStrings__DefaultConnection: 'Server=(localdb)\MSSQLLocalDB;Database=TestDb;Trusted_Connection=True;'
-        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --filter "FullyQualifiedName!~Transactions" --collect:"XPlat Code Coverage" --results-directory ./coverage
 
       - name: Generate coverage report
         run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
@@ -84,9 +84,32 @@ jobs:
           name: frontend
           path: publish-frontend.zip
 
+  transaction-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore CreateInvoiceSystem.sln
+
+      - name: Build
+        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
+
+      - name: Run transaction tests
+        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Transactions"
+
   deploy-backend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: build
+    needs:
+      - build
+      - transaction-tests
     runs-on: windows-latest
 
     steps:
@@ -106,7 +129,9 @@ jobs:
 
   deploy-frontend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: build
+    needs:
+      - build
+      - transaction-tests
     runs-on: windows-latest
 
     steps:
