@@ -8,141 +8,179 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
 
 public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceDto, IInvoiceRepository>
 {
-    public override async Task<UpdateInvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
+    public override async Task<UpdateInvoiceDto> Execute(IInvoiceRepository invoiceRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(Parametr));
+        ArgumentNullException.ThrowIfNull(Parametr);
 
-        var beforeUpdate = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
-            ?? throw new InvalidOperationException($"Invoice {this.Parametr.InvoiceId} not found.");
-
-        var invoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
-            ?? throw new InvalidOperationException($"Invoice {this.Parametr.InvoiceId} not found.");
+        var invoice = await invoiceRepository.GetInvoiceByIdAsync(
+            Parametr.UserId,
+            Parametr.InvoiceId,
+            cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Invoice {Parametr.InvoiceId} not found.");
 
         UpdateBasicInformation(invoice);
 
-        await HandleClientUpdate(invoice, _invoiceRepository, cancellationToken);
+        await HandleClientUpdate(invoice, invoiceRepository, cancellationToken);
 
-        if (this.Parametr.InvoicePositions != null)
+        if (Parametr.InvoicePositions is not null)
         {
-            await SyncInvoicePositions(invoice, _invoiceRepository, cancellationToken);
+            await SyncInvoicePositions(invoice, invoiceRepository, cancellationToken);
         }
 
-        await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
+        await invoiceRepository.UpdateAsync(invoice, cancellationToken);
 
-        var updatedInvoice = await _invoiceRepository.GetInvoiceByIdAsync(this.Parametr.UserId, this.Parametr.InvoiceId, cancellationToken)
-            ?? throw new InvalidOperationException("Invoice not found after update.");
-        
-        return InvoiceMappers.ToUpdateDto(updatedInvoice);
+        return InvoiceMappers.ToUpdateDto(invoice);
     }
 
     private void UpdateBasicInformation(Invoice invoice)
     {
         invoice.Title = Parametr.Title ?? invoice.Title;
-        invoice.TotalNet = Parametr.TotalNet != default ? Parametr.TotalNet : invoice.TotalNet;
-        invoice.TotalVat = Parametr.TotalVat != default ? Parametr.TotalVat : invoice.TotalVat;
-        invoice.TotalGross = Parametr.TotalGross != default ? Parametr.TotalGross : invoice.TotalGross;
-        invoice.PaymentDate = Parametr.PaymentDate != default ? Parametr.PaymentDate : invoice.PaymentDate;
-        invoice.CreatedDate = Parametr.CreatedDate != default ? Parametr.CreatedDate : invoice.CreatedDate;
+        invoice.TotalNet = Parametr.TotalNet != default
+            ? Parametr.TotalNet
+            : invoice.TotalNet;
+        invoice.TotalVat = Parametr.TotalVat != default
+            ? Parametr.TotalVat
+            : invoice.TotalVat;
+        invoice.TotalGross = Parametr.TotalGross != default
+            ? Parametr.TotalGross
+            : invoice.TotalGross;
+        invoice.PaymentDate = Parametr.PaymentDate != default
+            ? Parametr.PaymentDate
+            : invoice.PaymentDate;
+        invoice.CreatedDate = Parametr.CreatedDate != default
+            ? Parametr.CreatedDate
+            : invoice.CreatedDate;
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
-        invoice.MethodOfPayment = Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
+        invoice.MethodOfPayment =
+            Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
 
-        invoice.ClientAddress = Parametr.ClientAddress ?? invoice.ClientAddress;
-        invoice.ClientName = Parametr.ClientName ?? invoice.ClientName;
-        invoice.ClientNip = Parametr.ClientNip ?? invoice.ClientNip;
-        invoice.ClientEmail = Parametr.ClientEmail ?? invoice.ClientEmail;
-        invoice.SellerName = Parametr.SellerName ?? invoice.SellerName;
-        invoice.SellerNip = Parametr.SellerNip ?? invoice.SellerNip;
-        invoice.SellerAddress = Parametr.SellerAddress ?? invoice.SellerAddress;
-        invoice.BankAccountNumber = Parametr.BankAccountNumber ?? invoice.BankAccountNumber;
+        invoice.ClientAddress =
+            Parametr.ClientAddress ?? invoice.ClientAddress;
+        invoice.ClientName =
+            Parametr.ClientName ?? invoice.ClientName;
+        invoice.ClientNip =
+            Parametr.ClientNip ?? invoice.ClientNip;
+        invoice.ClientEmail =
+            Parametr.ClientEmail ?? invoice.ClientEmail;
+
+        invoice.SellerName =
+            Parametr.SellerName ?? invoice.SellerName;
+        invoice.SellerNip =
+            Parametr.SellerNip ?? invoice.SellerNip;
+        invoice.SellerAddress =
+            Parametr.SellerAddress ?? invoice.SellerAddress;
+        invoice.BankAccountNumber =
+            Parametr.BankAccountNumber ?? invoice.BankAccountNumber;
     }
 
-    private async Task HandleClientUpdate(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
+    private async Task HandleClientUpdate(Invoice invoice, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        if (Parametr.Client != null)
+        if (Parametr.Client is not null)
         {
-            var existingClient = await _invoiceRepository.GetClientAsync(
-                Parametr.Client.Name,
-                Parametr.Client.Address.Street,
-                Parametr.Client.Address.Number,
-                Parametr.Client.Address.City,
-                Parametr.Client.Address.PostalCode,
-                Parametr.Client.Address.Country,
+            var clientDto = Parametr.Client;
+
+            var existingClient = await invoiceRepository.GetClientAsync(
+                clientDto.Name,
+                clientDto.Address.Street,
+                clientDto.Address.Number,
+                clientDto.Address.City,
+                clientDto.Address.PostalCode,
+                clientDto.Address.Country,
                 invoice.UserId,
-                Parametr.Client.Email,
+                clientDto.Email,
                 cancellationToken);
 
-            if (existingClient != null)
+            if (existingClient is null)
             {
-                invoice.Client = existingClient;
-                invoice.ClientId = existingClient.ClientId;
-            }
-            else
-            {
-                var newClient = MapToNewClient(Parametr.Client, invoice.UserId);
-                await _invoiceRepository.AddClientAsync(newClient, cancellationToken);
-                invoice.Client = newClient;
-                invoice.ClientId = newClient.ClientId;
+                var newClient = MapToNewClient(
+                    clientDto,
+                    invoice.UserId);
+
+                await invoiceRepository.AddClientAsync(
+                    newClient,
+                    cancellationToken);
             }
 
-            invoice.ClientName = Parametr.Client.Name;
-            invoice.ClientNip = Parametr.Client.Nip;
-            invoice.ClientEmail = Parametr.Client.Email;
-            invoice.ClientAddress = FormatAddress(Parametr.Client.Address);
+            invoice.ClientName = clientDto.Name;
+            invoice.ClientNip = clientDto.Nip;
+            invoice.ClientEmail = clientDto.Email;
+            invoice.ClientAddress = FormatAddress(clientDto.Address);
+
+            return;
         }
-        else if (Parametr.ClientId.HasValue && Parametr.ClientId.Value > 0)
+
+        if (Parametr.ClientId is not > 0)
         {
-            var existing = await _invoiceRepositoryGetClientById(_invoiceRepository, Parametr.ClientId.Value, cancellationToken);
-            invoice.Client = existing;
-            invoice.ClientId = existing.ClientId;
-            invoice.ClientName = existing.Name;
-            invoice.ClientNip = existing.Nip;
-            invoice.ClientEmail = existing.Email;
-            invoice.ClientAddress = FormatAddress(existing.Address);
+            return;
         }
+
+        var existingClientById =
+            await invoiceRepository.GetClientByIdAsync(Parametr.ClientId.Value, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Client with ID {Parametr.ClientId.Value} not found.");
+
+        invoice.ClientName = existingClientById.Name;
+        invoice.ClientNip = existingClientById.Nip;
+        invoice.ClientEmail = existingClientById.Email;
+        invoice.ClientAddress =
+            FormatAddress(existingClientById.Address);
     }
-    
-    private static async Task<Client> _invoiceRepositoryGetClientById(IInvoiceRepository repo, int clientId, CancellationToken ct)
+
+    private async Task SyncInvoicePositions(Invoice invoice, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        return await repo.GetClientByIdAsync(clientId, ct)
-            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
-    }
+        var incomingPositions = Parametr.InvoicePositions!;
 
-    private async Task SyncInvoicePositions(Invoice invoice, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {
-        var incomingPositions = Parametr.InvoicePositions;
-        var incomingIds = incomingPositions.Where(p => p.InvoicePositionId > 0).Select(p => p.InvoicePositionId).ToHashSet();
+        var incomingIds = incomingPositions
+            .Where(position => position.InvoicePositionId > 0)
+            .Select(position => position.InvoicePositionId)
+            .ToHashSet();
 
-
-        var toDelete = invoice.InvoicePositions
-            .Where(ip => !incomingIds.Contains(ip.InvoicePositionId))
+        var positionsToDelete = invoice.InvoicePositions
+            .Where(position =>
+                !incomingIds.Contains(position.InvoicePositionId))
             .ToList();
 
-        foreach (var position in toDelete)
+        foreach (var position in positionsToDelete)
         {
             invoice.InvoicePositions.Remove(position);
-            await _invoiceRepository.RemoveInvoicePositionsAsync(position);
+
+            await invoiceRepository.RemoveInvoicePositionsAsync(
+                position);
         }
 
         foreach (var incomingPosition in incomingPositions)
         {
-            var nameToUse = incomingPosition.ProductName;
-            var descToUse = incomingPosition.ProductDescription;
-            var valToUse = incomingPosition.ProductValue;
-
-            var product = await GetOrCreateProductAsync(nameToUse, descToUse, valToUse, invoice.UserId, _invoiceRepository, cancellationToken);
+            var product = await GetOrCreateProductAsync(
+                incomingPosition.ProductName,
+                incomingPosition.ProductDescription,
+                incomingPosition.ProductValue,
+                invoice.UserId,
+                invoiceRepository,
+                cancellationToken);
 
             if (incomingPosition.InvoicePositionId > 0)
             {
-                var existing = invoice.InvoicePositions.FirstOrDefault(p => p.InvoicePositionId == incomingPosition.InvoicePositionId);
-                if (existing != null)
+                var existingPosition = invoice.InvoicePositions
+                    .FirstOrDefault(position =>
+                        position.InvoicePositionId ==
+                        incomingPosition.InvoicePositionId);
+
+                if (existingPosition is null)
                 {
-                    existing.ProductId = product.ProductId;
-                    existing.ProductName = nameToUse;
-                    existing.ProductDescription = descToUse;
-                    existing.ProductValue = valToUse;
-                    existing.Quantity = incomingPosition.Quantity;
+                    throw new InvalidOperationException(
+                        $"Invoice position "
+                        + $"{incomingPosition.InvoicePositionId} "
+                        + $"does not belong to invoice "
+                        + $"{invoice.InvoiceId}.");
                 }
+
+                existingPosition.ProductId = product.ProductId;
+                existingPosition.ProductName = product.Name;
+                existingPosition.ProductDescription = product.Description;
+                existingPosition.ProductValue = product.Value;
+                existingPosition.Quantity = incomingPosition.Quantity;
+                existingPosition.VatRate = incomingPosition.VatRate;
             }
             else
             {
@@ -150,61 +188,79 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 {
                     InvoiceId = invoice.InvoiceId,
                     ProductId = product.ProductId,
-                    ProductName = nameToUse,
-                    ProductDescription = descToUse,
-                    ProductValue = valToUse,
-                    Quantity = incomingPosition.Quantity
+                    ProductName = product.Name,
+                    ProductDescription = product.Description,
+                    ProductValue = product.Value,
+                    Quantity = incomingPosition.Quantity,
+                    VatRate = incomingPosition.VatRate
                 });
             }
         }
     }
 
-    private static bool HasChanges(Invoice before, Invoice after)
+    private static string FormatAddress(dynamic address)
     {
-        return before.Title != after.Title ||
-               before.TotalNet != after.TotalNet ||
-               before.TotalVat != after.TotalVat ||
-               before.TotalGross != after.TotalGross ||
-               before.CreatedDate != after.CreatedDate ||
-               before.PaymentDate != after.PaymentDate ||
-               before.ClientName != after.ClientName ||
-               before.ClientEmail != after.ClientEmail ||
-               before.ClientId != after.ClientId ||
-               before.SellerName != after.SellerName ||
-               before.SellerNip != after.SellerNip ||
-               before.SellerAddress != after.SellerAddress ||
-               before.BankAccountNumber != after.BankAccountNumber ||
-               before.InvoicePositions.Count != after.InvoicePositions.Count ||
-               !before.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue)
-                   .SequenceEqual(after.InvoicePositions.Select(p => p.ProductName + p.Quantity + p.ProductValue));
+        return address is null
+            ? string.Empty
+            : $"{address.Street} {address.Number}, "
+              + $"{address.PostalCode} {address.City}, "
+              + address.Country;
     }
 
-    private static string FormatAddress(dynamic addr) => addr == null ? "" : $"{addr.Street} {addr.Number}, {addr.PostalCode} {addr.City}, {addr.Country}";
-
-    private static Client MapToNewClient(UpdateClientDto dto, int userId) => new()
+    private static Client MapToNewClient(
+        UpdateClientDto dto,
+        int userId)
     {
-        ClientId = 0,
-        Name = dto.Name,
-        Nip = dto.Nip,
-        Email = dto.Email,
-        UserId = userId,
-        Address = new Address
+        return new Client
         {
-            Street = dto.Address.Street,
-            Number = dto.Address.Number,
-            City = dto.Address.City,
-            PostalCode = dto.Address.PostalCode,
-            Country = dto.Address.Country
-        }
-    };
+            ClientId = 0,
+            Name = dto.Name,
+            Nip = dto.Nip,
+            Email = dto.Email,
+            UserId = userId,
+            Address = new Address
+            {
+                Street = dto.Address.Street,
+                Number = dto.Address.Number,
+                City = dto.Address.City,
+                PostalCode = dto.Address.PostalCode,
+                Country = dto.Address.Country
+            }
+        };
+    }
 
-    private static async Task<Product> GetOrCreateProductAsync(string name, string desc, decimal? val, int userId, IInvoiceRepository repo, CancellationToken ct)
+    private static async Task<Product> GetOrCreateProductAsync(
+        string name,
+        string description,
+        decimal? value,
+        int userId,
+        IInvoiceRepository invoiceRepository,
+        CancellationToken cancellationToken)
     {
-        var existing = await repo.GetProductAsync(name, desc, val, userId, ct);
-        if (existing != null) return existing;
+        var existingProduct = await invoiceRepository.GetProductAsync(
+            name,
+            description,
+            value,
+            userId,
+            cancellationToken);
 
-        var newProduct = new Product { UserId = userId, Name = name, Description = desc, Value = val };
-        await repo.AddProductAsync(newProduct, ct);
+        if (existingProduct is not null)
+        {
+            return existingProduct;
+        }
+
+        var newProduct = new Product
+        {
+            UserId = userId,
+            Name = name,
+            Description = description,
+            Value = value
+        };
+
+        await invoiceRepository.AddProductAsync(
+            newProduct,
+            cancellationToken);
+
         return newProduct;
     }
 }

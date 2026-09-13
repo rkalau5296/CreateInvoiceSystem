@@ -22,9 +22,16 @@ public class UpdateProductCommandTests
     public async Task Execute_ShouldUpdateProductFields_AndReturnDto()
     {
         // Arrange
-        var productId = 1;
-        var userId = 100;
-        var inputDto = new UpdateProductDto(productId, "Nowa Nazwa", "Nowy Opis", 200m, userId);
+        const int productId = 1;
+        const int userId = 100;
+
+        var inputDto = new UpdateProductDto(
+            productId,
+            "Nowa Nazwa",
+            "Nowy Opis",
+            200m,
+            userId);
+
         _command.Parametr = inputDto;
 
         var existingProduct = new Product
@@ -36,36 +43,49 @@ public class UpdateProductCommandTests
             Value = 100m
         };
 
-        var updatedEntity = new Product
-        {
-            ProductId = productId,
-            UserId = userId,
-            Name = "Nowa Nazwa",
-            Description = "Nowy Opis",
-            Value = 200m
-        };
-        
-        _repositoryMock.Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
+        _repositoryMock
+            .Setup(repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingProduct);
-        
-        _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(updatedEntity);
-        
-        _repositoryMock.SetupSequence(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingProduct) 
-            .ReturnsAsync(updatedEntity);  
+
+        _repositoryMock
+            .Setup(repository => repository.UpdateAsync(
+                It.IsAny<Product>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingProduct);
 
         // Act
-        var result = await _command.Execute(_repositoryMock.Object, CancellationToken.None);
+        var result = await _command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be("Nowa Nazwa");
+        result.Description.Should().Be("Nowy Opis");
         result.Value.Should().Be(200m);
 
-        _repositoryMock.Verify(r => r.UpdateAsync(It.Is<Product>(p =>
-            p.Name == "Nowa Nazwa" && p.Value == 200m), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(
+            repository => repository.GetByIdAsync(
+                productId,
+                userId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.UpdateAsync(
+                It.Is<Product>(product =>
+                    product.ProductId == productId
+                    && product.UserId == userId
+                    && product.Name == "Nowa Nazwa"
+                    && product.Description == "Nowy Opis"
+                    && product.Value == 200m),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]

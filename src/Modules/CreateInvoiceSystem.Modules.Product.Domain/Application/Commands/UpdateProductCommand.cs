@@ -6,35 +6,19 @@ using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Commands;
 public class UpdateProductCommand : CommandBase<UpdateProductDto, UpdateProductDto, IProductRepository>
 {
-    public override async Task<UpdateProductDto> Execute(IProductRepository _productRepository, CancellationToken cancellationToken = default)
+    public override async Task<UpdateProductDto> Execute(IProductRepository productRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(Parametr));
+        ArgumentNullException.ThrowIfNull(Parametr);
 
-        var product = await _productRepository.GetByIdAsync(Parametr.ProductId, Parametr.UserId, cancellationToken)
-            ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");
-
-        var oldName = product.Name;
-        var oldDescription = product.Description;
-        var oldValue = product.Value;
+        var product = await productRepository.GetByIdAsync(Parametr.ProductId, Parametr.UserId, cancellationToken)
+            ?? throw new InvalidOperationException($"Product with ID {Parametr.ProductId} not found.");               
 
         product.Name = Parametr.Name ?? product.Name;
         product.Description = Parametr.Description ?? product.Description;
         product.Value = Parametr.Value ?? product.Value;
 
-        var updatedProduct = await _productRepository.UpdateAsync(product, cancellationToken);
-        await _productRepository.SaveChangesAsync(cancellationToken);
+        var updatedProduct = await productRepository.UpdateAsync(product, cancellationToken);
 
-        var persisted = await _productRepository.GetByIdAsync(updatedProduct.ProductId, updatedProduct.UserId, cancellationToken);
-
-        bool hasChanged = persisted is not null && (
-            !string.Equals(oldName, persisted.Name, StringComparison.Ordinal) ||
-            !string.Equals(oldDescription, persisted.Description, StringComparison.Ordinal) ||
-            oldValue != persisted.Value
-        );
-
-        return hasChanged
-            ? ProductMappers.ToUpdatedDto(persisted)
-            : ProductMappers.ToUpdatedDto(persisted);
+        return ProductMappers.ToUpdatedDto(updatedProduct);            
     }
 }

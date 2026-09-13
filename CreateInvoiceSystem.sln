@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12120.119
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}"
 EndProject
@@ -65,9 +65,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Pdf", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Frontend", "src\CreateInvoiceSystem.Frontend\CreateInvoiceSystem.Frontend.csproj", "{757C6544-BCD7-4AF6-B64F-1619856620E8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoices.Persistence.Shared", "src\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj", "{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Shared.Persistence", "src\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj", "{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5AC138AF-854C-4DFE-A792-10C9ACA13DF2}"
 	ProjectSection(SolutionItems) = preProject
-		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		docker-compose.yml = docker-compose.yml
@@ -336,6 +339,30 @@ Global
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x64.Build.0 = Release|Any CPU
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x86.ActiveCfg = Release|Any CPU
 		{757C6544-BCD7-4AF6-B64F-1619856620E8}.Release|x86.Build.0 = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|x64.Build.0 = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Debug|x86.Build.0 = Debug|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|x64.ActiveCfg = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|x64.Build.0 = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|x86.ActiveCfg = Release|Any CPU
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}.Release|x86.Build.0 = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|x64.Build.0 = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Debug|x86.Build.0 = Debug|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|x64.ActiveCfg = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|x64.Build.0 = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|x86.ActiveCfg = Release|Any CPU
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -370,6 +397,8 @@ Global
 		{D557D5C1-0B60-E73D-8968-80590ABB5E72} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{E5880E1E-AA9E-4E53-E1B3-731FC02FD85C} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 		{757C6544-BCD7-4AF6-B64F-1619856620E8} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
+		{2551821C-BEB0-EF1A-BA25-A15D06CBBB37} = {A4E17868-8DB5-4AF3-ADED-8297D6F87DA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B0B660D-CCA3-49AF-9023-8C1BC503EE00}

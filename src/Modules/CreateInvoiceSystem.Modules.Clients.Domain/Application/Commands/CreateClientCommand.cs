@@ -5,38 +5,35 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
 public class CreateClientCommand : CommandBase<CreateClientDto, ClientDto, IClientRepository>
-{    
-    public override async Task<ClientDto> Execute(IClientRepository _clientRepository, CancellationToken cancellationToken = default)
+{
+    public override async Task<ClientDto> Execute(IClientRepository clientRepository, CancellationToken cancellationToken = default)
     {
-        if (this.Parametr is null)
-            throw new ArgumentNullException(nameof(this.Parametr));
-        if (this.Parametr.Address is null)
-            throw new ArgumentNullException(nameof(this.Parametr.Address));
+        ArgumentNullException.ThrowIfNull(Parametr);
+        ArgumentNullException.ThrowIfNull(Parametr.Address, "Address");
 
-        var exists = await _clientRepository.ExistsAsync(
-            this.Parametr.Name,
-            this.Parametr.Address.Street,
-            this.Parametr.Address.Number,
-            this.Parametr.Address.City,
-            this.Parametr.Address.PostalCode,
-            this.Parametr.Address.Country,
-            this.Parametr.UserId,
+        var exists = await clientRepository.ExistsAsync(
+            Parametr.Name,
+            Parametr.Address.Street,
+            Parametr.Address.Number,
+            Parametr.Address.City,
+            Parametr.Address.PostalCode,
+            Parametr.Address.Country,
+            Parametr.UserId,
             cancellationToken);
 
         if (exists)
-            throw new InvalidOperationException("Istnieje już taki klient z identycznymi danymi.");
+        {
+            throw new InvalidOperationException(
+                "Istnieje już taki klient z identycznymi danymi.");
+        }
 
-        var domainModel = ClientMappers.ToEntity(this.Parametr);
+        var domainModel = ClientMappers.ToEntity(Parametr);
+        domainModel.UserId = Parametr.UserId;
 
-        domainModel.UserId = this.Parametr.UserId;
+        var savedClient = await clientRepository.AddAsync(
+            domainModel,
+            cancellationToken);
 
-        var savedClient = await _clientRepository.AddAsync(domainModel, cancellationToken);
-        await _clientRepository.SaveChangesAsync(cancellationToken);
-
-        var persisted = await _clientRepository.GetByIdAsync(savedClient.ClientId, savedClient.UserId, cancellationToken);
-
-        return persisted is not null
-            ? savedClient.ToDto()
-            : savedClient.ToDto();
+        return savedClient.ToDto();
     }
 }          

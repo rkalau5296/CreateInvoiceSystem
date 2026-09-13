@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Persistence.Seed.Mock;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 
 string? connectionString = null;
 for (var i = 0; i < args.Length; i++)

@@ -18,7 +18,7 @@ public interface IInvoiceRepository : ISaveChangesContext
     Task AddInvoicePositionAsync(ICollection<InvoicePosition> invoicePositions, CancellationToken cancellationToken);
     Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken);
     Task RemoveRangeAsync(IEnumerable<InvoicePosition> invoicePositions, CancellationToken cancellationToken);
-    Task RemoveAsync(Invoice invoiceEntity);
+    Task RemoveAsync(Invoice invoiceEntity, CancellationToken cancellationToken);
     Task RemoveInvoicePositionsAsync(InvoicePosition invoicePosition);
     Task<bool> InvoiceExistsAsync(int invoiceId, CancellationToken cancellationToken);
     Task<bool> InvoicePositionExistsAsync(int invoiceId, CancellationToken cancellationToken);

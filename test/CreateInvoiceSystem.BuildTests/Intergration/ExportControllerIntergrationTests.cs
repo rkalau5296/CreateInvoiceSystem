@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
@@ -7,19 +6,19 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using Xunit.Abstractions;
+using CreateInvoiceSystem.Shared.Persistence;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class ExportControllerIntergrationTests : IClassFixture<TestWebApplicationFactory>
+[Collection("Integration tests")]
+public class ExportControllerIntergrationTests 
 {
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
-    private readonly ITestOutputHelper _output;
 
-    public ExportControllerIntergrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
+    public ExportControllerIntergrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
     {
-        _factory = factory;
-        _output = output;
+        _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
@@ -69,7 +68,7 @@ public class ExportControllerIntergrationTests : IClassFixture<TestWebApplicatio
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
-        var user = new UserEntity { Id = 1, Email = "sprzedawca@test.local", Name = "Sprzedawca", CompanyName = "Testowa Firma", Nip = "1234567890", AddressId = address.AddressId };
+        var user = new UserEntity { Email = "sprzedawca@test.local", Name = "Sprzedawca", CompanyName = "Testowa Firma", Nip = "1234567890", AddressId = address.AddressId };
         db.Users.Add(user);
 
         db.Set<ClientEntity>().Add(new ClientEntity { Name = "Klient Testowy", Nip = "1111111111", UserId = 1, AddressId = address.AddressId });
@@ -90,7 +89,7 @@ public class ExportControllerIntergrationTests : IClassFixture<TestWebApplicatio
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
-        db.Users.Add(new UserEntity { Id = 1, Email = "pusty@test.local", Name = "Pusty", CompanyName = "Firma", Nip = "0000000000", AddressId = address.AddressId });
+        db.Users.Add(new UserEntity { Email = "pusty@test.local", Name = "Pusty", CompanyName = "Firma", Nip = "0000000000", AddressId = address.AddressId });
         await db.SaveChangesAsync();
     }
 }

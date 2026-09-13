@@ -1,9 +1,9 @@
 ﻿using Bogus;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 
@@ -59,7 +59,7 @@ public static class InvoiceFaker
                     invoice.ClientName = client.Name;
                     invoice.ClientNip = client.Nip;
                     var address = AddressFaker.Generate();
-                    invoice.ClientAddress = FormatAddress(address);
+                    invoice.ClientAddress = FormatAddress(address)!;
                     break;
                 }
 
@@ -70,7 +70,7 @@ public static class InvoiceFaker
                     invoice.ClientId = dbClient.ClientId;
                     invoice.ClientName = dbClient.Name;
                     invoice.ClientNip = dbClient.Nip;
-                    invoice.ClientAddress = FormatAddress(dbClientAddress);
+                    invoice.ClientAddress = FormatAddress(dbClientAddress)!;
                     break;
                 }
         }

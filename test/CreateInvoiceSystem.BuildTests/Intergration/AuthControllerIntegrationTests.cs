@@ -1,7 +1,8 @@
-﻿using CreateInvoiceSystem.Identity.Interfaces;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+﻿using CreateInvoiceSystem.BuildTests.Helper;
+using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,16 +15,15 @@ using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFactory>
-{
+[Collection("Integration tests")]
+public class AuthControllerIntegrationTests 
+{    
     private readonly TestWebApplicationFactory _factory;
-    private readonly HttpClient _client;
-    private readonly ITestOutputHelper _output;
+    private readonly HttpClient _client;    
 
-    public AuthControllerIntegrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
-    {
-        _factory = factory;
-        _output = output;
+    public AuthControllerIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    {        
+        _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
@@ -70,7 +70,7 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
     public async Task Should_RegisterUser_When_DataIsValid()
     {
         var email = $"register_{Guid.NewGuid()}@test.local";
-
+        
         var payload = new
         {
             User = new
@@ -79,7 +79,7 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
                 Password = "!Password123",
                 Name = "New User",
                 CompanyName = "New Company",
-                Nip = "1234567890",
+                Nip = Helpers.CreateTestNip(),
                 BankAccountNumber = "",
                 Address = new
                 {
@@ -168,7 +168,8 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
         string password,
         bool isActive = true,
         string? jti = null,
-        DateTimeOffset? expiry = null)
+        DateTimeOffset? expiry = null
+        )
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
@@ -196,7 +197,7 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
             NormalizedEmail = email.ToUpperInvariant(),
             Name = "Test",
             CompanyName = "Test",
-            Nip = "1234567890",
+            Nip = $"T{Random.Shared.Next(100000000, 999999999)}",
             IsActive = isActive,
             ActivationTokenJti = jti,
             ActivationTokenExpiry = expiry,
@@ -216,5 +217,5 @@ public class AuthControllerIntegrationTests : IClassFixture<TestWebApplicationFa
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
         }
-    }
+    }    
 }

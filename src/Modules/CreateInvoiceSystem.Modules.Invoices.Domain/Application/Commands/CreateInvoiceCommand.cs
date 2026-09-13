@@ -41,34 +41,22 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         entity.Title = await GenerateInvoiceNumberAsync(Parametr.UserId, _invoiceRepository, cancellationToken);
 
-        var createdInvoice = await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
-        await _invoiceRepository.SaveChangesAsync(cancellationToken);
+        await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);        
 
         var userEmail = await _invoiceRepository.GetUserEmailByIdAsync(Parametr.UserId, cancellationToken);
 
         if (!string.IsNullOrEmpty(userEmail))
         {
             await _emailSender.SendInvoiceCreatedEmailAsync(userEmail, entity.Title, cancellationToken);
-        }
-
-        var persisted = await _invoiceRepository.GetInvoiceByIdAsync(
-            createdInvoice.UserId,
-            createdInvoice.InvoiceId,
-            cancellationToken);
+        }        
 
         if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
         {            
             var dto = entity.ToDto();         
             await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
-        }
+        }       
 
-        bool added = persisted is not null
-            && persisted.Client is not null
-            && persisted.InvoicePositions is not null;
-
-        return added
-            ? persisted?.ToDto()
-            : throw new InvalidOperationException("Invoice was saved but could not be reloaded.");
+        return entity.ToDto();
     }
 
     private static readonly string[] AllowedVatRates = { "23%", "8%", "5%", "0%", "zw", "np" };
@@ -170,7 +158,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             {
                 Quantity = position.Quantity,
                 Product = product,
-                ProductId = product.ProductId,
+                ProductId = product.ProductId > 0 ? product.ProductId  : null,
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 ProductValue = product.Value,

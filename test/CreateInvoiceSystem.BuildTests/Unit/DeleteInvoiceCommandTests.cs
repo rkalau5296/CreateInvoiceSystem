@@ -19,39 +19,62 @@ public class DeleteInvoiceCommandTests
     public async Task Execute_ShouldReturnDto_WhenInvoiceIsSuccessfullyDeleted()
     {
         // Arrange
-        var invoiceParam = new Invoice { InvoiceId = 10, UserId = 1 };
-        var command = new DeleteInvoiceCommand { Parametr = invoiceParam };
-
-        var invoiceEntity = new Invoice
+        var invoice = new Invoice
         {
             InvoiceId = 10,
             UserId = 1,
             Title = "Deleted Invoice",
             InvoicePositions = new List<InvoicePosition>
+        {
+            new()
             {
-                new() { InvoicePositionId = 1, InvoiceId = 10 }
+                InvoicePositionId = 1,
+                InvoiceId = 10
             }
+        }
         };
 
-        // 1. Znajdź fakturę
-        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(1, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoiceEntity);
-        
-        _repositoryMock.Setup(r => r.InvoiceExistsAsync(10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        _repositoryMock.Setup(r => r.InvoicePositionExistsAsync(10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        var command = new DeleteInvoiceCommand
+        {
+            Parametr = invoice
+        };
+
+        _repositoryMock
+            .Setup(repository => repository.GetInvoiceByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invoice);
 
         // Act
-        var result = await command.Execute(_repositoryMock.Object);
+        var result = await command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.InvoiceId.Should().Be(10);
-        
-        _repositoryMock.Verify(r => r.RemoveRangeAsync(invoiceEntity.InvoicePositions, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.GetInvoiceByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveRangeAsync(
+                invoice.InvoicePositions,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAsync(
+                invoice,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -73,26 +96,64 @@ public class DeleteInvoiceCommandTests
     }
 
     [Fact]
-    public async Task Execute_ShouldThrowException_WhenDeletionVerificationFails()
+    public async Task Execute_ShouldPropagateException_WhenInvoiceDeletionFails()
     {
         // Arrange
-        var invoiceParam = new Invoice { InvoiceId = 10, UserId = 1 };
-        var command = new DeleteInvoiceCommand { Parametr = invoiceParam };
+        var invoice = new Invoice
+        {
+            InvoiceId = 10,
+            UserId = 1
+        };
 
-        var invoiceEntity = new Invoice { InvoiceId = 10, UserId = 1 };
+        var command = new DeleteInvoiceCommand
+        {
+            Parametr = invoice
+        };
 
-        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(1, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoiceEntity);
-        
-        _repositoryMock.Setup(r => r.InvoiceExistsAsync(10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _repositoryMock
+            .Setup(repository => repository.GetInvoiceByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invoice);
+
+        _repositoryMock
+            .Setup(repository => repository.RemoveAsync(
+                invoice,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(
+                "Invoice deletion failed."));
 
         // Act
-        Func<Task> act = async () => await command.Execute(_repositoryMock.Object);
+        Func<Task> act = () => command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Failed to delete Invoice or InvoicePosition with ID 10.");
+        await act.Should()
+            .ThrowAsync<InvalidOperationException>()
+            .WithMessage("Invoice deletion failed.");
+
+        _repositoryMock.Verify(
+            repository => repository.GetInvoiceByIdAsync(
+                1,
+                10,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAsync(
+                invoice,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveRangeAsync(
+                It.IsAny<IEnumerable<InvoicePosition>>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -117,6 +178,6 @@ public class DeleteInvoiceCommandTests
 
         // Assert
         _repositoryMock.Verify(r => r.RemoveRangeAsync(It.IsAny<IEnumerable<InvoicePosition>>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity), Times.Once);
+        _repositoryMock.Verify(r => r.RemoveAsync(invoiceEntity, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

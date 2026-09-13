@@ -1,10 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+﻿using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 
 namespace CreateInvoiceSystem.API.Mappers.InvoiceMapper;
 
@@ -38,6 +37,8 @@ public static class InvoiceMapper
 
     public static InvoiceEntity ToInvoiceEntity(Invoice invoice, int? clientId = null)
     {
+        var resolvedClientId = clientId ?? invoice.ClientId;
+
         return new InvoiceEntity
         {
             InvoiceId = invoice.InvoiceId,
@@ -48,7 +49,9 @@ public static class InvoiceMapper
             PaymentDate = invoice.PaymentDate,
             CreatedDate = invoice.CreatedDate,
             Comments = invoice.Comments,
-            ClientId = clientId ?? invoice.ClientId,
+            ClientId = resolvedClientId > 0
+            ? resolvedClientId
+            : null,
             UserId = invoice.UserId,
             MethodOfPayment = invoice.MethodOfPayment,
             SellerName = invoice.SellerName,
@@ -62,13 +65,12 @@ public static class InvoiceMapper
         };
     }
 
-    public static InvoicePositionEntity ToInvoicePositionEntity(InvoicePosition ip, int invoiceId)
+    public static InvoicePositionEntity ToInvoicePositionEntity(InvoicePosition ip)
     {
         return new InvoicePositionEntity
         {
             InvoicePositionId = ip.InvoicePositionId,
-            InvoiceId = invoiceId,
-            ProductId = ip.ProductId,
+            ProductId = ip.ProductId > 0 ? ip.ProductId : null,
             ProductName = ip.ProductName,
             ProductDescription = ip.ProductDescription,
             ProductValue = ip.ProductValue,
@@ -79,7 +81,7 @@ public static class InvoiceMapper
 
     public static List<InvoicePositionEntity> ToInvoicePositionEntities(IEnumerable<InvoicePosition> positions, int invoiceId)
     {
-        return positions.Select(p => ToInvoicePositionEntity(p, invoiceId)).ToList();
+        return [.. positions.Select(p => ToInvoicePositionEntity(p))];
     }
 
     public static ProductEntity ToProductEntity(Product p)

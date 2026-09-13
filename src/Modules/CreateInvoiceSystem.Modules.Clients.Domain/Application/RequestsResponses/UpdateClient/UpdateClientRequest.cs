@@ -1,9 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.UpdateClient;
-public class UpdateClientRequest(UpdateClientDto clientDto, int id) : IRequest<UpdateClientResponse>
+public class UpdateClientRequest(UpdateClientDto clientDto, int id) : IRequest<UpdateClientResponse>, ITransactionalRequest
 {
     public UpdateClientDto Client { get; } = 
         (clientDto ?? throw new ArgumentNullException(nameof(clientDto),

@@ -1,5 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 

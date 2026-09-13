@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
 
-public class ResetPasswordRequest : IRequest<ResetPasswordResponse>
+public class ResetPasswordRequest : IRequest<ResetPasswordResponse>, ITransactionalRequest
 {
     public string Email { get; set; }
     public string Token { get; set; }

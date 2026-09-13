@@ -8,27 +8,32 @@ using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 public class DeleteUserCommand : CommandBase<User, UserDto, IUserRepository>
 {
-    public override async Task<UserDto> Execute(IUserRepository _userRepository, CancellationToken cancellationToken = default)
+    public override async Task<UserDto> Execute(IUserRepository userRepository, CancellationToken cancellationToken = default)
     {
-        if (Parametr is null)
-            throw new ArgumentNullException(nameof(_userRepository));
+        ArgumentNullException.ThrowIfNull(Parametr);
 
-        var userEntity = await _userRepository.GetUserByIdAsync(Parametr.UserId, cancellationToken) ?? throw new InvalidOperationException($"User with ID {Parametr.UserId} not found.");
+        var user = await userRepository.GetUserByIdAsync(
+            Parametr.UserId,
+            cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"User with ID {Parametr.UserId} not found.");
 
-        if (userEntity.Invoices.Any() || userEntity.Clients.Any() || userEntity.Products.Any())
-            throw new InvalidOperationException($"Cannot delete User with ID {Parametr.UserId} because it has associated Invoices.");
+        if (user.Invoices.Any()
+            || user.Clients.Any()
+            || user.Products.Any())
+        {
+            throw new InvalidOperationException(
+                $"Cannot delete User with ID {Parametr.UserId} "
+                + "because it has associated data.");
+        }
 
-        await _userRepository.RemoveAsync(Parametr.UserId, cancellationToken);
-        if (userEntity.Address is not null)
-            await _userRepository.RemoveAddress(userEntity.AddressId, cancellationToken);
+        await userRepository.RemoveAsync(Parametr.UserId, cancellationToken);
 
-        await _userRepository.SaveChangesAsync(cancellationToken);        
+        if (user.Address is not null)
+        {
+            await userRepository.RemoveAddress(user.AddressId, cancellationToken);
+        }
 
-        bool addrExists = await _userRepository.IsAddressExists(userEntity.AddressId, cancellationToken);
-        bool userExists = await _userRepository.IsUserExists(userEntity.UserId, cancellationToken);
-
-        return !userExists && !addrExists
-            ? UserMappers.ToDto(userEntity)
-            : throw new InvalidOperationException($"Failed to delete User or User address with ID {Parametr.UserId}.");
+        return UserMappers.ToDto(user);
     }
 }

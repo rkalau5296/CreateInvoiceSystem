@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using System.Reflection.Emit;
 
 namespace CreateInvoiceSystem.Modules.Users.Persistence.Configuration;
 
@@ -11,32 +12,39 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.ToTable("AspNetUsers");
 
         builder.HasKey(u => u.Id);
-        builder.Property(u => u.Id).HasColumnName("UserId");
+        builder.Property(u => u.Id)
+            .HasColumnName("UserId");
 
-        builder.HasIndex(u => u.Nip).IsUnique();
+        builder.HasIndex(u => u.Nip)
+            .IsUnique();
 
         builder.Property(u => u.Name)
-               .HasMaxLength(200);
+            .HasMaxLength(200);
 
         builder.Property(u => u.CompanyName)
-               .HasMaxLength(200);
+            .HasMaxLength(200);
 
         builder.Property(u => u.Email)
-               .HasMaxLength(256);
+            .HasMaxLength(256);
 
         builder.Property(u => u.Nip)
-               .HasMaxLength(50);
+            .HasMaxLength(50);
 
         builder.Property(u => u.BankAccountNumber)
-               .HasMaxLength(64);
+            .HasMaxLength(64);
 
         builder.Property(u => u.CreatedAt)
-               .IsRequired();
+            .IsRequired();
 
         builder.Property(u => u.IsActive)
-               .IsRequired();
+            .IsRequired();
 
         builder.Property(u => u.AddressId)
-               .IsRequired();
+            .IsRequired();
+
+        builder.HasOne(u => u.Address)
+            .WithMany()
+            .HasForeignKey(u => u.AddressId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
+
 
 namespace CreateInvoiceSystem.API.Mappers.ClientMapper;
 

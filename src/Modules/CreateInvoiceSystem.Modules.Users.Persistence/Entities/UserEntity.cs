@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CreateInvoiceSystem.Shared.Persistence;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CreateInvoiceSystem.Modules.Users.Persistence.Entities;
@@ -21,4 +22,5 @@ public class UserEntity : IdentityUser<int>
     public IEnumerable<object> Products { get; set; } = [];
     [NotMapped]
     public IEnumerable<object> Clients { get; set; } = [];
+    public AddressEntity Address { get; set; } = null!;
 }

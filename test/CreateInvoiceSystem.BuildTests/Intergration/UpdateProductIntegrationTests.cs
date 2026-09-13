@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,16 +11,15 @@ using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
-public class UpdateProductIntegrationTests : IClassFixture<TestWebApplicationFactory>
+[Collection("Integration tests")]
+public class UpdateProductIntegrationTests 
 {
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
-    private readonly ITestOutputHelper _output;
 
-    public UpdateProductIntegrationTests(TestWebApplicationFactory factory, ITestOutputHelper output)
+    public UpdateProductIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
     {
-        _factory = factory;
-        _output = output;
+        _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
@@ -111,8 +110,7 @@ public class UpdateProductIntegrationTests : IClassFixture<TestWebApplicationFac
         await db.SaveChangesAsync();
 
         var user = new UserEntity
-        {
-            Id = 1,
+        {            
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma",

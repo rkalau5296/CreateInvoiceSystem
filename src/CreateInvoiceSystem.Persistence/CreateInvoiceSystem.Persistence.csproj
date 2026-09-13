@@ -6,22 +6,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="12.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="9.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="9.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.19">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.11" />
-    <PackageReference Include="NLog" Version="6.0.6" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.19" />
+    <PackageReference Include="NLog" Version="6.2.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj" />
+    <ProjectReference Include="..\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Addresses.Persistence\CreateInvoiceSystem.Modules.Addresses.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.InvoicePositions.Persistence\CreateInvoiceSystem.Modules.InvoicePositions.Persistence.csproj" />

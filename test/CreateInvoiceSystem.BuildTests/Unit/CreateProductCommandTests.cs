@@ -22,29 +22,63 @@ public class CreateProductCommandTests
     public async Task Execute_ShouldSaveProduct_WhenNameIsUnique()
     {
         // Arrange
-        var dto = new CreateProductDto("Unikalny Produkt", "Opis", 100m, 1);
+        var dto = new CreateProductDto(
+            "Unikalny Produkt",
+            "Opis",
+            100m,
+            1);
+
         _command.Parametr = dto;
 
-        var entity = new Product { ProductId = 50, Name = "Unikalny Produkt", UserId = 1 };
-        
-        _repositoryMock.Setup(r => r.ExistsAsync(dto.Name, dto.UserId, It.IsAny<CancellationToken>()))
+        var entity = new Product
+        {
+            ProductId = 50,
+            Name = dto.Name,
+            Description = dto.Description,
+            Value = dto.Value,
+            UserId = dto.UserId
+        };
+
+        _repositoryMock
+            .Setup(repository => repository.ExistsAsync(
+                dto.Name,
+                dto.UserId,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
-        
-        _repositoryMock.Setup(r => r.GetByIdAsync(entity.ProductId, entity.UserId, It.IsAny<CancellationToken>()))
+
+        _repositoryMock
+            .Setup(repository => repository.AddAsync(
+                It.IsAny<Product>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         // Act
-        var result = await _command.Execute(_repositoryMock.Object, CancellationToken.None);
+        var result = await _command.Execute(
+            _repositoryMock.Object,
+            CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Name.Should().Be("Unikalny Produkt");
+        result.Name.Should().Be(dto.Name);
 
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(
+            repository => repository.ExistsAsync(
+                dto.Name,
+                dto.UserId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.AddAsync(
+                It.Is<Product>(product =>
+                    product.Name == dto.Name
+                    && product.Description == dto.Description
+                    && product.Value == dto.Value
+                    && product.UserId == dto.UserId),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -65,31 +99,7 @@ public class CreateProductCommandTests
             .WithMessage("Istnieje już produkt o takiej nazwie.");
 
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Execute_ShouldThrowException_WhenProductCouldNotBeReloaded()
-    {
-        // Arrange
-        var dto = new CreateProductDto("Produkt Widmo", "Opis", 10m, 1);
-        _command.Parametr = dto;
-        var entity = new Product { ProductId = 99, Name = "Produkt Widmo", UserId = 1 };
-
-        _repositoryMock.Setup(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
-        
-        _repositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product)null!);
-
-        // Act
-        Func<Task> act = async () => await _command.Execute(_repositoryMock.Object, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Product was saved but could not be reloaded.");
-    }
+    }   
 
     [Fact]
     public async Task Execute_ShouldThrowArgumentNullException_WhenParametrIsNull()
