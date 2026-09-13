@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - master
+    pull_request:
+      branches:
+      - master
   workflow_dispatch:
 jobs:
   build:
@@ -62,6 +65,7 @@ jobs:
           name: frontend
           path: publish-frontend.zip
   deploy-backend:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: build
     runs-on: windows-latest
     steps:
@@ -78,6 +82,7 @@ jobs:
           package: publish-backend.zip
           type: zip
   deploy-frontend:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: build
     runs-on: windows-latest
     steps:
