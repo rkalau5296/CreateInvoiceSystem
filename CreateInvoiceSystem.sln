@@ -65,18 +65,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Pdf", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Frontend", "src\CreateInvoiceSystem.Frontend\CreateInvoiceSystem.Frontend.csproj", "{757C6544-BCD7-4AF6-B64F-1619856620E8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoices.Persistence.Shared", "src\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj", "{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Shared.Persistence", "src\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj", "{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5AC138AF-854C-4DFE-A792-10C9ACA13DF2}"
 	ProjectSection(SolutionItems) = preProject
-		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		docker-compose.yml = docker-compose.yml
 		README.md = README.md
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Invoices.Persistence.Shared", "src\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj", "{9806FC7D-EA6E-740D-33AA-2C1BFEC041DF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateInvoiceSystem.Shared.Persistence", "src\CreateInvoiceSystem.Shared.Persistence\CreateInvoiceSystem.Shared.Persistence.csproj", "{2551821C-BEB0-EF1A-BA25-A15D06CBBB37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
