@@ -87,12 +87,12 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
         }
     }
 
-    private async Task<string> GenerateInvoiceNumberAsync(int userId, IInvoiceRepository invoiceRepository, CancellationToken ct)
+    private static async Task<string> GenerateInvoiceNumberAsync(int userId, IInvoiceRepository invoiceRepository, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
 
-        int count = await invoiceRepository.GetInvoicesCountInMonthAsync(userId, now.Month, now.Year, ct);
-        int nextNumber = count + 1;
+        int maxNumber = await invoiceRepository.GetMaxInvoiceNumberInMonthAsync(userId, now.Month, now.Year, ct);
+        int nextNumber = maxNumber + 1;
 
         return $"{nextNumber}/{now.Month:00}/{now.Year}";
     }

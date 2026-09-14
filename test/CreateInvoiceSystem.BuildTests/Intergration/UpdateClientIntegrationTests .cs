@@ -12,16 +12,28 @@ using Xunit.Abstractions;
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 [Collection("Integration tests")]
-public class UpdateClientIntegrationTests 
+public class UpdateClientIntegrationTests : IAsyncLifetime
 {
+    private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public UpdateClientIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
+    public UpdateClientIntegrationTests(IntegrationTestFixture integrationTestFixture)
     {
+        _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
+    }
+
+    public Task InitializeAsync()
+    {
+        return _integrationTestFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]

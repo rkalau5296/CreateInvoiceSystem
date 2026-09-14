@@ -1,25 +1,47 @@
 ﻿using CreateInvoiceSystem.BuildTests.Transactions;
+using Microsoft.Data.SqlClient;
+using Respawn;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration
+namespace CreateInvoiceSystem.BuildTests.Intergration;
+
+public sealed class IntegrationTestFixture : IAsyncLifetime
 {
-    public sealed class IntegrationTestFixture : IAsyncLifetime
+    public SqlServerContainerFixture SqlServer { get; } = new();
+
+    public TestWebApplicationFactory Factory { get; private set; } = null!;
+
+    private SqlConnection _connection = null!;
+    private Respawner _respawner = null!;
+
+    public async Task InitializeAsync()
     {
-        public SqlServerContainerFixture SqlServer { get; } = new();
+        await SqlServer.InitializeAsync();
 
-        public TestWebApplicationFactory Factory { get; private set; } = null!;
+        Factory = new TestWebApplicationFactory(
+            SqlServer.ConnectionString);
 
-        public async Task InitializeAsync()
-        {
-            await SqlServer.InitializeAsync();
+        _connection = new SqlConnection(SqlServer.ConnectionString);
+        await _connection.OpenAsync();
 
-            Factory = new TestWebApplicationFactory(
-                SqlServer.ConnectionString);            
-        }
+        _respawner = await Respawner.CreateAsync(
+            _connection,
+            new RespawnerOptions
+            {
+                DbAdapter = DbAdapter.SqlServer,
+                WithReseed = true
+            });
+    }
 
-        public async Task DisposeAsync()
-        {
-            Factory.Dispose();
-            await SqlServer.DisposeAsync();
-        }
+    public Task ResetDatabaseAsync()
+    {
+        return _respawner.ResetAsync(_connection);
+    }
+
+    public async Task DisposeAsync()
+    {
+        Factory.Dispose();
+
+        await _connection.DisposeAsync();
+        await SqlServer.DisposeAsync();
     }
 }

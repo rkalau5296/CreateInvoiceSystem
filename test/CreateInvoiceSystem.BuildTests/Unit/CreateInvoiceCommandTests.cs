@@ -17,7 +17,7 @@ public class CreateInvoiceCommandTests
         _repositoryMock = new Mock<IInvoiceRepository>();
         _emailSenderMock = new Mock<IInvoiceEmailSender>();
                 
-        _repositoryMock.Setup(r => r.GetInvoicesCountInMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetMaxInvoiceNumberInMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
     }
 
