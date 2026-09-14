@@ -12,16 +12,28 @@ using Xunit.Abstractions;
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 [Collection("Integration tests")]
-public class DeleteInvoiceIntegrationTests 
+public class DeleteInvoiceIntegrationTests : IAsyncLifetime
 {
+    private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public DeleteInvoiceIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
+    public DeleteInvoiceIntegrationTests(IntegrationTestFixture integrationTestFixture)
     {
+        _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
+    }
+
+    public Task InitializeAsync()
+    {
+        return _integrationTestFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -36,9 +48,12 @@ public class DeleteInvoiceIntegrationTests
         response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var deleted = await db.Set<InvoiceEntity>().FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+        var deleted = await db.Set<InvoiceEntity>()
+            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+
         deleted.Should().BeNull();
     }
 
@@ -53,7 +68,8 @@ public class DeleteInvoiceIntegrationTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var positions = await db.Set<InvoicePositionEntity>()
             .Where(p => p.InvoiceId == invoiceId)
@@ -76,27 +92,35 @@ public class DeleteInvoiceIntegrationTests
     public async Task Should_NotAffectOtherInvoices_When_OneIsDeleted()
     {
         var userId = await SeedUserAsync();
-        var invoiceId1 = await SeedInvoiceAsync(userId);
-        var invoiceId2 = await SeedInvoiceAsync(userId);
+        var invoiceId1 = await SeedInvoiceAsync(userId, "1/09/2026");
+        var invoiceId2 = await SeedInvoiceAsync(userId, "2/09/2026");
 
         var response = await _client.DeleteAsync($"/api/Invoice/{invoiceId1}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var remaining = await db.Set<InvoiceEntity>().FirstOrDefaultAsync(i => i.InvoiceId == invoiceId2);
+        var remaining = await db.Set<InvoiceEntity>()
+            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId2);
+
         remaining.Should().NotBeNull();
     }
 
     private async Task<int> SeedUserAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var existing = await db.Users.FindAsync(1);
-        if (existing != null) return existing.Id;
+
+        if (existing != null)
+        {
+            return existing.Id;
+        }
 
         var address = new AddressEntity
         {
@@ -106,31 +130,36 @@ public class DeleteInvoiceIntegrationTests
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma Sprzedawcy",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
         await db.SaveChangesAsync();
 
         return user.Id;
     }
 
-    private async Task<int> SeedInvoiceAsync(int userId)
+    private async Task<int> SeedInvoiceAsync(
+        int userId,
+        string title = "Faktura do edycji")
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var invoice = new InvoiceEntity
         {
-            Title = "Faktura do usunięcia",
+            Title = title,
             MethodOfPayment = "Przelew",
             TotalNet = 1000m,
             TotalVat = 230m,

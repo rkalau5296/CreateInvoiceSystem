@@ -5,26 +5,37 @@ using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using System.Net;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 [Collection("Integration tests")]
-public class UpdateInvoiceIntegrationTests 
+public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 {
+    private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public UpdateInvoiceIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
+    public UpdateInvoiceIntegrationTests(
+        IntegrationTestFixture integrationTestFixture,
+        ITestOutputHelper output)
     {
+        _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
+    }
+
+    public Task InitializeAsync()
+    {
+        return _integrationTestFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -33,17 +44,29 @@ public class UpdateInvoiceIntegrationTests
         var userId = await SeedUserAsync();
         var invoiceId = await SeedInvoiceAsync(userId);
 
-        var updatePayload = BuildUpdatePayload(invoiceId, userId, methodOfPayment: "Gotówka", totalGross: 2460m);
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            methodOfPayment: "Gotówka",
+            totalGross: 2460m);
 
-        var response = await _client.PutAsJsonAsync($"/api/Invoice/update/{invoiceId}", updatePayload);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
         var body = await response.Content.ReadAsStringAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var updated = await db.Set<InvoiceEntity>().FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+        var updated = await db.Set<InvoiceEntity>()
+            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+
         updated.Should().NotBeNull();
         updated!.MethodOfPayment.Should().Be("Gotówka");
         updated.TotalGross.Should().Be(2460m);
@@ -55,15 +78,26 @@ public class UpdateInvoiceIntegrationTests
         var userId = await SeedUserAsync();
         var invoiceId = await SeedInvoiceAsync(userId);
 
-        var updatePayload = BuildUpdatePayload(invoiceId, userId, productName: "Nowy Produkt", productValue: 2000m, quantity: 2);
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            productName: "Nowy Produkt",
+            productValue: 2000m,
+            quantity: 2);
 
-        var response = await _client.PutAsJsonAsync($"/api/Invoice/update/{invoiceId}", updatePayload);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
         var body = await response.Content.ReadAsStringAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var positions = await db.Set<InvoicePositionEntity>()
             .Where(p => p.InvoiceId == invoiceId)
@@ -73,7 +107,7 @@ public class UpdateInvoiceIntegrationTests
         positions.Should().Contain(p => p.ProductName == "Nowy Produkt");
         positions.Should().Contain(p => p.ProductValue == 2000m);
         positions.Should().Contain(p => p.Quantity == 2);
-    }    
+    }
 
     [Fact]
     public async Task Should_Return400_When_MethodOfPaymentIsMissing()
@@ -81,9 +115,14 @@ public class UpdateInvoiceIntegrationTests
         var userId = await SeedUserAsync();
         var invoiceId = await SeedInvoiceAsync(userId);
 
-        var updatePayload = BuildUpdatePayload(invoiceId, userId, methodOfPayment: "");
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            methodOfPayment: string.Empty);
 
-        var response = await _client.PutAsJsonAsync($"/api/Invoice/update/{invoiceId}", updatePayload);
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -92,9 +131,14 @@ public class UpdateInvoiceIntegrationTests
     public async Task Should_Return404_When_InvoiceDoesNotExist()
     {
         var userId = await SeedUserAsync();
-        var updatePayload = BuildUpdatePayload(99999, userId);
 
-        var response = await _client.PutAsJsonAsync("/api/Invoice/update/99999", updatePayload);
+        var updatePayload = BuildUpdatePayload(
+            99999,
+            userId);
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Invoice/update/99999",
+            updatePayload);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -102,10 +146,15 @@ public class UpdateInvoiceIntegrationTests
     private async Task<int> SeedUserAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var existing = await db.Users.FindAsync(1);
-        if (existing != null) return existing.Id;
+
+        if (existing != null)
+        {
+            return existing.Id;
+        }
 
         var address = new AddressEntity
         {
@@ -115,17 +164,19 @@ public class UpdateInvoiceIntegrationTests
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
         await db.SaveChangesAsync();
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma Sprzedawcy",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
         await db.SaveChangesAsync();
 
@@ -135,7 +186,8 @@ public class UpdateInvoiceIntegrationTests
     private async Task<int> SeedInvoiceAsync(int userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var invoice = new InvoiceEntity
         {
@@ -198,6 +250,7 @@ public class UpdateInvoiceIntegrationTests
             Comments = "Zaktualizowano",
             ClientId = (int?)null,
             UserId = userId,
+
             Client = new
             {
                 Name = "Firma Klienta",
@@ -213,7 +266,9 @@ public class UpdateInvoiceIntegrationTests
                 },
                 UserId = userId
             },
+
             MethodOfPayment = methodOfPayment,
+
             InvoicePositions = new[]
             {
                 new
@@ -228,6 +283,7 @@ public class UpdateInvoiceIntegrationTests
                     VatRate = "23%"
                 }
             },
+
             SellerName = "Testowa Firma Sprzedawcy",
             SellerNip = "1234567890",
             SellerAddress = "Testowa 1, Warszawa",

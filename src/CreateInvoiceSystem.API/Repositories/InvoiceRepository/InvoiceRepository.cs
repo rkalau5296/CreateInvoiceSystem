@@ -338,12 +338,22 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         return InvoiceMapper.Map(result?.u, result?.a);
     }
 
-    public async Task<int> GetInvoicesCountInMonthAsync(int userId, int month, int year, CancellationToken ct)
+    public async Task<int> GetMaxInvoiceNumberInMonthAsync(int userId, int month, int year, CancellationToken ct)
     {
-        return await _db.Set<InvoiceEntity>()
+        var titles = await _db.Set<InvoiceEntity>()
             .Where(i => i.UserId == userId)
             .Where(i => i.CreatedDate.Month == month && i.CreatedDate.Year == year)
-            .CountAsync(ct);
+            .Select(i => i.Title)
+            .ToListAsync(ct);
+
+        return titles
+            .Select(title => int.TryParse(
+                title.Split('/', 2)[0],
+                out var number)
+                    ? number
+                    : 0)
+            .DefaultIfEmpty(0)
+            .Max();
     }
 
     public async Task RemoveAllByUserIdAsync(int userId, CancellationToken ct)

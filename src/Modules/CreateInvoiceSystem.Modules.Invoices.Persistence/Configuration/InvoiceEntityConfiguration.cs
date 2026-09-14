@@ -11,12 +11,11 @@ public class InvoiceEntityConfiguration : IEntityTypeConfiguration<InvoiceEntity
         builder.ToTable("Invoices");
 
         builder.HasKey(i => i.InvoiceId);
+        builder.HasIndex(i => new { i.UserId, i.Title }).IsUnique();
         builder.Property(i => i.InvoiceId).ValueGeneratedOnAdd();
-
         builder.Property(i => i.TotalNet).HasPrecision(38, 2);
         builder.Property(i => i.TotalVat).HasPrecision(38, 2);
         builder.Property(i => i.TotalGross).HasPrecision(38, 2);
-
         builder.Property(i => i.Title).HasMaxLength(250);
         builder.Property(i => i.MethodOfPayment).HasMaxLength(100);
         builder.Property(i => i.SellerName).HasMaxLength(200).IsRequired(false); ;
@@ -29,6 +28,6 @@ public class InvoiceEntityConfiguration : IEntityTypeConfiguration<InvoiceEntity
         builder.Property(i => i.ClientEmail).HasMaxLength(250).IsRequired(false);
         builder.Property(i => i.Comments).IsRequired(false);
         builder.Property(i => i.ClientId).IsRequired(false);
-        builder.Property(i => i.UserId).IsRequired();
+        builder.Property(i => i.UserId).IsRequired();        
     }
 }

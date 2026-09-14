@@ -11,16 +11,28 @@ using Xunit.Abstractions;
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
 [Collection("Integration tests")]
-public class DeleteProductIntegrationTests 
+public class DeleteProductIntegrationTests : IAsyncLifetime
 {
+    private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public DeleteProductIntegrationTests(IntegrationTestFixture integrationTestFixture, ITestOutputHelper output)
+    public DeleteProductIntegrationTests(IntegrationTestFixture integrationTestFixture)
     {
+        _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
+    }
+
+    public Task InitializeAsync()
+    {
+        return _integrationTestFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -106,5 +118,5 @@ public class DeleteProductIntegrationTests
         await db.SaveChangesAsync();
 
         return product.ProductId;
-    }
+    }    
 }
