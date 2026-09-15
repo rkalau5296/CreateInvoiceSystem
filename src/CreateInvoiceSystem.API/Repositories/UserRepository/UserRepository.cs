@@ -348,6 +348,16 @@ public class UserRepository : IUserRepository
         return UserMapper.ToUserSession(entity);
     }
 
+    public async Task<UserSession?> GetSessionByUserAndSessionIdAsync(int userId, Guid sessionId, CancellationToken cancellationToken)
+    {
+        var entity = await _db.Set<UserSessionEntity>()
+            .FirstOrDefaultAsync(
+                s => s.UserId == userId && s.SessionId == sessionId,
+                cancellationToken);
+
+        return UserMapper.ToUserSession(entity);
+    }
+
     public async Task<int> GetLoggedUserId(CancellationToken cancellationToken = default)
     {
         var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);

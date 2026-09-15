@@ -13,13 +13,13 @@ public class JwtProviderTests
     private readonly JwtProvider _jwtProvider;
 
     public JwtProviderTests()
-    {        
+    {
         var testSettings = new Dictionary<string, string>
         {
-            {"Jwt:Key", "secret_key_with_at_least_32_characters_long"},
-            {"Jwt:Issuer", "CreateInvoiceSystem"},
-            {"Jwt:Audience", "CreateInvoiceSystemUsers"},
-            {"Jwt:ExpiryMinutes", "5"} 
+            { "Jwt:Key", "secret_key_with_at_least_32_characters_long" },
+            { "Jwt:Issuer", "CreateInvoiceSystem" },
+            { "Jwt:Audience", "CreateInvoiceSystemUsers" },
+            { "Jwt:ExpiryMinutes", "5" }
         };
 
         _configuration = new ConfigurationBuilder()
@@ -38,15 +38,17 @@ public class JwtProviderTests
             "jan@test.pl",
             "Test Corp",
             "1234567890",
-            new List<string> { "Admin", "User" }
-        );
+            new List<string> { "Admin", "User" });
+
+        var refreshToken = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
 
         // Act
-        var result = _jwtProvider.Generate(userModel);
+        var result = _jwtProvider.Generate(userModel, refreshToken, sessionId);
 
         // Assert
         result.AccessToken.Should().NotBeNullOrWhiteSpace();
-        result.RefreshToken.Should().NotBe(Guid.Empty);
+        result.RefreshToken.Should().Be(refreshToken);
 
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(result.AccessToken);
@@ -58,8 +60,15 @@ public class JwtProviderTests
         token.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Email && c.Value == "jan@test.pl");
         token.Claims.Should().Contain(c => c.Type == "company_name" && c.Value == "Test Corp");
         token.Claims.Should().Contain(c => c.Type == "nip" && c.Value == "1234567890");
+        token.Claims.Should().Contain(
+            c => c.Type == JwtRegisteredClaimNames.Sid &&
+                 c.Value == sessionId.ToString());
+        token.Claims.Should().NotContain(c => c.Type == "refresh_token");
 
-        var roles = token.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+        var roles = token.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value);
+
         roles.Should().Contain(new[] { "Admin", "User" });
     }
 
@@ -67,14 +76,22 @@ public class JwtProviderTests
     public void Generate_ShouldSetCorrectExpirationTime()
     {
         // Arrange
-        var userModel = new IdentityUserModel(1, "t@t.pl", "C", "N", new List<string>());
+        var userModel = new IdentityUserModel(
+            1,
+            "t@t.pl",
+            "C",
+            "N",
+            new List<string>());
+
+        var refreshToken = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
 
         // Act
-        var result = _jwtProvider.Generate(userModel);
+        var result = _jwtProvider.Generate(userModel, refreshToken, sessionId);
         var token = new JwtSecurityTokenHandler().ReadJwtToken(result.AccessToken);
 
         // Assert
-        token.ValidTo.Should().BeAfter(DateTime.UtcNow);        
+        token.ValidTo.Should().BeAfter(DateTime.UtcNow);
         token.ValidTo.Should().BeBefore(DateTime.UtcNow.AddMinutes(6));
     }
 }

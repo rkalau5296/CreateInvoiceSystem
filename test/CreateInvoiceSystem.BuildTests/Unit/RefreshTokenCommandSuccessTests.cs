@@ -69,6 +69,7 @@ namespace CreateInvoiceSystem.BuildTests.Unit
             // Arrange
             var oldRefreshToken = Guid.NewGuid();
             var newRefreshToken = Guid.NewGuid();
+            var sessionId = Guid.NewGuid();
             var request = new RefreshTokenRequest(oldRefreshToken);
             var userId = 1;
             var email = "test@example.com";
@@ -76,6 +77,7 @@ namespace CreateInvoiceSystem.BuildTests.Unit
             var activeSession = new UserSession
             {
                 UserId = userId,
+                SessionId = sessionId,
                 RefreshToken = oldRefreshToken,
                 IsRevoked = false,
                 LastActivityAt = DateTime.UtcNow.AddMinutes(-2) 
@@ -98,7 +100,7 @@ namespace CreateInvoiceSystem.BuildTests.Unit
                 .ReturnsAsync(user);
 
             _userAuthServiceMock
-                .Setup(x => x.GenerateAuthResponse(It.Is<UserAuthModel>(m => m.Id == userId && m.Email == email)))
+                .Setup(x => x.GenerateAuthResponse(It.Is<UserAuthModel>(m => m.Id == userId && m.Email == email), sessionId))
                 .Returns(expectedResponse);
 
             var command = new RefreshTokenCommand(
@@ -118,6 +120,10 @@ namespace CreateInvoiceSystem.BuildTests.Unit
                 x.UpdateSessionAsync(activeSession, It.IsAny<CancellationToken>()),
                 Times.Once);
             activeSession.IsRevoked.Should().BeFalse();
+            _userAuthServiceMock.Verify(x => x.GenerateAuthResponse(
+                It.Is<UserAuthModel>(m => m.Id == userId && m.Email == email),
+                sessionId),
+                Times.Once);
         }
     }
 }

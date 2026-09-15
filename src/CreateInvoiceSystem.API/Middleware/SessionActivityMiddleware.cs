@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace CreateInvoiceSystem.API.Middleware
@@ -36,21 +37,18 @@ namespace CreateInvoiceSystem.API.Middleware
                     return;
                 }
 
-                var refreshTokenClaim = context.User?.FindFirst("refresh_token")?.Value;
+                var sessionIdClaim = context.User?.FindFirst(JwtRegisteredClaimNames.Sid)?.Value;
 
-                if (string.IsNullOrEmpty(refreshTokenClaim))
+                if (!Guid.TryParse(sessionIdClaim, out var sessionId))
                 {
-                    _logger.LogDebug("Refresh token nie znaleziony w claims - pomijanie aktualizacji LastActivityAt");
+                    _logger.LogWarning("Nie udało się pobrać SessionId z claims");
                     return;
                 }
 
-                if (!Guid.TryParse(refreshTokenClaim, out var refreshToken))
-                {
-                    _logger.LogWarning("Nie udało się sparserować refresh tokenu: {RefreshToken}", refreshTokenClaim);
-                    return;
-                }
-
-                var session = await userRepository.GetSessionByTokenAsync(refreshToken, default);
+                var session = await userRepository.GetSessionByUserAndSessionIdAsync(
+                    userId,
+                    sessionId,
+                    default);
 
                 if (session == null)
                 {

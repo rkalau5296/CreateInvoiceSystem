@@ -8,7 +8,7 @@ namespace CreateInvoiceSystem.API.Adapters.UserAuthAdapter;
 
 public class UserAuthServiceAdapter(IJwtProvider _jwtProvider) : IUserAuthService
 {
-    public AuthResponse GenerateAuthResponse(UserAuthModel user)
+    public AuthResponse GenerateAuthResponse(UserAuthModel user, Guid sessionId)
     {        
         var identityUser = new IdentityUserModel(
             user.Id,
@@ -18,7 +18,9 @@ public class UserAuthServiceAdapter(IJwtProvider _jwtProvider) : IUserAuthServic
             new List<string>()
         );
 
-        var tokenResponse = _jwtProvider.Generate(identityUser);
+        var refreshToken = Guid.NewGuid();
+
+        var tokenResponse = _jwtProvider.Generate(identityUser, refreshToken, sessionId);
 
         return new AuthResponse(tokenResponse.AccessToken, tokenResponse.RefreshToken);
     }

@@ -7,5 +7,6 @@ public class UserSessionEntity
     public Guid RefreshToken { get; set; }
     public DateTime LastActivityAt { get; set; }
     public bool IsRevoked { get; set; }
-    
+    public Guid SessionId { get; set; }
+
 }

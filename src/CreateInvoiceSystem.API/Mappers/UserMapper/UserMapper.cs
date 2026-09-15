@@ -247,6 +247,7 @@ internal static class UserMapper
         {
             Id = s.Id,
             UserId = s.UserId,
+            SessionId = s.SessionId,
             RefreshToken = s.RefreshToken,
             LastActivityAt = s.LastActivityAt,
             IsRevoked = s.IsRevoked
@@ -260,6 +261,7 @@ internal static class UserMapper
         {
             Id = e.Id,
             UserId = e.UserId,
+            SessionId = e.SessionId,
             RefreshToken = e.RefreshToken,
             LastActivityAt = e.LastActivityAt,
             IsRevoked = e.IsRevoked
