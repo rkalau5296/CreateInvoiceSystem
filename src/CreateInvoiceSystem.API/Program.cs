@@ -59,6 +59,14 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+    options.AddPolicy("AllowConfiguredOrigins", policy =>
+    {
+        var frontendUrl = builder.Configuration["FrontendUrl"]?.TrimEnd('/');
+
+        policy.WithOrigins(frontendUrl ?? string.Empty)
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 builder.Services.AddAbstractionsModule();
@@ -69,15 +77,6 @@ builder.Services.AddNbpModule(builder.Configuration);
 builder.Services.AddScoped<INbpApiRestService, NbpApiRestService>();
 builder.Services.AddMailModule();
 builder.Services.AddUserModule();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazor", policy =>
-    {
-        policy.WithOrigins("https://localhost:7022", "http://localhost:5004")
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
@@ -102,7 +101,7 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowConfiguredOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSessionActivityTracking();
