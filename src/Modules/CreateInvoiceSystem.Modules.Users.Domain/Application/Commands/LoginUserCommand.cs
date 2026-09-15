@@ -30,23 +30,26 @@ public class LoginUserCommand : CommandBase<LoginUserDto, UserTokenResult, IUser
         var authenticatedUser = await _userRepository.CheckPasswordAsync(initialUser, this.Parametr.Password)
             ?? throw new UnauthorizedAccessException("Błędny użytkownik lub hasło.");
 
+        var sessionId = Guid.NewGuid();
         var roles = await _userRepository.GetRolesAsync(authenticatedUser, cancellationToken);
-        
+
         var (accessToken, refreshToken) = _tokenService.CreateToken(
             authenticatedUser.UserId,
             authenticatedUser.Email,
             authenticatedUser.CompanyName,
             authenticatedUser.Nip,
-            roles);
-        
+            roles,
+            sessionId);
+
         var session = new UserSession
         {
             UserId = authenticatedUser.UserId,
+            SessionId = sessionId,
             RefreshToken = refreshToken,
-            LastActivityAt = DateTime.UtcNow, 
+            LastActivityAt = DateTime.UtcNow,
             IsRevoked = false
         };
-        
+
         await _userRepository.AddSessionAsync(session, cancellationToken);
 
         return new UserTokenResult(accessToken, refreshToken);

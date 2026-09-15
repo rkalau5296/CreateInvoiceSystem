@@ -5,6 +5,6 @@ namespace CreateInvoiceSystem.Modules.Users.Domain.Interfaces
 {
     public interface IUserAuthService
     {
-        AuthResponse GenerateAuthResponse(UserAuthModel user);
+        AuthResponse GenerateAuthResponse(UserAuthModel user, Guid sessionId);
     }
 }

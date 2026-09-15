@@ -1,6 +1,4 @@
-﻿// src/CreateInvoiceSystem.API/Adapters/UserTokenAdapter/UserTokenAdapter.cs
-
-using CreateInvoiceSystem.Identity.Interfaces;
+﻿using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Identity.Models;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
@@ -8,11 +6,11 @@ namespace CreateInvoiceSystem.API.Adapters.UserTokenAdapter
 {
     public class UserTokenAdapter(IJwtProvider _jwtProvider) : IUserTokenService
     {
-        public (string AccessToken, Guid RefreshToken) CreateToken(int userId, string email, string company, string nip, List<string> roles)
+        public (string AccessToken, Guid RefreshToken) CreateToken(int userId, string email, string company, string nip, List<string> roles, Guid sessionId)
         {
             var refreshToken = Guid.NewGuid();
             var model = new IdentityUserModel(userId, email, company, nip, roles);
-            var identityResult = _jwtProvider.Generate(model, refreshToken);
+            var identityResult = _jwtProvider.Generate(model, refreshToken, sessionId);
 
             return (identityResult.AccessToken, identityResult.RefreshToken);
         }

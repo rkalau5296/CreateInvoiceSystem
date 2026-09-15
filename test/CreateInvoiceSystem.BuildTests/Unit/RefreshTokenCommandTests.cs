@@ -5,7 +5,6 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
 
-
 namespace CreateInvoiceSystem.BuildTests.Unit
 {
     public class RefreshTokenCommandTests
@@ -57,11 +56,13 @@ namespace CreateInvoiceSystem.BuildTests.Unit
             // Arrange
             var refreshToken = Guid.NewGuid();
             var newRefreshToken = Guid.NewGuid();
+            var sessionId = Guid.NewGuid();
             var request = new RefreshTokenRequest(refreshToken);
 
             var activeSession = new UserSession
             {
                 UserId = 1,
+                SessionId = sessionId,
                 RefreshToken = refreshToken,
                 IsRevoked = false,
                 LastActivityAt = DateTime.UtcNow.AddMinutes(-10)
@@ -78,8 +79,7 @@ namespace CreateInvoiceSystem.BuildTests.Unit
 
             var authResponse = new AuthResponse(
                 "new_access_token",
-                newRefreshToken
-            );
+                newRefreshToken);
 
             _userRepositoryMock
                 .Setup(x => x.GetSessionByTokenAsync(refreshToken, It.IsAny<CancellationToken>()))
@@ -90,7 +90,9 @@ namespace CreateInvoiceSystem.BuildTests.Unit
                 .ReturnsAsync(user);
 
             _userAuthServiceMock
-                .Setup(x => x.GenerateAuthResponse(It.IsAny<UserAuthModel>()))
+                .Setup(x => x.GenerateAuthResponse(
+                    It.IsAny<UserAuthModel>(),
+                    sessionId))
                 .Returns(authResponse);
 
             var command = new RefreshTokenCommand(
@@ -105,10 +107,21 @@ namespace CreateInvoiceSystem.BuildTests.Unit
             result.AccessToken.Should().Be("new_access_token");
             result.RefreshToken.Should().Be(newRefreshToken);
 
-            activeSession.LastActivityAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            activeSession.RefreshToken.Should().Be(newRefreshToken);
+            activeSession.SessionId.Should().Be(sessionId);
+            activeSession.LastActivityAt.Should().BeCloseTo(
+                DateTime.UtcNow,
+                TimeSpan.FromSeconds(1));
+
+            _userAuthServiceMock.Verify(x => x.GenerateAuthResponse(
+                It.Is<UserAuthModel>(model =>
+                    model.Id == user.UserId &&
+                    model.Email == user.Email),
+                sessionId),
+                Times.Once);
 
             _userRepositoryMock.Verify(x =>
-                x.UpdateSessionAsync(It.IsAny<UserSession>(), It.IsAny<CancellationToken>()),
+                x.UpdateSessionAsync(activeSession, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

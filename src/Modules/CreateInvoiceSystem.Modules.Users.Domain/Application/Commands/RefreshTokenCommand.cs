@@ -4,10 +4,7 @@ using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands
 {
-    public class RefreshTokenCommand(
-    RefreshTokenRequest request,
-    IUserRepository _userRepository,
-    IUserAuthService _userAuthService)
+    public class RefreshTokenCommand(RefreshTokenRequest request, IUserRepository _userRepository, IUserAuthService _userAuthService)
     {
         public async Task<AuthResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -29,7 +26,7 @@ namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands
 
             var authModel = new UserAuthModel(user.UserId, user.Email);
 
-            var authResponse = _userAuthService.GenerateAuthResponse(authModel);
+            var authResponse = _userAuthService.GenerateAuthResponse(authModel, session.SessionId);
 
             session.RefreshToken = authResponse.RefreshToken;
             session.LastActivityAt = DateTime.UtcNow;

@@ -13,11 +13,13 @@ public class UserSessionEntityConfiguration : IEntityTypeConfiguration<UserSessi
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).ValueGeneratedOnAdd();
 
-        builder.Property(s => s.RefreshToken)
-               .IsRequired();
+        builder.Property(s => s.SessionId).IsRequired();
 
-        builder.HasIndex(s => s.RefreshToken)
-               .IsUnique();
+        builder.HasIndex(s => s.SessionId).IsUnique();
+
+        builder.Property(s => s.RefreshToken).IsRequired();
+
+        builder.HasIndex(s => s.RefreshToken).IsUnique();
 
         builder.HasOne<UserEntity>()
                .WithMany()
