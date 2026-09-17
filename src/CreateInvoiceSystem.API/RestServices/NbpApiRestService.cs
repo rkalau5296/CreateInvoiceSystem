@@ -26,7 +26,7 @@ namespace CreateInvoiceSystem.API.RestServices
             if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK )
                 throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
 
-            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content);
+            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content!)!;
         }
 
         public async Task<List<CurrencyRatesTable>> GetActualCurrencyRatesAsync(string baseUrl, string table, CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace CreateInvoiceSystem.API.RestServices
             if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
 
-            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content);
+            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content!)!;
         }
 
         public async Task<CurrencyRatesTable> GetSeriesCurrencyRateFromToAsync(string baseUrl, string table, string currencyCode, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ namespace CreateInvoiceSystem.API.RestServices
             if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
 
-            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content);
+            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content!)!;
         }
 
         public async Task<List<CurrencyRatesTable>> GetSeriesCurrencyRatesFromToAsync(string baseUrl, string table, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace CreateInvoiceSystem.API.RestServices
             if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
 
-            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content);
+            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content!)!;
         }
     }
 }

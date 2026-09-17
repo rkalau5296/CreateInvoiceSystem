@@ -19,7 +19,7 @@ public static class ProductMapper
 
     public static Product ToDomain(ProductEntity e)
     {
-        if (e == null) return null;
+        if (e == null) return null!;
 
         return new Product
         {
@@ -33,6 +33,6 @@ public static class ProductMapper
 
     public static List<Product> ToDomainList(IEnumerable<ProductEntity> entities)
     {
-        return entities?.Select(ToDomain).Where(p => p != null).ToList() ?? new List<Product>();
+        return entities?.Select(ToDomain).Where(p => p != null).ToList() ?? [];
     }
 }

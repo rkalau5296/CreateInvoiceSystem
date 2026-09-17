@@ -70,7 +70,7 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .AddAsync(entity, cancellationToken);
     }
 
-    public async Task<Client?> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, string email, CancellationToken cancellationToken)
+    public async Task<Client> GetClientAsync(string name, string street, string number, string city, string postalCode, string country, int userId, string email, CancellationToken cancellationToken)
     {
         var clientEntity = await (from client in _db.Set<ClientEntity>().AsNoTracking()
                                   join address in _db.Set<AddressEntity>().AsNoTracking()
@@ -86,7 +86,7 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
                                   select new { client, address })
                         .FirstOrDefaultAsync(cancellationToken);
 
-        if (clientEntity == null) return null;
+        if (clientEntity == null) return null!;
 
         return InvoiceMapper.MapClient(clientEntity.client, clientEntity.address);
     }
@@ -208,7 +208,7 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         return new PagedResult<Invoice>(items, totalCount, pageNumber, pageSize);
     }
 
-    public async Task<Product?> GetProductAsync(string name, string description, decimal? value, int userId, CancellationToken cancellationToken)
+    public async Task<Product> GetProductAsync(string name, string description, decimal? value, int userId, CancellationToken cancellationToken)
     {
         var product = await _db.Set<ProductEntity>()
             .AsNoTracking()
@@ -220,17 +220,17 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .FirstOrDefaultAsync(cancellationToken);
 
         if (product == null)
-            return null;
+            return null!;
 
         return InvoiceMapper.MapProduct(product);
     }
 
-    public async Task<Product?> GetProductByIdAsync(int productId, CancellationToken cancellationToken)
+    public async Task<Product> GetProductByIdAsync(int productId, CancellationToken cancellationToken)
     {
         var product = await _db.Set<ProductEntity>().AsNoTracking().SingleOrDefaultAsync(p => p.ProductId == productId, cancellationToken);
 
         if (product == null)
-            return null;
+            return null!;
 
         return InvoiceMapper.MapProduct(product);
     }
@@ -324,10 +324,10 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         return await _db.Set<UserEntity>()
             .Where(u => u.Id == userId)
             .Select(u => u.Email)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(ct) ?? string.Empty;
     }
 
-    public async Task<User?> GetUserByIdAsync(int userId, CancellationToken ct)
+    public async Task<User> GetUserByIdAsync(int userId, CancellationToken ct)
     {
         var result = await (from u in _db.Set<UserEntity>()
                             join a in _db.Set<AddressEntity>() on u.AddressId equals a.AddressId

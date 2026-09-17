@@ -27,7 +27,7 @@ public class LoginUserCommand : CommandBase<LoginUserDto, UserTokenResult, IUser
         {
             throw new UnauthorizedAccessException("Konto nie jest aktywne. Sprawdź e-mail, aby dokończyć rejestrację.");
         }
-        var authenticatedUser = await _userRepository.CheckPasswordAsync(initialUser, this.Parametr.Password)
+        var authenticatedUser = await _userRepository.CheckPasswordAsync(initialUser!, this.Parametr.Password)
             ?? throw new UnauthorizedAccessException("Błędny użytkownik lub hasło.");
 
         var sessionId = Guid.NewGuid();
