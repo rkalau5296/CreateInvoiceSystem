@@ -6,9 +6,9 @@ namespace CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 public class UserEntity : IdentityUser<int>
 {   
-    public string Name { get; set; }   
-    public string CompanyName { get; set; }
-    public string Nip { get; set; }    
+    public string Name { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
+    public string Nip { get; set; } = string.Empty;
     public int AddressId { get; set; }
     public string? BankAccountNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
