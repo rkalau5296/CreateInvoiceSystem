@@ -34,6 +34,8 @@ builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = false;
 }).AddJsonOptions(_ => { })
+  .AddMvcOptions(mvcOptions =>
+      mvcOptions.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
   .AddApplicationPart(typeof(ExportController).Assembly);
 
 builder.Services.AddSwaggerModule();

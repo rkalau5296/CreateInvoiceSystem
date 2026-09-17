@@ -10,7 +10,7 @@ public record CreateInvoiceDto
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public int UserId { get; set; }
-    public string UserEmail { get; set; } = string.Empty;
+    public string? UserEmail { get; set; } 
     public int? ClientId { get; set; }
     public CreateClientDto Client { get; set; } = null!;
     public string SellerName { get; set; } = string.Empty;
