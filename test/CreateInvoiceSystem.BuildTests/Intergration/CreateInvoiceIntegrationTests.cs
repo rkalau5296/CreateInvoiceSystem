@@ -245,7 +245,7 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            invoice);
+            invoice);       
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
