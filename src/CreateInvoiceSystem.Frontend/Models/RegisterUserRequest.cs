@@ -18,7 +18,7 @@ public record RegisterUserDto
 
     [Required]
     [Compare(nameof(Password), ErrorMessage = "Hasła muszą być takie same.")]
-    public string ConfirmPassword { get; set; }
+    public string? ConfirmPassword { get; set; }
 
     [Required(ErrorMessage = "Imię i nazwisko jest wymagane.")]
     public string Name { get; set; } = string.Empty;
