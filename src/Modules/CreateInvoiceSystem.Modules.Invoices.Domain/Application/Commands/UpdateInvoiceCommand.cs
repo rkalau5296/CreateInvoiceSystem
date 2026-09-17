@@ -153,7 +153,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         {
             var product = await GetOrCreateProductAsync(
                 incomingPosition.ProductName,
-                incomingPosition.ProductDescription,
+                incomingPosition.ProductDescription ?? string.Empty,
                 incomingPosition.ProductValue,
                 invoice.UserId,
                 invoiceRepository,

@@ -55,9 +55,9 @@ public class InvoiceController : ApiControllerBase
         var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
 
-        var secureDto = invoiceDto with { UserId = actualUserId, UserEmail = User.FindFirstValue(ClaimTypes.Email) };
+        var secureDto = invoiceDto with { UserId = actualUserId, UserEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty };
 
-        invoiceDto.UserEmail = User.FindFirstValue(ClaimTypes.Email);
+        invoiceDto.UserEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
         CreateInvoiceRequest request = new(secureDto) { UserId = actualUserId };
 
         return await HandleRequest<CreateInvoiceRequest, CreateInvoiceResponse>(request, cancellationToken);
