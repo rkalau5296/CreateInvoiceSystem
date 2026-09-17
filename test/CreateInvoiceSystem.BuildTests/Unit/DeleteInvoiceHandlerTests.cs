@@ -44,7 +44,7 @@ public class DeleteInvoiceHandlerTests
             null,       
             userId,
             "Transfer", 
-            null,       
+            null!,       
             "SellerName",
             "SellerNip",
             "SellerAddress",

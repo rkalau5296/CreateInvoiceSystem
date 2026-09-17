@@ -85,7 +85,7 @@ public class DeleteInvoiceCommandTests
         var command = new DeleteInvoiceCommand { Parametr = invoiceParam };
 
         _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Invoice)null);
+            .ReturnsAsync((Invoice)null!);
 
         // Act
         Func<Task> act = async () => await command.Execute(_repositoryMock.Object);

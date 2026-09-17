@@ -55,7 +55,7 @@ public class ForgotPasswordHandlerTests
         var request = new ForgotPasswordRequest(new ForgotPasswordDto(email));
 
         _userRepositoryMock.Setup(x => x.FindByEmailAsync(email))
-            .ReturnsAsync((User)null);
+            .ReturnsAsync((User)null!);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -76,7 +76,7 @@ public class ForgotPasswordHandlerTests
     public async Task Handle_ShouldThrowArgumentNullException_WhenDtoIsNull()
     {
         // Arrange
-        var request = new ForgotPasswordRequest(null);
+        var request = new ForgotPasswordRequest(null!);
 
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);

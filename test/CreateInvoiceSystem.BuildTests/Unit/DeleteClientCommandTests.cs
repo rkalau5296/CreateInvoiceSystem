@@ -100,7 +100,7 @@ public class DeleteClientCommandTests
             ClientId = 1,
             UserId = 1,
             AddressId = 0,
-            Address = null 
+            Address = null!
         };
 
         var command = new DeleteClientCommand { Parametr = clientEntity };

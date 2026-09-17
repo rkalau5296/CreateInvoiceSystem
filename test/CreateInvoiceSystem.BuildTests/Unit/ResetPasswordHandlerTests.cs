@@ -113,7 +113,7 @@ public class ResetPasswordHandlerTests
 
         _userRepositoryMock
             .Setup(x => x.FindByEmailAsync(request.Email))
-            .ReturnsAsync((User)null);
+            .ReturnsAsync((User)null!);
 
         // Act
         Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
@@ -130,7 +130,7 @@ public class ResetPasswordHandlerTests
         // Arrange
         var command = new ResetPasswordCommand
         {
-            Parametr = null
+            Parametr = null!
         };
 
         // Act

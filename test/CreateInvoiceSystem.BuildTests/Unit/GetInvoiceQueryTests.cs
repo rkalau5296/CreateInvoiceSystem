@@ -46,7 +46,7 @@ public class GetInvoiceQueryTests
         var query = new GetInvoiceQuery(userId, invoiceId);
 
         _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Invoice)null);
+            .ReturnsAsync((Invoice)null!);
 
         // Act
         Func<Task> act = async () => await query.Execute(_repositoryMock.Object);

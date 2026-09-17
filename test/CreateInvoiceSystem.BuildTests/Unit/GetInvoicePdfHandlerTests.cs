@@ -87,7 +87,7 @@ public class GetInvoicePdfHandlerTests
 
         _queryExecutorMock
             .Setup(x => x.Execute(It.IsAny<GetInvoiceQuery>(), _invoiceRepositoryMock.Object, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Invoice)null);
+            .ReturnsAsync((Invoice)null!);
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
