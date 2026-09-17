@@ -2,11 +2,11 @@
 
 public record CurrencyRate
 {
-    public string Currency { get; set; }
-    public string Code { get; set; }
+    public string? Currency { get; set; }
+    public string? Code { get; set; }
     public double? Bid { get; set; }
     public double? Ask { get; set; }
     public DateTime EffectiveDate { get; set; }
     public double Mid { get; set; }
-    public string No { get; set; }
+    public string? No { get; set; }
 }

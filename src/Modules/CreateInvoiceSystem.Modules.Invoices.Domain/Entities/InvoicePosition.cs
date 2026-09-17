@@ -4,9 +4,9 @@ public class InvoicePosition
     public int InvoicePositionId { get; set; }
     public int InvoiceId { get; set; }    
     public int? ProductId { get; set; }
-    public Product Product { get; set; }
-    public string ProductName { get; set; }
-    public string ProductDescription { get; set; }
+    public Product Product { get; set; } = null!;
+    public string ProductName { get; set; } = string.Empty;
+    public string ProductDescription { get; set; } = string.Empty;
     public decimal? ProductValue { get; set; }
     public int Quantity { get; set; }
 

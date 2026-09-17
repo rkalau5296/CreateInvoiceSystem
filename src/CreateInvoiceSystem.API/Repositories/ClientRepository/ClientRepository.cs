@@ -76,7 +76,7 @@ public class ClientRepository(IDbContext db) : IClientRepository
         var items = clients.Select(c =>
         {
             var addr = addresses.SingleOrDefault(a => a.AddressId == c.AddressId);
-            return ClientMapper.ToDomain(c, addr);
+            return ClientMapper.ToDomain(c, addr!);
         }).ToList();
 
         return new PagedResult<Client>(items, totalCount, pageNumber, pageSize);

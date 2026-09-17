@@ -54,7 +54,6 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
         invoice.MethodOfPayment =
             Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
-
         invoice.ClientAddress =
             Parametr.ClientAddress ?? invoice.ClientAddress;
         invoice.ClientName =
@@ -153,7 +152,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         {
             var product = await GetOrCreateProductAsync(
                 incomingPosition.ProductName,
-                incomingPosition.ProductDescription,
+                incomingPosition.ProductDescription ?? string.Empty,
                 incomingPosition.ProductValue,
                 invoice.UserId,
                 invoiceRepository,

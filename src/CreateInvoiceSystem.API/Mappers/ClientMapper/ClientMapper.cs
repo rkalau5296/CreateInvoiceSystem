@@ -17,7 +17,7 @@ public static class ClientMapper
             AddressId = c.AddressId,
             UserId = c.UserId,
             Email = c.Email,
-            Address = a is null ? null : new Address
+            Address = a is null ? null! : new Address
             {
                 AddressId = a.AddressId,
                 Street = a.Street,

@@ -6,5 +6,5 @@ public interface IJwtProvider
 {
     TokenResponse Generate(IdentityUserModel userModel, Guid refreshToken, Guid sessionId);
     string GenerateActivationToken(string email, int expiresHours);
-    string? GetEmailFromActivationToken(string token);
+    string GetEmailFromActivationToken(string token);
 }

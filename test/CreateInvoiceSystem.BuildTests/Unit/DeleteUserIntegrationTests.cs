@@ -30,7 +30,7 @@ public class DeleteUserIntegrationTests
 
         var expectedDto = new UserDto(
             userId, "Test", "Test Corp", "test@test.pl", "pass", "123",
-            null, "123", true, [], [], []
+            null!, "123", true, [], [], []
         );
 
         _executorMock.Setup(x => x.Execute(

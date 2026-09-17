@@ -80,19 +80,23 @@ public class GetInvoicePdfHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNull_WhenInvoiceDoesNotExist()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenInvoiceDoesNotExist()
     {
         // Arrange
         var request = new GetInvoicePdfRequest(999, 100);
 
         _queryExecutorMock
-            .Setup(x => x.Execute(It.IsAny<GetInvoiceQuery>(), _invoiceRepositoryMock.Object, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Invoice)null);
+            .Setup(x => x.Execute(
+                It.IsAny<GetInvoiceQuery>(),
+                _invoiceRepositoryMock.Object,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Invoice)null!);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _handler.Handle(request, CancellationToken.None));
 
         // Assert
-        Assert.Null(result);
+        Assert.Equal("Invoice with ID 999 not found.", exception.Message);
     }
 }

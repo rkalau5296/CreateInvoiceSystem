@@ -62,7 +62,7 @@ public class UpdateInvoiceRequestValidatorTests
             Comments: "Test comments",
             ClientId: 10,
             UserId: 1,
-            Client: null,
+            Client: null!,
             MethodOfPayment: "Transfer",
             InvoicePositions: new List<UpdateInvoicePositionDto>(),
             SellerName: "My Company",

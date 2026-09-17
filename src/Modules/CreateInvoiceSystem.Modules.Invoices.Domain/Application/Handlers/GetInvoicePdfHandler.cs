@@ -15,12 +15,8 @@ namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
         public async Task<GetInvoicePdfResponse> Handle(GetInvoicePdfRequest request, CancellationToken cancellationToken)
         {
             GetInvoiceQuery query = new(request.UserId, request.InvoiceId);
-            var invoice = await queryExecutor.Execute(query, invoiceRepository, cancellationToken);
-
-            if (invoice == null)
-            {
-                return null;
-            }
+            var invoice = await queryExecutor.Execute(query, invoiceRepository, cancellationToken)
+                ?? throw new InvalidOperationException($"Invoice with ID {request.InvoiceId} not found.");
 
             var invoiceDto = InvoiceMappers.ToDto(invoice);
 

@@ -47,7 +47,7 @@ public static class InvoiceMappers
                     invoicePosition.Product.Value,
                     invoicePosition.Product.UserId                    
                   )
-                : null,
+                : null!,
             invoicePosition.ProductName,
             invoicePosition.ProductDescription,
             invoicePosition.ProductValue,
@@ -127,22 +127,22 @@ public static class InvoiceMappers
             ClientId = client.ClientId,
             Client = client,
             MethodOfPayment = dto.MethodOfPayment,
-            SellerName = dto.SellerName,
-            SellerNip = dto.SellerNip,
-            SellerAddress = dto.SellerAddress,
-            BankAccountNumber = dto.BankAccountNumber,
+            SellerName = user.CompanyName,
+            SellerNip = user.Nip,
+            SellerAddress = FormatAddress(user.Address),
+            BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
-            ClientEmail = dto.ClientEmail,
+            ClientEmail = dto.ClientEmail ?? string.Empty,
             InvoicePositions = []
         };
     }
 
     public static string FormatAddress(AddressDto address) =>
-        address == null
-            ? null
-            : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
+    address == null
+        ? string.Empty
+        : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 
     public static Invoice ToInvoiceWithExistingClient(this CreateInvoiceDto dto, Client client, User user)
     {
@@ -166,10 +166,10 @@ public static class InvoiceMappers
             ClientId = client.ClientId,
             Client = client,
             MethodOfPayment = dto.MethodOfPayment,
-            SellerName = dto.SellerName,
-            SellerNip = dto.SellerNip,
-            SellerAddress = dto.SellerAddress,
-            BankAccountNumber = dto.BankAccountNumber,
+            SellerName = user.CompanyName,
+            SellerNip = user.Nip,
+            SellerAddress = FormatAddress(user.Address),
+            BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
@@ -180,7 +180,7 @@ public static class InvoiceMappers
 
     public static string FormatAddress(Address address) =>
         address == null
-            ? null
+            ? string.Empty
             : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 
     public static List<InvoiceDto> ToDtoList(this IEnumerable<Invoice> Invoices) =>
@@ -206,7 +206,7 @@ public static class InvoiceMappers
             invoice.Client != null ? new UpdateClientDto(
                 invoice.Client.ClientId,
                 invoice.Client.Name,
-                invoice.Client.Nip,                
+                invoice.Client.Nip,
                 invoice.Client.Address != null ? new AddressDto(
                     invoice.Client.Address.AddressId,
                     invoice.Client.Address.Street,
@@ -214,10 +214,10 @@ public static class InvoiceMappers
                     invoice.Client.Address.City,
                     invoice.Client.Address.PostalCode,
                     invoice.Client.Address.Country
-                ) : null,
+                ) : null!,
                 invoice.Client.UserId,
-                invoice.Client.Email                
-            ) : null,
+                invoice.Client.Email
+            ) : null!,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
                 .Select(ip => new UpdateInvoicePositionDto(

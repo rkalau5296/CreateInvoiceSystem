@@ -21,7 +21,7 @@ public static class InvoiceMappers
                     invoicePosition.Product.UserId,
                     invoicePosition.Product.IsDeleted
                   )
-                : null,
+                : null!,
             invoicePosition.ProductName,
             invoicePosition.ProductDescription,
             invoicePosition.ProductValue,
@@ -90,7 +90,7 @@ public static class InvoiceMappers
     
     public static string FormatAddress(AddressDto address) =>
         address == null
-            ? null
+            ? string.Empty
             : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 
 
@@ -123,7 +123,7 @@ public static class InvoiceMappers
     
     public static string FormatAddress(Address address) =>
         address == null
-            ? null
+            ? string.Empty
             : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 
     public static List<InvoiceDto> ToDtoList(this IEnumerable<Invoice> Invoices) =>

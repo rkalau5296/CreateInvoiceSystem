@@ -73,7 +73,7 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string? GetEmailFromActivationToken(string token)
+    public string GetEmailFromActivationToken(string token)
     {
         if (string.IsNullOrEmpty(token)) return null;
 

@@ -40,7 +40,7 @@ public class CreateInvoiceCommandTests
         var dto = CreateBaseDto();
         dto.InvoicePositions = new List<InvoicePositionDto>
         {
-            new(0, 0, 10, null, "Laptop", "Opis", 1000m, 2, "123%")
+            new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "123%")
         };
 
         var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
@@ -58,7 +58,7 @@ public class CreateInvoiceCommandTests
         dto.ClientId = 100;
         dto.InvoicePositions = new List<InvoicePositionDto>
         {
-            new(0, 0, 10, null, "Laptop", "Opis", 1000m, 2, "23%")
+            new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "23%")
         };
 
         var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);

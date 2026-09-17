@@ -70,7 +70,7 @@ public class UserRepository : IUserRepository
                               select new { user, addr })
                           .SingleOrDefaultAsync(cancellationToken);
 
-        if (baseData == null) return null;
+        if (baseData == null) return null!;
 
         var invoices = await _db.Set<InvoiceEntity>()
             .Where(i => i.UserId == userId)
@@ -229,16 +229,16 @@ public class UserRepository : IUserRepository
     public async Task<User> CheckPasswordAsync(User user, string password)
     {
         var userEntity = await _userManager.FindByIdAsync(user.UserId.ToString());
-        if (userEntity == null) return null;
+        if (userEntity == null) return null!;
 
         var valid = await _userManager.CheckPasswordAsync(userEntity, password);
-        return valid ? UserMapper.MapLight(userEntity) : null;
+        return valid ? UserMapper.MapLight(userEntity) : null!;
     }
 
     public async Task<User> FindByEmailAsync(string email)
     {
         var userEntity = await _userManager.FindByEmailAsync(email);
-        return userEntity == null ? null : UserMapper.MapLight(userEntity);
+        return userEntity == null ? null! : UserMapper.MapLight(userEntity);
     }
 
     public async Task<List<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
@@ -345,7 +345,8 @@ public class UserRepository : IUserRepository
         var entity = await _db.Set<UserSessionEntity>()
             .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken, cancellationToken);
 
-        return UserMapper.ToUserSession(entity);
+        return UserMapper.ToUserSession(entity!);
+
     }
 
     public async Task<UserSession?> GetSessionByUserAndSessionIdAsync(int userId, Guid sessionId, CancellationToken cancellationToken)
@@ -355,7 +356,7 @@ public class UserRepository : IUserRepository
                 s => s.UserId == userId && s.SessionId == sessionId,
                 cancellationToken);
 
-        return UserMapper.ToUserSession(entity);
+        return UserMapper.ToUserSession(entity!);
     }
 
     public async Task<int> GetLoggedUserId(CancellationToken cancellationToken = default)
@@ -383,7 +384,7 @@ public class UserRepository : IUserRepository
 
         if (result.Succeeded)
         {
-            return (true, null);
+            return (true, null!);
         }
 
         var error = result.Errors.FirstOrDefault()?.Description ?? "Błąd podczas zmiany hasła.";

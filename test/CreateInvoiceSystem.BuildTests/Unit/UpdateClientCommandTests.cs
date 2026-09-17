@@ -147,7 +147,7 @@ public class UpdateClientCommandTests
         var addressDto = new AddressDto(0, "Nowa Ulica", "1", "Warszawa", "00-001", "Polska");
         var updateDto = new UpdateClientDto(1, "Klient", "123", addressDto, 0, 1, "testc@test.com");
 
-        var existingClient = new Client { ClientId = 1, UserId = 1, Name = "Klient", Address = null };
+        var existingClient = new Client { ClientId = 1, UserId = 1, Name = "Klient", Address = null! };
         var command = new UpdateClientCommand { Parametr = updateDto };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(1, 1, It.IsAny<CancellationToken>()))
