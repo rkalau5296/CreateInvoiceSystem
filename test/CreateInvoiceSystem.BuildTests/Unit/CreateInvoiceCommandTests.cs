@@ -1,9 +1,10 @@
-﻿using Moq;
-using FluentAssertions;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -11,7 +12,7 @@ public class CreateInvoiceCommandTests
 {
     private readonly Mock<IInvoiceRepository> _repositoryMock;
     private readonly Mock<IInvoiceEmailSender> _emailSenderMock;
-
+    private readonly NullLogger<CreateInvoiceCommand> _logger = NullLogger<CreateInvoiceCommand>.Instance;
     public CreateInvoiceCommandTests()
     {
         _repositoryMock = new Mock<IInvoiceRepository>();
@@ -26,7 +27,7 @@ public class CreateInvoiceCommandTests
     {
         var dto = CreateBaseDto();
         dto.InvoicePositions = new List<InvoicePositionDto>();
-        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
+        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object, _logger);
 
         Func<Task> act = async () => await command.Execute(_repositoryMock.Object);
 
@@ -43,7 +44,7 @@ public class CreateInvoiceCommandTests
             new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "123%")
         };
 
-        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
+        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object, _logger);
 
         var act = () => command.Execute(_repositoryMock.Object);
 
@@ -61,7 +62,7 @@ public class CreateInvoiceCommandTests
             new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "23%")
         };
 
-        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
+        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object, _logger);
 
         var existingClient = new Client
         {
@@ -126,7 +127,7 @@ public class CreateInvoiceCommandTests
                 "Nowy Produkt", "Opis", 500m, 1, "23%")
         };
 
-        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
+        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object, _logger);
 
         var existingClient = new Client
         {
@@ -184,7 +185,7 @@ public class CreateInvoiceCommandTests
     public async Task Execute_ShouldThrowException_WhenProductNotFoundById()
     {
         var dto = CreateBaseDto();
-        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object);
+        var command = new CreateInvoiceCommand(dto, _emailSenderMock.Object, _logger);
 
         _repositoryMock.Setup(r => r.GetUserByIdAsync(dto.UserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new User { UserId = dto.UserId, Name = "Seller" });

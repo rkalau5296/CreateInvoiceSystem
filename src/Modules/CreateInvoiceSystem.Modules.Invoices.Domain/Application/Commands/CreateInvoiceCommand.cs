@@ -3,16 +3,20 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+using Microsoft.Extensions.Logging;
+using NLog;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
 public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>
 {
     private readonly IInvoiceEmailSender _emailSender;
-    
-    public CreateInvoiceCommand(CreateInvoiceDto dto, IInvoiceEmailSender emailSender)
+    private readonly ILogger<CreateInvoiceCommand> _logger;
+
+    public CreateInvoiceCommand(CreateInvoiceDto dto, IInvoiceEmailSender emailSender, ILogger<CreateInvoiceCommand> logger)
     {
         this.Parametr = dto;
         _emailSender = emailSender;
+        _logger = logger;
     }
 
     public override async Task<InvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
@@ -47,13 +51,31 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         if (!string.IsNullOrEmpty(userEmail))
         {
-            await _emailSender.SendInvoiceCreatedEmailAsync(userEmail, entity.Title, cancellationToken);
+            try
+            {
+                await _emailSender.SendInvoiceCreatedEmailAsync(userEmail, entity.Title, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Nie udało się wysłać maila potwierdzającego wystawienie faktury {InvoiceTitle} do sprzedawcy ({UserEmail}). Faktura została zapisana.",
+                    entity.Title, userEmail);
+            }
         }        
 
         if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
-        {            
-            var dto = entity.ToDto();         
-            await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
+        {
+            try
+            {
+                var dto = entity.ToDto();
+                await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Nie udało się wysłać maila z fakturą {InvoiceTitle} do klienta ({ClientEmail}). Faktura została zapisana.",
+                    entity.Title, entity.Client.Email);
+            }
         }       
 
         return entity.ToDto();

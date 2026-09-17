@@ -6,6 +6,8 @@ using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
 using Moq;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
+using Microsoft.Extensions.Logging.Abstractions;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -25,7 +27,8 @@ public class CreateInvoiceHandlerTests
         _handler = new CreateInvoiceHandler(
             _commandExecutorMock.Object,
             _repositoryMock.Object,
-            _emailSenderMock.Object);
+            _emailSenderMock.Object,
+            NullLogger<CreateInvoiceCommand>.Instance);
     }
 
     [Fact]
