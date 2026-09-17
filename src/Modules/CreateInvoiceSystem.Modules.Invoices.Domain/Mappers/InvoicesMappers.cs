@@ -134,7 +134,7 @@ public static class InvoiceMappers
             ClientName = client.Name,
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
-            ClientEmail = dto.ClientEmail,
+            ClientEmail = dto.ClientEmail ?? string.Empty,
             InvoicePositions = []
         };
     }

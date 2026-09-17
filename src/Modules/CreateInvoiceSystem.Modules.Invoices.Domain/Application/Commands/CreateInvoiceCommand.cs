@@ -128,7 +128,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             param.Client.Address.PostalCode,
             param.Client.Address.Country,
             param.UserId,
-            param.ClientEmail,
+            param.ClientEmail ?? string.Empty,
             cancellationToken);
 
         if (client is not null)
