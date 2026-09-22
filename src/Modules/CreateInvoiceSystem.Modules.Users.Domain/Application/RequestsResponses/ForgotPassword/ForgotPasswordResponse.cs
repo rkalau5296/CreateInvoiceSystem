@@ -1,3 +1,5 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-public record ForgotPasswordResponse(bool IsSuccess, string Message, string? ResetToken = null);
+namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
+
+public record ForgotPasswordResponse(bool IsSuccess, string Message, string? ResetToken = null) : IApiResponse;

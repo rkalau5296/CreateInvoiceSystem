@@ -1,6 +1,8 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-public class ResendActivationTokenResponse
+namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
+
+public class ResendActivationTokenResponse : IApiResponse
 {
     public bool IsSuccess { get; set; }
     public string Message { get; set; } = string.Empty;
