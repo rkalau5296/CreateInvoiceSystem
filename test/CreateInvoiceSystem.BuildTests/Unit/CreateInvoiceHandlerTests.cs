@@ -5,9 +5,9 @@ using CreateInvoiceSystem.Abstractions.Executors;
 using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
 using Moq;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
-using Microsoft.Extensions.Logging.Abstractions;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;                            
+using System.Threading.Channels;
+using CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -15,20 +15,19 @@ public class CreateInvoiceHandlerTests
 {
     private readonly Mock<ICommandExecutor> _commandExecutorMock;
     private readonly Mock<IInvoiceRepository> _repositoryMock;
-    private readonly Mock<IInvoiceEmailSender> _emailSenderMock;
+    private readonly Mock<ChannelWriter<EmailTask>> _writerMock;
     private readonly CreateInvoiceHandler _handler;
 
     public CreateInvoiceHandlerTests()
     {
         _commandExecutorMock = new Mock<ICommandExecutor>();
         _repositoryMock = new Mock<IInvoiceRepository>();
-        _emailSenderMock = new Mock<IInvoiceEmailSender>();
+        _writerMock = new Mock<ChannelWriter<EmailTask>>();
 
         _handler = new CreateInvoiceHandler(
             _commandExecutorMock.Object,
             _repositoryMock.Object,
-            _emailSenderMock.Object,
-            NullLogger<CreateInvoiceCommand>.Instance);
+            _writerMock.Object);
     }
 
     [Fact]
