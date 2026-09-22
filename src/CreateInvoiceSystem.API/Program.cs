@@ -8,6 +8,8 @@ using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.DI;
 using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Services;
+using CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks;
 using CreateInvoiceSystem.Modules.Nbp.Domain.DI;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Domain.DI;
@@ -19,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using System.Globalization;
+using System.Threading.Channels;
 
 var cultureInfo = new CultureInfo("pl-PL");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
@@ -82,6 +85,10 @@ builder.Services.AddUserModule();
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
+builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTask>());
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Writer);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Reader);
+builder.Services.AddHostedService<EmailSendingService>();
 
 var app = builder.Build();
 

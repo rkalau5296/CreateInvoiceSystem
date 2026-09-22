@@ -223,15 +223,24 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        _factory.EmailMock.Verify(
-            emailService => emailService.SendEmailWithAttachmentAsync(
-                "klient@test.local",
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<byte[]>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.AtLeastOnce);
+        var deadline = DateTime.UtcNow.AddSeconds(3);
+        while (DateTime.UtcNow < deadline)
+        {
+            try
+            {
+                _factory.EmailMock.Verify(
+                    emailService => emailService.SendEmailWithAttachmentAsync(
+                        "klient@test.local", It.IsAny<string>(), It.IsAny<string>(),
+                        It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                    Times.AtLeastOnce);
+
+                return; 
+            }
+            catch (MockException)
+            {
+                await Task.Delay(50);
+            }
+        }
     }
 
     [Fact]

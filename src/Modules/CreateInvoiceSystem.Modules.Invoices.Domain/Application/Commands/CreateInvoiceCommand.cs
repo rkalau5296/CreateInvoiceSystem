@@ -1,31 +1,36 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+using Microsoft.Extensions.Logging;
+using NLog;
+using System.Threading.Channels;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
+
 public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, IInvoiceRepository>
 {
-    private readonly IInvoiceEmailSender _emailSender;
-    
-    public CreateInvoiceCommand(CreateInvoiceDto dto, IInvoiceEmailSender emailSender)
+    private readonly ChannelWriter<EmailTask> _writer;
+
+    public CreateInvoiceCommand(CreateInvoiceDto dto, ChannelWriter<EmailTask> writer)
     {
         this.Parametr = dto;
-        _emailSender = emailSender;
+        _writer = writer;
     }
 
     public override async Task<InvoiceDto> Execute(IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken = default)
     {
-        ValidateInvoiceParametr(Parametr);               
+        ValidateInvoiceParametr(Parametr);
 
         Client client = Parametr.ClientId is null
             ? await GetOrCreateClientAsync(Parametr, _invoiceRepository, cancellationToken)
             : await GetClientByIdAsync(Parametr.ClientId.Value, _invoiceRepository, cancellationToken);
 
-        if(Parametr.ClientEmail is not null)
+        if (Parametr.ClientEmail is not null)
         {
-            client.Email = Parametr.ClientEmail;             
+            client.Email = Parametr.ClientEmail;
         }
 
         User user = await _invoiceRepository.GetUserByIdAsync(Parametr.UserId, cancellationToken)
@@ -33,7 +38,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         Invoice entity = Parametr.ClientId is null
             ? InvoiceMappers.ToInvoiceWithNewClient(Parametr, client, user)
-            : InvoiceMappers.ToInvoiceWithExistingClient(Parametr, client, user);        
+            : InvoiceMappers.ToInvoiceWithExistingClient(Parametr, client, user);
 
         await AddProductsToInvoicePositionsAsync(Parametr, entity, _invoiceRepository, cancellationToken);
 
@@ -41,20 +46,20 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         entity.Title = await GenerateInvoiceNumberAsync(Parametr.UserId, _invoiceRepository, cancellationToken);
 
-        await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);        
+        await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
 
         var userEmail = await _invoiceRepository.GetUserEmailByIdAsync(Parametr.UserId, cancellationToken);
 
         if (!string.IsNullOrEmpty(userEmail))
         {
-            await _emailSender.SendInvoiceCreatedEmailAsync(userEmail, entity.Title, cancellationToken);
-        }        
+            await _writer.WriteAsync(new SellerEmailTask(userEmail, entity.Title));
+        }
 
         if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
-        {            
-            var dto = entity.ToDto();         
-            await _emailSender.SendInvoiceToClientCreatedAsync(dto, cancellationToken);
-        }       
+        {
+            var dto = entity.ToDto();
+            await _writer.WriteAsync(new ClientEmailTask(dto));
+        }
 
         return entity.ToDto();
     }
@@ -72,16 +77,16 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             throw new InvalidOperationException("Invoice must contain clientId or Client details.");
 
         foreach (var position in parametr.InvoicePositions)
-        {            
+        {
             if (position.Product is null && position.ProductId is null)
                 throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
-         
+
             if (string.IsNullOrWhiteSpace(position.VatRate))
                 throw new InvalidOperationException($"VatRate cannot be empty for product: {position.ProductName}");
 
             if (!AllowedVatRates.Contains(position.VatRate))
                 throw new InvalidOperationException($"Invalid VatRate: {position.VatRate}. Allowed values are: {string.Join(", ", AllowedVatRates)}");
-            
+
             if (position.Quantity <= 0)
                 throw new InvalidOperationException($"Quantity must be greater than 0 for product: {position.ProductName}");
         }
@@ -106,20 +111,20 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             && string.IsNullOrEmpty(client.Nip)
             && (
                 client.Address == null ||
-                
+
                     string.IsNullOrEmpty(client.Address.Street) &&
                     string.IsNullOrEmpty(client.Address.Number) &&
                     string.IsNullOrEmpty(client.Address.City) &&
                     string.IsNullOrEmpty(client.Address.PostalCode) &&
                     string.IsNullOrEmpty(client.Address.Country)
-                
+
             )
             && string.IsNullOrEmpty(client.Email);
 
     }
 
     private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {       
+    {
         var client = await _invoiceRepository.GetClientAsync(
             param.Client.Name,
             param.Client.Address.Street,
@@ -136,13 +141,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
 
         var newClient = InvoiceMappers.ToEntity(param.Client);
         newClient.UserId = param.UserId;
-        
+
         await _invoiceRepository.AddClientAsync(newClient, cancellationToken);
         return newClient;
     }
 
     private static async Task<Client> GetClientByIdAsync(int clientId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {       
+    {
         return await _invoiceRepository.GetClientByIdAsync(clientId, cancellationToken) ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
     }
 
@@ -158,7 +163,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             {
                 Quantity = position.Quantity,
                 Product = product,
-                ProductId = product.ProductId > 0 ? product.ProductId  : null,
+                ProductId = product.ProductId > 0 ? product.ProductId : null,
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 ProductValue = product.Value,
@@ -176,7 +181,7 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             position.ProductValue,
             userId,
             cancellationToken);
-        
+
         if (existing is not null) return existing;
 
         var newProduct = new Product
@@ -186,13 +191,13 @@ public class CreateInvoiceCommand : CommandBase<CreateInvoiceDto, InvoiceDto, II
             Description = position.ProductDescription,
             Value = position.ProductValue
         };
-        await _invoiceRepository.AddProductAsync(newProduct, cancellationToken);        
+        await _invoiceRepository.AddProductAsync(newProduct, cancellationToken);
         return newProduct;
     }
-    
+
     private static async Task<Product> GetProductByIdAsync(int productId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {        
+    {
         return await _invoiceRepository.GetProductByIdAsync(productId, cancellationToken) ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
 
-    }    
+    }
 }
