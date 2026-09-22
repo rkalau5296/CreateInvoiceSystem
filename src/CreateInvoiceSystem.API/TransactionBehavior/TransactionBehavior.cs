@@ -1,5 +1,4 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Persistence;
 using MediatR;
 

@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
 
@@ -250,7 +249,9 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var invoice = BuildInvoicePayload(
             userId,
-            clientEmail: null);
+            clientEmail: null,
+            clientNip: "9999999999", 
+            clientName: "Brak Emaila Sp z o.o.");
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
@@ -419,7 +420,7 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
                     Country = "Polska"
                 },
                 UserId = userId,
-                Email = clientEmail ?? string.Empty
+                Email = clientEmail
             },
 
             SellerName = "Moja Firma",

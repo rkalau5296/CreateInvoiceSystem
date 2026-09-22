@@ -1,7 +1,9 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-public class ActivateUserResponse
+namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+
+public record ActivateUserResponse : IApiResponse
 {
-    public bool IsSuccess { get; set; }
-    public string Message { get; set; } = string.Empty;
+    public bool IsSuccess { get; init; }
+    public string Message { get; init; } = string.Empty;
 }

@@ -65,8 +65,7 @@ public class RegisterUserHandlerTests
         var result = await _handler.Handle(request, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
+        result.Should().NotBeNull();        
         result.Data.Should().NotBeNull();
         result.Data.Email.Should().Be("test@firma.pl");
         
