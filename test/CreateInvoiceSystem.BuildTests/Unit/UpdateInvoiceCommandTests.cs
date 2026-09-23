@@ -219,7 +219,7 @@ public class UpdateInvoiceCommandTests
             CancellationToken.None);
 
         // Assert
-        invoice.ClientId.Should().Be(10);
+        invoice.ClientId.Should().Be(500);
 
         invoice.ClientName.Should().Be("New Corp");
         invoice.ClientNip.Should().Be("9876543210");

@@ -36,6 +36,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
     private void UpdateBasicInformation(Invoice invoice)
     {
         invoice.Title = Parametr.Title ?? invoice.Title;
+
         invoice.TotalNet = Parametr.TotalNet != default
             ? Parametr.TotalNet
             : invoice.TotalNet;
@@ -51,6 +52,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         invoice.CreatedDate = Parametr.CreatedDate != default
             ? Parametr.CreatedDate
             : invoice.CreatedDate;
+
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
         invoice.MethodOfPayment =
             Parametr.MethodOfPayment ?? invoice.MethodOfPayment;
@@ -79,7 +81,7 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         {
             var clientDto = Parametr.Client;
 
-            var existingClient = await invoiceRepository.GetClientAsync(
+            var client = await invoiceRepository.GetClientAsync(
                 clientDto.Name,
                 clientDto.Address.Street,
                 clientDto.Address.Number,
@@ -90,20 +92,21 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
                 clientDto.Email,
                 cancellationToken);
 
-            if (existingClient is null)
+            if (client is null)
             {
-                var newClient = MapToNewClient(
+                client = MapToNewClient(
                     clientDto,
                     invoice.UserId);
 
                 await invoiceRepository.AddClientAsync(
-                    newClient,
+                    client,
                     cancellationToken);
             }
-
-            invoice.ClientName = clientDto.Name;
-            invoice.ClientNip = clientDto.Nip;
-            invoice.ClientEmail = clientDto.Email;
+            
+            invoice.ClientId = client.ClientId > 0 ? client.ClientId : invoice.ClientId;
+            invoice.ClientName = client.Name;
+            invoice.ClientNip = client.Nip;
+            invoice.ClientEmail = client.Email;
             invoice.ClientAddress = FormatAddress(clientDto.Address);
 
             return;
@@ -119,11 +122,11 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
             ?? throw new InvalidOperationException(
                 $"Client with ID {Parametr.ClientId.Value} not found.");
 
+        invoice.ClientId = existingClientById.ClientId;
         invoice.ClientName = existingClientById.Name;
         invoice.ClientNip = existingClientById.Nip;
         invoice.ClientEmail = existingClientById.Email;
-        invoice.ClientAddress =
-            FormatAddress(existingClientById.Address);
+        invoice.ClientAddress = FormatAddress(existingClientById.Address);
     }
 
     private async Task SyncInvoicePositions(Invoice invoice, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
@@ -197,7 +200,16 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
         }
     }
 
-    private static string FormatAddress(dynamic address)
+    private static string FormatAddress(AddressDto? address)
+    {
+        return address is null
+            ? string.Empty
+            : $"{address.Street} {address.Number}, "
+              + $"{address.PostalCode} {address.City}, "
+              + address.Country;
+    }
+
+    private static string FormatAddress(Address? address)
     {
         return address is null
             ? string.Empty
