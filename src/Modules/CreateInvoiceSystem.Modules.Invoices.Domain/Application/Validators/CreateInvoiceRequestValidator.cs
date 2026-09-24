@@ -39,7 +39,7 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         RuleFor(p => p.Invoice.TotalNet)
             .NotEmpty().WithMessage("TotalNet is required.")
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
 
@@ -56,7 +56,7 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         RuleFor(p => p.Invoice.TotalGross)
             .NotEmpty().WithMessage("TotalGross is required.")
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
 

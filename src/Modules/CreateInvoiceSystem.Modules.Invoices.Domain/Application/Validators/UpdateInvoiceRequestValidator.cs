@@ -38,7 +38,7 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
 
         RuleFor(p => p.Invoice.TotalNet)
             .NotEmpty().WithMessage("Value is required.")
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v!.Value) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.")
             .When(p => p.Invoice.TotalNet.HasValue); 
@@ -52,7 +52,7 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
 
         RuleFor(p => p.Invoice.TotalGross)
             .NotEmpty().WithMessage("Value is required.")
-            .GreaterThanOrEqualTo(0)
+            .GreaterThan(0)
             .Must(v => DecimalHelper.GetDecimalPlaces(v!.Value) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.")
             .When(p => p.Invoice.TotalGross.HasValue); 
