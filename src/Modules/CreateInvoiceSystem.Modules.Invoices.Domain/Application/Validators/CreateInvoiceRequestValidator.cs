@@ -21,15 +21,20 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
         RuleFor(x => x.Invoice.CreatedDate)
             .NotEmpty().WithMessage("CreatedDate is required.")
             .Must(date =>
-            {
-                var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
+            {                
+                var tzId = OperatingSystem.IsWindows()
+                    ? "Central European Standard Time"
+                    : "Europe/Warsaw";
+
+                var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, tzId);
                 return date.Date <= polandNow.Date;
             })
             .WithMessage("CreatedDate cannot be in the future.");
 
         RuleFor(x => x.Invoice.PaymentDate)
             .NotEmpty().WithMessage("PaymentDate is required.")
-            .GreaterThanOrEqualTo(x => x.Invoice.CreatedDate).WithMessage("PaymentDate cannot be earlier than CreatedDate.");
+            .GreaterThanOrEqualTo(x => x.Invoice.CreatedDate)
+            .WithMessage("PaymentDate cannot be earlier than CreatedDate.");
 
         RuleFor(x => x.Invoice.Comments)
             .MaximumLength(500).WithMessage("Comments can have maximum 500 characters.");
@@ -46,13 +51,14 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
         RuleFor(p => p.Invoice.TotalVat)
             .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
             .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
-
-        When(x => x.Invoice.InvoicePositions.Any(pos => !NonTaxableRates.Contains(pos.VatRate)), () =>
-        {
-            RuleFor(p => p.Invoice.TotalVat)
-                .NotEmpty().WithMessage("TotalVat is required when there are taxable items.")
-                .GreaterThanOrEqualTo(0);
-        });
+                
+        When(x => x.Invoice.InvoicePositions != null &&
+                  x.Invoice.InvoicePositions.Any(pos => !NonTaxableRates.Contains(pos.VatRate)), () =>
+                  {
+                      RuleFor(p => p.Invoice.TotalVat)
+                          .NotEmpty().WithMessage("TotalVat is required when there are taxable items.")
+                          .GreaterThanOrEqualTo(0);
+                  });
 
         RuleFor(p => p.Invoice.TotalGross)
             .NotEmpty().WithMessage("TotalGross is required.")
