@@ -143,6 +143,117 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    // --- NOWE TESTY WALIDACYJNE DLA UPDATE ---
+
+    [Fact]
+    public async Task Should_UpdateInvoice_When_TotalVatIsZeroOrNull_And_VatRateIsExempt()
+    {
+        var userId = await SeedUserAsync();
+        var invoiceId = await SeedInvoiceAsync(userId);
+
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            totalNet: 1000m,
+            totalVat: 0m,
+            totalGross: 1000m,
+            vatRate: "zw");
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var updated = await db.Set<InvoiceEntity>()
+            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+
+        updated.Should().NotBeNull();
+        updated!.TotalVat.Should().Be(0m);
+        updated.TotalGross.Should().Be(1000m);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_UpdateTotalNetIsZeroOrNegative()
+    {
+        var userId = await SeedUserAsync();
+        var invoiceId = await SeedInvoiceAsync(userId);
+
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            totalNet: 0m);
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_UpdateAmountsHaveMoreThanTwoDecimalPlaces()
+    {
+        var userId = await SeedUserAsync();
+        var invoiceId = await SeedInvoiceAsync(userId);
+
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            totalNet: 1000.555m);
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_UpdateCreatedDateIsInTheFuture()
+    {
+        var userId = await SeedUserAsync();
+        var invoiceId = await SeedInvoiceAsync(userId);
+
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            createdDate: DateTime.UtcNow.AddDays(2));
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_UpdatePaymentDateIsEarlierThanCreatedDate()
+    {
+        var userId = await SeedUserAsync();
+        var invoiceId = await SeedInvoiceAsync(userId);
+        var createdDate = DateTime.UtcNow;
+
+        var updatePayload = BuildUpdatePayload(
+            invoiceId,
+            userId,
+            createdDate: createdDate,
+            paymentDate: createdDate.AddDays(-1));
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}",
+            updatePayload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // --- HELPERY ---
+
     private async Task<int> SeedUserAsync()
     {
         using var scope = _factory.Services.CreateScope();
@@ -233,20 +344,28 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         int invoiceId,
         int userId,
         string methodOfPayment = "Przelew",
+        decimal totalNet = 1000m,
+        decimal totalVat = 230m,
         decimal totalGross = 1230m,
         string productName = "Usługa Testowa",
         decimal productValue = 1000m,
-        int quantity = 1)
+        int quantity = 1,
+        string vatRate = "23%",
+        DateTime? createdDate = null,
+        DateTime? paymentDate = null)
     {
+        var now = createdDate ?? DateTime.UtcNow;
+        var payDate = paymentDate ?? now.AddDays(14);
+
         return new
         {
             InvoiceId = invoiceId,
             Title = "Faktura zaktualizowana",
-            TotalNet = 1000m,
-            TotalVat = 230m,
+            TotalNet = totalNet,
+            TotalVat = totalVat,
             TotalGross = totalGross,
-            PaymentDate = DateTime.UtcNow.AddDays(14),
-            CreatedDate = DateTime.UtcNow,
+            PaymentDate = payDate,
+            CreatedDate = now,
             Comments = "Zaktualizowano",
             ClientId = (int?)null,
             UserId = userId,
@@ -280,7 +399,7 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
                     ProductDescription = "Opis usługi",
                     ProductValue = productValue,
                     Quantity = quantity,
-                    VatRate = "23%"
+                    VatRate = vatRate
                 }
             },
 
