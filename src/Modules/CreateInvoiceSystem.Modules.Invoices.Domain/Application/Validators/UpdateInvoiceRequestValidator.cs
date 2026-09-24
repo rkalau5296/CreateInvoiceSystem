@@ -18,7 +18,7 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
             .Must(date =>
             {
                 var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
-                return date.Date <= polandNow.Date;
+                return date?.Date <= polandNow.Date;
             })
             .WithMessage("CreatedDate cannot be in the future.");
 
@@ -39,20 +39,23 @@ public class UpdateInvoiceRequestValidator : AbstractValidator<UpdateInvoiceRequ
         RuleFor(p => p.Invoice.TotalNet)
             .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
-            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
-            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+            .Must(v => DecimalHelper.GetDecimalPlaces(v!.Value) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.")
+            .When(p => p.Invoice.TotalNet.HasValue); 
 
         RuleFor(p => p.Invoice.TotalVat)
             .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
-            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
-            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+            .Must(v => DecimalHelper.GetDecimalPlaces(v!.Value) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.")
+            .When(p => p.Invoice.TotalNet.HasValue); 
 
         RuleFor(p => p.Invoice.TotalGross)
             .NotEmpty().WithMessage("Value is required.")
             .GreaterThanOrEqualTo(0)
-            .Must(v => DecimalHelper.GetDecimalPlaces(v) <= 2)
-            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.");
+            .Must(v => DecimalHelper.GetDecimalPlaces(v!.Value) <= 2)
+            .WithMessage("Value must be a decimal with max 2 digits after the decimal point.")
+            .When(p => p.Invoice.TotalGross.HasValue); 
 
         RuleFor(x => x.Invoice.MethodOfPayment)
             .NotEmpty().WithMessage("MethodOfPayment is required.")

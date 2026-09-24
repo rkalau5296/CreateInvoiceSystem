@@ -37,21 +37,11 @@ public class UpdateInvoiceCommand : CommandBase<UpdateInvoiceDto, UpdateInvoiceD
     {
         invoice.Title = Parametr.Title ?? invoice.Title;
 
-        invoice.TotalNet = Parametr.TotalNet != default
-            ? Parametr.TotalNet
-            : invoice.TotalNet;
-        invoice.TotalVat = Parametr.TotalVat != default
-            ? Parametr.TotalVat
-            : invoice.TotalVat;
-        invoice.TotalGross = Parametr.TotalGross != default
-            ? Parametr.TotalGross
-            : invoice.TotalGross;
-        invoice.PaymentDate = Parametr.PaymentDate != default
-            ? Parametr.PaymentDate
-            : invoice.PaymentDate;
-        invoice.CreatedDate = Parametr.CreatedDate != default
-            ? Parametr.CreatedDate
-            : invoice.CreatedDate;
+        invoice.TotalNet = Parametr.TotalNet ?? invoice.TotalNet;
+        invoice.TotalVat = Parametr.TotalVat ?? invoice.TotalVat;
+        invoice.TotalGross = Parametr.TotalGross ?? invoice.TotalGross;
+        invoice.PaymentDate = Parametr.PaymentDate ?? invoice.PaymentDate;
+        invoice.CreatedDate = Parametr.CreatedDate ?? invoice.CreatedDate;
 
         invoice.Comments = Parametr.Comments ?? invoice.Comments;
         invoice.MethodOfPayment =
