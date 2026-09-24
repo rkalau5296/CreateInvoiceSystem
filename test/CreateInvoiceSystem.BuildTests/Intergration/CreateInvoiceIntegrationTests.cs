@@ -338,6 +338,86 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task Should_CreateInvoice_When_TotalVatIsZeroOrNull_And_VatRateIsExempt()
+    {
+        var userId = await SeedUserAsync();
+
+        var invoice = BuildInvoicePayload(
+            userId,
+            clientEmail: "klient@test.local",
+            totalNet: 1000m,
+            totalVat: 0m,
+            totalGross: 1000m,
+            vatRate: "zw");
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_TotalNetIsZeroOrNegative()
+    {
+        var userId = await SeedUserAsync();
+
+        var invoice = BuildInvoicePayload(
+            userId,
+            clientEmail: "klient@test.local",
+            totalNet: 0m);
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_AmountsHaveMoreThanTwoDecimalPlaces()
+    {
+        var userId = await SeedUserAsync();
+
+        var invoice = BuildInvoicePayload(
+            userId,
+            clientEmail: "klient@test.local",
+            totalNet: 1000.1234m);
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_CreatedDateIsInTheFuture()
+    {
+        var userId = await SeedUserAsync();
+
+        var invoice = BuildInvoicePayload(
+            userId,
+            clientEmail: "klient@test.local",
+            createdDate: DateTime.UtcNow.AddDays(1));
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_PaymentDateIsEarlierThanCreatedDate()
+    {
+        var userId = await SeedUserAsync();
+        var createdDate = DateTime.UtcNow;
+
+        var invoice = BuildInvoicePayload(
+            userId,
+            clientEmail: "klient@test.local",
+            createdDate: createdDate,
+            paymentDate: createdDate.AddDays(-1));
+
+        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
     private async Task<int> SeedUserAsync()
     {
         const string email = "sprzedawca@test.local";
@@ -389,20 +469,28 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         int userId,
         string? clientEmail,
         string? clientNip = null,
-        string clientName = "Firma Klienta")
+        string clientName = "Firma Klienta",
+        decimal totalNet = 1000m,
+        decimal totalVat = 230m,
+        decimal totalGross = 1230m,
+        string vatRate = "23%",
+        DateTime? createdDate = null,
+        DateTime? paymentDate = null)
     {
         clientNip ??= CreateTestNip();
+        var now = createdDate ?? DateTime.UtcNow;
+        var payDate = paymentDate ?? now.AddDays(7);
 
         return new
         {
             Title = "Faktura testowa API",
             Comments = "Brak uwag",
             MethodOfPayment = "Przelew",
-            TotalNet = 1000m,
-            TotalVat = 230m,
-            TotalGross = 1230m,
-            PaymentDate = DateTime.UtcNow.AddDays(7),
-            CreatedDate = DateTime.UtcNow,
+            TotalNet = totalNet,
+            TotalVat = totalVat,
+            TotalGross = totalGross,
+            PaymentDate = payDate,
+            CreatedDate = now,
             UserId = userId,
             UserEmail = "sprzedawca@test.local",
             ClientId = (int?)null,
@@ -445,15 +533,15 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
                         ProductId = 0,
                         Name = "Produkt",
                         Description = "Opis",
-                        Value = 1000m,
+                        Value = totalNet,
                         UserId = userId,
                         IsDeleted = false
                     },
                     ProductName = "Usługa Testowa",
                     ProductDescription = "Opis usługi",
-                    ProductValue = 1000m,
+                    ProductValue = totalNet,
                     Quantity = 1,
-                    VatRate = "23%"
+                    VatRate = vatRate
                 }
             }
         };
