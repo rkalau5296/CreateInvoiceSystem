@@ -6,12 +6,12 @@ using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
-public class GetClientHandler(IQueryExecutor queryExecutor, IClientRepository _clientRepository) : IRequestHandler<GetClientRequest, GetClientResponse>
+public class GetClientHandler(IClientRepository _clientRepository) : IRequestHandler<GetClientRequest, GetClientResponse>
 {
     public async Task<GetClientResponse> Handle(GetClientRequest request, CancellationToken cancellationToken)
     {
-        GetClientQuery query = new(request.Id, request.UserId);
-        var client = await queryExecutor.Execute(query, _clientRepository, cancellationToken);
+        var client =  await _clientRepository.GetByIdAsync(request.Id, request.UserId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {request.Id} not found or access denied.");
 
         return new GetClientResponse
         {

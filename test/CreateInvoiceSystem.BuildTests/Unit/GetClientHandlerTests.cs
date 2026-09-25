@@ -1,7 +1,5 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.BuildTests.Base;
+﻿using CreateInvoiceSystem.BuildTests.Base;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClient;
 using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
@@ -12,14 +10,11 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetClientHandlerTests : BaseTest<IClientRepository>
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly GetClientHandler _sut;
 
     public GetClientHandlerTests()
     {
-        // Arrange
-        _queryExecutorMock = new Mock<IQueryExecutor>();
-        _sut = new GetClientHandler(_queryExecutorMock.Object, RepositoryMock.Object);
+        _sut = new GetClientHandler(RepositoryMock.Object);
     }
 
     [Fact]
@@ -35,13 +30,18 @@ public class GetClientHandlerTests : BaseTest<IClientRepository>
             ClientId = clientId,
             UserId = userId,
             Name = "Test Client",
-            Address = new Address { Street = "Street", City = "City", Number = "1", PostalCode = "00-000", Country = "Poland" }
+            Address = new Address
+            {
+                Street = "Street",
+                City = "City",
+                Number = "1",
+                PostalCode = "00-000",
+                Country = "Poland"
+            }
         };
 
-        _queryExecutorMock.Setup(q => q.Execute(
-                It.IsAny<GetClientQuery>(),
-                RepositoryMock.Object,
-                CancellationToken))
+        RepositoryMock
+            .Setup(r => r.GetByIdAsync(clientId, userId, CancellationToken))
             .ReturnsAsync(clientEntity);
 
         // Act
@@ -50,58 +50,100 @@ public class GetClientHandlerTests : BaseTest<IClientRepository>
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.ClientId.Should().Be(clientId);
-        result.Data.Name.Should().Be(clientEntity.Name);
+        result.Data!.ClientId.Should().Be(clientId);
+        result.Data.Name.Should().Be("Test Client");
 
-        _queryExecutorMock.Verify(q => q.Execute(
-            It.Is<GetClientQuery>(query => query.Id == clientId && query.UserId == userId),
-            RepositoryMock.Object,
-            CancellationToken), Times.Once);
+        RepositoryMock.Verify(
+            r => r.GetByIdAsync(clientId, userId, CancellationToken),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldPassCancellationTokenToQueryExecutor()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenClientDoesNotExist()
     {
         // Arrange
-        var request = new GetClientRequest(1) { UserId = 1 };
-        using var cts = new CancellationTokenSource();
+        var clientId = 99;
+        int? userId = null;
+        var request = new GetClientRequest(clientId) { UserId = userId };
+
+        RepositoryMock
+            .Setup(r => r.GetByIdAsync(clientId, userId, CancellationToken))
+            .ReturnsAsync((Client)null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Client with ID {clientId} not found or access denied.");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPassCorrectParametersToRepository()
+    {
+        // Arrange
+        var clientId = 5;
+        var userId = 100;
+        var request = new GetClientRequest(clientId) { UserId = userId };
 
         var clientEntity = new Client
         {
-            Address = new Address { Street = "Street", City = "City", Number = "1", PostalCode = "00-000", Country = "Poland" }
+            ClientId = clientId,
+            UserId = userId,
+            Name = "Client 5",
+            Address = new Address
+            {
+                Street = "Street",
+                City = "City",
+                Number = "1",
+                PostalCode = "00-000",
+                Country = "Poland"
+            }
         };
 
-        _queryExecutorMock.Setup(q => q.Execute(It.IsAny<GetClientQuery>(), RepositoryMock.Object, cts.Token))
+        RepositoryMock
+            .Setup(r => r.GetByIdAsync(clientId, userId, CancellationToken))
             .ReturnsAsync(clientEntity);
 
         // Act
-        await _sut.Handle(request, cts.Token);
+        await _sut.Handle(request, CancellationToken);
 
         // Assert
-        _queryExecutorMock.Verify(q => q.Execute(
-            It.IsAny<GetClientQuery>(),
-            RepositoryMock.Object,
-            cts.Token), Times.Once);
+        RepositoryMock.Verify(
+            r => r.GetByIdAsync(
+                It.Is<int>(id => id == clientId),
+                It.Is<int?>(u => u == userId),
+                CancellationToken),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldPropagateException_WhenQueryExecutorThrows()
+    public async Task Handle_ShouldPropagateException_WhenRepositoryThrows()
     {
         // Arrange
         var request = new GetClientRequest(1) { UserId = 1 };
-        var errorMessage = "Query execution failed";
+        var errorMessage = "Database error";
 
-        _queryExecutorMock.Setup(q => q.Execute(
-                It.IsAny<GetClientQuery>(),
-                RepositoryMock.Object,
-                CancellationToken))
+        RepositoryMock
+            .Setup(r => r.GetByIdAsync(1, 1, CancellationToken))
             .ThrowsAsync(new Exception(errorMessage));
 
         // Act
-        var act = async () => await _sut.Handle(request, CancellationToken);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken);
 
         // Assert
         await act.Should().ThrowAsync<Exception>()
             .WithMessage(errorMessage);
+    }
+
+    [Fact]
+    public void RequestConstructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
+    {
+        // Act
+        Action act = () => new GetClientRequest(0);
+
+        // Assert
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithMessage("*Id must be greater than or equal to 1.*");
     }
 }
