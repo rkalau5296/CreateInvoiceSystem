@@ -1,7 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
@@ -12,69 +9,70 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetInvoiceHandlerTests
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly Mock<IInvoiceRepository> _repositoryMock;
-    private readonly GetInvoiceHandler _handler;
+    private readonly GetInvoiceHandler _sut;
 
     public GetInvoiceHandlerTests()
     {
-        _queryExecutorMock = new Mock<IQueryExecutor>();
         _repositoryMock = new Mock<IInvoiceRepository>();
-        _handler = new GetInvoiceHandler(_queryExecutorMock.Object, _repositoryMock.Object);
+        _sut = new GetInvoiceHandler(_repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnInvoiceDto_WhenQueryReturnsInvoice()
+    public async Task Handle_ShouldReturnInvoiceDto_WhenInvoiceExists()
     {
         // Arrange
-        var invoiceId = 1;
-        var userId = 100;
+        const int invoiceId = 10;
+        const int userId = 1;
         var request = new GetInvoiceRequest(userId, invoiceId);
 
-        var invoiceEntity = new Invoice
+        var expectedInvoice = new Invoice
         {
             InvoiceId = invoiceId,
             UserId = userId,
-            Title = "FV/2026/01"
+            Title = "FV/2026/01",
+            InvoicePositions = new List<InvoicePosition>()
         };
 
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Invoice, IInvoiceRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(invoiceEntity);
+        _repositoryMock
+            .Setup(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedInvoice);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.InvoiceId.Should().Be(invoiceId);        
-        _queryExecutorMock.Verify(x => x.Execute(
-            It.IsAny<GetInvoiceQuery>(),
-            _repositoryMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
+        result.Data.Should().NotBeNull();
+        result.Data.InvoiceId.Should().Be(invoiceId);
+
+        _repositoryMock.Verify(
+            r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenQueryExecutorFails()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenInvoiceDoesNotExist()
     {
         // Arrange
-        var request = new GetInvoiceRequest(1);
+        const int userId = 1;
+        const int invoiceId = 999;
+        var request = new GetInvoiceRequest(userId, invoiceId);
 
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Invoice, IInvoiceRepository>>(),
-                It.IsAny<IInvoiceRepository>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Not found"));
+        _repositoryMock
+            .Setup(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Invoice)null!);
 
         // Act
-        Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Invoice with ID {invoiceId} not found.");
+
+        _repositoryMock.Verify(
+            r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
