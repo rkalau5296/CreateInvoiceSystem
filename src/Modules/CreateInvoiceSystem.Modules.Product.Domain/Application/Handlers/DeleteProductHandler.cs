@@ -1,6 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 using MediatR;
