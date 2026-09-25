@@ -1,8 +1,7 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.CreateProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Dto;
+using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
@@ -11,60 +10,138 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class CreateProductHandlerTests
 {
-    private readonly Mock<ICommandExecutor> _executorMock;
     private readonly Mock<IProductRepository> _repositoryMock;
-    private readonly CreateProductHandler _handler;
+    private readonly CreateProductHandler _sut;
 
     public CreateProductHandlerTests()
     {
-        _executorMock = new Mock<ICommandExecutor>();
         _repositoryMock = new Mock<IProductRepository>();
-        _handler = new CreateProductHandler(_executorMock.Object, _repositoryMock.Object);
+        _sut = new CreateProductHandler(_repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldExecuteCommand_AndReturnResponse_WhenDataIsValid()
+    public async Task Handle_ShouldSaveProductAndReturnDto_WhenNameIsUnique()
     {
         // Arrange
-        var productDto = new CreateProductDto("Produkt A", "Opis", 100m, 1);
-        var request = new CreateProductRequest(productDto);
-                
-        var expectedDto = new CreateProductDto("Produkt A", "Opis", 100m, 1);
+        var dto = new CreateProductDto(
+            "Unikalny Produkt",
+            "Opis",
+            100m,
+            1);
 
-        _executorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<CreateProductDto, CreateProductDto, IProductRepository>>(),
-                _repositoryMock.Object,
+        var request = new CreateProductRequest(dto);
+
+        var savedEntity = new Product
+        {
+            ProductId = 50,
+            Name = dto.Name,
+            Description = dto.Description,
+            Value = dto.Value,
+            UserId = dto.UserId
+        };
+
+        _repositoryMock
+            .Setup(r => r.ExistsAsync(
+                dto.Name,
+                dto.UserId,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedDto);
+            .ReturnsAsync(false);
+
+        _repositoryMock
+            .Setup(r => r.AddAsync(
+                It.IsAny<Product>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(savedEntity);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.Should().BeEquivalentTo(expectedDto);
+        result.Data!.Name.Should().Be(dto.Name);
+        result.Data.Description.Should().Be(dto.Description);
+        result.Data.Value.Should().Be(dto.Value);
+        result.Data.UserId.Should().Be(dto.UserId);
+
+        _repositoryMock.Verify(
+            r => r.ExistsAsync(
+                dto.Name,
+                dto.UserId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            r => r.AddAsync(
+                It.Is<Product>(p =>
+                    p.Name == dto.Name
+                    && p.Description == dto.Description
+                    && p.Value == dto.Value
+                    && p.UserId == dto.UserId),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenExecutorFails()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenProductAlreadyExists()
     {
         // Arrange
-        var productDto = new CreateProductDto("Błąd", "Opis", 10m, 1);
-        var request = new CreateProductRequest(productDto);
+        var dto = new CreateProductDto("Istniejący Produkt", "Opis", 10m, 1);
+        var request = new CreateProductRequest(dto);
 
-        _executorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<CreateProductDto, CreateProductDto, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException());
+        _repositoryMock
+            .Setup(r => r.ExistsAsync(dto.Name, dto.UserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Istnieje już produkt o takiej nazwie.");
+
+        _repositoryMock.Verify(
+            r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentNullException_WhenProductInRequestIsNull()
+    {
+        // Arrange
+        var request = new CreateProductRequest(null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>();
+
+        _repositoryMock.Verify(
+            r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateException_WhenAddAsyncFails()
+    {
+        // Arrange
+        var dto = new CreateProductDto("Nowy Produkt", "Opis", 50m, 1);
+        var request = new CreateProductRequest(dto);
+
+        _repositoryMock
+            .Setup(r => r.ExistsAsync(dto.Name, dto.UserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _repositoryMock
+            .Setup(r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Błąd zapisu w bazie danych."));
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Błąd zapisu w bazie danych.");
     }
 }
