@@ -1,10 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProduct;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
-using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
 
@@ -12,110 +9,107 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetProductHandlerTests
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly Mock<IProductRepository> _repositoryMock;
-    private readonly GetProductHandler _handler;
+    private readonly GetProductHandler _sut;
 
     public GetProductHandlerTests()
     {
-        _queryExecutorMock = new Mock<IQueryExecutor>();
         _repositoryMock = new Mock<IProductRepository>();
-        _handler = new GetProductHandler(_queryExecutorMock.Object, _repositoryMock.Object);
+        _sut = new GetProductHandler(_repositoryMock.Object);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnProductDto_WhenProductExists()
     {
         // Arrange
-        var request = new GetProductRequest(1) { UserId = 100 };
-        var productEntity = new Product
+        const int productId = 1;
+        const int userId = 100;
+        var request = new GetProductRequest(productId) { UserId = userId };
+
+        var expectedProduct = new Product
         {
-            ProductId = 1,
+            ProductId = productId,
             Name = "Laptop",
             Description = "Opis",
             Value = 3500m,
-            UserId = 100
+            UserId = userId
         };
 
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Product, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(productEntity);
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(productId, It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedProduct);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.ProductId.Should().Be(1);
+        result.Data!.ProductId.Should().Be(productId);
         result.Data.Name.Should().Be("Laptop");
+        result.Data.Description.Should().Be("Opis");
         result.Data.Value.Should().Be(3500m);
+        result.Data.UserId.Should().Be(userId);
+
+        _repositoryMock.Verify(
+            r => r.GetByIdAsync(productId, It.IsAny<int?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldPassCorrectParameters_ToQuery()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenProductNotFound()
     {
         // Arrange
-        var request = new GetProductRequest(5) { UserId = 500 };
+        const int productId = 99;
+        const int userId = 1;
+        var request = new GetProductRequest(productId) { UserId = userId };
 
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Product, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Product { ProductId = 5 });
-
-        // Act
-        await _handler.Handle(request, CancellationToken.None);
-
-        // Assert         
-        _queryExecutorMock.Verify(x => x.Execute(
-            It.IsAny<GetProductQuery>(),
-            _repositoryMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenProductNotFound()
-    {
-        // Arrange
-        var request = new GetProductRequest(99);
-
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Product, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product)null!); 
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(productId, It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Product)null!);
 
         // Act
-        Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("product");
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Product with ID {productId} not found.");
     }
 
     [Fact]
-    public async Task Handle_ShouldRespectCancellationToken()
+    public async Task Handle_ShouldPassCancellationTokenToRepository()
     {
         // Arrange
-        var request = new GetProductRequest(1);
         using var cts = new CancellationTokenSource();
-        cts.Cancel(); 
+        var request = new GetProductRequest(1) { UserId = 1 };
 
-        _queryExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<QueryBase<Product, IProductRepository>>(),
-                _repositoryMock.Object,
-                cts.Token))
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<int?>(), cts.Token))
+            .ReturnsAsync(new Product { ProductId = 1, Name = "Test" });
+
+        // Act
+        await _sut.Handle(request, cts.Token);
+
+        // Assert
+        _repositoryMock.Verify(
+            r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<int?>(), cts.Token),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRespectCancellationToken_WhenOperationIsCanceled()
+    {
+        // Arrange
+        var request = new GetProductRequest(1) { UserId = 1 };
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<int?>(), cts.Token))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        Func<Task> act = async () => await _handler.Handle(request, cts.Token);
+        Func<Task> act = async () => await _sut.Handle(request, cts.Token);
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
