@@ -1,6 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProduct;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProduct;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 using MediatR;
