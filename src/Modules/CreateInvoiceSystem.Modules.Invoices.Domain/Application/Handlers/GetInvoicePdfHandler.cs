@@ -1,6 +1,4 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 using MediatR;
