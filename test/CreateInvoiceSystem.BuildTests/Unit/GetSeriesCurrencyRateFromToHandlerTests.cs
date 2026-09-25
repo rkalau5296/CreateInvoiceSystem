@@ -1,8 +1,6 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRate;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using FluentAssertions;
@@ -13,32 +11,34 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetSeriesCurrencyRateFromToHandlerTests
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly Mock<INbpApiRestService> _nbpApiRestServiceMock;
     private readonly IOptions<NbpApiOptions> _options;
+    private readonly GetSeriesCurrencyRateFromToHandler _sut;
+
+    private const string BaseUrl = "http://api.nbp.pl/";
 
     public GetSeriesCurrencyRateFromToHandlerTests()
     {
-        _queryExecutorMock = new Mock<IQueryExecutor>();
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
+        _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        var nbpOptions = new NbpApiOptions { BaseUrl = "http://api.nbp.pl/" };
-        _options = Options.Create(nbpOptions);
+        _sut = new GetSeriesCurrencyRateFromToHandler(_options, _nbpApiRestServiceMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSeriesCurrencyRateResponse_WhenQueryIsSuccessful()
+    public async Task Handle_ShouldReturnSeriesCurrencyRateResponse_WhenRestServiceSucceeds()
     {
         // Arrange
+        const string table = "A";
+        const string currencyCode = "USD";
         var dateFrom = new DateTime(2026, 1, 1);
         var dateTo = new DateTime(2026, 1, 10);
-        var request = new GetSeriesCurrencyRateFromToRequest("A", "USD", dateFrom, dateTo);
-        var handler = new GetSeriesCurrencyRateFromToHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
+        var request = new GetSeriesCurrencyRateFromToRequest(table, currencyCode, dateFrom, dateTo);
 
         var expectedData = new CurrencyRatesTable
         {
-            Table = "A",
-            Code = "USD",
+            Table = table,
+            Code = currencyCode,
             Rates = new List<CurrencyRate>
             {
                 new CurrencyRate { Mid = 4.05, EffectiveDate = dateFrom },
@@ -46,42 +46,57 @@ public class GetSeriesCurrencyRateFromToHandlerTests
             }
         };
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetSeriesCurrencyRateFromToQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedData);
 
         // Act
-        var result = await handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().BeEquivalentTo(expectedData);
 
-        _queryExecutorMock.Verify(x => x.Execute(
-            It.IsAny<GetSeriesCurrencyRateFromToQuery>(),
-            _nbpApiRestServiceMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
+        _nbpApiRestServiceMock.Verify(
+            s => s.GetSeriesCurrencyRateFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenQueryExecutorFails()
+    public async Task Handle_ShouldPropagateException_WhenRestServiceFails()
     {
         // Arrange
-        var request = new GetSeriesCurrencyRateFromToRequest("A", "EUR", DateTime.Now, DateTime.Now);
-        var handler = new GetSeriesCurrencyRateFromToHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
+        var dateFrom = DateTime.Now.AddDays(-7);
+        var dateTo = DateTime.Now;
+        var request = new GetSeriesCurrencyRateFromToRequest("A", "EUR", dateFrom, dateTo);
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetSeriesCurrencyRateFromToQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Invalid date range"));
 
         // Act
-        Func<Task> act = async () => await handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("Invalid date range");
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("Invalid date range");
     }
 }
