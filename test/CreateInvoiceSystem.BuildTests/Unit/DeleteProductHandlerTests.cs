@@ -1,8 +1,5 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
-using CreateInvoiceSystem.Modules.Products.Domain.Dto;
 using CreateInvoiceSystem.Modules.Products.Domain.Entities;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using FluentAssertions;
@@ -12,48 +9,118 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class DeleteProductHandlerTests
 {
-    private readonly Mock<ICommandExecutor> _executorMock;
     private readonly Mock<IProductRepository> _repositoryMock;
-    private readonly DeleteProductHandler _handler;
+    private readonly DeleteProductHandler _sut;
 
     public DeleteProductHandlerTests()
     {
-        _executorMock = new Mock<ICommandExecutor>();
         _repositoryMock = new Mock<IProductRepository>();
-        _handler = new DeleteProductHandler(_executorMock.Object, _repositoryMock.Object);
+        _sut = new DeleteProductHandler(_repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldExecuteDeleteCommand_AndReturnProductDto()
+    public async Task Handle_ShouldReturnProductDto_WhenProductIsSuccessfullyDeleted()
     {
         // Arrange
-        var productId = 10;
-        var userId = 1;
+        const int productId = 10;
+        const int userId = 1;
         var request = new DeleteProductRequest(productId) { UserId = userId };
 
-        var expectedDto = new ProductDto(productId, "Usunięty", "Opis", 0, userId);
+        var existingProduct = new Product
+        {
+            ProductId = productId,
+            Name = "Produkt do usunięcia",
+            Description = "Opis produktu",
+            Value = 150.50m,
+            UserId = userId
+        };
 
-        _executorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<Product, ProductDto, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedDto);
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingProduct);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.ProductId.Should().Be(productId);        
+        result.Data!.ProductId.Should().Be(productId);
+        result.Data.Name.Should().Be("Produkt do usunięcia");
+        result.Data.Description.Should().Be("Opis produktu");
+        result.Data.Value.Should().Be(150.50m);
+        result.Data.UserId.Should().Be(userId);
 
-        _executorMock.Verify(x => x.Execute(
-            It.Is<CommandBase<Product, ProductDto, IProductRepository>>(c =>
-                c.Parametr.ProductId == productId && c.Parametr.UserId == userId),
-            _repositoryMock.Object,
-            It.IsAny<CancellationToken>()),
-        Times.Once);
+        _repositoryMock.Verify(
+            r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            r => r.RemoveAsync(productId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenProductDoesNotExist()
+    {
+        // Arrange
+        const int productId = 99;
+        const int userId = 1;
+        var request = new DeleteProductRequest(productId) { UserId = userId };
+
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Product)null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Product with ID {productId} not found.");
+
+        _repositoryMock.Verify(
+            r => r.RemoveAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateException_WhenRemoveFails()
+    {
+        // Arrange
+        const int productId = 5;
+        const int userId = 1;
+        var request = new DeleteProductRequest(productId) { UserId = userId };
+
+        var existingProduct = new Product
+        {
+            ProductId = productId,
+            Name = "Produkt",
+            UserId = userId
+        };
+
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingProduct);
+
+        _repositoryMock
+            .Setup(r => r.RemoveAsync(productId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException($"Failed to delete Product with ID {productId}."));
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Failed to delete Product with ID {productId}.");
+
+        _repositoryMock.Verify(
+            r => r.GetByIdAsync(productId, userId, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            r => r.RemoveAsync(productId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -65,25 +132,5 @@ public class DeleteProductHandlerTests
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>()
             .WithParameterName("id");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowException_WhenExecutorFails()
-    {
-        // Arrange
-        var request = new DeleteProductRequest(1) { UserId = 1 };
-
-        _executorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<Product, ProductDto, IProductRepository>>(),
-                _repositoryMock.Object,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException());
-
-        // Act
-        Func<Task> act = async () => await _handler.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 }
