@@ -1,8 +1,6 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using FluentAssertions;
@@ -13,80 +11,116 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetSeriesCurrencyRatesFromToHandlerTests
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly Mock<INbpApiRestService> _nbpApiRestServiceMock;
     private readonly IOptions<NbpApiOptions> _options;
+    private readonly GetSeriesCurrencyRatesFromToHandler _sut;
+
+    private const string BaseUrl = "http://api.nbp.pl/";
 
     public GetSeriesCurrencyRatesFromToHandlerTests()
     {
-        _queryExecutorMock = new Mock<IQueryExecutor>();
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
+        _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        var nbpOptions = new NbpApiOptions { BaseUrl = "http://api.nbp.pl/" };
-        _options = Options.Create(nbpOptions);
+        _sut = new GetSeriesCurrencyRatesFromToHandler(_options, _nbpApiRestServiceMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnListCurrencyRatesResponse_WhenQueryIsSuccessful()
+    public async Task Handle_ShouldReturnListCurrencyRatesResponse_WhenRestServiceSucceeds()
     {
         // Arrange
+        const string table = "A";
         var dateFrom = new DateTime(2026, 1, 1);
         var dateTo = new DateTime(2026, 1, 5);
-        var request = new GetSeriesCurrencyRatesFromToRequest("A", dateFrom, dateTo);
-        var handler = new GetSeriesCurrencyRatesFromToHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
+        var request = new GetSeriesCurrencyRatesFromToRequest(table, dateFrom, dateTo);
 
         var expectedData = new List<CurrencyRatesTable>
         {
             new CurrencyRatesTable
             {
-                Table = "A",
+                Table = table,
                 EffectiveDate = "2026-01-02",
                 Rates = new List<CurrencyRate> { new CurrencyRate { Code = "USD", Mid = 4.0 } }
             },
             new CurrencyRatesTable
             {
-                Table = "A",
+                Table = table,
                 EffectiveDate = "2026-01-05",
                 Rates = new List<CurrencyRate> { new CurrencyRate { Code = "USD", Mid = 4.1 } }
             }
         };
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetSeriesCurrencyRatesFromToQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedData);
 
         // Act
-        var result = await handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().BeEquivalentTo(expectedData);
 
-        _queryExecutorMock.Verify(x => x.Execute(
-            It.IsAny<GetSeriesCurrencyRatesFromToQuery>(),
-            _nbpApiRestServiceMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
+        _nbpApiRestServiceMock.Verify(
+            s => s.GetSeriesCurrencyRatesFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenQueryExecutorFails()
+    public async Task Handle_ShouldReturnEmptyList_WhenNoDataFoundInDateRange()
+    {
+        // Arrange
+        var dateFrom = new DateTime(2026, 1, 1);
+        var dateTo = new DateTime(2026, 1, 2);
+        var request = new GetSeriesCurrencyRatesFromToRequest("A", dateFrom, dateTo);
+
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CurrencyRatesTable>());
+
+        // Act
+        var result = await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateException_WhenRestServiceFails()
     {
         // Arrange
         var request = new GetSeriesCurrencyRatesFromToRequest("C", DateTime.Now, DateTime.Now);
-        var handler = new GetSeriesCurrencyRatesFromToHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetSeriesCurrencyRatesFromToQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Invalid table"));
+            .ThrowsAsync(new Exception("NBP API is down"));
 
         // Act
-        Func<Task> act = async () => await handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("Invalid table");
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("NBP API is down");
     }
 }
