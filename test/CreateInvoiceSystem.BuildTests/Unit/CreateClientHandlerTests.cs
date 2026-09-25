@@ -1,91 +1,110 @@
-﻿using CreateInvoiceSystem.BuildTests.Base;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
+using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
-public class CreateClientHandlerTests : BaseTest<IClientRepository>
+public class CreateClientHandlerTests
 {
+    private readonly Mock<IClientRepository> _repositoryMock;
     private readonly CreateClientHandler _sut;
 
     public CreateClientHandlerTests()
-    {        
-        _sut = new CreateClientHandler(ExecutorMock.Object, RepositoryMock.Object);
+    {
+        _repositoryMock = new Mock<IClientRepository>();
+        _sut = new CreateClientHandler(_repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnClientDto_WhenCommandExecutesSuccessfully()
+    public async Task Handle_ShouldCreateAndReturnClient_WhenDataIsValid()
     {
         // Arrange
-        var address = new AddressDto(1, "Warszawska", "10A", "Warszawa", "00-001", "Polska");        
-        var createDto = new CreateClientDto("Firma XYZ", "1234567890", address, 1, "testc@test.com");        
-        var request = new CreateClientRequest(createDto) { UserId = 1 };        
-        var expectedResult = new ClientDto(1, "Firma XYZ", "1234567890", address, 1, "testc@test.com");
+        var addressDto = new AddressDto(1, "Testowa", "1", "Miasto", "00-000", "Polska");
+        var createDto = new CreateClientDto("Nowy Klient", "1234567890", addressDto, 1, "testc@test.com");
+        var request = new CreateClientRequest(createDto) { UserId = 1 };
 
-        ExecutorMock.Setup(e => e.Execute(
-                It.IsAny<CreateClientCommand>(),
-                RepositoryMock.Object,
-                CancellationToken))
-            .ReturnsAsync(expectedResult);
+        var savedEntity = new Client
+        {
+            ClientId = 1,
+            Name = "Nowy Klient",
+            UserId = 1,
+            Address = new Address
+            {
+                AddressId = 1,
+                Street = "Testowa",
+                Number = "1",
+                City = "Miasto",
+                PostalCode = "00-000",
+                Country = "Polska"
+            }
+        };
+
+        _repositoryMock.Setup(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Client>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(savedEntity);
 
         // Act
-        var result = await _sut.Handle(request, CancellationToken);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeEquivalentTo(expectedResult);        
         result.Data.ClientId.Should().Be(1);
-        result.Data.Name.Should().Be("Firma XYZ");
-        
-        ExecutorMock.Verify(e => e.Execute(
-            It.Is<CreateClientCommand>(c => c.Parametr == createDto),
-            RepositoryMock.Object,
-            CancellationToken), Times.Once);
+        result.Data.Name.Should().Be("Nowy Klient");
     }
 
     [Fact]
-    public async Task Handle_ShouldPassCancellationTokenToExecutor()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenClientAlreadyExists()
     {
         // Arrange
-        var address = new AddressDto(0, "", "", "", "", "");
-        var createDto = new CreateClientDto("", "", address, 1, "testc@test.com");
-        var request = new CreateClientRequest(createDto);
-        using var cts = new CancellationTokenSource();
+        var addressDto = new AddressDto(0, "Testowa", "1", "Miasto", "00-000", "Polska");
+        var createDto = new CreateClientDto("Istniejący", "123", addressDto, 1, "testc@test.com");
+        var request = new CreateClientRequest(createDto) { UserId = 1 };
+
+        _repositoryMock.Setup(r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        await _sut.Handle(request, cts.Token);
-
-        // Assert
-        ExecutorMock.Verify(e => e.Execute(
-            It.IsAny<CreateClientCommand>(),
-            RepositoryMock.Object,
-            cts.Token), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldPropagateException_WhenExecutorThrows()
-    {
-        // Arrange
-        var address = new AddressDto(0, "", "", "", "", "");
-        var createDto = new CreateClientDto("Error", "000", address, 1, "testc@test.com");
-        var request = new CreateClientRequest(createDto);
-
-        ExecutorMock.Setup(e => e.Execute(
-                It.IsAny<CreateClientCommand>(),
-                RepositoryMock.Object,
-                CancellationToken))
-            .ThrowsAsync(new InvalidOperationException("Business Logic Error"));
-
-        // Act
-        var act = async () => await _sut.Handle(request, CancellationToken);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Business Logic Error");
+            .WithMessage("Istnieje już taki klient z identycznymi danymi.");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentNullException_WhenClientIsNull()
+    {
+        // Arrange
+        var request = new CreateClientRequest(null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("request.Client");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentNullException_WhenAddressIsNull()
+    {
+        // Arrange
+        var createDto = new CreateClientDto("Test", "123", null!, 1, "testc@test.com");
+        var request = new CreateClientRequest(createDto);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("Address");
     }
 }
