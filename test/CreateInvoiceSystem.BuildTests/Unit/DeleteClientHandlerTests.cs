@@ -1,52 +1,104 @@
-﻿using CreateInvoiceSystem.BuildTests.Base;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.DeleteClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Commands;
+using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using FluentAssertions;
 using Moq;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
-public class DeleteClientHandlerTests : BaseTest<IClientRepository>
+public class DeleteClientHandlerTests
 {
+    private readonly Mock<IClientRepository> _repositoryMock;
     private readonly DeleteClientHandler _sut;
 
     public DeleteClientHandlerTests()
     {
-        // Arrange
-        _sut = new DeleteClientHandler(ExecutorMock.Object, RepositoryMock.Object);
+        _repositoryMock = new Mock<IClientRepository>();
+        _sut = new DeleteClientHandler(_repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnClientDto_WhenClientIsDeletedSuccessfully()
+    public async Task Handle_ShouldReturnClientDto_WhenDeletionIsSuccessful()
     {
         // Arrange
-        var clientId = 10;
-        var userId = 100;
-        var request = new DeleteClientRequest(clientId) { UserId = userId };
+        var clientEntity = new Client
+        {
+            ClientId = 1,
+            UserId = 10,
+            AddressId = 5,
+            Address = new Address
+            {
+                AddressId = 5,
+                Street = "Testowa"
+            }
+        };
 
-        var address = new AddressDto(1, "Testowa", "1", "Miasto", "00-000", "Polska");
-        var expectedResult = new ClientDto(clientId, "Firma do usunięcia", "1234567890", address, userId, "testc@test.com");
+        var request = new DeleteClientRequest(1) { UserId = 10 };
 
-        ExecutorMock.Setup(e => e.Execute(
-                It.IsAny<DeleteClientCommand>(),
-                RepositoryMock.Object,
-                CancellationToken))
-            .ReturnsAsync(expectedResult);
+        _repositoryMock
+            .Setup(repository => repository.GetByIdAsync(1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(clientEntity);
 
         // Act
-        var result = await _sut.Handle(request, CancellationToken);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Data.Should().BeEquivalentTo(expectedResult);
+        result.Data.ClientId.Should().Be(1);
 
-        ExecutorMock.Verify(e => e.Execute(
-            It.Is<DeleteClientCommand>(c => c.Parametr.ClientId == clientId && c.Parametr.UserId == userId),
-            RepositoryMock.Object,
-            CancellationToken), Times.Once);
+        _repositoryMock.Verify(
+            repository => repository.GetByIdAsync(1, 10, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAsync(1, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryMock.Verify(
+            repository => repository.RemoveAddressAsync(5, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenClientNotFound()
+    {
+        // Arrange
+        var request = new DeleteClientRequest(99) { UserId = 1 };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(99, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Client)null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Client with ID 99 not found.");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotTryToRemoveAddress_WhenAddressIsNull_InEntity()
+    {
+        // Arrange
+        var clientEntity = new Client
+        {
+            ClientId = 1,
+            UserId = 1,
+            AddressId = 0,
+            Address = null!
+        };
+
+        var request = new DeleteClientRequest(1) { UserId = 1 };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(1, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(clientEntity);
+
+        // Act & Assert
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("address");
     }
 
     [Fact]
@@ -61,43 +113,5 @@ public class DeleteClientHandlerTests : BaseTest<IClientRepository>
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>()
             .WithParameterName("id");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldPassCancellationTokenToExecutor()
-    {
-        // Arrange
-        var request = new DeleteClientRequest(1) { UserId = 1 };
-        using var cts = new CancellationTokenSource();
-
-        // Act
-        await _sut.Handle(request, cts.Token);
-
-        // Assert
-        ExecutorMock.Verify(e => e.Execute(
-            It.IsAny<DeleteClientCommand>(),
-            RepositoryMock.Object,
-            cts.Token), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldPropagateException_WhenDeletionFails()
-    {
-        // Arrange
-        var request = new DeleteClientRequest(1) { UserId = 1 };
-        var errorMessage = "Client not found";
-
-        ExecutorMock.Setup(e => e.Execute(
-                It.IsAny<DeleteClientCommand>(),
-                RepositoryMock.Object,
-                CancellationToken))
-            .ThrowsAsync(new KeyNotFoundException(errorMessage));
-
-        // Act
-        var act = async () => await _sut.Handle(request, CancellationToken);
-
-        // Assert
-        await act.Should().ThrowAsync<KeyNotFoundException>()
-            .WithMessage(errorMessage);
     }
 }
