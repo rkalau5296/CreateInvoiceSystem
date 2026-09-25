@@ -1,25 +1,24 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
-public class DeleteInvoiceHandler(ICommandExecutor commandExecutor, IInvoiceRepository _invoiceRepository) : IRequestHandler<DeleteInvoiceRequest, DeleteInvoiceResponse>
+public class DeleteInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequestHandler<DeleteInvoiceRequest, DeleteInvoiceResponse>
 {
     public async Task<DeleteInvoiceResponse> Handle(DeleteInvoiceRequest request, CancellationToken cancellationToken)
     {
-        var invoice = new Invoice
+        var invoice = await _invoiceRepository.GetInvoiceByIdAsync(request.UserId, request.Id, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Invoice with ID {request.Id} not found.");
+
+        if (invoice.InvoicePositions is { Count: > 0 })
         {
-            InvoiceId = request.Id,
-            UserId = request.UserId
-        };
+            await _invoiceRepository.RemoveRangeAsync(invoice.InvoicePositions, cancellationToken);
+        }
 
-        var command = new DeleteInvoiceCommand { Parametr = invoice };
-        await commandExecutor.Execute(command, _invoiceRepository, cancellationToken);
-
+        await _invoiceRepository.RemoveAsync(invoice, cancellationToken);
+                
         return new DeleteInvoiceResponse()
         {
             Data = InvoiceMappers.ToDto(invoice)
