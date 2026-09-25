@@ -1,8 +1,6 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Queries;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
 using FluentAssertions;
@@ -13,31 +11,32 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class GetActualCurrencyRatesHandlerTests
 {
-    private readonly Mock<IQueryExecutor> _queryExecutorMock;
     private readonly Mock<INbpApiRestService> _nbpApiRestServiceMock;
     private readonly IOptions<NbpApiOptions> _options;
+    private readonly GetActualCurrencyRatesHandler _sut;
+
+    private const string BaseUrl = "http://api.nbp.pl/";
 
     public GetActualCurrencyRatesHandlerTests()
     {
-        _queryExecutorMock = new Mock<IQueryExecutor>();
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
+        _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        var nbpOptions = new NbpApiOptions { BaseUrl = "http://api.nbp.pl/" };
-        _options = Options.Create(nbpOptions);
+        _sut = new GetActualCurrencyRatesHandler(_options, _nbpApiRestServiceMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnCurrencyRatesResponse_WhenQueryIsSuccessful()
+    public async Task Handle_ShouldReturnCurrencyRatesResponse_WhenRestServiceSucceeds()
     {
         // Arrange
-        var request = new GetActualCurrencyRatesRequest("A");
-        var handler = new GetActualCurrencyRatesHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
+        const string table = "A";
+        var request = new GetActualCurrencyRatesRequest(table);
 
         var expectedData = new List<CurrencyRatesTable>
         {
             new CurrencyRatesTable
             {
-                Table = "A",
+                Table = table,
                 EffectiveDate = "2026-01-19",
                 Rates = new List<CurrencyRate>
                 {
@@ -47,42 +46,67 @@ public class GetActualCurrencyRatesHandlerTests
             }
         };
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetActualCurrencyRatesQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetActualCurrencyRatesAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedData);
 
         // Act
-        var result = await handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().BeEquivalentTo(expectedData);
 
-        _queryExecutorMock.Verify(x => x.Execute(
-            It.IsAny<GetActualCurrencyRatesQuery>(),
-            _nbpApiRestServiceMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
+        _nbpApiRestServiceMock.Verify(
+            s => s.GetActualCurrencyRatesAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenQueryExecutorFails()
+    public async Task Handle_ShouldReturnEmptyList_WhenRestServiceReturnsEmpty()
     {
         // Arrange
         var request = new GetActualCurrencyRatesRequest("B");
-        var handler = new GetActualCurrencyRatesHandler(_queryExecutorMock.Object, _options, _nbpApiRestServiceMock.Object);
 
-        _queryExecutorMock.Setup(x => x.Execute(
-                It.IsAny<GetActualCurrencyRatesQuery>(),
-                _nbpApiRestServiceMock.Object,
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetActualCurrencyRatesAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CurrencyRatesTable>());
+
+        // Act
+        var result = await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateException_WhenRestServiceThrows()
+    {
+        // Arrange
+        var request = new GetActualCurrencyRatesRequest("A");
+
+        _nbpApiRestServiceMock
+            .Setup(s => s.GetActualCurrencyRatesAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Network error"));
 
         // Act
-        Func<Task> act = async () => await handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("Network error");
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("Network error");
     }
 }
