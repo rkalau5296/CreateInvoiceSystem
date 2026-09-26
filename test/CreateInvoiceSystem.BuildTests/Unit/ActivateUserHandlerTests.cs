@@ -1,10 +1,10 @@
-﻿using System.Text;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using System.Text;
+using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -115,7 +115,7 @@ public class ActivateUserHandlerTests
 
         _userRepositoryMock
             .Setup(r => r.FindByEmailAsync(email))
-            .ReturnsAsync((User?)null);
+            .ReturnsAsync(() => null!);
 
         // Act
         var response = await _sut.Handle(request, CancellationToken.None);
@@ -140,7 +140,7 @@ public class ActivateUserHandlerTests
 
         _userRepositoryMock
             .Setup(r => r.FindByEmailAsync(email))
-            .ReturnsAsync(new User { Email = email, IsActive = true });
+            .ReturnsAsync(() => new User { Email = email, IsActive = true });
 
         // Act
         var response = await _sut.Handle(request, CancellationToken.None);
@@ -169,7 +169,7 @@ public class ActivateUserHandlerTests
 
         _userRepositoryMock
             .Setup(r => r.FindByEmailAsync(email))
-            .ReturnsAsync(new User { Email = email, IsActive = false });
+            .ReturnsAsync(() => new User { Email = email, IsActive = false });
 
         _userRepositoryMock
             .Setup(r => r.ValidateAndActivateUserByTokenAsync(email, It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
@@ -198,7 +198,7 @@ public class ActivateUserHandlerTests
 
         _userRepositoryMock
             .Setup(r => r.FindByEmailAsync(email))
-            .ReturnsAsync(new User { Email = email, IsActive = false });
+            .ReturnsAsync(() => new User { Email = email, IsActive = false });
 
         _userRepositoryMock
             .Setup(r => r.ValidateAndActivateUserByTokenAsync(email, It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))

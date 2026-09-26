@@ -1,21 +1,23 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-public class CreateUserHandler(ICommandExecutor commandExecutor, IUserRepository _userRepository) : IRequestHandler<CreateUserRequest, CreateUserResponse>
+public class CreateUserHandler(IUserRepository _userRepository) : IRequestHandler<CreateUserRequest, CreateUserResponse>
 {   
     public async Task<CreateUserResponse> Handle(CreateUserRequest request, CancellationToken cancellationToken)
     {
-        var command = new CreateUserCommand() { Parametr = request.User };
+        ArgumentNullException.ThrowIfNull(request.User);
+        ArgumentNullException.ThrowIfNull(request.User.Address);
 
-        var createdUser = await commandExecutor.Execute(command, _userRepository, cancellationToken);
+        var user = UserMappers.ToEntity(request.User);
+
+        await _userRepository.AddAsync(user, cancellationToken);
 
         return new CreateUserResponse()
         {
-            Data = createdUser
+            Data = UserMappers.ToCreateUserDto(user)
         };
     }
 }
