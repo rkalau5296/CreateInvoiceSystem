@@ -1,77 +1,143 @@
-﻿namespace CreateInvoiceSystem.BuildTests.Unit;
-
-using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Abstractions.Notification;
+﻿using CreateInvoiceSystem.Abstractions.Notification;
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
+using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using FluentAssertions;
 using MediatR;
 using Moq;
-using Xunit;
+using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
+using UserInvoice = CreateInvoiceSystem.Modules.Users.Domain.Entities.Invoice;
 
-public class DeleteUserIntegrationTests
+namespace CreateInvoiceSystem.BuildTests.Unit;
+
+public class DeleteUserHandlerTests
 {
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly Mock<IMediator> _mediatorMock = new();
-    private readonly Mock<IUserRepository> _userRepoMock = new();
-    private readonly Mock<ICommandExecutor> _executorMock = new();
-    private readonly Mock<IClientRepository> _clientRepoMock = new();
+    private readonly DeleteUserHandler _sut;
 
-    [Fact]
-    public async Task Handle_ShouldPublishNotificationAndReturnDataFromExecutor()
+    public DeleteUserHandlerTests()
     {
-        // Arrange
-        int userId = 123;
-        var request = new DeleteUserRequest(userId);
-        var cancellationToken = CancellationToken.None;
-
-        var expectedDto = new UserDto(
-            userId, "Test", "Test Corp", "test@test.pl", "pass", "123",
-            null!, "123", true, [], [], []
-        );
-
-        _executorMock.Setup(x => x.Execute(
-                It.IsAny<DeleteUserCommand>(),
-                _userRepoMock.Object,
-                cancellationToken))
-            .ReturnsAsync(expectedDto);
-
-        var handler = new DeleteUserHandler(_executorMock.Object, _userRepoMock.Object, _mediatorMock.Object);
-
-        // Act
-        var result = await handler.Handle(request, cancellationToken);
-
-        // Assert        
-        _mediatorMock.Verify(x => x.Publish(
-            It.Is<INotification>(n => n.GetType().Name == "UserDeletedNotification"),
-            cancellationToken),
-            Times.Once);
-
-        _executorMock.Verify(x => x.Execute(
-            It.Is<DeleteUserCommand>(c => c.Parametr.UserId == userId),
-            _userRepoMock.Object,
-            cancellationToken),
-            Times.Once);
-
-        Assert.NotNull(result.Data);
-        Assert.Equal(userId, result.Data.UserId);
+        _sut = new DeleteUserHandler(_userRepositoryMock.Object, _mediatorMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldOnlyRemoveClients_BecauseTransactionBehaviorSavesChanges()
+    public async Task Handle_ShouldPublishNotificationAndDeleteUser_WhenUserHasNoAssociatedData()
     {
         // Arrange
-        int userId = 123;
+        const int userId = 123;
+        const int addressId = 456;
+        var request = new DeleteUserRequest(userId);
+
+        var user = new User
+        {
+            UserId = userId,
+            Email = "test@example.com",
+            AddressId = addressId,
+            Address = new Address { AddressId = addressId },
+            Invoices = [],
+            Clients = [],
+            Products = []
+        };
+
+        _userRepositoryMock
+            .Setup(r => r.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => user);
+
+        _userRepositoryMock
+            .Setup(r => r.RemoveAsync(userId, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _userRepositoryMock
+            .Setup(r => r.RemoveAddress(addressId, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().NotBeNull();
+        result.Data!.UserId.Should().Be(userId);
+
+        _mediatorMock.Verify(
+            m => m.Publish(It.Is<UserDeletedNotification>(n => n.UserId == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _userRepositoryMock.Verify(r => r.RemoveAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(r => r.RemoveAddress(addressId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenUserDoesNotExist()
+    {
+        // Arrange
+        const int userId = 123;
+        var request = new DeleteUserRequest(userId);
+
+        _userRepositoryMock
+            .Setup(r => r.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"User with ID {userId} not found.");
+
+        _userRepositoryMock.Verify(r => r.RemoveAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenUserHasAssociatedData()
+    {
+        // Arrange
+        const int userId = 123;
+        var request = new DeleteUserRequest(userId);
+
+        var user = new User
+        {
+            UserId = userId,
+            Invoices = [new UserInvoice()],
+            Clients = [],
+            Products = []
+        };
+
+        _userRepositoryMock
+            .Setup(r => r.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => user);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Cannot delete User with ID {userId} because it has associated data.");
+
+        _userRepositoryMock.Verify(r => r.RemoveAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+}
+
+public class UserDeletedClientsHandlerTests
+{
+    private readonly Mock<IClientRepository> _clientRepoMock = new();
+
+    [Fact]
+    public async Task Handle_ShouldRemoveAllClientsByUserId()
+    {
+        // Arrange
+        const int userId = 123;
         var notification = new UserDeletedNotification(userId);
         var handler = new UserDeletedClientsHandler(_clientRepoMock.Object);
 
         // Act
         await handler.Handle(notification, CancellationToken.None);
 
-        // Assert        
+        // Assert
         _clientRepoMock.Verify(x => x.RemoveAllByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
