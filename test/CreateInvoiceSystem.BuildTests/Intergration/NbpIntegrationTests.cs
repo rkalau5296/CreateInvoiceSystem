@@ -34,7 +34,7 @@ public class NbpIntegrationTests
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-                
+
         var elementToVerify = root.TryGetProperty("data", out var dataEl) ? dataEl : root;
 
         elementToVerify.GetProperty("code").GetString().Should().Be(currencyCode);
@@ -88,7 +88,7 @@ public class NbpIntegrationTests
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-                
+
         if (root.ValueKind == JsonValueKind.Array)
         {
             root.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
@@ -96,7 +96,7 @@ public class NbpIntegrationTests
         else
         {
             var target = root.TryGetProperty("data", out var data) ? data : root;
-                        
+
             if (target.ValueKind == JsonValueKind.Array)
             {
                 target.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);

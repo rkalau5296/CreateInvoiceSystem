@@ -10,7 +10,7 @@ public class GetActualCurrencyRateHandler(IOptions<NbpApiOptions> options, INbpA
     public async Task<GetActualCurrencyRateResponse> Handle(GetActualCurrencyRateRequest request, CancellationToken cancellationToken)
     {
         var rates = await _nbpApiRestService.GetActualCurrencyRateAsync(
-            request.TableName, request.CurrencyCode, options.Value.BaseUrl, cancellationToken);        
+            options.Value.BaseUrl, request.TableName, request.CurrencyCode, cancellationToken);        
         
         return new GetActualCurrencyRateResponse
         {
