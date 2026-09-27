@@ -99,19 +99,5 @@ public class DeleteClientHandlerTests
 
         await act.Should().ThrowAsync<ArgumentNullException>()
             .WithParameterName("address");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
-    {
-        // Arrange
-        int invalidId = 0;
-
-        // Act
-        Action act = () => new DeleteClientRequest(invalidId);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("id");
-    }
+    }    
 }

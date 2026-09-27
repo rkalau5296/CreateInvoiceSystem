@@ -2,42 +2,43 @@
 using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
 using FluentValidation.TestHelper;
-using FluentAssertions;
+using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class UpdateClientRequestValidatorTests
 {
-    private readonly UpdateClientRequestValidator _validator;
+    private readonly UpdateClientRequestValidator _validator = new();
 
-    public UpdateClientRequestValidatorTests()
-    {
-        _validator = new UpdateClientRequestValidator();
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenDtoIsNull()
-    {
-        // Arrange & Act
-        Action act = () => new UpdateClientRequest(null!, 1);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-           .WithMessage("*Argument 'clientDto' for client update request (Id=1) cannot be null*");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Should_Have_Error_When_Id_Is_Less_Than_One(int invalidId)
     {
         // Arrange
-        var clientDto = new UpdateClientDto(0, "Name", "1234567890", null!, 0, 1, "testc@test.com");
+        var clientDto = new UpdateClientDto(1, "Name", "1234567890", null!, 0, 1, "testc@test.com");
+        var request = new UpdateClientRequest(clientDto, invalidId);
 
         // Act
-        Action act = () => new UpdateClientRequest(clientDto, 0);
+        var result = _validator.TestValidate(request);
 
         // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-           .WithParameterName("id");
+        result.ShouldHaveValidationErrorFor(x => x.Id)
+            .WithErrorMessage("Id must be greater than or equal to 1.");
+    }
+
+    [Fact]
+    public void Should_Have_Error_When_Client_Is_Null()
+    {
+        // Arrange
+        var request = new UpdateClientRequest(null!, 1);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Client)
+            .WithErrorMessage("Client data is required.");
     }
 
     [Fact]

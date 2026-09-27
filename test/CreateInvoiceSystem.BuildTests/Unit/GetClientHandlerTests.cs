@@ -63,7 +63,7 @@ public class GetClientHandlerTests : BaseTest<IClientRepository>
     {
         // Arrange
         var clientId = 99;
-        int? userId = null;
+        int userId = 0;
         var request = new GetClientRequest(clientId) { UserId = userId };
 
         RepositoryMock
@@ -134,16 +134,5 @@ public class GetClientHandlerTests : BaseTest<IClientRepository>
         // Assert
         await act.Should().ThrowAsync<Exception>()
             .WithMessage(errorMessage);
-    }
-
-    [Fact]
-    public void RequestConstructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
-    {
-        // Act
-        Action act = () => new GetClientRequest(0);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithMessage("*Id must be greater than or equal to 1.*");
-    }
+    }    
 }

@@ -2,22 +2,10 @@
 using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClient;
-public class GetClientRequest : IRequest<GetClientResponse>
+public class GetClientRequest(int id) : IRequest<GetClientResponse>
 {
-    private int _id;
-    public int Id
-    {
-        get => _id;    
-        set => _id = value >= 1 ? value
-               : throw new ArgumentOutOfRangeException(nameof(Id), "Id must be greater than or equal to 1.");
-    }
+    public int Id { get; } = id;
+
     [JsonIgnore]
-    public int? UserId { get; set; }
-    
-    public GetClientRequest(int id)
-    {
-        Id = id;
-    }
-    
-    public GetClientRequest() { }
+    public int UserId { get; set; }  
 }

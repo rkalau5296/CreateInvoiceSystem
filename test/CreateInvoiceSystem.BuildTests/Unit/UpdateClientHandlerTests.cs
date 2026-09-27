@@ -143,31 +143,5 @@ public class UpdateClientHandlerTests : BaseTest<IClientRepository>
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Client with ID 99 not found.");
-    }    
-
-    [Fact]
-    public void RequestConstructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
-    {
-        // Arrange
-        var address = new AddressDto(1, "", "", "", "", "");
-        var updateDto = new UpdateClientDto(0, "", "", address, 1, 1, "testc@test.com");
-
-        // Act
-        Action act = () => new UpdateClientRequest(updateDto, 0);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithMessage("*Id must be greater than or equal to 1.*");
-    }
-
-    [Fact]
-    public void RequestConstructor_ShouldThrowArgumentNullException_WhenClientDtoIsNull()
-    {
-        // Act
-        Action act = () => new UpdateClientRequest(null!, 1);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithMessage("*cannot be null*");
     }
 }
