@@ -28,8 +28,7 @@ public class ResendActivationTokenHandler(
         }
 
         var user = await userRepository.FindByEmailAsync(request.Email);
-
-        // Ochrona przed enumeration attack – jeśli e-mail nie istnieje, udajemy sukces
+                
         if (user == null)
         {
             return new ResendActivationTokenResponse

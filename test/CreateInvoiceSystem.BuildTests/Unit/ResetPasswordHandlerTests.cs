@@ -1,21 +1,19 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class ResetPasswordHandlerTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly ResetPasswordHandler _handler;
 
     public ResetPasswordHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
         _handler = new ResetPasswordHandler(_userRepositoryMock.Object);
     }
 
@@ -127,18 +125,12 @@ public class ResetPasswordHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowArgumentNullException_WhenRequestIsNull()
     {
-        // Arrange
-        var command = new ResetPasswordCommand
-        {
-            Parametr = null!
-        };
-
         // Act
-        Func<Task> act = async () => await command.Execute(_userRepositoryMock.Object, CancellationToken.None);
+        Func<Task> act = async () => await _handler.Handle(null!, CancellationToken.None);
 
         // Assert
         await act.Should()
             .ThrowAsync<ArgumentNullException>()
-            .WithParameterName("Parametr");
+            .WithParameterName("request");
     }
 }
