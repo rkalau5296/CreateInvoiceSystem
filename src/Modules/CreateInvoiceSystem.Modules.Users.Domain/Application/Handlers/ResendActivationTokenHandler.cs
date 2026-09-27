@@ -1,58 +1,64 @@
-﻿using CreateInvoiceSystem.Abstractions.CQRS;
+﻿using System.Text;
+using System.Text.Json;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using System;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using MediatR;
+using Microsoft.Extensions.Configuration;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
+namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 
-public class ResendActivationTokenCommand : CommandBase<ResendActivationTokenRequest, ResendActivationTokenResponse, IUserRepository>
+public class ResendActivationTokenHandler(
+    IUserRepository userRepository,
+    IUserTokenService userTokenService,
+    IUserEmailSender userEmailSender,
+    IConfiguration configuration)
+    : IRequestHandler<ResendActivationTokenRequest, ResendActivationTokenResponse>
 {
-    private readonly IUserTokenService _userTokenService;
-    private readonly IUserEmailSender _userEmailSender;
-    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
-
-    public ResendActivationTokenCommand(
-        IUserTokenService userTokenService,
-        IUserEmailSender userEmailSender,
-        Microsoft.Extensions.Configuration.IConfiguration configuration)
+    public async Task<ResendActivationTokenResponse> Handle(
+        ResendActivationTokenRequest request,
+        CancellationToken cancellationToken)
     {
-        _userTokenService = userTokenService;
-        _userEmailSender = userEmailSender;
-        _configuration = configuration;
-    }
+        if (string.IsNullOrEmpty(request?.Email))
+        {
+            return new ResendActivationTokenResponse
+            {
+                IsSuccess = false,
+                Message = "Email jest wymagany."
+            };
+        }
 
-    public override async Task<ResendActivationTokenResponse> Execute(IUserRepository _userRepository, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(this.Parametr?.Email))
-            return new ResendActivationTokenResponse { IsSuccess = false, Message = "Email jest wymagany." };
+        var user = await userRepository.FindByEmailAsync(request.Email);
 
-        var user = await _userRepository.FindByEmailAsync(this.Parametr.Email);
-
+        // Ochrona przed enumeration attack – jeśli e-mail nie istnieje, udajemy sukces
         if (user == null)
         {
-            return new ResendActivationTokenResponse { IsSuccess = true, Message = "Jeśli konto istnieje i nie jest aktywne, nowy link został wysłany." };
+            return new ResendActivationTokenResponse
+            {
+                IsSuccess = true,
+                Message = "Jeśli konto istnieje i nie jest aktywne, nowy link został wysłany."
+            };
         }
 
         if (user.IsActive)
         {
-            return new ResendActivationTokenResponse { IsSuccess = false, Message = "To konto jest już aktywne." };
+            return new ResendActivationTokenResponse
+            {
+                IsSuccess = false,
+                Message = "To konto jest już aktywne."
+            };
         }
 
-        var token = _userTokenService.GenerateActivationToken(user.Email);
-                
+        var token = userTokenService.GenerateActivationToken(user.Email);
+
         var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
         if (!string.IsNullOrWhiteSpace(jti) && expiry.HasValue)
         {
-            await _userRepository.SaveActivationTokenJtiAsync(user.UserId, jti, expiry.Value, cancellationToken);
+            await userRepository.SaveActivationTokenJtiAsync(user.UserId, jti, expiry.Value, cancellationToken);
         }
 
-        var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');
+        var frontendUrl = configuration["FrontendUrl"]?.TrimEnd('/');
 
-        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var validatedUri))
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out _))
         {
             throw new InvalidOperationException(
                 $"BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny (Wartość: '{frontendUrl}'). " +
@@ -61,7 +67,7 @@ public class ResendActivationTokenCommand : CommandBase<ResendActivationTokenReq
 
         var activationLink = $"{frontendUrl}/activate?token={Uri.EscapeDataString(token)}";
 
-        await _userEmailSender.SendActivationEmailAsync(user.Email, activationLink);
+        await userEmailSender.SendActivationEmailAsync(user.Email, activationLink);
 
         return new ResendActivationTokenResponse
         {
