@@ -1,35 +1,26 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Abstractions.CQRS;
 using FluentAssertions;
-using Moq;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Moq;
+using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class RegisterUserHandlerTests
 {
-    private readonly Mock<ICommandExecutor> _commandExecutorMock;
-    private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly RegisterUserHandler _handler;
-    private readonly Mock<IUserEmailSender> _emailSenderMock;
-    private readonly Mock<IUserTokenService> _userTokenServiceMock;
-    private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<IUserEmailSender> _emailSenderMock = new();
+    private readonly Mock<IUserTokenService> _userTokenServiceMock = new();
+    private readonly Mock<IConfiguration> _configurationMock = new();
+    private readonly RegisterUserHandler _sut;
 
     public RegisterUserHandlerTests()
     {
-        _commandExecutorMock = new Mock<ICommandExecutor>();
-        _userRepositoryMock = new Mock<IUserRepository>();
-        _emailSenderMock = new Mock<IUserEmailSender>();
-        _userTokenServiceMock = new Mock<IUserTokenService>();
-        _configurationMock = new Mock<IConfiguration>();
-
-        _handler = new RegisterUserHandler(
-            _commandExecutorMock.Object,
+        _sut = new RegisterUserHandler(
             _userRepositoryMock.Object,
             _emailSenderMock.Object,
             _userTokenServiceMock.Object,
@@ -37,63 +28,133 @@ public class RegisterUserHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnData_WhenCommandExecutesSuccessfully()
+    public async Task Handle_ShouldThrowArgumentNullException_WhenUserDtoIsNull()
+    {
+        // Arrange
+        var request = new RegisterUserRequest { User = null! };
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("User");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenUserCreationFails()
     {
         // Arrange
         var userDto = new RegisterUserDto
         {
-            Email = "test@firma.pl",
-            Name = "Marek",
-            CompanyName = "Firma X"
+            Email = "duplicate@example.com",
+            Password = "Password123!"
+        };
+        var request = new RegisterUserRequest { User = userDto };
+
+        var identityErrors = new[]
+        {
+            new IdentityError { Code = "DuplicateEmail", Description = "Email already in use" }
         };
 
-        var request = new RegisterUserRequest { User = userDto };        
-        var expectedResult = new RegisterUserDto
-        {
-            Email = "test@firma.pl",
-            Name = "Marek"
-        };
-        
-        _commandExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<RegisterUserDto, RegisterUserDto, IUserRepository>>(),
-                It.IsAny<IUserRepository>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResult);
+        _userRepositoryMock
+            .Setup(r => r.CreateWithPasswordAsync(It.IsAny<User>(), userDto.Password))
+            .ReturnsAsync(IdentityResult.Failed(identityErrors));
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();        
-        result.Data.Should().NotBeNull();
-        result.Data.Email.Should().Be("test@firma.pl");
-        
-        _commandExecutorMock.Verify(x => x.Execute(
-            It.Is<RegisterUserCommand>(c => c.Parametr == userDto),
-            _userRepositoryMock.Object,
-            It.IsAny<CancellationToken>()), Times.Once);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Rejestracja nieudana: Podany adres e‑mail jest już używany.*");
     }
 
     [Fact]
-    public async Task Handle_ShouldHandleDefaultRequest_WithoutCrashing()
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenFrontendUrlIsMissingOrInvalid()
     {
         // Arrange
-        var request = new RegisterUserRequest(); // User = new() w środku
-        var expectedResult = new RegisterUserDto { Email = "default@test.pl" };
+        var userDto = new RegisterUserDto
+        {
+            Email = "test@example.com",
+            Password = "Password123!"
+        };
+        var request = new RegisterUserRequest { User = userDto };
 
-        _commandExecutorMock
-            .Setup(x => x.Execute(
-                It.IsAny<CommandBase<RegisterUserDto, RegisterUserDto, IUserRepository>>(),
-                It.IsAny<IUserRepository>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResult);
+        _userRepositoryMock
+            .Setup(r => r.CreateWithPasswordAsync(It.IsAny<User>(), userDto.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        _userTokenServiceMock
+            .Setup(t => t.GenerateActivationToken(It.IsAny<string>()))
+            .Returns("dummy-token");
+
+        _configurationMock.Setup(c => c["FrontendUrl"]).Returns((string?)null);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
 
         // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*BŁĄD KONFIGURACJI: 'FrontendUrl' jest nieprawidłowy lub nieobecny*");
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRegisterUser_AndSendActivationEmail_WhenDataIsValid()
+    {
+        // Arrange
+        var userDto = new RegisterUserDto
+        {
+            Email = "jan.kowalski@example.com",
+            Password = "Password123!",
+            Name = "Jan Kowalski",            
+            CompanyName = "Test Firm",
+            Nip = "1234567890"
+        };
+        var request = new RegisterUserRequest { User = userDto };
+                
+        const string mockJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJ0ZXN0LWp0aS0xMjMiLCJleHAiOjE4OTM0NTYwMDB9.signature";
+
+        _userRepositoryMock
+            .Setup(r => r.CreateWithPasswordAsync(It.IsAny<User>(), userDto.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        _userTokenServiceMock
+            .Setup(t => t.GenerateActivationToken(userDto.Email))
+            .Returns(mockJwtToken);
+
+        var existingUser = new User
+        {
+            UserId = 10,
+            Email = userDto.Email,
+            Name = userDto.Name,            
+            CompanyName = userDto.CompanyName,
+            Nip = userDto.Nip
+        };
+
+        _userRepositoryMock
+            .Setup(r => r.FindByEmailAsync(userDto.Email))
+            .ReturnsAsync(existingUser);
+
+        _configurationMock
+            .Setup(c => c["FrontendUrl"])
+            .Returns("https://app.example.com");
+
+        // Act
+        var result = await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
-        result.Data.Email.Should().Be("default@test.pl");
+        result.Data.Email.Should().Be(userDto.Email);
+        result.Data.Name.Should().Be(userDto.Name);
+
+        _userRepositoryMock.Verify(
+            r => r.SaveActivationTokenJtiAsync(existingUser.UserId, "test-jti-123", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        var expectedActivationLink = $"https://app.example.com/activate?token={Uri.EscapeDataString(mockJwtToken)}";
+        _emailSenderMock.Verify(
+            e => e.SendActivationEmailAsync(userDto.Email, expectedActivationLink),
+            Times.Once);
     }
 }
