@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
 using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using MediatR;
