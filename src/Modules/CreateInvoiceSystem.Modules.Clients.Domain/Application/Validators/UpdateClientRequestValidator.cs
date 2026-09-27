@@ -6,18 +6,15 @@ namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
 public class UpdateClientRequestValidator : AbstractValidator<UpdateClientRequest>
 {
     public UpdateClientRequestValidator()
-    {
-        // Walidacja ID requestu
+    {        
         RuleFor(x => x.Id)
             .GreaterThanOrEqualTo(1)
             .WithMessage("Id must be greater than or equal to 1.");
-
-        // Walidacja obecności obiektu Client
+             
         RuleFor(x => x.Client)
             .NotNull()
             .WithMessage("Client data is required.");
-
-        // Walidacja pól obiektu Client (tylko gdy Client nie jest null)
+                
         When(x => x.Client != null, () =>
         {
             RuleFor(x => x.Client.Name)
@@ -29,8 +26,7 @@ public class UpdateClientRequestValidator : AbstractValidator<UpdateClientReques
                 .NotEmpty().WithMessage("Nip number is required.")
                 .Matches(@"^\d{10}$").WithMessage("The Nip number must contain exactly 10 digits.")
                 .When(x => x.Client.Nip != null);
-
-            // Walidacja adresu
+                    
             When(x => x.Client.Address != null, () =>
             {
                 RuleFor(x => x.Client.Address.Street)

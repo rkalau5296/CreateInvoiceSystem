@@ -7,7 +7,8 @@ namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators
     {
         public DeleteClientRequestValidator()
         {
-            RuleFor(x => x.Id).GreaterThanOrEqualTo(1);
+            RuleFor(x => x.Id).GreaterThanOrEqualTo(1)
+                .WithMessage("Id must be greater than or equal to 1."); ;
         }
     }
 }

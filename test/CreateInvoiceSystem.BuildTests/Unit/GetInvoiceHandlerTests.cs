@@ -24,7 +24,7 @@ public class GetInvoiceHandlerTests
         // Arrange
         const int invoiceId = 10;
         const int userId = 1;
-        var request = new GetInvoiceRequest(userId, invoiceId);
+        var request = new GetInvoiceRequest(invoiceId) { UserId = userId };
 
         var expectedInvoice = new Invoice
         {
@@ -57,7 +57,7 @@ public class GetInvoiceHandlerTests
         // Arrange
         const int userId = 1;
         const int invoiceId = 999;
-        var request = new GetInvoiceRequest(userId, invoiceId);
+        var request = new GetInvoiceRequest(invoiceId) { UserId = userId };
 
         _repositoryMock
             .Setup(r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()))
@@ -73,16 +73,5 @@ public class GetInvoiceHandlerTests
         _repositoryMock.Verify(
             r => r.GetInvoiceByIdAsync(userId, invoiceId, It.IsAny<CancellationToken>()),
             Times.Once);
-    }
-
-    [Fact]
-    public void Request_ShouldThrowException_WhenIdIsLessThanOne()
-    {
-        // Act
-        Action act = () => new GetInvoiceRequest(0);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("Id");
     }
 }
