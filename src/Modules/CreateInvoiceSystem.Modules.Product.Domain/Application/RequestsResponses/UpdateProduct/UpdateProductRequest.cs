@@ -7,14 +7,9 @@ namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsRespon
 
 public class UpdateProductRequest(int id, UpdateProductDto productDto) : IRequest<UpdateProductResponse>, ITransactionalRequest
 {
-    public UpdateProductDto Product { get; } =
-        (productDto ?? throw new ArgumentNullException(nameof(productDto),
-            $"Argument '{nameof(productDto)}' for product update request (Id={id}) cannot be null. Make sure the request body contains all required fields."
-        )) with { ProductId = id };
-    public int Id { get; } =
-    id >= 1 ? id
-        : throw new ArgumentOutOfRangeException(nameof(id), "Id must be greater than or equal to 1.");
+    public int Id { get; } = id;
+    public UpdateProductDto Product { get; } = productDto != null ? productDto with { ProductId = id } : null!;
 
     [JsonIgnore]
-    public int UserId { get; set; }
+    public int UserId { get; set; }    
 }

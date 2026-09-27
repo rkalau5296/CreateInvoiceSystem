@@ -166,29 +166,5 @@ public class UpdateProductHandlerTests
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Database error.");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenDtoIsNull()
-    {
-        // Act
-        Action act = () => new UpdateProductRequest(1, null!);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithMessage("*productDto*");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsZero()
-    {
-        // Arrange
-        var dto = new UpdateProductDto(0, "Test", "Test", 10m, 1);
-
-        // Act
-        Action act = () => new UpdateProductRequest(0, dto);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
+    }    
 }

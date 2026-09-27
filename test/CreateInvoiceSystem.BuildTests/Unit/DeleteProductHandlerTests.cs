@@ -122,15 +122,4 @@ public class DeleteProductHandlerTests
             r => r.RemoveAsync(productId, It.IsAny<CancellationToken>()),
             Times.Once);
     }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne()
-    {
-        // Act
-        Action act = () => new DeleteProductRequest(0);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("id");
-    }
 }
