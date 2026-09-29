@@ -3,19 +3,13 @@ using CreateInvoiceSystem.Modules.Users.Domain.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
-
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.UpdateUser;
-public class UpdateUserRequest(UpdateUserDto updateUser, int id) : IRequest<UpdateUserResponse>, ITransactionalRequest
-{
-    public UpdateUserDto User { get; } =
-        (updateUser ?? throw new ArgumentNullException(nameof(updateUser),
-            $"Argument '{nameof(updateUser)}' for user update request (Id={id}) cannot be null. Make sure the request body contains all required fields."
-        )) with { UserId = id };
 
-    public int Id { get; } =
-        id >= 1 ? id
-            : throw new ArgumentOutOfRangeException(nameof(id), "Id must be greater than or equal to 1.");
+public class UpdateUserRequest(UpdateUserDto user, int id) : IRequest<UpdateUserResponse>, ITransactionalRequest
+{
+    public UpdateUserDto User { get; } = user;
+    public int Id { get; } = id;
 
     [JsonIgnore]
-    public int UserId { get; set; }
+    public int UserId { get; set; } = id;
 }

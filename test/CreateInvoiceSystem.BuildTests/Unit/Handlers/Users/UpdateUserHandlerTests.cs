@@ -17,34 +17,7 @@ public class UpdateUserHandlerTests
     public UpdateUserHandlerTests()
     {
         _sut = new UpdateUserHandler(_userRepositoryMock.Object);
-    }
-
-    [Fact]
-    public void Request_ShouldThrowArgumentNullException_WhenUpdateUserDtoIsNull()
-    {
-        // Act
-        Action act = () => _ = new UpdateUserRequest(null!, 1);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("updateUser");
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Request_ShouldThrowArgumentOutOfRangeException_WhenIdIsLessThanOne(int invalidId)
-    {
-        // Arrange
-        var userDto = CreateTestUserDto(invalidId);
-
-        // Act
-        Action act = () => _ = new UpdateUserRequest(userDto, invalidId);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithParameterName("id");
-    }
+    }    
 
     [Fact]
     public async Task Handle_ShouldThrowArgumentNullException_WhenRequestIsNull()
