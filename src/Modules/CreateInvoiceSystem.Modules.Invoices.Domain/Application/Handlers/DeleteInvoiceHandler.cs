@@ -25,4 +25,3 @@ public class DeleteInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
         };
     }
 }
-

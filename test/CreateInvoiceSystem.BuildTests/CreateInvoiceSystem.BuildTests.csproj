@@ -58,4 +58,8 @@
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Unit\Validators\Users\" />
+  </ItemGroup>
+
 </Project>
