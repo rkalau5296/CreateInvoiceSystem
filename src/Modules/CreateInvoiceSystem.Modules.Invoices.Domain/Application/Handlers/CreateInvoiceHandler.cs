@@ -8,11 +8,12 @@ using MediatR;
 using System.Threading.Channels;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
-public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, ChannelWriter<EmailTask> _writer) : IRequestHandler<CreateInvoiceRequest, CreateInvoiceResponse>
-{    
+
+public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, ChannelWriter<EmailTask> _writer)
+    : IRequestHandler<CreateInvoiceRequest, CreateInvoiceResponse>
+{
     public async Task<CreateInvoiceResponse> Handle(CreateInvoiceRequest request, CancellationToken cancellationToken)
-    {
-        ValidateInvoiceParametr(request.Invoice);
+    {        
 
         Client client = request.Invoice.ClientId is null
             ? await GetOrCreateClientAsync(request.Invoice, _invoiceRepository, cancellationToken)
@@ -33,7 +34,6 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
         await AddProductsToInvoicePositionsAsync(request.Invoice, entity, _invoiceRepository, cancellationToken);
 
         entity.RecalculateTotals();
-
         entity.Title = await GenerateInvoiceNumberAsync(request.Invoice.UserId, _invoiceRepository, cancellationToken);
 
         await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
@@ -42,46 +42,19 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
 
         if (!string.IsNullOrEmpty(userEmail))
         {
-            await _writer.WriteAsync(new SellerEmailTask(userEmail, entity.Title));
+            await _writer.WriteAsync(new SellerEmailTask(userEmail, entity.Title), cancellationToken);
         }
 
         if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
         {
             var dto = entity.ToDto();
-            await _writer.WriteAsync(new ClientEmailTask(dto));
+            await _writer.WriteAsync(new ClientEmailTask(dto), cancellationToken);
         }
 
         return new CreateInvoiceResponse()
         {
             Data = entity.ToDto()
         };
-    }
-    private static readonly string[] AllowedVatRates = { "23%", "8%", "5%", "0%", "zw", "np" };
-
-    private static void ValidateInvoiceParametr(CreateInvoiceDto parametr)
-    {
-        ArgumentNullException.ThrowIfNull(parametr);
-
-        if (parametr.InvoicePositions is null || parametr.InvoicePositions.Count == 0)
-            throw new InvalidOperationException("Invoice must contain at least one position.");
-
-        if (parametr.ClientId is null && (parametr.Client is null || IsClientDtoEmpty(parametr.Client)))
-            throw new InvalidOperationException("Invoice must contain clientId or Client details.");
-
-        foreach (var position in parametr.InvoicePositions)
-        {
-            if (position.Product is null && position.ProductId is null)
-                throw new InvalidOperationException("InvoicePosition must contain Product or ProductId details.");
-
-            if (string.IsNullOrWhiteSpace(position.VatRate))
-                throw new InvalidOperationException($"VatRate cannot be empty for product: {position.ProductName}");
-
-            if (!AllowedVatRates.Contains(position.VatRate))
-                throw new InvalidOperationException($"Invalid VatRate: {position.VatRate}. Allowed values are: {string.Join(", ", AllowedVatRates)}");
-
-            if (position.Quantity <= 0)
-                throw new InvalidOperationException($"Quantity must be greater than 0 for product: {position.ProductName}");
-        }
     }
 
     private static async Task<string> GenerateInvoiceNumberAsync(int userId, IInvoiceRepository invoiceRepository, CancellationToken ct)
@@ -94,30 +67,9 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
         return $"{nextNumber}/{now.Month:00}/{now.Year}";
     }
 
-    private static bool IsClientDtoEmpty(CreateClientDto client)
+    private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        if (client == null)
-            return true;
-
-        return string.IsNullOrEmpty(client.Name)
-            && string.IsNullOrEmpty(client.Nip)
-            && (
-                client.Address == null ||
-
-                    string.IsNullOrEmpty(client.Address.Street) &&
-                    string.IsNullOrEmpty(client.Address.Number) &&
-                    string.IsNullOrEmpty(client.Address.City) &&
-                    string.IsNullOrEmpty(client.Address.PostalCode) &&
-                    string.IsNullOrEmpty(client.Address.Country)
-
-            )
-            && string.IsNullOrEmpty(client.Email);
-
-    }
-
-    private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
-    {
-        var client = await _invoiceRepository.GetClientAsync(
+        var client = await invoiceRepository.GetClientAsync(
             param.Client.Name,
             param.Client.Address.Street,
             param.Client.Address.Number,
@@ -134,28 +86,29 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
         var newClient = InvoiceMappers.ToEntity(param.Client);
         newClient.UserId = param.UserId;
 
-        await _invoiceRepository.AddClientAsync(newClient, cancellationToken);
+        await invoiceRepository.AddClientAsync(newClient, cancellationToken);
         return newClient;
     }
 
-    private static async Task<Client> GetClientByIdAsync(int clientId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
+    private static async Task<Client> GetClientByIdAsync(int clientId, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        return await _invoiceRepository.GetClientByIdAsync(clientId, cancellationToken) ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
+        return await invoiceRepository.GetClientByIdAsync(clientId, cancellationToken)
+            ?? throw new InvalidOperationException($"Client with ID {clientId} not found.");
     }
 
-    private static async Task AddProductsToInvoicePositionsAsync(CreateInvoiceDto param, Invoice entity, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
+    private static async Task AddProductsToInvoicePositionsAsync(CreateInvoiceDto param, Invoice entity, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
         foreach (var position in param.InvoicePositions)
         {
             var product = position.ProductId is null
-                ? await GetOrCreateProductAsync(position, param.UserId, _invoiceRepository, cancellationToken)
-                : await GetProductByIdAsync(position.ProductId.Value, _invoiceRepository, cancellationToken);
+                ? await GetOrCreateProductAsync(position, param.UserId, invoiceRepository, cancellationToken)
+                : await GetProductByIdAsync(position.ProductId.Value, invoiceRepository, cancellationToken);
 
             var invoicePosition = new InvoicePosition
             {
                 Quantity = position.Quantity,
                 Product = product,
-                ProductId = product.ProductId > 0 ? product.ProductId : null,
+                ProductId = product.ProductId > 0 ? product.ProductId : null,                
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 ProductValue = product.Value,
@@ -165,9 +118,9 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
         }
     }
 
-    private static async Task<Product> GetOrCreateProductAsync(InvoicePositionDto position, int userId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
+    private static async Task<Product> GetOrCreateProductAsync(InvoicePositionDto position, int userId, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        var existing = await _invoiceRepository.GetProductAsync(
+        var existing = await invoiceRepository.GetProductAsync(
             position.ProductName,
             position.ProductDescription,
             position.ProductValue,
@@ -183,13 +136,13 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
             Description = position.ProductDescription,
             Value = position.ProductValue
         };
-        await _invoiceRepository.AddProductAsync(newProduct, cancellationToken);
+        await invoiceRepository.AddProductAsync(newProduct, cancellationToken);
         return newProduct;
     }
 
-    private static async Task<Product> GetProductByIdAsync(int productId, IInvoiceRepository _invoiceRepository, CancellationToken cancellationToken)
+    private static async Task<Product> GetProductByIdAsync(int productId, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)
     {
-        return await _invoiceRepository.GetProductByIdAsync(productId, cancellationToken) ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
-
+        return await invoiceRepository.GetProductByIdAsync(productId, cancellationToken)
+            ?? throw new InvalidOperationException($"Product with ID {productId} not found.");
     }
 }

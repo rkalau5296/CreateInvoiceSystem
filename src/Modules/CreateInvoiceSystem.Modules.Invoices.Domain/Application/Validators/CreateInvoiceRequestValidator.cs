@@ -2,12 +2,14 @@
 using System.Linq;
 using CreateInvoiceSystem.Abstractions.DecimalHelper;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
 using FluentValidation;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
 
 public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequest>
 {
+    private static readonly string[] AllowedVatRates = ["23%", "8%", "5%", "0%", "zw", "np"];
     private static readonly string[] NonTaxableRates = ["zw", "np"];
 
     public CreateInvoiceRequestValidator()
@@ -18,12 +20,16 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         When(x => x.Invoice != null, () =>
         {
+            RuleFor(x => x.Invoice.UserId)
+                .GreaterThan(0).WithMessage("UserId is required.");
+
             RuleFor(x => x.Invoice.Title)
                 .NotEmpty().WithMessage("Name is required.")
                 .MaximumLength(100).WithMessage("Title cannot exceed 100 characters.");
-
-            RuleFor(x => x.Invoice.ClientId)
-                .GreaterThan(0).WithMessage("ClientId is required.");
+            
+            RuleFor(x => x.Invoice)
+                .Must(invoice => invoice.ClientId.HasValue || (invoice.Client != null && !IsClientDtoEmpty(invoice.Client)))
+                .WithMessage("Invoice must contain a valid ClientId or Client details.");
 
             RuleFor(x => x.Invoice.CreatedDate)
                 .NotEmpty().WithMessage("CreatedDate is required.")
@@ -64,6 +70,42 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
             RuleFor(x => x.Invoice.MethodOfPayment)
                 .NotEmpty().WithMessage("MethodOfPayment is required.")
                 .MaximumLength(10).WithMessage("MethodOfPayment can have maximum 10 characters.");
+
+            RuleFor(x => x.Invoice.InvoicePositions)
+                .NotNull().WithMessage("Invoice positions list cannot be null.")
+                .Must(pos => pos != null && pos.Count > 0)
+                .WithMessage("Invoice must contain at least one position.");
+
+            RuleForEach(x => x.Invoice.InvoicePositions)
+                .ChildRules(position =>
+                {
+                    position.RuleFor(p => p)
+                        .Must(p => p.ProductId.HasValue || p.Product != null || !string.IsNullOrWhiteSpace(p.ProductName))
+                        .WithMessage("InvoicePosition must contain Product details, ProductId, or ProductName.");
+
+                    position.RuleFor(p => p.Quantity)
+                        .GreaterThan(0).WithMessage(p => $"Quantity must be greater than 0 for product: {p.ProductName}");
+
+                    position.RuleFor(p => p.VatRate)
+                        .NotEmpty().WithMessage(p => $"VatRate cannot be empty for product: {p.ProductName}")
+                        .Must(rate => rate != null && AllowedVatRates.Contains(rate.Trim().ToLowerInvariant()))
+                        .WithMessage(p => $"Invalid VatRate: {p.VatRate}. Allowed values are: {string.Join(", ", AllowedVatRates)}");
+                });
         });
+    }
+
+    private static bool IsClientDtoEmpty(CreateClientDto client)
+    {
+        if (client == null) return true;
+
+        return string.IsNullOrEmpty(client.Name)
+            && string.IsNullOrEmpty(client.Nip)
+            && (client.Address == null ||
+                (string.IsNullOrEmpty(client.Address.Street) &&
+                 string.IsNullOrEmpty(client.Address.Number) &&
+                 string.IsNullOrEmpty(client.Address.City) &&
+                 string.IsNullOrEmpty(client.Address.PostalCode) &&
+                 string.IsNullOrEmpty(client.Address.Country)))
+            && string.IsNullOrEmpty(client.Email);
     }
 }

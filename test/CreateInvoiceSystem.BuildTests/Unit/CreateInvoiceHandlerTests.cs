@@ -7,6 +7,7 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -26,45 +27,6 @@ public class CreateInvoiceHandlerTests
             .ReturnsAsync(0);
 
         _sut = new CreateInvoiceHandler(_repositoryMock.Object, _writerMock.Object);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowException_WhenInvoicePositionsAreEmpty()
-    {
-        // Arrange
-        var dto = CreateBaseDto();
-        dto.InvoicePositions = new List<InvoicePositionDto>();
-        var request = new CreateInvoiceRequest(dto);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Invoice must contain at least one position.");
-
-        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowException_WhenVatRateIsInvalid()
-    {
-        // Arrange
-        var dto = CreateBaseDto();
-        dto.InvoicePositions = new List<InvoicePositionDto>
-        {
-            new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "123%")
-        };
-        var request = new CreateInvoiceRequest(dto);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Invalid VatRate: 123%. Allowed values are: 23%, 8%, 5%, 0%, zw, np");
-
-        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -150,7 +112,7 @@ public class CreateInvoiceHandlerTests
         _repositoryMock.Setup(r => r.GetClientByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingClient);
 
-        _repositoryMock.Setup(r => r.GetProductAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetProductAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product)null!);
 
         _repositoryMock.Setup(r => r.AddProductAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
@@ -179,17 +141,61 @@ public class CreateInvoiceHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenProductNotFoundById()
+    public async Task Handle_ShouldThrowException_WhenUserNotFound()
     {
         // Arrange
         var dto = CreateBaseDto();
         var request = new CreateInvoiceRequest(dto);
 
         _repositoryMock.Setup(r => r.GetUserByIdAsync(dto.UserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new User { UserId = dto.UserId, Name = "Seller" });
+            .ReturnsAsync((User)null!);
 
         _repositoryMock.Setup(r => r.GetClientByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Client());
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"User with ID {dto.UserId} not found.");
+
+        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowException_WhenClientNotFoundById()
+    {
+        // Arrange
+        var dto = CreateBaseDto();
+        dto.ClientId = 999;
+        var request = new CreateInvoiceRequest(dto);
+
+        _repositoryMock.Setup(r => r.GetClientByIdAsync(999, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Client)null!);
+
+        // Act
+        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Client with ID 999 not found.");
+
+        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowException_WhenProductNotFoundById()
+    {
+        // Arrange
+        var dto = CreateBaseDto();
+        var request = new CreateInvoiceRequest(dto);
+
+        _repositoryMock.Setup(r => r.GetClientByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Client());
+
+        _repositoryMock.Setup(r => r.GetUserByIdAsync(dto.UserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new User { UserId = dto.UserId, Name = "Test User" });
 
         _repositoryMock.Setup(r => r.GetProductByIdAsync(10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product)null!);

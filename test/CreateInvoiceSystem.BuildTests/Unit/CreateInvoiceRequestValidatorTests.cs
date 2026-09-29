@@ -2,6 +2,8 @@
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using System.Runtime.CompilerServices;
+using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit;
 
@@ -27,15 +29,42 @@ public class CreateInvoiceRequestValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_ClientId_Is_Zero_Or_Less()
+    public void Should_Have_Error_When_Neither_ClientId_Nor_Client_Is_Provided()
     {
-        var dto = CreateValidDto() with { ClientId = 0 };
+        var dto = CreateValidDto() with { ClientId = null, Client = null };
         var request = new CreateInvoiceRequest(dto);
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.Invoice.ClientId)
-            .WithErrorMessage("ClientId is required.");
+        result.ShouldHaveValidationErrorFor(x => x.Invoice)
+            .WithErrorMessage("Invoice must contain a valid ClientId or Client details.");
+    }
+
+    [Fact]
+    public void Should_Not_Have_Error_When_Only_ClientId_Is_Provided()
+    {
+        var dto = CreateValidDto() with { ClientId = 5, Client = null };
+        var request = new CreateInvoiceRequest(dto);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Invoice);
+    }
+
+    [Fact]
+    public void Should_Not_Have_Error_When_Only_New_Client_Is_Provided()
+    {
+        var dto = CreateValidDto() with
+        {
+            ClientId = null,
+            Client = CreateValidClientDto()
+        };
+
+        var request = new CreateInvoiceRequest(dto);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Invoice);
     }
 
     [Fact]
@@ -61,7 +90,9 @@ public class CreateInvoiceRequestValidatorTests
         var polandNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central European Standard Time");
         var dto = CreateValidDto() with { CreatedDate = polandNow.Date.AddDays(1) };
         var request = new CreateInvoiceRequest(dto);
+
         var result = _validator.TestValidate(request);
+
         result.ShouldHaveValidationErrorFor(x => x.Invoice.CreatedDate)
             .WithErrorMessage("CreatedDate cannot be in the future.");
     }
@@ -101,7 +132,7 @@ public class CreateInvoiceRequestValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    private CreateInvoiceDto CreateValidDto()
+    private static CreateInvoiceDto CreateValidDto()
     {
         return new CreateInvoiceDto
         {
@@ -115,10 +146,25 @@ public class CreateInvoiceRequestValidatorTests
             CreatedDate = DateTime.UtcNow.AddMinutes(-5),
             UserId = 1,
             ClientId = 5,
+            Client = null,
             InvoicePositions = new List<InvoicePositionDto>
             {
                 new InvoicePositionDto(0, 0, 1, null!, "Item", "Desc", 1250.00m, 1, "23%")
             }
         };
+    }
+
+    private static dynamic CreateValidClientDto()
+    {
+        var clientType = typeof(CreateInvoiceDto).GetProperty(nameof(CreateInvoiceDto.Client))!.PropertyType;
+        var clientInstance = RuntimeHelpers.GetUninitializedObject(clientType);
+
+        var nameProp = clientType.GetProperty("Name") ?? clientType.GetProperty("ClientName");
+        if (nameProp != null && nameProp.CanWrite)
+        {
+            nameProp.SetValue(clientInstance, "Test Client");
+        }
+
+        return clientInstance!;
     }
 }
