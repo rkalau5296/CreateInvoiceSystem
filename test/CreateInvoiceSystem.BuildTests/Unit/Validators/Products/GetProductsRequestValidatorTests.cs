@@ -58,7 +58,7 @@ public class GetProductsRequestValidatorTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(101)]
+    [InlineData(1001)]
     public void Should_HaveValidationError_WhenPageSizeIsOutOfRange(int invalidPageSize)
     {
         // Arrange
@@ -69,7 +69,7 @@ public class GetProductsRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.PageSize)
-            .WithErrorMessage("Page size must be between 1 and 100.");
+            .WithErrorMessage("Page size must be between 1 and 1000.");
     }
 
     [Fact]

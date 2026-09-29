@@ -41,7 +41,7 @@ public class GetClientsRequestValidatorTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(101)]
+    [InlineData(1001)]
     public void Should_HaveValidationError_WhenPageSizeIsOutOfRange(int invalidSize)
     {
         // Arrange
