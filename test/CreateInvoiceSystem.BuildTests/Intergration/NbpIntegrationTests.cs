@@ -1,6 +1,8 @@
-﻿using FluentAssertions;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
+using FluentAssertions;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Intergration;
@@ -13,8 +15,20 @@ public class NbpIntegrationTests
 
     public NbpIntegrationTests(IntegrationTestFixture fixture, ITestOutputHelper output)
     {
-        _client = fixture.Factory.CreateClient();
         _output = output;
+                
+        var factory = fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddTransient<MockNbpHttpMessageHandler>();
+                        
+                services.AddHttpClient("NbpClient")
+                        .AddHttpMessageHandler<MockNbpHttpMessageHandler>();
+            });
+        });
+
+        _client = factory.CreateClient();
     }
 
     [Fact]
@@ -34,7 +48,7 @@ public class NbpIntegrationTests
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-                
+
         var elementToVerify = root.TryGetProperty("data", out var dataEl) ? dataEl : root;
 
         elementToVerify.GetProperty("code").GetString().Should().Be(currencyCode);
@@ -88,7 +102,7 @@ public class NbpIntegrationTests
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
-                
+
         if (root.ValueKind == JsonValueKind.Array)
         {
             root.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
@@ -96,7 +110,7 @@ public class NbpIntegrationTests
         else
         {
             var target = root.TryGetProperty("data", out var data) ? data : root;
-                        
+
             if (target.ValueKind == JsonValueKind.Array)
             {
                 target.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
@@ -106,5 +120,54 @@ public class NbpIntegrationTests
                 target.GetProperty("rates").GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
             }
         }
+    }
+}
+
+public class MockNbpHttpMessageHandler : DelegatingHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var url = request.RequestUri?.ToString() ?? string.Empty;
+                
+        if (url.Contains("/A/EUR") || url.Contains("/a/eur"))
+        {
+            var singleRateJson = """
+            {
+                "table": "A",
+                "currency": "euro",
+                "code": "EUR",
+                "rates": [
+                    { "no": "001/A/NBP/2026", "effectiveDate": "2026-01-02", "mid": 4.2500 }
+                ]
+            }
+            """;
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(singleRateJson, System.Text.Encoding.UTF8, "application/json")
+            });
+        }
+                
+        if (url.Contains("/2026-01-01/2026-01-07"))
+        {
+            var seriesJson = """
+            {
+                "table": "A",
+                "currency": "euro",
+                "code": "EUR",
+                "rates": [
+                    { "no": "001/A/NBP/2026", "effectiveDate": "2026-01-02", "mid": 4.2500 },
+                    { "no": "002/A/NBP/2026", "effectiveDate": "2026-01-05", "mid": 4.2650 }
+                ]
+            }
+            """;
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(seriesJson, System.Text.Encoding.UTF8, "application/json")
+            });
+        }
+
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 }

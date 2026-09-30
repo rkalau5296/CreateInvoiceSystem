@@ -1,27 +1,52 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
+using CreateInvoiceSystem.Modules.Users.Domain.Entities;
 using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 
-public class LoginUserHandler(ICommandExecutor commandExecutor, IUserRepository _userRepository, IUserTokenService _tokenService)
+public class LoginUserHandler(IUserRepository userRepository, IUserTokenService tokenService)
     : IRequestHandler<LoginUserRequest, LoginUserResponse>
 {
     public async Task<LoginUserResponse> Handle(LoginUserRequest request, CancellationToken cancellationToken)
     {
-        var command = new LoginUserCommand(request.Dto, _tokenService);
+        var initialUser = await userRepository.FindByEmailAsync(request.Dto.Email)
+            ?? throw new UnauthorizedAccessException("Błędny użytkownik lub hasło.");
 
-        var result = await commandExecutor.Execute(
-            command,
-            _userRepository,
-            cancellationToken);
-        
+        if (!initialUser.IsActive)
+        {
+            throw new UnauthorizedAccessException("Konto nie jest aktywne. Sprawdź e-mail, aby dokończyć rejestrację.");
+        }
+
+        var authenticatedUser = await userRepository.CheckPasswordAsync(initialUser, request.Dto.Password)
+            ?? throw new UnauthorizedAccessException("Błędny użytkownik lub hasło.");
+
+        var sessionId = Guid.NewGuid();
+        var roles = await userRepository.GetRolesAsync(authenticatedUser, cancellationToken);
+
+        var (accessToken, refreshToken) = tokenService.CreateToken(
+            authenticatedUser.UserId,
+            authenticatedUser.Email,
+            authenticatedUser.CompanyName,
+            authenticatedUser.Nip,
+            roles,
+            sessionId);
+
+        var session = new UserSession
+        {
+            UserId = authenticatedUser.UserId,
+            SessionId = sessionId,
+            RefreshToken = refreshToken,
+            LastActivityAt = DateTime.UtcNow,
+            IsRevoked = false
+        };
+
+        await userRepository.AddSessionAsync(session, cancellationToken);
+
         return new LoginUserResponse(
-            result.AccessToken,
-            !string.IsNullOrEmpty(result.AccessToken),
-            result.RefreshToken,
+            accessToken,
+            !string.IsNullOrEmpty(accessToken),
+            refreshToken,
             "Login successful");
     }
 }

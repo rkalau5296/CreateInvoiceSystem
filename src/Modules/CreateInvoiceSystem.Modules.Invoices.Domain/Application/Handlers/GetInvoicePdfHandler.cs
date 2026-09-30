@@ -1,22 +1,17 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
+﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
 using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
 {
-    public class GetInvoicePdfHandler(
-    IQueryExecutor queryExecutor,
-    IInvoiceRepository invoiceRepository,
-    IInvoiceExportService exportService) : IRequestHandler<GetInvoicePdfRequest, GetInvoicePdfResponse>
+    public class GetInvoicePdfHandler(IInvoiceRepository _invoiceRepository, IInvoiceExportService exportService) 
+        : IRequestHandler<GetInvoicePdfRequest, GetInvoicePdfResponse>
     {
         public async Task<GetInvoicePdfResponse> Handle(GetInvoicePdfRequest request, CancellationToken cancellationToken)
-        {
-            GetInvoiceQuery query = new(request.UserId, request.InvoiceId);
-            var invoice = await queryExecutor.Execute(query, invoiceRepository, cancellationToken)
-                ?? throw new InvalidOperationException($"Invoice with ID {request.InvoiceId} not found.");
+        {            
+            var invoice = await _invoiceRepository.GetInvoiceByIdAsync(request.UserId, request.InvoiceId, cancellationToken)
+               ?? throw new InvalidOperationException($"Invoice with ID {request.InvoiceId} not found.");
 
             var invoiceDto = InvoiceMappers.ToDto(invoice);
 

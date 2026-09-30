@@ -5,7 +5,7 @@ using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
 using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Commands;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using FluentValidation;
@@ -22,7 +22,7 @@ public static class ApplicationServiceCollectionExtensions
             typeof(GetUsersRequest).Assembly,
             typeof(GetActualCurrencyRatesRequest).Assembly,
             typeof(GetInvoicesRequest).Assembly,
-            typeof(ActivateUserCommand).Assembly
+            typeof(ActivateUserHandler).Assembly
         ));
 
         services.AddValidatorsFromAssemblyContaining<CreateClientRequestValidator>();

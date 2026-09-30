@@ -1,18 +1,17 @@
-﻿using CreateInvoiceSystem.Abstractions.Executors;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Queries;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
+﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
 using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
 using MediatR;
 
+
 namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
-public class GetProductsHandler(IQueryExecutor _queryExecutor, IProductRepository _productRepository) : IRequestHandler<GetProductsRequest, GetProductsResponse>
+public class GetProductsHandler(IProductRepository _productRepository) : IRequestHandler<GetProductsRequest, GetProductsResponse>
 {
     public async Task<GetProductsResponse> Handle(GetProductsRequest request, CancellationToken cancellationToken)
-    {
-        GetProductsQuery query = new(request.UserId, request.PageNumber, request.PageSize, request.SearchTerm);
-
-       var products = await _queryExecutor.Execute(query, _productRepository, cancellationToken);
+    {        
+       var products = await _productRepository.GetAllAsync(
+           request.UserId, request.PageNumber, request.PageSize, request.SearchTerm, cancellationToken)
+            ?? throw new InvalidOperationException($"List of products is empty.");
 
         return new GetProductsResponse
         {

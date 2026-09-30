@@ -1,4 +1,3 @@
-using CreateInvoiceSystem.Abstractions.DI;
 using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
@@ -74,7 +73,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddAbstractionsModule();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCsvModule();
 builder.Services.AddPdfModule();
