@@ -9,10 +9,6 @@ public class GetInvoicePdfRequestValidator : AbstractValidator<GetInvoicePdfRequ
     {
         RuleFor(x => x.InvoiceId)
             .GreaterThanOrEqualTo(1)
-            .WithMessage("Invoice ID must be greater than or equal to 1.");
-
-        RuleFor(x => x.UserId)
-            .GreaterThanOrEqualTo(1)
-            .WithMessage("User ID must be greater than or equal to 1.");
+            .WithMessage("Invoice ID must be greater than or equal to 1.");       
     }
 }

@@ -9,10 +9,6 @@ public class DeleteInvoiceRequestValidator : AbstractValidator<DeleteInvoiceRequ
     {
         RuleFor(x => x.Id)
             .GreaterThan(0)
-            .WithMessage("Invoice Id must be greater than 0.");
-
-        RuleFor(x => x.UserId)
-            .GreaterThan(0)
-            .WithMessage("User Id must be greater than 0.");
+            .WithMessage("Invoice Id must be greater than 0.");        
     }
 }

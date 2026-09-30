@@ -10,11 +10,6 @@ public class LoginUserHandler(IUserRepository userRepository, IUserTokenService 
 {
     public async Task<LoginUserResponse> Handle(LoginUserRequest request, CancellationToken cancellationToken)
     {
-        if (request.Dto is null)
-        {
-            throw new ArgumentNullException(nameof(request.Dto));
-        }
-
         var initialUser = await userRepository.FindByEmailAsync(request.Dto.Email)
             ?? throw new UnauthorizedAccessException("Błędny użytkownik lub hasło.");
 

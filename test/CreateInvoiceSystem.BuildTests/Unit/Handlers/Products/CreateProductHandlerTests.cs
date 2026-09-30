@@ -103,24 +103,7 @@ public class CreateProductHandlerTests
         _repositoryMock.Verify(
             r => r.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()),
             Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenProductInRequestIsNull()
-    {
-        // Arrange
-        var request = new CreateProductRequest(null!);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>();
-
-        _repositoryMock.Verify(
-            r => r.ExistsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
+    }    
 
     [Fact]
     public async Task Handle_ShouldPropagateException_WhenAddAsyncFails()

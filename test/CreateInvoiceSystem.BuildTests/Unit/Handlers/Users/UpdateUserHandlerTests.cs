@@ -17,16 +17,6 @@ public class UpdateUserHandlerTests
     public UpdateUserHandlerTests()
     {
         _sut = new UpdateUserHandler(_userRepositoryMock.Object);
-    }    
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenRequestIsNull()
-    {
-        // Act
-        Func<Task> act = async () => await _sut.Handle(null!, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]

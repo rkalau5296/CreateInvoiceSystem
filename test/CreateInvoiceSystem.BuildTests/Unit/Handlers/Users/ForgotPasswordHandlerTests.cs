@@ -105,19 +105,5 @@ public class ForgotPasswordHandlerTests
         _emailSenderMock.Verify(
             x => x.SendResetPasswordEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
             Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenDtoIsNull()
-    {
-        // Arrange
-        var request = new ForgotPasswordRequest(null!);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("Dto");
-    }
+    }    
 }

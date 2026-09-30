@@ -12,11 +12,7 @@ public class UpdateClientRequestValidator : AbstractValidator<UpdateClientReques
         {
             RuleFor(x => x.Id)
             .GreaterThanOrEqualTo(1)
-            .WithMessage("Id must be greater than or equal to 1.");
-
-            RuleFor(x => x.Client)
-                .NotNull()
-                .WithMessage("Client data is required.");
+            .WithMessage("Id must be greater than or equal to 1.");           
 
             When(x => x.Client != null, () =>
             {

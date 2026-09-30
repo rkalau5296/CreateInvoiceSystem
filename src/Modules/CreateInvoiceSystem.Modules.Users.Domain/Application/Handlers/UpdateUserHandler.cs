@@ -12,9 +12,6 @@ public class UpdateUserHandler(IUserRepository userRepository)
         UpdateUserRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(request.User, nameof(request.User));
-
         var userDto = request.User;
 
         var user = await userRepository.GetUserByIdAsync(userDto.UserId, cancellationToken)

@@ -8,9 +8,6 @@ public class ForgotPasswordHandler(IUserRepository _userRepository, IUserEmailSe
 {
     public async Task<ForgotPasswordResponse> Handle(ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
-        if (request.Dto is null)
-            throw new ArgumentNullException(nameof(request.Dto));
-
         var user = await _userRepository.FindByEmailAsync(request.Dto.Email);
 
         if (user is not null)

@@ -7,9 +7,7 @@ namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
 public class CreateProductHandler(IProductRepository _productRepository) : IRequestHandler<CreateProductRequest, CreateProductResponse>
 {   
     public async Task<CreateProductResponse> Handle(CreateProductRequest request, CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(request.Product);
-
+    {  
         var exists = await _productRepository.ExistsAsync(request.Product.Name, request.Product.UserId, cancellationToken);
 
         if (exists)

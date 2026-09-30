@@ -120,17 +120,5 @@ public class ResetPasswordHandlerTests
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("Użytkownik nie istnieje.");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenRequestIsNull()
-    {
-        // Act
-        Func<Task> act = async () => await _handler.Handle(null!, CancellationToken.None);
-
-        // Assert
-        await act.Should()
-            .ThrowAsync<ArgumentNullException>()
-            .WithParameterName("request");
-    }
+    }    
 }

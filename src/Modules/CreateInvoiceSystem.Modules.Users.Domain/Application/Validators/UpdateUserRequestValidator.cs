@@ -7,16 +7,16 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 {
     public UpdateUserRequestValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThanOrEqualTo(1)
-            .WithMessage("Id must be greater than or equal to 1.");
-
         RuleFor(x => x.User)
             .NotNull()
             .WithMessage("User data cannot be null.");
 
         When(x => x.User != null, () =>
         {
+            RuleFor(x => x.Id)
+                .GreaterThanOrEqualTo(1)
+                .WithMessage("Id must be greater than or equal to 1.");
+
             RuleFor(x => x.User.Name)
                 .NotEmpty().WithMessage("Name is required.")
                 .MaximumLength(100)

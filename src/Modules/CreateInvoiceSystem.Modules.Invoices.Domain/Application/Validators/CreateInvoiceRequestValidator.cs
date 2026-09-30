@@ -20,9 +20,6 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
         When(x => x.Invoice != null, () =>
         {
-            RuleFor(x => x.Invoice.UserId)
-                .GreaterThan(0).WithMessage("UserId is required.");
-
             RuleFor(x => x.Invoice.Title)
                 .NotEmpty().WithMessage("Name is required.")
                 .MaximumLength(100).WithMessage("Title cannot exceed 100 characters.");

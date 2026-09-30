@@ -37,21 +37,5 @@ public class GetInvoicePdfRequestValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.InvoiceId)
             .WithErrorMessage("Invoice ID must be greater than or equal to 1.");
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Should_HaveValidationError_WhenUserIdIsLessThanOne(int invalidUserId)
-    {
-        // Arrange
-        var request = new GetInvoicePdfRequest(1, invalidUserId);
-
-        // Act
-        var result = _validator.TestValidate(request);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage("User ID must be greater than or equal to 1.");
-    }
+    }    
 }

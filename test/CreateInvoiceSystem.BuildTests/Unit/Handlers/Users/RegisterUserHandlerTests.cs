@@ -25,21 +25,7 @@ public class RegisterUserHandlerTests
             _emailSenderMock.Object,
             _userTokenServiceMock.Object,
             _configurationMock.Object);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenUserDtoIsNull()
-    {
-        // Arrange
-        var request = new RegisterUserRequest { User = null! };
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("User");
-    }
+    }    
 
     [Fact]
     public async Task Handle_ShouldThrowInvalidOperationException_WhenUserCreationFails()

@@ -8,9 +8,6 @@ public class CreateUserHandler(IUserRepository _userRepository) : IRequestHandle
 {   
     public async Task<CreateUserResponse> Handle(CreateUserRequest request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request.User);
-        ArgumentNullException.ThrowIfNull(request.User.Address);
-
         var user = UserMappers.ToEntity(request.User);
 
         await _userRepository.AddAsync(user, cancellationToken);

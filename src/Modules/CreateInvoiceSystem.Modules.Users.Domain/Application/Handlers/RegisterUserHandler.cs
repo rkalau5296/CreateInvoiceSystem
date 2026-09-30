@@ -18,11 +18,6 @@ public class RegisterUserHandler(
 {
     public async Task<RegisterUserResponse> Handle(RegisterUserRequest request, CancellationToken cancellationToken)
     {
-        if (request.User is null)
-        {
-            throw new ArgumentNullException(nameof(request.User));
-        }
-
         var entity = UserMappers.ToEntity(request.User);
 
         var result = await userRepository.CreateWithPasswordAsync(entity, request.User.Password);

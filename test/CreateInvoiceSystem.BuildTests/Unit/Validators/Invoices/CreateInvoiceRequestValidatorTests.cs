@@ -1,7 +1,8 @@
-﻿using FluentValidation.TestHelper;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using FluentValidation.TestHelper;
 using System.Runtime.CompilerServices;
 using Xunit;
 
@@ -14,6 +15,20 @@ public class CreateInvoiceRequestValidatorTests
     public CreateInvoiceRequestValidatorTests()
     {
         _validator = new CreateInvoiceRequestValidator();
+    }
+
+    [Fact]
+    public void Should_Have_Error_When_Invoice_Is_Null()
+    {
+        // Arrange
+        var request = new CreateInvoiceRequest(null!);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Invoice)
+            .WithErrorMessage("Invoice data cannot be null.");
     }
 
     [Fact]

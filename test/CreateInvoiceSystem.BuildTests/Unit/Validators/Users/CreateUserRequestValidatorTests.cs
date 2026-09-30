@@ -1,7 +1,9 @@
-﻿using FluentValidation.TestHelper;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
+﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
+using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
 using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Users.Domain.Dto;
+using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Users;
@@ -25,6 +27,20 @@ public class CreateUserRequestValidatorTests
             Country: "Polska"
         )
     );
+
+    [Fact]
+    public async Task ShouldThrowArgumentNullException_WhenUserDtoIsNull()
+    {
+        // Arrange
+        var request = new CreateUserRequest(null!);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.User)
+            .WithErrorMessage("User is required.");
+    }
 
     [Fact]
     public void Should_Have_Error_When_Name_Is_Empty()

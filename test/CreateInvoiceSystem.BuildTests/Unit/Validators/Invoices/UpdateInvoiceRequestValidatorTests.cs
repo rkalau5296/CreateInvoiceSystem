@@ -1,7 +1,9 @@
-﻿using FluentValidation.TestHelper;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using FluentValidation.TestHelper;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Invoices;
 
@@ -12,6 +14,20 @@ public class UpdateInvoiceRequestValidatorTests
     public UpdateInvoiceRequestValidatorTests()
     {
         _validator = new UpdateInvoiceRequestValidator();
+    }
+
+    [Fact]
+    public void Should_Have_Error_When_Invoice_Is_Null()
+    {
+        // Arrange
+        var request = new UpdateInvoiceRequest(1, null!);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Invoice)
+            .WithErrorMessage("Invoice data is required.");
     }
 
     [Fact]

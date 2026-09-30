@@ -10,10 +10,7 @@ public class ResetPasswordHandler(IUserRepository userRepository)
     public async Task<ResetPasswordResponse> Handle(
         ResetPasswordRequest request,
         CancellationToken cancellationToken)
-    {
-        if (request is null)
-            throw new ArgumentNullException(nameof(request), "Request nie może być null.");
-
+    {       
         var user = await userRepository.FindByEmailAsync(request.Email)
                    ?? throw new InvalidOperationException("Użytkownik nie istnieje.");
 

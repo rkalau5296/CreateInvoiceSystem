@@ -18,21 +18,7 @@ public class LoginUserHandlerTests
     public LoginUserHandlerTests()
     {
         _sut = new LoginUserHandler(_userRepositoryMock.Object, _tokenServiceMock.Object);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenDtoIsNull()
-    {
-        // Arrange
-        var request = new LoginUserRequest(null!);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("Dto");
-    }
+    }    
 
     [Fact]
     public async Task Handle_ShouldThrowUnauthorizedAccessException_WhenUserNotFound()

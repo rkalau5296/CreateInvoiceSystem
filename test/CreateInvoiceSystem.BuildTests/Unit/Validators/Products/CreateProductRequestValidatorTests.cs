@@ -11,6 +11,20 @@ public class CreateProductRequestValidatorTests
     private readonly CreateProductRequestValidator _validator = new();
 
     [Fact]
+    public void Should_Have_Error_When_Product_Is_Null()
+    {
+        // Arrange
+        var request = new CreateProductRequest(null!);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Product)
+            .WithErrorMessage("Product data cannot be null.");
+    }
+
+    [Fact]
     public void Should_NotHaveValidationErrors_WhenRequestIsValid()
     {
         // Arrange
