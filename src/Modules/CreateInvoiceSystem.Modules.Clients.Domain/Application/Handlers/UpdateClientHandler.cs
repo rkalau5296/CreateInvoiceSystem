@@ -9,8 +9,6 @@ public class UpdateClientHandler(IClientRepository _clientRepository) : IRequest
 {    
     public async Task<UpdateClientResponse> Handle(UpdateClientRequest request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request.Client);
-
         var client = await _clientRepository.GetByIdAsync(request.Client.ClientId, request.Client.UserId, cancellationToken)
             ?? throw new InvalidOperationException(
                 $"Client with ID {request.Client.ClientId} not found.");

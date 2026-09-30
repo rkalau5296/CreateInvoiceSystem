@@ -77,34 +77,5 @@ public class CreateClientHandlerTests
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Istnieje już taki klient z identycznymi danymi.");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenClientIsNull()
-    {
-        // Arrange
-        var request = new CreateClientRequest(null!);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("request.Client");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowArgumentNullException_WhenAddressIsNull()
-    {
-        // Arrange
-        var createDto = new CreateClientDto("Test", "123", null!, 1, "testc@test.com");
-        var request = new CreateClientRequest(createDto);
-
-        // Act
-        Func<Task> act = async () => await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("Address");
-    }
+    }     
 }

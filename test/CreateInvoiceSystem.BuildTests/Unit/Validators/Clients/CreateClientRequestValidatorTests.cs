@@ -15,6 +15,20 @@ public class CreateClientRequestValidatorTests
     }
 
     [Fact]
+    public void Should_Have_Error_When_Client_Is_Null()
+    {
+        // Arrange
+        var request = new CreateClientRequest(null!);
+
+        // Act
+        var result = _validator.TestValidate(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Client)
+            .WithErrorMessage("Client is required");
+    }
+
+    [Fact]
     public void Should_Have_Error_When_Name_Is_Empty()
     {
         // Arrange

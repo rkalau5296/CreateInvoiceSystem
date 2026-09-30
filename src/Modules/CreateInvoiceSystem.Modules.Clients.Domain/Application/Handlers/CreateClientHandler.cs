@@ -8,9 +8,6 @@ public class CreateClientHandler(IClientRepository _clientRepository) : IRequest
 {
     public async Task<CreateClientResponse> Handle(CreateClientRequest request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request.Client);
-        ArgumentNullException.ThrowIfNull(request.Client.Address, "Address");
-
         var exists = await _clientRepository.ExistsAsync(
             request.Client.Name,
             request.Client.Address.Street,
