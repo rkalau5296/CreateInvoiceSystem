@@ -35,10 +35,10 @@
     <ProjectReference Include="..\CreateInvoiceSystem.Mail\CreateInvoiceSystem.Mail.csproj" />
     <ProjectReference Include="..\CreateInvoiceSystem.Pdf\CreateInvoiceSystem.Pdf.csproj" />
     <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp.Domain\CreateInvoiceSystem.Modules.Nbp.Domain.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Product.Domain\CreateInvoiceSystem.Modules.Products.Domain.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users.Domain\CreateInvoiceSystem.Modules.Users.Domain.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices\CreateInvoiceSystem.Modules.Invoices.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products\CreateInvoiceSystem.Modules.Products.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users\CreateInvoiceSystem.Modules.Users.csproj" />
   </ItemGroup>
 </Project>

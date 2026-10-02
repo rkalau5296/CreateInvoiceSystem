@@ -45,17 +45,20 @@
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.API\CreateInvoiceSystem.API.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Csv\CreateInvoiceSystem.Csv.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Identity\CreateInvoiceSystem.Identity.csproj" />
+    <ProjectReference Include="..\..\src\CreateInvoiceSystem.Invoices.Persistence.Shared\CreateInvoiceSystem.Invoices.Persistence.Shared.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Pdf\CreateInvoiceSystem.Pdf.csproj" />
     <ProjectReference Include="..\..\src\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Domain\CreateInvoiceSystem.Modules.Clients.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Domain\CreateInvoiceSystem.Modules.Invoices.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Nbp.Domain\CreateInvoiceSystem.Modules.Nbp.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Product.Domain\CreateInvoiceSystem.Modules.Products.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users.Domain\CreateInvoiceSystem.Modules.Users.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Addresses.Persistence\CreateInvoiceSystem.Modules.Addresses.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.InvoicePositions.Persistence\CreateInvoiceSystem.Modules.InvoicePositions.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices\CreateInvoiceSystem.Modules.Invoices.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products\CreateInvoiceSystem.Modules.Products.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />    
+    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users\CreateInvoiceSystem.Modules.Users.csproj" />
   </ItemGroup>
 
 </Project>
