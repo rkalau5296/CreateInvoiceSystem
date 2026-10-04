@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+﻿namespace CreateInvoiceSystem.Modules.Invoices.Entities;
 public class Client 
 {  
     public int ClientId { get; set; }

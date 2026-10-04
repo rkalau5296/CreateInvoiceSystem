@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class ActivateUserRequestValidator : AbstractValidator<ActivateUserRequest>
 {

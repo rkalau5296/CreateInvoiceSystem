@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResendToken;
 
 public class ResendActivationTokenResponse : IApiResponse
 {

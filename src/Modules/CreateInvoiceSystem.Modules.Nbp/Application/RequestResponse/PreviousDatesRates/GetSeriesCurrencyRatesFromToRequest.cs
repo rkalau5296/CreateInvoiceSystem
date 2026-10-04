@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
+namespace CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 public class GetSeriesCurrencyRatesFromToRequest(string tableName, DateTime dateFrom, DateTime dateTo ) : IRequest<GetSeriesCurrencyRatesFromToResponse>
 {
     public string TableName { get; set; } = tableName;

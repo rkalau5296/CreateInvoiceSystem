@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Invoices.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Entities;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+namespace CreateInvoiceSystem.Modules.Invoices.Mappers;
 
 public static class InvoiceMappers
 {

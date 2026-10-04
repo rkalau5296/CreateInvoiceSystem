@@ -1,10 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.Handlers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using FluentAssertions;
 using Moq;
 using System.Text;
-using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
+using User = CreateInvoiceSystem.Modules.Users.Entities.User;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Users;
 

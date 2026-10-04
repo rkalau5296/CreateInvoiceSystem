@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+﻿namespace CreateInvoiceSystem.Modules.Invoices.Dto;
 public record AddressDto(
     int AddressId,   
     string Street,    

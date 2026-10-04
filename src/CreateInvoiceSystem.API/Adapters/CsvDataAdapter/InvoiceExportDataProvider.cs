@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Csv.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.CsvDataAdapter
 {

@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 public class CreateUserHandler(IUserRepository _userRepository) : IRequestHandler<CreateUserRequest, CreateUserResponse>
 {   
     public async Task<CreateUserResponse> Handle(CreateUserRequest request, CancellationToken cancellationToken)

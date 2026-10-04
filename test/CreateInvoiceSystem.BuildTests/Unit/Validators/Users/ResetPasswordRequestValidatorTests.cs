@@ -1,7 +1,7 @@
 ﻿using FluentValidation.TestHelper;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
 using Xunit;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
+using CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Users;
 

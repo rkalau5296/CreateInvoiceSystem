@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.Notification;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 using Moq;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Invoices

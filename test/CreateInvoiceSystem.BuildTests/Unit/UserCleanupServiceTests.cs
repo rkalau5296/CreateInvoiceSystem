@@ -1,5 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Entities;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.Services;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ public class UserCleanupServiceTests
     private readonly Mock<IServiceScopeFactory> _scopeFactoryMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<IServiceScope> _serviceScopeMock;
-    private readonly Mock<ILogger<Modules.Users.Domain.Application.Services.UserCleanupService>> _loggerMock;
+    private readonly Mock<ILogger<UserCleanupService>> _loggerMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IUserTokenService> _userTokenServiceMock;
 
@@ -26,7 +27,7 @@ public class UserCleanupServiceTests
         _scopeFactoryMock = new Mock<IServiceScopeFactory>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _serviceScopeMock = new Mock<IServiceScope>();
-        _loggerMock = new Mock<ILogger<Modules.Users.Domain.Application.Services.UserCleanupService>>();
+        _loggerMock = new Mock<ILogger<UserCleanupService>>();
         _configurationMock = new Mock<IConfiguration>();
         _userTokenServiceMock = new Mock<IUserTokenService>();
         _userTokenServiceMock = new Mock<IUserTokenService>();
@@ -56,7 +57,7 @@ public class UserCleanupServiceTests
             .Setup(x => x.RemoveInactiveUsersAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        var service = new Modules.Users.Domain.Application.Services.UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
+        var service = new UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
         using var cts = new CancellationTokenSource();
 
         var executeTask = service.StartAsync(cts.Token);
@@ -84,7 +85,7 @@ public class UserCleanupServiceTests
             .Setup(x => x.GetUsersForCleanupWarningAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<User>());
 
-        var service = new Modules.Users.Domain.Application.Services.UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
+        var service = new UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
         using var cts = new CancellationTokenSource();
 
         var executeTask = service.StartAsync(cts.Token);

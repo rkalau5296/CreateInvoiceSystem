@@ -1,10 +1,10 @@
 ﻿using CreateInvoiceSystem.Abstractions.Notification;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class DeleteUserHandler(IUserRepository _userRepository, IMediator mediator)
     : IRequestHandler<DeleteUserRequest, DeleteUserResponse>

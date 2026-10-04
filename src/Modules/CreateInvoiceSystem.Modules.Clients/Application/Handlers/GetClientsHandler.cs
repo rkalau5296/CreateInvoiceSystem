@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 public class GetClientsHandler(IClientRepository _clientRepository) : IRequestHandler<GetClientsRequest, GetClientsResponse>
 {
     public async Task<GetClientsResponse> Handle(GetClientsRequest request, CancellationToken cancellationToken)

@@ -1,8 +1,7 @@
 ﻿using FluentValidation.TestHelper;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
-using Xunit;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Application.Validators;
+using CreateInvoiceSystem.Modules.Users.Dto;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Users;
 

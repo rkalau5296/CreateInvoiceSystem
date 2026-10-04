@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Shared.Persistence;
 

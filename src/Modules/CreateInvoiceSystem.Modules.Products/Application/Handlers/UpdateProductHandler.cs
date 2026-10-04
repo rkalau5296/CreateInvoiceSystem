@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.UpdateProduct;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Products.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.UpdateProduct;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
+using CreateInvoiceSystem.Modules.Products.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Products.Application.Handlers;
 
 public class UpdateProductHandler(IProductRepository _productRepository) : IRequestHandler<UpdateProductRequest, UpdateProductResponse>
 {    

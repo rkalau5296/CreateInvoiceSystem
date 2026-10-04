@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Products.Domain.Dto;
+using CreateInvoiceSystem.Modules.Products.Dto;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
+namespace CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 public class DeleteProductResponse : ResponseBase<ProductDto>
 {
 }

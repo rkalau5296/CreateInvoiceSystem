@@ -1,13 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class RegisterUserHandler(
     IUserRepository userRepository,

@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 

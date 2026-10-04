@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+﻿namespace CreateInvoiceSystem.Modules.Invoices.Entities;
 public class Product
 {
     public int ProductId { get; set; }

@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
 {

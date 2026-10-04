@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.API.Mappers.ProductMapper;
-using CreateInvoiceSystem.Modules.Products.Domain.Entities;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Products.Entities;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

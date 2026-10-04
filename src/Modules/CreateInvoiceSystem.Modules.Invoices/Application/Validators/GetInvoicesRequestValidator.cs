@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 
 public class GetInvoicesRequestValidator : AbstractValidator<GetInvoicesRequest>
 {

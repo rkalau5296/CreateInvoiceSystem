@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
 
 public record ActivateUserResponse : IApiResponse
 {

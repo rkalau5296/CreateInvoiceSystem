@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks
+namespace CreateInvoiceSystem.Modules.Invoices.BackgroundTasks
 {
     public abstract record EmailTask;    
 }

@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoice;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoice;
 
 public class GetInvoiceRequest(int id) : IRequest<GetInvoiceResponse>
 {

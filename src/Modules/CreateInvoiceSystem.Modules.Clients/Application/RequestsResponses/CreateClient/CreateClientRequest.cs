@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+using CreateInvoiceSystem.Modules.Clients.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
+namespace CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
 public class CreateClientRequest(CreateClientDto clientDto) : IRequest<CreateClientResponse>, ITransactionalRequest
 {
     public CreateClientDto Client { get; } = clientDto;

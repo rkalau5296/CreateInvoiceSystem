@@ -1,8 +1,8 @@
-﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.DTO;
+using CreateInvoiceSystem.Modules.Nbp.Application.Handlers;
+using CreateInvoiceSystem.Modules.Nbp.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
+using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;

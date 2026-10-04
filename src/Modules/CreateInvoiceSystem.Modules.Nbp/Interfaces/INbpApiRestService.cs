@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.DTO;
 
-namespace CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Nbp.Interfaces;
 
 public interface INbpApiRestService
 {

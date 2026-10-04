@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RefreshToken;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class RefreshTokenRequestValidator : AbstractValidator<RefreshTokenRequest>
 {

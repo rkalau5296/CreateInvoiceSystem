@@ -1,8 +1,8 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ChangePassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ChangePassword;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class ChangePasswordHandler(IUserRepository _userRepository) : IRequestHandler<ChangePasswordRequest, ChangePasswordResponse>
 {

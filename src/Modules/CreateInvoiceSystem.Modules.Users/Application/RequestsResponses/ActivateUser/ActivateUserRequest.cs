@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
 
 public class ActivateUserRequest : IRequest<ActivateUserResponse>, ITransactionalRequest
 {

@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Entities;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Invoices.Interfaces;
 public interface IInvoiceRepository : ISaveChangesContext
 {
     Task<Invoice> AddInvoiceAsync(Invoice entity, CancellationToken cancellationToken);

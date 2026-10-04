@@ -1,13 +1,13 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Mappers;
 using MediatR;
 using System.Threading.Channels;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
 
 public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, ChannelWriter<EmailTask> _writer)
     : IRequestHandler<CreateInvoiceRequest, CreateInvoiceResponse>

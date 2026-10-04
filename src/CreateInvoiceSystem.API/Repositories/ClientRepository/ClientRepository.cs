@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.API.Mappers.ClientMapper;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;

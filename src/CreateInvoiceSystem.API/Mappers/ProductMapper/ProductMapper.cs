@@ -1,4 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Products.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 
 namespace CreateInvoiceSystem.API.Mappers.ProductMapper;

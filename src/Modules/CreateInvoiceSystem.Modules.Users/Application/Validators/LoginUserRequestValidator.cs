@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.LoginUser;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class LoginUserRequestValidator : AbstractValidator<LoginUserRequest>
 {

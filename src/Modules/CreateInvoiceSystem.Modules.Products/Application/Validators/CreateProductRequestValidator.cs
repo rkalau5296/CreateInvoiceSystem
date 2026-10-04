@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DecimalHelper;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.CreateProduct;
+using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.CreateProduct;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Products.Application.Validators;
 
 public class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>
 {

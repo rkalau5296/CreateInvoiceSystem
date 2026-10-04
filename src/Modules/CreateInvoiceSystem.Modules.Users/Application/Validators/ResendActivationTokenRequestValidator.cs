@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResendToken;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class ResendActivationTokenRequestValidator : AbstractValidator<ResendActivationTokenRequest>
 {

@@ -1,5 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
 using FluentValidation.TestHelper;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Invoices;

@@ -2,7 +2,7 @@
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
+namespace CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 
 public class DeleteProductRequest(int id) : IRequest<DeleteProductResponse>, ITransactionalRequest
 {

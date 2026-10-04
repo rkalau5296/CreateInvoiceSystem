@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using System.Text.Json;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Services;
+namespace CreateInvoiceSystem.Modules.Users.Application.Services;
 
 public class UserCleanupService : BackgroundService
 {

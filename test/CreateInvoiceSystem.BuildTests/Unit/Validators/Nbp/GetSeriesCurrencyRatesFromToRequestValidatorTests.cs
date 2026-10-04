@@ -1,6 +1,6 @@
 ﻿using System;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.Validators;
+using CreateInvoiceSystem.Modules.Nbp.Application.Validators;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 using FluentValidation.TestHelper;
 using Xunit;
 

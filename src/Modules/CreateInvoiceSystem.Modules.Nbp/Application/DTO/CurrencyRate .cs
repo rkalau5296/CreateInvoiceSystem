@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+﻿namespace CreateInvoiceSystem.Modules.Nbp.Application.DTO;
 
 public record CurrencyRate
 {

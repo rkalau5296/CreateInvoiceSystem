@@ -1,18 +1,18 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ChangePassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ChangePassword;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ForgotPassword;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.LoginUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResendToken;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
+namespace CreateInvoiceSystem.Modules.Users.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

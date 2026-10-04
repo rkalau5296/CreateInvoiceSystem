@@ -1,10 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ActivateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ActivateUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 using System.Text;
 using System.Text.Json;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class ActivateUserHandler(IUserRepository _userRepository, IUserTokenService _userTokenService)
     : IRequestHandler<ActivateUserRequest, ActivateUserResponse>

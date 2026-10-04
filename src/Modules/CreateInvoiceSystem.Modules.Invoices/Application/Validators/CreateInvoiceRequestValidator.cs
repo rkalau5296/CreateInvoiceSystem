@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using CreateInvoiceSystem.Abstractions.DecimalHelper;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 
 public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequest>
 {

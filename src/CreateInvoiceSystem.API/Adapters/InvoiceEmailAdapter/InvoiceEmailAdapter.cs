@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Mail;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 

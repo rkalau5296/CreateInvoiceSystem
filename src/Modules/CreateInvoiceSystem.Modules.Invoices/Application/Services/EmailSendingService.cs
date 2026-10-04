@@ -1,11 +1,11 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Services
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Services
 {
     public class EmailSendingService : BackgroundService
     {        

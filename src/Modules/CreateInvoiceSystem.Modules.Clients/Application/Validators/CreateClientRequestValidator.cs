@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Clients.Application.Validators;
 public class CreateClientRequestValidator : AbstractValidator<CreateClientRequest>
 {
     public CreateClientRequestValidator()

@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators
 {
     public class DeleteUserRequestValidator : AbstractValidator<DeleteUserRequest>
     {

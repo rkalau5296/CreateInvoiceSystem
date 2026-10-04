@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.UpdateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class UpdateUserHandler(IUserRepository userRepository)
     : IRequestHandler<UpdateUserRequest, UpdateUserResponse>

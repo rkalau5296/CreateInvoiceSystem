@@ -1,11 +1,11 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.UpdateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
 public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequestHandler<UpdateInvoiceRequest, UpdateInvoiceResponse>
 {    
     public async Task<UpdateInvoiceResponse> Handle(UpdateInvoiceRequest request, CancellationToken cancellationToken)

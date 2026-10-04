@@ -1,10 +1,10 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.UpdateClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 public class UpdateClientHandler(IClientRepository _clientRepository) : IRequestHandler<UpdateClientRequest, UpdateClientResponse>
 {    
     public async Task<UpdateClientResponse> Handle(UpdateClientRequest request, CancellationToken cancellationToken)

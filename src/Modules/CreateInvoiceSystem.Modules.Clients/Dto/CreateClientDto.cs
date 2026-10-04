@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+﻿namespace CreateInvoiceSystem.Modules.Clients.Dto;
 public record CreateClientDto(
     string Name,
     string Nip,

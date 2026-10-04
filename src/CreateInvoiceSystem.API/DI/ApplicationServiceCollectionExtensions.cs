@@ -1,13 +1,13 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProducts;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Application.Validators;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
+using CreateInvoiceSystem.Modules.Products.Application.Validators;
+using CreateInvoiceSystem.Modules.Users.Application.Handlers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Application.Validators;
 using FluentValidation;
 
 namespace CreateInvoiceSystem.API.DI;

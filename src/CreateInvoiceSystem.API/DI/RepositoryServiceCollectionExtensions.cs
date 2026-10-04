@@ -2,10 +2,10 @@
 using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 
 namespace CreateInvoiceSystem.API.DI;
 

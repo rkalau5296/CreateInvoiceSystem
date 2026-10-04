@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
 public class DeleteInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequestHandler<DeleteInvoiceRequest, DeleteInvoiceResponse>
 {
     public async Task<DeleteInvoiceResponse> Handle(DeleteInvoiceRequest request, CancellationToken cancellationToken)

@@ -1,5 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
 using FluentValidation.TestHelper;
 using Xunit;
 

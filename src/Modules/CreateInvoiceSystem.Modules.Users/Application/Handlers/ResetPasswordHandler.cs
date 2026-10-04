@@ -1,8 +1,8 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class ResetPasswordHandler(IUserRepository userRepository)
     : IRequestHandler<ResetPasswordRequest, ResetPasswordResponse>

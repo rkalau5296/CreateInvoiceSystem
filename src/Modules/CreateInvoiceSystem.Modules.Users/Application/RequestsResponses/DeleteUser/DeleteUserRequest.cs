@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
 
 public class DeleteUserRequest(int id) : IRequest<DeleteUserResponse>, ITransactionalRequest
 {

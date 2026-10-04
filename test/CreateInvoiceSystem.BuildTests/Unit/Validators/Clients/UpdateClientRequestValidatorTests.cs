@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.UpdateClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Modules.Clients.Dto;
 using FluentValidation.TestHelper;
 using Xunit;
 

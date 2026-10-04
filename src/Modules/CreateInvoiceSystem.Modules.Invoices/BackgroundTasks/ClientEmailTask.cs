@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+﻿using CreateInvoiceSystem.Modules.Invoices.Dto;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.BackgroundTasks
+namespace CreateInvoiceSystem.Modules.Invoices.BackgroundTasks
 {
     public record ClientEmailTask(InvoiceDto Invoice) : EmailTask;    
 }

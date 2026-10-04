@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetPdf;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Mappers;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Handlers
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Handlers
 {
     public class GetInvoicePdfHandler(IInvoiceRepository _invoiceRepository, IInvoiceExportService exportService) 
         : IRequestHandler<GetInvoicePdfRequest, GetInvoicePdfResponse>

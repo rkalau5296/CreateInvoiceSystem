@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
 
 public class CreateInvoiceRequest(CreateInvoiceDto invoiceDto) : IRequest<CreateInvoiceResponse>, ITransactionalRequest
 {

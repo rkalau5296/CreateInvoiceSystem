@@ -1,5 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
+﻿using CreateInvoiceSystem.Modules.Products.Application.Validators;
+using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 using FluentValidation.TestHelper;
 using Xunit;
 

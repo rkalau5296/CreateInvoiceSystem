@@ -1,6 +1,6 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword
 {
     public class ResetPasswordResponse : IApiResponse
     {

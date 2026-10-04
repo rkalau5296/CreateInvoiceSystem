@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Nbp.Application.Validators;
 
 public class GetActualCurrencyRatesRequestValidator : AbstractValidator<GetActualCurrencyRatesRequest>
 {

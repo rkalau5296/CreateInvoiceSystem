@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.GetProduct;
-using CreateInvoiceSystem.Modules.Products.Domain.Entities;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Products.Application.Handlers;
+using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProduct;
+using CreateInvoiceSystem.Modules.Products.Entities;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
 using FluentAssertions;
 using Moq;
 

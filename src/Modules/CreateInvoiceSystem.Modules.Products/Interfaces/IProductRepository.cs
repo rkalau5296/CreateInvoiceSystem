@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
-using CreateInvoiceSystem.Modules.Products.Domain.Entities;
+using CreateInvoiceSystem.Modules.Products.Entities;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Products.Interfaces;
 
 public interface IProductRepository : ISaveChangesContext
 {

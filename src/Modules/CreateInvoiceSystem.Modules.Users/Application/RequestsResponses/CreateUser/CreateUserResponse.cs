@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
+using CreateInvoiceSystem.Modules.Users.Dto;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
 public class CreateUserResponse : ResponseBase<CreateUserDto>
 {
 }

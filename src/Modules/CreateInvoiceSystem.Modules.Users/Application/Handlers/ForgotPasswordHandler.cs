@@ -1,8 +1,8 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ForgotPassword;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ForgotPassword;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class ForgotPasswordHandler(IUserRepository _userRepository, IUserEmailSender _emailSender) : IRequestHandler<ForgotPasswordRequest, ForgotPasswordResponse>
 {

@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ChangePassword;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ChangePassword;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
 {

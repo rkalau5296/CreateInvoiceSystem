@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
+using CreateInvoiceSystem.Modules.Clients.Entities;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Clients.Interfaces;
 public interface IClientRepository : ISaveChangesContext
 {
     Task<bool> ExistsAsync(string name, string street, string number, string city, string postalCode,

@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.Options;
+﻿namespace CreateInvoiceSystem.Modules.Nbp.Application.Options;
 
 public class NbpApiOptions
 {

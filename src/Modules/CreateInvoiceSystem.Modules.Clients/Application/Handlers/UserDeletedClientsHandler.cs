@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.Notification;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 
 public class UserDeletedClientsHandler(IClientRepository _clientRepository)
  : INotificationHandler<UserDeletedNotification>

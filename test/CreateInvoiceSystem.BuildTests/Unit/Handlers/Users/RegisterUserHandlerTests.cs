@@ -1,12 +1,12 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.Handlers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RegisterUser;
+using CreateInvoiceSystem.Modules.Users.Dto;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
+using User = CreateInvoiceSystem.Modules.Users.Entities.User;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Users;
 

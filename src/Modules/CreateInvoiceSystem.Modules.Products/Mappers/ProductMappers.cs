@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Dto;
-using CreateInvoiceSystem.Modules.Products.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Products.Dto;
+using CreateInvoiceSystem.Modules.Products.Entities;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Mappers;
+namespace CreateInvoiceSystem.Modules.Products.Mappers;
 public static class ProductMappers
 {
     public static ProductDto ToDto(this Product product) =>

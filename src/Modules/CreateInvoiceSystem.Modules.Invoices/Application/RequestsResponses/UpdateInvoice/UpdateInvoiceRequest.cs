@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.UpdateInvoice;
 
 public record UpdateInvoiceRequest(int Id, UpdateInvoiceDto Invoice) : IRequest<UpdateInvoiceResponse>, ITransactionalRequest
 {

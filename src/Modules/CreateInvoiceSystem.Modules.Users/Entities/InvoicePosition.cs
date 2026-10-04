@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Entities;
+﻿namespace CreateInvoiceSystem.Modules.Users.Entities;
 public class InvoicePosition
 {
     public int InvoicePositionId { get; set; }

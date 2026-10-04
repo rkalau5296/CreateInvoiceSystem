@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+﻿using CreateInvoiceSystem.Modules.Invoices.Dto;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Invoices.Interfaces;
 
 public interface IInvoiceEmailSender
 {

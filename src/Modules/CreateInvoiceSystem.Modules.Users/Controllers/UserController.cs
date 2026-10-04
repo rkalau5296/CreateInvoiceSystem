@@ -1,18 +1,18 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.CreateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.UpdateUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.CreateUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUser;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RefreshToken;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.UpdateUser;
+using CreateInvoiceSystem.Modules.Users.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Controllers;
+namespace CreateInvoiceSystem.Modules.Users.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.LoginUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.LoginUser;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class LoginUserHandler(IUserRepository userRepository, IUserTokenService tokenService)
     : IRequestHandler<LoginUserRequest, LoginUserResponse>

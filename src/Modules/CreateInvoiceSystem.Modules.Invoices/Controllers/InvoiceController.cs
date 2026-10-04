@@ -1,11 +1,11 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.DeleteInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetInvoices;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.UpdateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetPdf;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.UpdateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Controllers;
+namespace CreateInvoiceSystem.Modules.Invoices.Controllers;
 
 [Authorize]
 [ApiController]

@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.DeleteClient;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.DeleteClient;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators
+namespace CreateInvoiceSystem.Modules.Clients.Application.Validators
 {
     public class DeleteClientRequestValidator : AbstractValidator<DeleteClientRequest>
     {

@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResetPassword;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
 
 public class ResetPasswordRequest : IRequest<ResetPasswordResponse>, ITransactionalRequest
 {

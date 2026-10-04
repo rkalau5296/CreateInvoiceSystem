@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.BuildTests.Base;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.GetClients;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Application.Handlers;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
+using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
 using FluentAssertions;
 using Moq;
 

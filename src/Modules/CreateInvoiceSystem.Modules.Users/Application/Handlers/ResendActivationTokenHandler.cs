@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using System.Text.Json;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.ResendToken;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResendToken;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class ResendActivationTokenHandler(
     IUserRepository userRepository,

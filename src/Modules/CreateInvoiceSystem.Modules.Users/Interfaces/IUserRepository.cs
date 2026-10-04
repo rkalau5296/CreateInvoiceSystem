@@ -1,8 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.DbContext;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
+using CreateInvoiceSystem.Modules.Users.Entities;
 using Microsoft.AspNetCore.Identity;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+namespace CreateInvoiceSystem.Modules.Users.Interfaces;
 
 public interface IUserRepository : ISaveChangesContext
 {    

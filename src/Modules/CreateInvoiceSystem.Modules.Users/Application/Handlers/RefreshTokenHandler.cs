@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RefreshToken;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
+namespace CreateInvoiceSystem.Modules.Users.Application.Handlers;
 
 public class RefreshTokenHandler(
     IUserRepository _userRepository,

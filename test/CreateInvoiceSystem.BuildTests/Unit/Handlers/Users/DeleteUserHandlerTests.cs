@@ -1,15 +1,15 @@
 ﻿using CreateInvoiceSystem.Abstractions.Notification;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.DeleteUser;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Application.Handlers;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Application.Handlers;
+using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
+using CreateInvoiceSystem.Modules.Users.Entities;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using FluentAssertions;
 using MediatR;
 using Moq;
-using User = CreateInvoiceSystem.Modules.Users.Domain.Entities.User;
-using UserInvoice = CreateInvoiceSystem.Modules.Users.Domain.Entities.Invoice;
+using User = CreateInvoiceSystem.Modules.Users.Entities.User;
+using UserInvoice = CreateInvoiceSystem.Modules.Users.Entities.Invoice;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Users;
 

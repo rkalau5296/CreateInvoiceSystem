@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.BuildTests.Base;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Handlers;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.UpdateClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Application.Handlers;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.UpdateClient;
+using CreateInvoiceSystem.Modules.Clients.Dto;
+using CreateInvoiceSystem.Modules.Clients.Entities;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
 using FluentAssertions;
 using Moq;
 

@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.CreateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
+using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Dto;
 using FluentValidation.TestHelper;
 using System.Runtime.CompilerServices;
 using Xunit;

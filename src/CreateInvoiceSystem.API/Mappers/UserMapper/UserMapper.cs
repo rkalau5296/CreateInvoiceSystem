@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Entities;
-using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Shared.Persistence;
 using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+using CreateInvoiceSystem.Modules.Users.Entities;
 
 
 namespace CreateInvoiceSystem.API.Mappers.UserMapper;

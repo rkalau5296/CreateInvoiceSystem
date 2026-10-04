@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+using CreateInvoiceSystem.Modules.Clients.Dto;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.DeleteClient;
+namespace CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.DeleteClient;
 public class DeleteClientResponse : ResponseBase<ClientDto>
 {
 }

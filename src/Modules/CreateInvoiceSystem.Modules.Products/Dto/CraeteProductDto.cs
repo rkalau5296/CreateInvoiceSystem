@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Products.Domain.Dto;
+﻿namespace CreateInvoiceSystem.Modules.Products.Dto;
 
 public record CreateProductDto(
     string Name,

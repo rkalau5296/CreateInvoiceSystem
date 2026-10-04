@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRate;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Nbp.Application.Validators;
 
 public class GetSeriesCurrencyRateFromToRequestValidator : AbstractValidator<GetSeriesCurrencyRateFromToRequest>
 {

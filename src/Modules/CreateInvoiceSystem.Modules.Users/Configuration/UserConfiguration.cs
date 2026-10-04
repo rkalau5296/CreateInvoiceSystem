@@ -1,9 +1,9 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Configuration;
+namespace CreateInvoiceSystem.Modules.Users.Configuration;
 public class UserConfiguration: IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)

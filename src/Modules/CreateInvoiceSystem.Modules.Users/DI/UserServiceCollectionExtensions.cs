@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.Services;
+﻿using CreateInvoiceSystem.Modules.Users.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.DI;
+namespace CreateInvoiceSystem.Modules.Users.DI;
 
 public static class UserServiceCollectionExtensions
 {

@@ -1,5 +1,5 @@
 ﻿using CreateInvoiceSystem.Mail;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 

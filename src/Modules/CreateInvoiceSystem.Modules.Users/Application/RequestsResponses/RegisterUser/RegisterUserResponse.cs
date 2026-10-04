@@ -1,7 +1,7 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Modules.Users.Domain.Dto;
+using CreateInvoiceSystem.Modules.Users.Dto;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RegisterUser;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RegisterUser;
 
 public class RegisterUserResponse
 {        

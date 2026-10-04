@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.RefreshToken;
-using CreateInvoiceSystem.Modules.Users.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.RefreshToken;
+using CreateInvoiceSystem.Modules.Users.Entities;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Interfaces
+namespace CreateInvoiceSystem.Modules.Users.Interfaces
 {
     public interface IUserAuthService
     {

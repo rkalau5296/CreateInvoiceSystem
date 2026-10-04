@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.CreateClient;
-using CreateInvoiceSystem.Modules.Clients.Domain.Application.Validators;
-using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
+﻿using CreateInvoiceSystem.Modules.Clients.Application.Validators;
+using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.CreateClient;
+using CreateInvoiceSystem.Modules.Clients.Dto;
 using FluentValidation.TestHelper;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Clients;

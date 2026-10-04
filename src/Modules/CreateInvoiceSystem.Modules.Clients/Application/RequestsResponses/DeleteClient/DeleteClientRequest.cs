@@ -2,7 +2,7 @@
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Application.RequestsResponses.DeleteClient;
+namespace CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.DeleteClient;
 public class DeleteClientRequest(int id) : IRequest<DeleteClientResponse>, ITransactionalRequest
 {
     public int Id { get; } = id;

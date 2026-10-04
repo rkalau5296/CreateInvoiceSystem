@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.DeleteProduct;
+﻿using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.DeleteProduct;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Products.Application.Validators;
 
 public class DeleteProductRequestValidator : AbstractValidator<DeleteProductRequest>
 {

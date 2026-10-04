@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Products.Domain.Entities;
+﻿namespace CreateInvoiceSystem.Modules.Products.Entities;
 
 public class Product
 {

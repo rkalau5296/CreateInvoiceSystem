@@ -1,9 +1,9 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Products.Domain.Dto;
+using CreateInvoiceSystem.Modules.Products.Dto;
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace CreateInvoiceSystem.Modules.Products.Domain.Application.RequestsResponses.UpdateProduct;
+namespace CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.UpdateProduct;
 
 public class UpdateProductRequest(int id, UpdateProductDto productDto) : IRequest<UpdateProductResponse>, ITransactionalRequest
 {

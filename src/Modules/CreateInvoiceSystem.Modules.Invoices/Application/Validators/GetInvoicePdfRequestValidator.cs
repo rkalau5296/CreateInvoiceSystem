@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetPdf;
 using FluentValidation;
 
-namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.Validators;
+namespace CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 
 public class GetInvoicePdfRequestValidator : AbstractValidator<GetInvoicePdfRequest>
 {

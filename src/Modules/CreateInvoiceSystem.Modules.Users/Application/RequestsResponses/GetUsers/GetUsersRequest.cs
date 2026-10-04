@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace CreateInvoiceSystem.Modules.Users.Domain.Application.RequestsResponses.GetUsers;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUsers;
 public class GetUsersRequest : IRequest<GetUsersResponse>
 {
 }

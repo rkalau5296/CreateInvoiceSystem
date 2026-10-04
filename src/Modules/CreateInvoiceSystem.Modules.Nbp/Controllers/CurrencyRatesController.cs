@@ -1,14 +1,14 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRate;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.ActualRates;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRate;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRate;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
+using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace CreateInvoiceSystem.Modules.Nbp.Domain.Controllers;
+namespace CreateInvoiceSystem.Modules.Nbp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

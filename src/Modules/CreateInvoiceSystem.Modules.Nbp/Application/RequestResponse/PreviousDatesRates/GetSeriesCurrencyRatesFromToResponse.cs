@@ -1,7 +1,7 @@
-﻿namespace CreateInvoiceSystem.Modules.Nbp.Domain.Application.RequestResponse.PreviousDatesRates;
+﻿namespace CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 
 using CreateInvoiceSystem.Abstractions.CQRS;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Application.DTO;
+using CreateInvoiceSystem.Modules.Nbp.Application.DTO;
 
 public class GetSeriesCurrencyRatesFromToResponse : ResponseBase<List<CurrencyRatesTable>>
 {

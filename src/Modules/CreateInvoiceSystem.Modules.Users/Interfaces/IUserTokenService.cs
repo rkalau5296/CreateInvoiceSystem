@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿namespace CreateInvoiceSystem.Modules.Users.Interfaces;
 
 public interface IUserTokenService
 {

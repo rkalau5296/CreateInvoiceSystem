@@ -1,7 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Dto;
-using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Clients.Dto;
+using CreateInvoiceSystem.Modules.Clients.Entities;
 
-namespace CreateInvoiceSystem.Modules.Clients.Domain.Mappers;
+namespace CreateInvoiceSystem.Modules.Clients.Mappers;
 public static class ClientMappers
 {
     public static ClientDto ToDto(this Client client) =>

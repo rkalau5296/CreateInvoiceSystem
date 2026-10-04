@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Invoices.Domain.Application.RequestsResponses.GetPdf;
+﻿namespace CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetPdf;
 
 public record GetInvoicePdfResponse(
 byte[] PdfContent,

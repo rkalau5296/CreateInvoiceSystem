@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Users.Domain.Dto;
+﻿namespace CreateInvoiceSystem.Modules.Users.Dto;
 public record CreateInvoiceDto
 {
     public string Title { get; set; } = string.Empty;
