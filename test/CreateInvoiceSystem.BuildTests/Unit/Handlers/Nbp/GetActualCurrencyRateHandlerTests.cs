@@ -22,7 +22,7 @@ public class GetActualCurrencyRateHandlerTests
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
         _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        _sut = new GetActualCurrencyRateHandler(_options, _nbpApiRestServiceMock.Object);
+        _sut = new GetActualCurrencyRateHandler(_nbpApiRestServiceMock.Object);
     }
 
     [Fact]
@@ -45,8 +45,7 @@ public class GetActualCurrencyRateHandlerTests
         };
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRateAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRateAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -60,8 +59,7 @@ public class GetActualCurrencyRateHandlerTests
         result.Data.Should().BeEquivalentTo(expectedData);
 
         _nbpApiRestServiceMock.Verify(
-            s => s.GetActualCurrencyRateAsync(
-                It.IsAny<string>(),
+            s => s.GetActualCurrencyRateAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
@@ -75,8 +73,7 @@ public class GetActualCurrencyRateHandlerTests
         var request = new GetActualCurrencyRateRequest("A", "EUR");
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRateAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRateAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -97,8 +94,7 @@ public class GetActualCurrencyRateHandlerTests
         var request = new GetActualCurrencyRateRequest("A", "EUR");
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRateAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRateAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))

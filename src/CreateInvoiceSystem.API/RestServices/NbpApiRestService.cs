@@ -1,65 +1,88 @@
 ﻿using CreateInvoiceSystem.Modules.Nbp.Application.DTO;
-using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using RestSharp;
 using System.Net;
 
-namespace CreateInvoiceSystem.API.RestServices
+namespace CreateInvoiceSystem.API.RestServices;
+
+public sealed class NbpApiRestService(HttpClient httpClient)
+    : INbpApiRestService
 {
-    public class NbpApiRestService : INbpApiRestService
+    public async Task<CurrencyRatesTable> GetActualCurrencyRateAsync(
+    string table,
+    string currencyCode,
+    CancellationToken cancellationToken)
     {
-        private readonly RestClient _client;
-        public NbpApiRestService(IOptions<NbpApiOptions> options)
+        var uri = $"rates/{table}/{currencyCode}?format=json";
+
+        return await GetRequiredAsync<CurrencyRatesTable>(
+            uri,
+            cancellationToken);
+    }
+
+    public async Task<List<CurrencyRatesTable>> GetActualCurrencyRatesAsync(
+        string table,
+        CancellationToken cancellationToken)
+    {
+        var uri = $"tables/{table}?format=json";
+
+        return await GetRequiredAsync<List<CurrencyRatesTable>>(
+            uri,
+            cancellationToken);
+    }
+
+    public async Task<CurrencyRatesTable> GetSeriesCurrencyRateFromToAsync(
+        string table,
+        string currencyCode,
+        DateTime dateFrom,
+        DateTime dateTo,
+        CancellationToken cancellationToken)
+    {
+        var uri =
+            $"rates/{table}/{currencyCode}/" +
+            $"{dateFrom:yyyy-MM-dd}/{dateTo:yyyy-MM-dd}?format=json";
+
+        var result = await GetRequiredAsync<List<CurrencyRatesTable>>(
+            uri,
+            cancellationToken);
+
+        return result.Single();
+    }
+
+    public async Task<List<CurrencyRatesTable>> GetSeriesCurrencyRatesFromToAsync(
+        string table,
+        DateTime dateFrom,
+        DateTime dateTo,
+        CancellationToken cancellationToken)
+    {
+        var uri =
+            $"tables/{table}/" +
+            $"{dateFrom:yyyy-MM-dd}/{dateTo:yyyy-MM-dd}?format=json";
+
+        return await GetRequiredAsync<List<CurrencyRatesTable>>(
+            uri,
+            cancellationToken);
+    }
+
+    private async Task<T> GetRequiredAsync<T>(
+        string uri,
+        CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.GetAsync(
+            uri,
+            cancellationToken);
+
+        if (response.StatusCode != HttpStatusCode.OK)
         {
-            var baseUrl = options.Value.BaseUrl ?? throw new ArgumentNullException(nameof(options));
-            _client = new RestClient(baseUrl);
+            throw new InvalidOperationException(
+                $"NBP API error: {(int)response.StatusCode} " +
+                $"{response.ReasonPhrase}");
         }
 
-        public async Task<CurrencyRatesTable> GetActualCurrencyRateAsync(string baseUrl, string table, string currencyCode, CancellationToken cancellationToken)
-        {            
+        var result = await response.Content.ReadFromJsonAsync<T>(
+            cancellationToken);
 
-            var request = new RestRequest($"rates/{table}/{currencyCode}/?format=json", Method.Get);
-            var response = await _client.ExecuteAsync<CurrencyRatesTable>(request, cancellationToken);
-
-            if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK )
-                throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
-
-            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content!)!;
-        }
-
-        public async Task<List<CurrencyRatesTable>> GetActualCurrencyRatesAsync(string baseUrl, string table, CancellationToken cancellationToken)
-        {
-            var request = new RestRequest($"tables/{table}/?format=json", Method.Get);
-            var response = await _client.ExecuteAsync<List<CurrencyRatesTable>>(request, cancellationToken: cancellationToken);
-
-            if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
-
-            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content!)!;
-        }
-
-        public async Task<CurrencyRatesTable> GetSeriesCurrencyRateFromToAsync(string baseUrl, string table, string currencyCode, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
-        {
-            var request = new RestRequest($"rates/{table}/{currencyCode}/{dateFrom:yyyy-MM-dd}/{dateTo:yyyy-MM-dd}/?format=json", Method.Get);
-            var response = await _client.ExecuteAsync<CurrencyRatesTable>(request, cancellationToken: cancellationToken);
-
-            if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
-
-            return JsonConvert.DeserializeObject<CurrencyRatesTable>(response.Content!)!;
-        }
-
-        public async Task<List<CurrencyRatesTable>> GetSeriesCurrencyRatesFromToAsync(string baseUrl, string table, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
-        {
-            var request = new RestRequest($"tables/{table}/{dateFrom:yyyy-MM-dd}/{dateTo:yyyy-MM-dd}/?format=json", Method.Get);
-            var response = await _client.ExecuteAsync<List<CurrencyRatesTable>>(request, cancellationToken: cancellationToken);
-
-            if (!response.IsSuccessful || response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException($"NBP API error: {response.StatusCode}");
-
-            return JsonConvert.DeserializeObject<List<CurrencyRatesTable>>(response.Content!)!;
-        }
+        return result
+            ?? throw new InvalidOperationException(
+                "NBP API returned an empty response.");
     }
 }
