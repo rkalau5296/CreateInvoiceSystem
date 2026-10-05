@@ -22,7 +22,7 @@ public class GetSeriesCurrencyRateFromToHandlerTests
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
         _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        _sut = new GetSeriesCurrencyRateFromToHandler(_options, _nbpApiRestServiceMock.Object);
+        _sut = new GetSeriesCurrencyRateFromToHandler(_nbpApiRestServiceMock.Object);
     }
 
     [Fact]
@@ -47,8 +47,7 @@ public class GetSeriesCurrencyRateFromToHandlerTests
         };
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),
@@ -64,8 +63,7 @@ public class GetSeriesCurrencyRateFromToHandlerTests
         result.Data.Should().BeEquivalentTo(expectedData);
 
         _nbpApiRestServiceMock.Verify(
-            s => s.GetSeriesCurrencyRateFromToAsync(
-                It.IsAny<string>(),
+            s => s.GetSeriesCurrencyRateFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),
@@ -83,8 +81,7 @@ public class GetSeriesCurrencyRateFromToHandlerTests
         var request = new GetSeriesCurrencyRateFromToRequest("A", "EUR", dateFrom, dateTo);
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetSeriesCurrencyRateFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),

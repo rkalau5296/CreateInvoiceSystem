@@ -9,6 +9,7 @@ using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
 using CreateInvoiceSystem.Modules.Invoices.Application.Services;
 using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.DI;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using CreateInvoiceSystem.Modules.Users.DI;
@@ -18,8 +19,10 @@ using CreateInvoiceSystem.Persistence.DI;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NLog.Web;
 using System.Globalization;
+using System.Net.Http.Headers;
 using System.Threading.Channels;
 
 var cultureInfo = new CultureInfo("pl-PL");
@@ -77,7 +80,20 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddCsvModule();
 builder.Services.AddPdfModule();
 builder.Services.AddNbpModule(builder.Configuration);
-builder.Services.AddScoped<INbpApiRestService, NbpApiRestService>();
+builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((serviceProvider, client) =>
+{
+    var options =
+        serviceProvider.GetRequiredService<IOptions<NbpApiOptions>>();
+
+    var baseUrl = options.Value.BaseUrl
+        ?? throw new InvalidOperationException(
+            "NbpApi:BaseUrl is not configured.");
+
+    client.BaseAddress = new Uri(baseUrl);
+
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+});
 builder.Services.AddMailModule();
 builder.Services.AddUserModule();
 builder.Logging.ClearProviders();

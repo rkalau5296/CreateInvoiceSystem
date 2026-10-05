@@ -22,7 +22,7 @@ public class GetSeriesCurrencyRatesFromToHandlerTests
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
         _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        _sut = new GetSeriesCurrencyRatesFromToHandler(_options, _nbpApiRestServiceMock.Object);
+        _sut = new GetSeriesCurrencyRatesFromToHandler(_nbpApiRestServiceMock.Object);
     }
 
     [Fact]
@@ -53,7 +53,6 @@ public class GetSeriesCurrencyRatesFromToHandlerTests
         _nbpApiRestServiceMock
             .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
                 It.IsAny<string>(),
-                It.IsAny<string>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<CancellationToken>()))
@@ -67,8 +66,7 @@ public class GetSeriesCurrencyRatesFromToHandlerTests
         result.Data.Should().BeEquivalentTo(expectedData);
 
         _nbpApiRestServiceMock.Verify(
-            s => s.GetSeriesCurrencyRatesFromToAsync(
-                It.IsAny<string>(),
+            s => s.GetSeriesCurrencyRatesFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<DateTime>(),
@@ -85,8 +83,7 @@ public class GetSeriesCurrencyRatesFromToHandlerTests
         var request = new GetSeriesCurrencyRatesFromToRequest("A", dateFrom, dateTo);
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<DateTime>(),
@@ -108,8 +105,7 @@ public class GetSeriesCurrencyRatesFromToHandlerTests
         var request = new GetSeriesCurrencyRatesFromToRequest("C", DateTime.Now, DateTime.Now);
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetSeriesCurrencyRatesFromToAsync(                
                 It.IsAny<string>(),
                 It.IsAny<DateTime>(),
                 It.IsAny<DateTime>(),

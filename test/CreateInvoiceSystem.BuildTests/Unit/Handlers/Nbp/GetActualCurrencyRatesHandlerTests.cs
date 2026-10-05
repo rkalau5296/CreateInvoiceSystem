@@ -22,7 +22,7 @@ public class GetActualCurrencyRatesHandlerTests
         _nbpApiRestServiceMock = new Mock<INbpApiRestService>();
         _options = Options.Create(new NbpApiOptions { BaseUrl = BaseUrl });
 
-        _sut = new GetActualCurrencyRatesHandler(_options, _nbpApiRestServiceMock.Object);
+        _sut = new GetActualCurrencyRatesHandler(_nbpApiRestServiceMock.Object);
     }
 
     [Fact]
@@ -47,8 +47,7 @@ public class GetActualCurrencyRatesHandlerTests
         };
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRatesAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRatesAsync(                
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedData);
@@ -61,8 +60,7 @@ public class GetActualCurrencyRatesHandlerTests
         result.Data.Should().BeEquivalentTo(expectedData);
 
         _nbpApiRestServiceMock.Verify(
-            s => s.GetActualCurrencyRatesAsync(
-                It.IsAny<string>(),
+            s => s.GetActualCurrencyRatesAsync(                
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -75,8 +73,7 @@ public class GetActualCurrencyRatesHandlerTests
         var request = new GetActualCurrencyRatesRequest("B");
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRatesAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRatesAsync(                
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CurrencyRatesTable>());
@@ -96,8 +93,7 @@ public class GetActualCurrencyRatesHandlerTests
         var request = new GetActualCurrencyRatesRequest("A");
 
         _nbpApiRestServiceMock
-            .Setup(s => s.GetActualCurrencyRatesAsync(
-                It.IsAny<string>(),
+            .Setup(s => s.GetActualCurrencyRatesAsync(               
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Network error"));
