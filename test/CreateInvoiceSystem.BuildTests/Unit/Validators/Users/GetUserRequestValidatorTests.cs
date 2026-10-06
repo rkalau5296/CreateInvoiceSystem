@@ -1,6 +1,5 @@
 ﻿using FluentValidation.TestHelper;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.GetUser;
-using Xunit;
 using CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Users;

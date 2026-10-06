@@ -1,8 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Nbp.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRate;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRate;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using MediatR;
-using Microsoft.Extensions.Options;
 
 namespace CreateInvoiceSystem.Modules.Nbp.Application.Handlers;
 public class GetActualCurrencyRateHandler(INbpApiRestService _nbpApiRestService) : IRequestHandler<GetActualCurrencyRateRequest, GetActualCurrencyRateResponse>

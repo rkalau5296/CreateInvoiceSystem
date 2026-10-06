@@ -2,7 +2,6 @@
 using CreateInvoiceSystem.Modules.Clients.Application.Handlers;
 using CreateInvoiceSystem.Modules.Clients.Interfaces;
 using Moq;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Clients;
 

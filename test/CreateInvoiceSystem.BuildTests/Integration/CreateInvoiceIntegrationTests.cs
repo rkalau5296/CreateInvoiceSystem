@@ -11,7 +11,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
 public class CreateInvoiceIntegrationTests : IAsyncLifetime

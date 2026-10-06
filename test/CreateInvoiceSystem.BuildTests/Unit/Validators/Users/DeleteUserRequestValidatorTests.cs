@@ -1,6 +1,5 @@
 ﻿using FluentValidation.TestHelper;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
-using Xunit;
 using CreateInvoiceSystem.Modules.Users.Application.Validators;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Users;

@@ -5,10 +5,9 @@ using CreateInvoiceSystem.Persistence;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using Xunit.Abstractions;
 using CreateInvoiceSystem.Shared.Persistence;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
 public class ExportControllerIntergrationTests : IAsyncLifetime

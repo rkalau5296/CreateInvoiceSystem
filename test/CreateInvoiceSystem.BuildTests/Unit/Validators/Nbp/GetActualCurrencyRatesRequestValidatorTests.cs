@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Modules.Nbp.Application.Validators;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using FluentValidation.TestHelper;
-using Xunit;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Nbp;
 

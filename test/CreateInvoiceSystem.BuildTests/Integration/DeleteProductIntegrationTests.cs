@@ -6,19 +6,17 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System.Net.Http.Json;
-using Xunit.Abstractions;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
-public class CreateProductIntegrationTests : IAsyncLifetime
+public class DeleteProductIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public CreateProductIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public DeleteProductIntegrationTests(IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -37,18 +35,12 @@ public class CreateProductIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Should_CreateProduct_When_RequestIsValid()
+    public async Task Should_DeleteProduct_When_RequestIsValid()
     {
         await SeedUserAsync();
-        var payload = new
-        {
-            Name = "Produkt Testowy",
-            Description = "Opis Produktu",
-            Value = 150.50m,
-            UserId = 0
-        };
+        var productId = await SeedProductAsync();
 
-        var response = await _client.PostAsJsonAsync("/api/Product/create", payload);
+        var response = await _client.DeleteAsync($"/api/Product/{productId}");
         var body = await response.Content.ReadAsStringAsync();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
@@ -56,26 +48,24 @@ public class CreateProductIntegrationTests : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var product = await db.Set<ProductEntity>().FirstOrDefaultAsync(p => p.Name == "Produkt Testowy");
-        product.Should().NotBeNull();
-        product!.Description.Should().Be("Opis Produktu");
-        product.Value.Should().Be(150.50m);
-        product.UserId.Should().Be(1);
+        var deletedProduct = await db.Set<ProductEntity>().FirstOrDefaultAsync(p => p.ProductId == productId);
+        deletedProduct.Should().BeNull();
     }
 
     [Fact]
-    public async Task Should_Return400_When_NameIsMissing()
+    public async Task Should_Return404_When_ProductDoesNotExist()
     {
         await SeedUserAsync();
-        var payload = new
-        {
-            Name = "",
-            Description = "Opis",
-            Value = 10.00m,
-            UserId = 1
-        };
+        var response = await _client.DeleteAsync("/api/Product/99999");
 
-        var response = await _client.PostAsJsonAsync("/api/Product/create", payload);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_IdIsInvalid()
+    {
+        await SeedUserAsync();
+        var response = await _client.DeleteAsync("/api/Product/0");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -100,7 +90,7 @@ public class CreateProductIntegrationTests : IAsyncLifetime
         await db.SaveChangesAsync();
 
         var user = new UserEntity
-        {           
+        {            
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma",
@@ -110,4 +100,22 @@ public class CreateProductIntegrationTests : IAsyncLifetime
         db.Users.Add(user);
         await db.SaveChangesAsync();
     }
+
+    private async Task<int> SeedProductAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var product = new ProductEntity
+        {
+            Name = $"Produkt_{Guid.NewGuid():N}",
+            Description = "Do usunięcia",
+            Value = 99.99m,
+            UserId = 1
+        };
+        db.Set<ProductEntity>().Add(product);
+        await db.SaveChangesAsync();
+
+        return product.ProductId;
+    }    
 }
