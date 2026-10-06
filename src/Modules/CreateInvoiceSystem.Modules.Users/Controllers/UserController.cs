@@ -17,13 +17,8 @@ namespace CreateInvoiceSystem.Modules.Users.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UserController : ApiControllerBase
+public class UserController(IMediator mediator) : ApiControllerBase(mediator)
 {
-    public UserController(IMediator mediator, ILogger<UserController> logger) : base(mediator)
-    {
-        logger.LogInformation("This is UserController");
-    }
-
     [HttpGet("{userId}")]
     [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

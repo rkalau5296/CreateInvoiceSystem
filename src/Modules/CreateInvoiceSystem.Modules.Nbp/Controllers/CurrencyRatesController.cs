@@ -12,13 +12,8 @@ namespace CreateInvoiceSystem.Modules.Nbp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CurrencyRatesController : ApiControllerBase
+public class CurrencyRatesController(IMediator mediator) : ApiControllerBase(mediator)
 {
-    public CurrencyRatesController(IMediator mediator, ILogger<CurrencyRatesController> logger) : base(mediator)
-    {
-        logger.LogInformation("This is CurrencyRatesController");
-    }
-
     [HttpGet]
     [Route("/CurrencyRates/{tableName}")]
     public async Task<IActionResult> GetCurencyRatesAsync([FromRoute] string tableName, CancellationToken cancellationToken)
