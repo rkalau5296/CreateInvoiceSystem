@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -9,20 +8,18 @@ namespace CreateInvoiceSystem.Frontend.Services
     public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         private readonly IJSRuntime _jsRuntime;
-        private readonly HttpClient _httpClient;
 
-        public CustomAuthStateProvider(IJSRuntime jsRuntime, HttpClient httpClient)
+        public CustomAuthStateProvider(IJSRuntime jsRuntime)
         {
             _jsRuntime = jsRuntime;
-            _httpClient = httpClient;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
-            {                
+            {
                 var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
-             
+
                 if (string.IsNullOrEmpty(token))
                 {
                     token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
@@ -33,11 +30,10 @@ namespace CreateInvoiceSystem.Frontend.Services
                     return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
                 }
 
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
             }
             catch (Exception)
-            {                
+            {
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
         }
@@ -62,11 +58,9 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public void NotifyUserAuthentication(string token)
-        {            
+        {
             var claims = ParseClaimsFromJwt(token);
             var authUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-         
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var authState = Task.FromResult(new AuthenticationState(authUser));
             NotifyAuthenticationStateChanged(authState);

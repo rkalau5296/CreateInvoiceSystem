@@ -15,7 +15,5 @@ public class ProductDto
 
     [Required(ErrorMessage = "Wartość jest wymagana")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Wartość musi być większa niż 0")]
-    public decimal? Value { get; set; } = null;
-
-    public int UserId { get; set; }    
+    public decimal? Value { get; set; } = null;    
 }

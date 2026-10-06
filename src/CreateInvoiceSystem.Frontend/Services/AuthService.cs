@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace CreateInvoiceSystem.Frontend.Services
 {
@@ -51,8 +49,7 @@ namespace CreateInvoiceSystem.Frontend.Services
 
                 await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "sessionExpiredMessage");
 
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
-                ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+                _authStateProvider.NotifyUserAuthentication(result.Token);
             }
             return result;
         }
@@ -65,44 +62,8 @@ namespace CreateInvoiceSystem.Frontend.Services
             await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
             await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
 
-            _httpClient.DefaultRequestHeaders.Authorization = null;
             _authStateProvider.NotifyUserLogout();
             _navigationManager.NavigateTo("/login");
-        }
-
-        public async Task<GetUserResponse?> GetMySettingsAsync()
-        {
-            try
-            {
-                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
-
-                var request = new HttpRequestMessage(HttpMethod.Get, "api/User/me");
-
-                if (!string.IsNullOrEmpty(token))
-                {
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
-                var response = await _httpClient.SendAsync(request);
-
-                await response.EnsureSuccessOrThrowApiExceptionAsync();
-
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var userResponse = await response.Content.ReadFromJsonAsync<GetUserResponse>(options);
-                return userResponse;
-            }
-            catch (Exception ex)
-            {
-                await _jsRuntime.InvokeVoidAsync("console.error", "Wyjątek w GetMySettingsAsync: " + ex.Message);
-                return null;
-            }
-        }
-
-        public async Task<bool> UpdateMySettingsAsync(UpdateUserDto dto)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"api/User/update/{dto.UserId}", dto);
-            await response.EnsureSuccessOrThrowApiExceptionAsync();
-            return true;
         }
 
         public async Task<string?> RefreshTokenAsync()
@@ -140,7 +101,6 @@ namespace CreateInvoiceSystem.Frontend.Services
                 await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
                 await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "refreshToken");
 
-                _httpClient.DefaultRequestHeaders.Authorization = null;
                 _authStateProvider.NotifyUserLogout();
 
                 await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "sessionExpiredMessage", msg);

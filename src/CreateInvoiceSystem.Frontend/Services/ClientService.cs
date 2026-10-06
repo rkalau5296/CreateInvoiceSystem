@@ -1,6 +1,5 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
 using Microsoft.JSInterop;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -40,8 +39,7 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public async Task SaveClientAsync(ClientDto client)
-        {
-            client.UserId = await GetUserIdFromToken();
+        {            
             var response = await _http.PostAsJsonAsync("api/Client/create", client);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
@@ -61,8 +59,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                     client.Address.City,
                     client.Address.PostalCode,
                     client.Address.Country
-                },
-                client.UserId
+                },                
             };
 
             var response = await _http.PutAsJsonAsync($"api/Client/update/{client.ClientId}", updateDto);
@@ -74,18 +71,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             var response = await _http.DeleteAsync($"api/Client/{clientId}");
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
-
-        private async Task<int> GetUserIdFromToken()
-        {
-            var token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-            if (string.IsNullOrEmpty(token)) return 0;
-
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
-            return int.TryParse(claim, out var id) ? id : 0;
-        }
-
+        
         public async Task DownloadClientsCsvAsync()
         {
             var response = await _http.GetAsync("api/export/clients");

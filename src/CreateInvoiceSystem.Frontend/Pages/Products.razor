@@ -2,7 +2,6 @@
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @using CreateInvoiceSystem.Frontend.Components
-@using System.Globalization
 @inject ProductService ProductService
 
 <div class="container-fluid">
@@ -52,8 +51,8 @@
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog shadow-lg">
                 <div class="modal-content">
-                    <ValidatedEditForm TModel="ProductEditModel"
-                                       Model="_newProductView"
+                    <ValidatedEditForm TModel="ProductDto"
+                                       Model="_newProduct"
                                        OnValidSubmit="HandleSave"
                                        OnInvalidSubmit="HandleInvalidSubmit">
                         <div class="modal-header bg-primary text-white">
@@ -66,17 +65,17 @@
                                 <div class="alert alert-danger small">@_modalErrorMessage</div>
                             }
                             <div class="mb-3">
-                                <ValidatedInputText @bind-Value="_newProductView.Name"
+                                <ValidatedInputText @bind-Value="_newProduct.Name"
                                                     Label="Nazwa produktu"
                                                     Placeholder="np. Kawa" />
                             </div>
                             <div class="mb-3">
-                                <ValidatedInputText @bind-Value="_newProductView.Description"
+                                <ValidatedInputText @bind-Value="_newProduct.Description"
                                                     Label="Opis"
                                                     Placeholder="Opcjonalny opis..." />
                             </div>
                             <div class="mb-3">
-                                <TextDecimalInput @bind-StringValue="_newProductView.ValueString"
+                                <TextDecimalInput @bind-Value="_newProduct.Value"
                                                   Touched="@_formTouched"
                                                   Label="Cena"
                                                   Placeholder="np. 12.99"
@@ -112,16 +111,16 @@
                     @if (_editingProductId == p.ProductId)
                     {
                         <td colspan="4" class="p-2">
-                            <ValidatedEditForm TModel="ProductEditModel" Model="_editViewModel" OnValidSubmit="SubmitInlineEdit">
+                            <ValidatedEditForm TModel="ProductDto" Model="_editModel" OnValidSubmit="SubmitInlineEdit">
                                 <div class="editing-grid">
                                     <div>
-                                        <ValidatedInputText @bind-Value="_editViewModel.Name" Placeholder="Nazwa" />
+                                        <ValidatedInputText @bind-Value="_editModel.Name" Placeholder="Nazwa" />
                                     </div>
                                     <div>
-                                        <ValidatedInputText @bind-Value="_editViewModel.Description" Placeholder="Opis" />
+                                        <ValidatedInputText @bind-Value="_editModel.Description" Placeholder="Opis" />
                                     </div>
                                     <div class="text-end">
-                                        <TextDecimalInput @bind-StringValue="_editViewModel.ValueString"
+                                        <TextDecimalInput @bind-Value="_editModel.Value"
                                                           Placeholder="np. 12.99"
                                                           Touched="true"
                                                           ErrorMessage="Podaj prawidłową cenę (maksymalnie 2 miejsca po przecinku)" />
@@ -196,10 +195,9 @@
 @code {
     private List<ProductDto>? _products;
     private int? _editingProductId;
-    private ProductDto _newProduct = new();
-    private ProductEditModel _newProductView = new();
+    private ProductDto _newProduct = new();    
     private ProductDto _editModel = new();
-    private ProductEditModel _editViewModel = new();
+    
     private int _pageSize = 10;
     private int _currentPage = 1;
     private int _totalCount = 0;
@@ -216,13 +214,7 @@
     private void OpenAddModal()
     {
         _formTouched = false;
-        _newProduct = new ProductDto { Name = "", Value = null, Description = "" };
-        _newProductView = new ProductEditModel
-        {
-            Name = _newProduct.Name,
-            Description = _newProduct.Description,
-            ValueString = _newProduct.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
-        };
+        _newProduct = new ProductDto { Name = string.Empty, Value = null, Description = string.Empty };
         _modalErrorMessage = null;
         _isModalOpen = true;
     }
@@ -254,16 +246,9 @@
         _formTouched = true;
         StateHasChanged();
 
-        if (!TryBuildDtoFromView(_newProductView, out var dto, out var err))
-        {
-            _modalErrorMessage = err;
-            StateHasChanged();
-            return;
-        }
-
         try
         {
-            await ProductService.SaveProductAsync(dto);
+            await ProductService.SaveProductAsync(_newProduct);
             _isModalOpen = false;
             _newProduct = new ProductDto();
             _modalErrorMessage = null;
@@ -347,17 +332,7 @@
             ProductId = product.ProductId,
             Name = product.Name,
             Description = product.Description,
-            Value = product.Value,
-            UserId = product.UserId
-        };
-
-        _editViewModel = new ProductEditModel
-        {
-            ProductId = _editModel.ProductId,
-            UserId = _editModel.UserId,
-            Name = _editModel.Name,
-            Description = _editModel.Description,
-            ValueString = _editModel.Value?.ToString(CultureInfo.InvariantCulture) ?? ""
+            Value = product.Value
         };
 
         _pageErrorMessage = null;
@@ -371,16 +346,9 @@
 
     private async Task SubmitInlineEdit()
     {
-        if (!TryBuildDtoFromView(_editViewModel, out var dto, out var err))
-        {
-            _pageErrorMessage = err;
-            _pageErrorIsError = true;
-            StateHasChanged();
-            return;
-        }
+        var dto = _editModel;
 
-        dto.ProductId = _editViewModel.ProductId;
-        dto.UserId = _editViewModel.UserId;
+        dto.ProductId = _editModel.ProductId;
 
         try
         {
@@ -431,31 +399,5 @@
             _pageErrorIsError = true;
             StateHasChanged();
         }
-    }
-
-    private bool TryBuildDtoFromView(ProductEditModel vm, out ProductDto dto, out string? error)
-    {
-        error = null;
-        dto = new ProductDto();
-
-        if (string.IsNullOrWhiteSpace(vm.Name))
-        {
-            error = "Nazwa jest wymagana.";
-            return false;
-        }
-
-        var s = (vm.ValueString ?? "").Trim().Replace(',', '.');
-        if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var val))
-        {
-            error = "Nieprawidłowa wartość ceny.";
-            return false;
-        }
-
-        dto.ProductId = vm.ProductId;
-        dto.UserId = vm.UserId;
-        dto.Name = vm.Name;
-        dto.Description = vm.Description;
-        dto.Value = val;
-        return true;
     }
 }

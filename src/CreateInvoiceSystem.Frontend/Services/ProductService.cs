@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -47,8 +46,7 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public async Task SaveProductAsync(ProductDto product)
-        {
-            product.UserId = await GetUserIdFromToken();
+        {            
             var response = await _http.PostAsJsonAsync("api/Product/create", product);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
@@ -60,8 +58,7 @@ namespace CreateInvoiceSystem.Frontend.Services
                 product.ProductId,
                 product.Name,
                 product.Description,
-                product.Value,
-                product.UserId
+                product.Value                
             };
 
             var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
@@ -87,19 +84,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 await response.EnsureSuccessOrThrowApiExceptionAsync();
             }
-        }
-
-        private async Task<int> GetUserIdFromToken()
-        {
-            var token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-            if (string.IsNullOrEmpty(token)) return 0;
-
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
-
-            return int.TryParse(claim, out var id) ? id : 0;
-        }
+        }       
 
         public class GetProductsResponse
         {
