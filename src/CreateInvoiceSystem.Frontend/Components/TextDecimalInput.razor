@@ -14,7 +14,7 @@
 <input type="text"
        inputmode="decimal"
        class="@CssClass"
-       value="@StringValue"
+       value="@Value?.ToString(CultureInfo.InvariantCulture)"
        placeholder="@Placeholder"
        @oninput="OnInput"
        @onblur="OnBlur"
@@ -28,28 +28,15 @@
 @code {
     [Parameter] public string Label { get; set; } = string.Empty;
     [Parameter] public string Placeholder { get; set; } = string.Empty;
-    [Parameter] public string StringValue { get; set; } = string.Empty;
-    [Parameter] public EventCallback<string> StringValueChanged { get; set; }
+    [Parameter] public decimal? Value { get; set; }
+    [Parameter] public EventCallback<decimal?> ValueChanged { get; set; }
     [Parameter] public bool Touched { get; set; }
     [Parameter] public bool Required { get; set; } = false;
     [Parameter] public string ErrorMessage { get; set; } = "Pole jest wymagane";
 
-    private bool IsInvalid
-    {
-        get
-        {
-            var s = (StringValue ?? "").Trim().Replace(',', '.');
-            if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-                    CultureInfo.InvariantCulture, out var v) || v <= 0)
-                return true;
-
-            var dotIndex = s.IndexOf('.');
-            if (dotIndex >= 0 && s.Length - dotIndex - 1 > 2)
-                return true;
-
-            return false;
-        }
-    }
+    private bool IsInvalid =>
+        !Value.HasValue || Value <= 0 || Value.Value % 1 != 0 &&
+        decimal.Round(Value.Value, 2) != Value.Value;
 
     private bool ShowError => Touched && IsInvalid;
 
@@ -60,15 +47,30 @@
     private async Task OnInput(ChangeEventArgs e)
     {
         var raw = e.Value?.ToString() ?? string.Empty;
-        await StringValueChanged.InvokeAsync(raw);
+
+        raw = raw.Trim().Replace(',', '.');
+
+        if (decimal.TryParse(
+                raw,
+                NumberStyles.AllowDecimalPoint |
+                NumberStyles.AllowLeadingSign,
+                CultureInfo.InvariantCulture,
+                out var value))
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+        else
+        {
+            await ValueChanged.InvokeAsync(null);
+        }
     }
 
     private async Task OnBlur(FocusEventArgs _)
     {
-        var normalized = (StringValue ?? "").Trim().Replace(',', '.');
-        if (decimal.TryParse(normalized,
-                NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-                CultureInfo.InvariantCulture, out var v))
-            await StringValueChanged.InvokeAsync(v.ToString(CultureInfo.InvariantCulture));
+        if (Value.HasValue)
+        {
+            await ValueChanged.InvokeAsync(
+                decimal.Round(Value.Value, 2));
+        }
     }
 }
