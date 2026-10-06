@@ -28,8 +28,7 @@ namespace CreateInvoiceSystem.Frontend
             }
 
             var apiUri = new Uri(apiBaseUrlSetting);
-
-            builder.Services.AddTransient<AuthenticationHeaderHandler>();
+            
             builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();
             
             builder.Services.AddHttpClient<InvoiceService>(client =>
