@@ -6,6 +6,7 @@
 @inject ClientService ClientService
 @inject ProductService ProductService
 @inject AuthService AuthService
+@inject UserService UserService
 
 @if (_isLoading)
 {
@@ -228,7 +229,7 @@ else
         _isLoading = true;
         try
         {
-            var userTask = AuthService.GetMySettingsAsync();
+            var userTask = UserService.GetMe();
             var invoiceTask = InvoiceService.GetInvoicesAsync(1, 100, "");
             var clientTask = ClientService.GetClientsAsync(1, 5, "");
             var productTask = ProductService.GetProductsAsync(1, 1, "");
