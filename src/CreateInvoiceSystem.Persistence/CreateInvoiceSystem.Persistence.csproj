@@ -28,7 +28,7 @@
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients.Persistence\CreateInvoiceSystem.Modules.Clients.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.InvoicePositions.Persistence\CreateInvoiceSystem.Modules.InvoicePositions.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />
-    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products.Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />
   </ItemGroup>
  
