@@ -1,4 +1,4 @@
-using CreateInvoiceSystem.API.DI;
+ï»¿using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.TransactionBehavior;
@@ -116,7 +116,8 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "B³¹d podczas automatycznej migracji bazy danych.");
+        logger.LogError(ex, "BÅ‚Ä…d podczas automatycznej migracji bazy danych.");
+        throw;
     }
 }
 
