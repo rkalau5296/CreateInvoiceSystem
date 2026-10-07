@@ -45,7 +45,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Intergration"
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
           --collect:"XPlat Code Coverage"
           --results-directory ./coverage
 
@@ -117,7 +117,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~Transactions|FullyQualifiedName~Intergration"
+          --filter "FullyQualifiedName~Transactions|FullyQualifiedName~Integration"
 
   deploy-backend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
