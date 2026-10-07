@@ -111,6 +111,12 @@ jobs:
       - name: Build
         run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
 
+      - name: Verify Docker
+        run: docker info
+
+      - name: Pull SQL Server image
+        run: docker pull mcr.microsoft.com/mssql/server:2022-latest
+
       - name: Run Testcontainers tests
         run: >
           dotnet test
