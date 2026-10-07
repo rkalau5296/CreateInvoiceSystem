@@ -105,22 +105,6 @@ builder.Services.AddHostedService<EmailSendingService>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<CreateInvoiceSystemDbContext>();
-        context.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Błąd podczas automatycznej migracji bazy danych.");
-        throw;
-    }
-}
-
 app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
