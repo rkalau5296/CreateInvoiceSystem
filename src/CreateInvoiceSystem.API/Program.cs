@@ -97,7 +97,6 @@ builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((servicePr
 builder.Services.AddMailModule();
 builder.Services.AddUserModule();
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
 builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTask>());
 builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Writer);
