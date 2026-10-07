@@ -1,4 +1,6 @@
-﻿namespace CreateInvoiceSystem.BuildTests.Helper
+﻿using System.Diagnostics;
+
+namespace CreateInvoiceSystem.BuildTests.Helper
 {
     public static class Helpers
     {
@@ -25,6 +27,14 @@
                     continue;
 
                 return new string(digits) + checksum;
+            }
+        }
+        public static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            while (!condition() && stopwatch.ElapsedMilliseconds < timeoutMs)
+            {
+                await Task.Delay(50);
             }
         }
     }
