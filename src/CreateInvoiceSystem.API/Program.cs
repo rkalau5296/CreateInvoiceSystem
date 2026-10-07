@@ -123,7 +123,8 @@ using (var scope = app.Services.CreateScope())
 
         logger.LogError(
             ex,
-            "Błąd podczas automatycznej migracji bazy danych.");        
+            "Błąd podczas automatycznej migracji bazy danych.");
+        throw;
     }
 }
 app.UseExceptionHandling();
