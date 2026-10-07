@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace CreateInvoiceSystem.BuildTests.Helper
 {
@@ -31,6 +27,14 @@ namespace CreateInvoiceSystem.BuildTests.Helper
                     continue;
 
                 return new string(digits) + checksum;
+            }
+        }
+        public static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            while (!condition() && stopwatch.ElapsedMilliseconds < timeoutMs)
+            {
+                await Task.Delay(50);
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using CreateInvoiceSystem.Modules.Nbp.Application.Options;
-using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRates;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using MediatR;
 

@@ -16,13 +16,8 @@ namespace CreateInvoiceSystem.Modules.Products.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class ProductController : ApiControllerBase
+public class ProductController(IMediator mediator) : ApiControllerBase(mediator)
 {
-    public ProductController(IMediator mediator, ILogger<ProductController> logger) : base(mediator)
-    {
-        logger.LogInformation("This is ProductController");
-    }
-
     [HttpGet("{ProductId}")]
     [ProducesResponseType(typeof(GetProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

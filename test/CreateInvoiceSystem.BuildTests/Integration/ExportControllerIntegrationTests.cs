@@ -5,19 +5,18 @@ using CreateInvoiceSystem.Persistence;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using Xunit.Abstractions;
 using CreateInvoiceSystem.Shared.Persistence;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
-public class ExportControllerIntergrationTests : IAsyncLifetime
+public class ExportControllerIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public ExportControllerIntergrationTests(IntegrationTestFixture integrationTestFixture)
+    public ExportControllerIntegrationTests(IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;

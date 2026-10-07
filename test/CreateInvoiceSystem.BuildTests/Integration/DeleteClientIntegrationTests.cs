@@ -6,9 +6,8 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using Xunit.Abstractions;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
 public class DeleteClientIntegrationTests : IAsyncLifetime

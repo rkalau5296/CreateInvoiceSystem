@@ -45,7 +45,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Intergration"
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
           --collect:"XPlat Code Coverage"
           --results-directory ./coverage
 
@@ -109,7 +109,7 @@ jobs:
         run: dotnet restore CreateInvoiceSystem.sln
 
       - name: Build
-        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
+        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore     
 
       - name: Run Testcontainers tests
         run: >
@@ -117,7 +117,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~Transactions|FullyQualifiedName~Intergration"
+          --filter "FullyQualifiedName~Transactions|FullyQualifiedName~Integration"
 
   deploy-backend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'

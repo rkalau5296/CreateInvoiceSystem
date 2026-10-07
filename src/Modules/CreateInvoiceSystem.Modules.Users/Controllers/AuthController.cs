@@ -16,14 +16,8 @@ namespace CreateInvoiceSystem.Modules.Users.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ApiControllerBase
+public class AuthController(IMediator mediator) : ApiControllerBase(mediator)
 {
-    public AuthController(IMediator mediator, ILogger<AuthController> logger) : base(mediator)
-    {
-        logger.LogInformation("This is AuthController");
-    }
-
-
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserRequest request, CancellationToken cancellationToken)
     {

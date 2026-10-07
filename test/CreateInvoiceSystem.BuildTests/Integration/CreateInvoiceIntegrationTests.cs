@@ -1,4 +1,6 @@
-﻿using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+﻿using CreateInvoiceSystem.BuildTests.Helper;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
@@ -11,7 +13,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
 public class CreateInvoiceIntegrationTests : IAsyncLifetime
@@ -284,6 +286,10 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             invoice);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await Helpers.WaitUntilAsync(() => _factory.EmailMock.Invocations.Any(invocation =>
+            invocation.Method.Name == nameof(IEmailService.SendEmailAsync) &&
+            invocation.Arguments[0] as string == "sprzedawca@test.local"));
 
         _factory.EmailMock.Verify(
             emailService => emailService.SendEmailAsync(

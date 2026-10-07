@@ -1,4 +1,4 @@
-using CreateInvoiceSystem.API.DI;
+ï»¿using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.TransactionBehavior;
@@ -97,7 +97,6 @@ builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((servicePr
 builder.Services.AddMailModule();
 builder.Services.AddUserModule();
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
 builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTask>());
 builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Writer);
@@ -105,21 +104,6 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().
 builder.Services.AddHostedService<EmailSendingService>();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<CreateInvoiceSystemDbContext>();
-        context.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "B³¹d podczas automatycznej migracji bazy danych.");
-    }
-}
 
 app.UseExceptionHandling();
 app.UseHttpsRedirection();

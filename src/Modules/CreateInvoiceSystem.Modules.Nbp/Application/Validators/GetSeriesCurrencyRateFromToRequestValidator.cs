@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
+﻿using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesRate;
 using FluentValidation;
 
 namespace CreateInvoiceSystem.Modules.Nbp.Application.Validators;

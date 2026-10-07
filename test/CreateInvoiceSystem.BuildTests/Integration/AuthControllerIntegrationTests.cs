@@ -11,9 +11,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Xunit.Abstractions;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 [Collection("Integration tests")]
 public class AuthControllerIntegrationTests : IAsyncLifetime

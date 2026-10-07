@@ -55,7 +55,6 @@
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices.Persistence\CreateInvoiceSystem.Modules.Invoices.Persistence.csproj" />    
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Invoices\CreateInvoiceSystem.Modules.Invoices.csproj" />    
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />    
-    <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products..Persistence\CreateInvoiceSystem.Modules.Products.Persistence.csproj" />    
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Products\CreateInvoiceSystem.Modules.Products.csproj" />    
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users.Persistence\CreateInvoiceSystem.Modules.Users.Persistence.csproj" />    
     <ProjectReference Include="..\..\src\Modules\CreateInvoiceSystem.Modules.Users\CreateInvoiceSystem.Modules.Users.csproj" />

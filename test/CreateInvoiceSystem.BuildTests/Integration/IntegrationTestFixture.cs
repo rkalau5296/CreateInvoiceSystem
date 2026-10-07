@@ -2,7 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Respawn;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration;
+namespace CreateInvoiceSystem.BuildTests.Integration;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {

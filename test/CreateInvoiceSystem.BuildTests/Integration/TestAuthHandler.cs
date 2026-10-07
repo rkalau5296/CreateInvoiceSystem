@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
-namespace CreateInvoiceSystem.BuildTests.Intergration
+namespace CreateInvoiceSystem.BuildTests.Integration
 {
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {

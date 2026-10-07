@@ -1,5 +1,4 @@
 ﻿using FluentValidation.TestHelper;
-using Xunit;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.ResetPassword;
 using CreateInvoiceSystem.Modules.Users.Application.Validators;
 
