@@ -45,9 +45,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
-          --collect:"XPlat Code Coverage"
-          --results-directory ./coverage
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"          
 
       - name: Generate coverage report
         run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
