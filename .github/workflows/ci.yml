@@ -41,14 +41,8 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: 'Server=(localdb)\MSSQLLocalDB;Database=TestDb;Trusted_Connection=True;'
         run: >
-          dotnet test
-          test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
-                   --configuration Release
-          --no-build
-          -- --filter-namespace CreateInvoiceSystem.BuildTests.Unit
-          --coverlet
-          --coverlet-output-format cobertura
-          --coverlet-output ./coverage/coverage.cobertura.xml
+          - name: Test unit tests with coverage
+  run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build -- --filter-namespace CreateInvoiceSystem.BuildTests.Unit --coverlet --coverlet-output-format cobertura --coverlet-output ./coverage/coverage.cobertura.xml
 
       - name: Generate coverage report
         run: >
