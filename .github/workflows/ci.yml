@@ -45,10 +45,17 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"          
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
+          --coverlet
+          --coverlet-output-format cobertura
+          --coverlet-output ./coverage/coverage.cobertura.xml
 
-      # - name: Generate coverage report
-      #   run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
+      - name: Generate coverage report
+        run: >
+          reportgenerator
+          -reports:./coverage/coverage.cobertura.xml
+          -targetdir:./coverage/report
+          -reporttypes:Html
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v6
@@ -107,7 +114,7 @@ jobs:
         run: dotnet restore CreateInvoiceSystem.sln
 
       - name: Build
-        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore     
+        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
 
       - name: Run Testcontainers tests
         run: >

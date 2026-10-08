@@ -119,8 +119,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
-
-        db.Database.EnsureDeleted();
+        
         db.Database.EnsureCreated();
 
         return host;
