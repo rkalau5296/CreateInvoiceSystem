@@ -43,9 +43,9 @@ jobs:
         run: >
           dotnet test
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
-          --configuration Release
+                   --configuration Release
           --no-build
-          --filter "FullyQualifiedName~CreateInvoiceSystem.BuildTests.Unit"
+          -- --filter-namespace CreateInvoiceSystem.BuildTests.Unit
           --coverlet
           --coverlet-output-format cobertura
           --coverlet-output ./coverage/coverage.cobertura.xml
