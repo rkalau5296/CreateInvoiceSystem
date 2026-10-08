@@ -37,7 +37,7 @@ jobs:
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-           - name: Test unit tests with coverage
+      - name: Test unit tests with coverage
         env:
           ConnectionStrings__DefaultConnection: 'Server=(localdb)\MSSQLLocalDB;Database=TestDb;Trusted_Connection=True;'
         run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build -- --filter-namespace CreateInvoiceSystem.BuildTests.Unit --coverlet --coverlet-output-format cobertura --coverlet-output ./coverage/coverage.cobertura.xml
