@@ -47,8 +47,8 @@ jobs:
           --no-build
           --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"          
 
-      - name: Generate coverage report
-        run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
+      # - name: Generate coverage report
+      #   run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v6
