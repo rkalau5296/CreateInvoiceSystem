@@ -45,7 +45,7 @@ jobs:
           test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
+          --filter "FullyQualifiedName~CreateInvoiceSystem.BuildTests.Unit"
           --coverlet
           --coverlet-output-format cobertura
           --coverlet-output ./coverage/coverage.cobertura.xml
