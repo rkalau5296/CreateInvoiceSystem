@@ -16,7 +16,8 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public DeleteInvoiceIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public DeleteInvoiceIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -24,33 +25,46 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_DeleteInvoice_When_RequestIsValid()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync($"/api/Invoice/{invoiceId}");
-        var body = await response.Content.ReadAsStringAsync();
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken: cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var response = await _client.DeleteAsync(
+            $"/api/Invoice/{invoiceId}",
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var deleted = await db.Set<InvoiceEntity>()
-            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            .FirstOrDefaultAsync(
+                invoice => invoice.InvoiceId == invoiceId,
+                cancellationToken);
 
         deleted.Should().BeNull();
     }
@@ -58,20 +72,27 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_DeleteInvoicePositions_When_InvoiceIsDeleted()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync($"/api/Invoice/{invoiceId}");
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken: cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            $"/api/Invoice/{invoiceId}",
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var positions = await db.Set<InvoicePositionEntity>()
-            .Where(p => p.InvoiceId == invoiceId)
-            .ToListAsync();
+            .Where(position => position.InvoiceId == invoiceId)
+            .ToListAsync(cancellationToken);
 
         positions.Should().BeEmpty();
     }
@@ -79,9 +100,13 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return404_When_InvoiceDoesNotExist()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync("/api/Invoice/99999");
+        await SeedUserAsync(cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            "/api/Invoice/99999",
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -89,33 +114,52 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_NotAffectOtherInvoices_When_OneIsDeleted()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId1 = await SeedInvoiceAsync(userId, "1/09/2026");
-        var invoiceId2 = await SeedInvoiceAsync(userId, "2/09/2026");
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync($"/api/Invoice/{invoiceId1}");
+        var userId = await SeedUserAsync(cancellationToken);
+
+        var invoiceId1 = await SeedInvoiceAsync(
+            userId,
+            "1/09/2026",
+            cancellationToken);
+
+        var invoiceId2 = await SeedInvoiceAsync(
+            userId,
+            "2/09/2026",
+            cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            $"/api/Invoice/{invoiceId1}",
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var remaining = await db.Set<InvoiceEntity>()
-            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId2);
+            .FirstOrDefaultAsync(
+                invoice => invoice.InvoiceId == invoiceId2,
+                cancellationToken);
 
         remaining.Should().NotBeNull();
     }
 
-    private async Task<int> SeedUserAsync()
+    private async Task<int> SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
 
-        if (existing != null)
+        if (existing is not null)
         {
             return existing.Id;
         }
@@ -130,7 +174,8 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
         {
@@ -142,16 +187,19 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return user.Id;
     }
 
     private async Task<int> SeedInvoiceAsync(
         int userId,
-        string title = "Faktura do edycji")
+        string title = "Faktura do edycji",
+        CancellationToken cancellationToken = default)
     {
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
@@ -177,7 +225,8 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<InvoiceEntity>().Add(invoice);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var position = new InvoicePositionEntity
         {
@@ -190,7 +239,8 @@ public class DeleteInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<InvoicePositionEntity>().Add(position);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return invoice.InvoiceId;
     }

@@ -19,27 +19,32 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
-    private readonly HttpClient _client;    
+    private readonly HttpClient _client;
 
-    public AuthControllerIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public AuthControllerIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
-    public Task InitializeAsync()
+
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
-    public Task DisposeAsync()
+
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_Return400_When_PasswordsDoNotMatch()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var payload = new
         {
             Dto = new
@@ -50,15 +55,24 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             }
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Auth/change-password", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Auth/change-password",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest,
+            because: body);
     }
 
     [Fact]
     public async Task Should_Return400_When_UserNotFoundDuringPasswordChange()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var payload = new
         {
             Dto = new
@@ -69,17 +83,25 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             }
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Auth/change-password", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Auth/change-password",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest,
+            because: body);
     }
 
     [Fact]
     public async Task Should_RegisterUser_When_DataIsValid()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var email = $"register_{Guid.NewGuid()}@test.local";
-        
+
         var payload = new
         {
             User = new
@@ -101,19 +123,31 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             }
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Auth/register", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Auth/register",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
     }
 
     [Fact]
     public async Task Should_LoginUser_When_CredentialsAreCorrect()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var email = $"login_{Guid.NewGuid()}@test.local";
         const string pass = "!Password123";
 
-        await SeedFullUserAsync(email: email, password: pass, isActive: true);
+        await SeedFullUserAsync(
+            email: email,
+            password: pass,
+            isActive: true,
+            cancellationToken: cancellationToken);
 
         var payload = new
         {
@@ -125,51 +159,111 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             }
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Auth/login", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Auth/login",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
     }
 
     [Fact]
     public async Task Should_ActivateUser_When_TokenIsValid()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         using var scope = _factory.Services.CreateScope();
-        var jwtProvider = scope.ServiceProvider.GetRequiredService<IJwtProvider>();
+
+        var jwtProvider = scope.ServiceProvider
+            .GetRequiredService<IJwtProvider>();
 
         var email = $"token_{Guid.NewGuid()}@test.local";
         var token = jwtProvider.GenerateActivationToken(email, 24);
         var (jti, expiry) = ParseJtiAndExpiryFromJwt(token);
 
-        await SeedFullUserAsync(email: email, password: "AnyPassword123!", isActive: false, jti: jti, expiry: expiry);
+        await SeedFullUserAsync(
+            email: email,
+            password: "AnyPassword123!",
+            isActive: false,
+            jti: jti,
+            expiry: expiry,
+            cancellationToken: cancellationToken);
 
-        var response = await _client.GetAsync($"/api/Auth/activate?token={token}");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync(
+            $"/api/Auth/activate?token={token}",
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
     }
 
-    private static (string? jti, DateTimeOffset? expiryUtc) ParseJtiAndExpiryFromJwt(string jwt)
+    private static (string? jti, DateTimeOffset? expiryUtc)
+        ParseJtiAndExpiryFromJwt(string jwt)
     {
         try
         {
             var parts = jwt.Split('.');
-            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+
+            if (parts.Length < 2)
+            {
+                return (null, null);
+            }
+
+            var payload = parts[1]
+                .Replace('-', '+')
+                .Replace('_', '/');
+
             switch (payload.Length % 4)
             {
-                case 2: payload += "=="; break;
-                case 3: payload += "="; break;
+                case 2:
+                    payload += "==";
+                    break;
+
+                case 3:
+                    payload += "=";
+                    break;
             }
+
             var bytes = Convert.FromBase64String(payload);
             var json = Encoding.UTF8.GetString(bytes);
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            return (
-                root.TryGetProperty("jti", out var j) ? j.GetString() : null,
-                root.TryGetProperty("exp", out var e) ? DateTimeOffset.FromUnixTimeSeconds(e.GetInt64()) : null
-            );
+
+            using var document = JsonDocument.Parse(json);
+
+            var root = document.RootElement;
+
+            string? jti = null;
+            DateTimeOffset? expiry = null;
+
+            if (root.TryGetProperty("jti", out var jtiProperty))
+            {
+                jti = jtiProperty.GetString();
+            }
+
+            if (root.TryGetProperty("exp", out var expiryProperty))
+            {
+                expiry = DateTimeOffset.FromUnixTimeSeconds(
+                    expiryProperty.GetInt64());
+            }
+
+            return (jti, expiry);
         }
-        catch { return (null, null); }
+        catch (FormatException)
+        {
+            return (null, null);
+        }
+        catch (JsonException)
+        {
+            return (null, null);
+        }
     }
 
     private async Task SeedFullUserAsync(
@@ -177,15 +271,25 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
         string password,
         bool isActive = true,
         string? jti = null,
-        DateTimeOffset? expiry = null
-        )
+        DateTimeOffset? expiry = null,
+        CancellationToken cancellationToken = default)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
 
-        var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (existing != null) return;
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<UserEntity>>();
+
+        var existing = await db.Users.FirstOrDefaultAsync(
+            user => user.Email == email,
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
 
         var address = new AddressEntity
         {
@@ -195,8 +299,10 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
         {
@@ -216,15 +322,25 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
             AddressId = address.AddressId
         };
 
-        var result = await userManager.CreateAsync(user, password);
+        var result = await userManager.CreateAsync(
+            user,
+            password);
+
         if (!result.Succeeded)
-            throw new Exception($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        {
+            throw new InvalidOperationException(
+                "Failed to create user: " +
+                string.Join(
+                    ", ",
+                    result.Errors.Select(error => error.Description)));
+        }
 
         if (isActive)
         {
             user.IsActive = true;
             user.EmailConfirmed = true;
+
             await userManager.UpdateAsync(user);
         }
-    }    
+    }
 }

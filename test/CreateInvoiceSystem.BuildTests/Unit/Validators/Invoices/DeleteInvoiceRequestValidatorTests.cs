@@ -1,5 +1,5 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
-using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
+using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 using FluentValidation.TestHelper;
 
 namespace CreateInvoiceSystem.BuildTests.Unit.Validators.Invoices;
@@ -11,18 +11,24 @@ public class DeleteInvoiceRequestValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public async Task Should_Have_Error_When_Id_Is_Invalid(int invalidId)
+    public async Task Should_Have_Error_When_Id_Is_Invalid(
+        int invalidId)
     {
         var request = new DeleteInvoiceRequest(invalidId)
         {
             UserId = 1
         };
 
-        var result = await _validator.TestValidateAsync(request);
+        var result = await _validator.TestValidateAsync(
+            request,
+            options: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
-        result.ShouldHaveValidationErrorFor(x => x.Id)
-            .WithErrorMessage("Invoice Id must be greater than 0.");
-    }    
+        result.ShouldHaveValidationErrorFor(
+                requestItem => requestItem.Id)
+            .WithErrorMessage(
+                "Invoice Id must be greater than 0.");
+    }
 
     [Fact]
     public async Task Should_Not_Have_Errors_When_Request_Is_Valid()
@@ -32,7 +38,10 @@ public class DeleteInvoiceRequestValidatorTests
             UserId = 1
         };
 
-        var result = await _validator.TestValidateAsync(request);
+        var result = await _validator.TestValidateAsync(
+            request,
+            options: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         result.ShouldNotHaveAnyValidationErrors();
     }

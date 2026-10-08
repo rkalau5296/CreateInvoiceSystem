@@ -13,7 +13,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     private SqlConnection _connection = null!;
     private Respawner _respawner = null!;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await SqlServer.InitializeAsync();
 
@@ -37,7 +37,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         return _respawner.ResetAsync(_connection);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         Factory.Dispose();
 

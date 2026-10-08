@@ -16,7 +16,8 @@ public class DeleteProductIntegrationTests : IAsyncLifetime
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public DeleteProductIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public DeleteProductIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -24,39 +25,58 @@ public class DeleteProductIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_DeleteProduct_When_RequestIsValid()
     {
-        await SeedUserAsync();
-        var productId = await SeedProductAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync($"/api/Product/{productId}");
-        var body = await response.Content.ReadAsStringAsync();
+        await SeedUserAsync(cancellationToken);
+        var productId = await SeedProductAsync(cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var response = await _client.DeleteAsync(
+            $"/api/Product/{productId}",
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var deletedProduct = await db.Set<ProductEntity>().FirstOrDefaultAsync(p => p.ProductId == productId);
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var deletedProduct = await db.Set<ProductEntity>()
+            .FirstOrDefaultAsync(
+                product => product.ProductId == productId,
+                cancellationToken);
+
         deletedProduct.Should().BeNull();
     }
 
     [Fact]
     public async Task Should_Return404_When_ProductDoesNotExist()
     {
-        await SeedUserAsync();
-        var response = await _client.DeleteAsync("/api/Product/99999");
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            "/api/Product/99999",
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -64,19 +84,33 @@ public class DeleteProductIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_IdIsInvalid()
     {
-        await SeedUserAsync();
-        var response = await _client.DeleteAsync("/api/Product/0");
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            "/api/Product/0",
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    private async Task SeedUserAsync()
+    private async Task SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
-        if (existing != null) return;
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
 
         var address = new AddressEntity
         {
@@ -86,25 +120,32 @@ public class DeleteProductIntegrationTests : IAsyncLifetime
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int> SeedProductAsync()
+    private async Task<int> SeedProductAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var product = new ProductEntity
         {
@@ -113,9 +154,11 @@ public class DeleteProductIntegrationTests : IAsyncLifetime
             Value = 99.99m,
             UserId = 1
         };
+
         db.Set<ProductEntity>().Add(product);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return product.ProductId;
-    }    
+    }
 }

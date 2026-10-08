@@ -25,7 +25,7 @@
     <PackageReference Include="NLog.Web.AspNetCore" />
     <PackageReference Include="Respawn" />
     <PackageReference Include="Testcontainers.MsSql" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" >
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

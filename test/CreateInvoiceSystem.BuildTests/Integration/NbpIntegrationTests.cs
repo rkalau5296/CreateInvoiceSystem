@@ -1,9 +1,9 @@
 ﻿using System.Net;
+using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Integration;
 
@@ -13,20 +13,26 @@ public class NbpIntegrationTests
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _output;
 
-    public NbpIntegrationTests(IntegrationTestFixture fixture, ITestOutputHelper output)
+    public NbpIntegrationTests(
+        IntegrationTestFixture fixture,
+        ITestOutputHelper output)
     {
         _output = output;
-                
-        var factory = fixture.Factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureTestServices(services =>
+
+        var factory = fixture.Factory.WithWebHostBuilder(
+            builder =>
             {
-                services.AddTransient<MockNbpHttpMessageHandler>();
-                        
-                services.AddHttpClient("NbpClient")
-                        .AddHttpMessageHandler<MockNbpHttpMessageHandler>();
+                builder.ConfigureTestServices(
+                    services =>
+                    {
+                        services.AddTransient<
+                            MockNbpHttpMessageHandler>();
+
+                        services.AddHttpClient("NbpClient")
+                            .AddHttpMessageHandler<
+                                MockNbpHttpMessageHandler>();
+                    });
             });
-        });
 
         _client = factory.CreateClient();
     }
@@ -34,140 +40,229 @@ public class NbpIntegrationTests
     [Fact]
     public async Task Should_ReturnActualCurrencyRate_When_TableAndCodeAreValid()
     {
-        // Arrange
+        var cancellationToken =
+            TestContext.Current.CancellationToken;
+
         const string tableName = "A";
         const string currencyCode = "EUR";
 
-        // Act
-        var response = await _client.GetAsync($"/CurrencyRates/{tableName}/{currencyCode}");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync(
+            $"/CurrencyRates/{tableName}/{currencyCode}",
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
         _output.WriteLine($"Response Body: {body}");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
 
-        var elementToVerify = root.TryGetProperty("data", out var dataEl) ? dataEl : root;
+        var elementToVerify =
+            root.TryGetProperty("data", out var dataElement)
+                ? dataElement
+                : root;
 
-        elementToVerify.GetProperty("code").GetString().Should().Be(currencyCode);
+        elementToVerify
+            .GetProperty("code")
+            .GetString()
+            .Should()
+            .Be(currencyCode);
 
-        if (elementToVerify.TryGetProperty("rates", out var rates) && rates.ValueKind == JsonValueKind.Array)
+        if (elementToVerify.TryGetProperty(
+                "rates",
+                out var rates)
+            && rates.ValueKind == JsonValueKind.Array)
         {
-            rates[0].GetProperty("mid").GetDecimal().Should().BeGreaterThan(0);
+            rates[0]
+                .GetProperty("mid")
+                .GetDecimal()
+                .Should()
+                .BeGreaterThan(0);
         }
         else
         {
-            elementToVerify.GetProperty("mid").GetDecimal().Should().BeGreaterThan(0);
+            elementToVerify
+                .GetProperty("mid")
+                .GetDecimal()
+                .Should()
+                .BeGreaterThan(0);
         }
     }
 
     [Fact]
     public async Task Should_ReturnBadRequest_When_DateRangeFormatIsInvalid()
     {
-        // Arrange
+        var cancellationToken =
+            TestContext.Current.CancellationToken;
+
         const string tableName = "A";
         const string currencyCode = "USD";
         const string invalidDate = "nie-data-iso";
 
-        // Act
-        var response = await _client.GetAsync($"/CurrencyRates/{tableName}/{currencyCode}/{invalidDate}/2026-01-01");
-        var body = await response.Content.ReadAsStringAsync();
-        _output.WriteLine($"Response Body (Expected Error): {body}");
+        var response = await _client.GetAsync(
+            $"/CurrencyRates/{tableName}/{currencyCode}/{invalidDate}/2026-01-01",
+            cancellationToken);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        _output.WriteLine(
+            $"Response Body (Expected Error): {body}");
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
 
         using var doc = JsonDocument.Parse(body);
-        doc.RootElement.GetProperty("title").GetString().Should().Be("Invalid date format");
-        doc.RootElement.GetProperty("detail").GetString().Should().Contain("Date parameters must be valid dates");
+
+        doc.RootElement
+            .GetProperty("title")
+            .GetString()
+            .Should()
+            .Be("Invalid date format");
+
+        doc.RootElement
+            .GetProperty("detail")
+            .GetString()
+            .Should()
+            .Contain("Date parameters must be valid dates");
     }
 
     [Fact]
     public async Task Should_ReturnSeriesOfRates_When_DateRangeIsValid()
     {
-        // Arrange
+        var cancellationToken =
+            TestContext.Current.CancellationToken;
+
         const string tableName = "A";
         const string dateFrom = "2026-01-01";
         const string dateTo = "2026-01-07";
 
-        // Act
-        var response = await _client.GetAsync($"/CurrencyRates/{tableName}/{dateFrom}/{dateTo}");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync(
+            $"/CurrencyRates/{tableName}/{dateFrom}/{dateTo}",
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
         _output.WriteLine($"Response Body: {body}");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
 
         if (root.ValueKind == JsonValueKind.Array)
         {
-            root.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
-        }
-        else
-        {
-            var target = root.TryGetProperty("data", out var data) ? data : root;
+            root.GetArrayLength()
+                .Should()
+                .BeGreaterThanOrEqualTo(0);
 
-            if (target.ValueKind == JsonValueKind.Array)
-            {
-                target.GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
-            }
-            else
-            {
-                target.GetProperty("rates").GetArrayLength().Should().BeGreaterThanOrEqualTo(0);
-            }
+            return;
         }
+
+        var target = root.TryGetProperty(
+            "data",
+            out var data)
+            ? data
+            : root;
+
+        if (target.ValueKind == JsonValueKind.Array)
+        {
+            target.GetArrayLength()
+                .Should()
+                .BeGreaterThanOrEqualTo(0);
+
+            return;
+        }
+
+        target
+            .GetProperty("rates")
+            .GetArrayLength()
+            .Should()
+            .BeGreaterThanOrEqualTo(0);
     }
 }
 
-public class MockNbpHttpMessageHandler : DelegatingHandler
+public sealed class MockNbpHttpMessageHandler : DelegatingHandler
 {
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
-        var url = request.RequestUri?.ToString() ?? string.Empty;
-                
-        if (url.Contains("/A/EUR") || url.Contains("/a/eur"))
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var url = request.RequestUri?.ToString()
+            ?? string.Empty;
+
+        if (url.Contains("/A/EUR")
+            || url.Contains("/a/eur"))
         {
-            var singleRateJson = """
+            const string singleRateJson = """
             {
                 "table": "A",
                 "currency": "euro",
                 "code": "EUR",
                 "rates": [
-                    { "no": "001/A/NBP/2026", "effectiveDate": "2026-01-02", "mid": 4.2500 }
+                    {
+                        "no": "001/A/NBP/2026",
+                        "effectiveDate": "2026-01-02",
+                        "mid": 4.2500
+                    }
                 ]
             }
             """;
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(singleRateJson, System.Text.Encoding.UTF8, "application/json")
-            });
+            return Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        singleRateJson,
+                        Encoding.UTF8,
+                        "application/json")
+                });
         }
-                
-        if (url.Contains("/2026-01-01/2026-01-07"))
+
+        if (url.Contains(
+                "/2026-01-01/2026-01-07"))
         {
-            var seriesJson = """
+            const string seriesJson = """
             {
                 "table": "A",
                 "currency": "euro",
                 "code": "EUR",
                 "rates": [
-                    { "no": "001/A/NBP/2026", "effectiveDate": "2026-01-02", "mid": 4.2500 },
-                    { "no": "002/A/NBP/2026", "effectiveDate": "2026-01-05", "mid": 4.2650 }
+                    {
+                        "no": "001/A/NBP/2026",
+                        "effectiveDate": "2026-01-02",
+                        "mid": 4.2500
+                    },
+                    {
+                        "no": "002/A/NBP/2026",
+                        "effectiveDate": "2026-01-05",
+                        "mid": 4.2650
+                    }
                 ]
             }
             """;
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(seriesJson, System.Text.Encoding.UTF8, "application/json")
-            });
+            return Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        seriesJson,
+                        Encoding.UTF8,
+                        "application/json")
+                });
         }
 
-        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+        return Task.FromResult(
+            new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 }

@@ -16,7 +16,8 @@ public class DeleteClientIntegrationTests : IAsyncLifetime
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public DeleteClientIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public DeleteClientIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -24,59 +25,94 @@ public class DeleteClientIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_DeleteClient_When_RequestIsValid()
     {
-        await SeedUserAsync();
-        var clientId = await SeedClientAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        var response = await _client.DeleteAsync($"/api/Client/{clientId}");
-        var body = await response.Content.ReadAsStringAsync();
+        await SeedUserAsync(cancellationToken);
+        var clientId = await SeedClientAsync(cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var response = await _client.DeleteAsync(
+            $"/api/Client/{clientId}",
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var deletedClient = await db.Set<ClientEntity>().FirstOrDefaultAsync(c => c.ClientId == clientId);
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var deletedClient = await db.Set<ClientEntity>()
+            .FirstOrDefaultAsync(
+                client => client.ClientId == clientId,
+                cancellationToken);
+
         deletedClient.Should().BeNull();
     }
 
     [Fact]
     public async Task Should_Return404_When_ClientDoesNotExist()
     {
-        await SeedUserAsync();
-        var response = await _client.DeleteAsync("/api/Client/99999");
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await SeedUserAsync(cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            "/api/Client/99999",
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Should_Return400_When_IdIsInvalid()
     {
-        await SeedUserAsync();
-        var response = await _client.DeleteAsync("/api/Client/0");
+        var cancellationToken = TestContext.Current.CancellationToken;
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await SeedUserAsync(cancellationToken);
+
+        var response = await _client.DeleteAsync(
+            "/api/Client/0",
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
-    private async Task SeedUserAsync()
+    private async Task SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
-        if (existing != null) return;
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
 
         var address = new AddressEntity
         {
@@ -86,25 +122,32 @@ public class DeleteClientIntegrationTests : IAsyncLifetime
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma Sprzedawcy",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int> SeedClientAsync()
+    private async Task<int> SeedClientAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var address = new AddressEntity
         {
@@ -114,8 +157,10 @@ public class DeleteClientIntegrationTests : IAsyncLifetime
             PostalCode = "60-001",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var client = new ClientEntity
         {
@@ -125,15 +170,18 @@ public class DeleteClientIntegrationTests : IAsyncLifetime
             AddressId = address.AddressId,
             UserId = 1
         };
+
         db.Set<ClientEntity>().Add(client);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return client.ClientId;
     }
 
     private static string GenerateUniqueNip()
     {
-        var random = new Random();
-        return random.NextInt64(1000000000L, 9999999999L).ToString();
+        return Random.Shared
+            .NextInt64(1000000000L, 9999999999L)
+            .ToString();
     }
 }

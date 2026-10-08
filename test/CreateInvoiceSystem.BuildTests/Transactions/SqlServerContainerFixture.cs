@@ -13,7 +13,7 @@ public sealed class SqlServerContainerFixture : IAsyncLifetime
 
     public string ConnectionString { get; private set; } = null!;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
 
@@ -55,7 +55,7 @@ public sealed class SqlServerContainerFixture : IAsyncLifetime
         await context.Database.EnsureCreatedAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _container.DisposeAsync();
     }

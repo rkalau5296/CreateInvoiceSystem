@@ -15,41 +15,58 @@ public class CreateClientIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _integrationTestFixture;
     private readonly TestWebApplicationFactory _factory;
-    private readonly HttpClient _client;    
+    private readonly HttpClient _client;
 
-    public CreateClientIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public CreateClientIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
         _factory.ResetEmailMock();
         _client = _factory.CreateClient();
     }
-    public Task InitializeAsync()
+
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
+
     [Fact]
     public async Task Should_CreateClient_And_SaveToDatabase_When_RequestIsValid()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var uniqueName = $"Klient_{Guid.NewGuid():N}";
         var payload = BuildCreateClientPayload(name: uniqueName);
 
-        var response = await _client.PostAsJsonAsync("/api/Client/create", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Client/create",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var saved = await db.Set<ClientEntity>()
-            .FirstOrDefaultAsync(c => c.Name == uniqueName);
+            .FirstOrDefaultAsync(
+                client => client.Name == uniqueName,
+                cancellationToken);
 
         saved.Should().NotBeNull();
         saved!.Name.Should().Be(uniqueName);
@@ -59,26 +76,42 @@ public class CreateClientIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_CreateClient_WithCorrectAddress()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var uniqueName = $"Klient_{Guid.NewGuid():N}";
         var payload = BuildCreateClientPayload(name: uniqueName);
 
-        var response = await _client.PostAsJsonAsync("/api/Client/create", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsJsonAsync(
+            "/api/Client/create",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var saved = await db.Set<ClientEntity>()
-            .FirstOrDefaultAsync(c => c.Name == uniqueName);
+            .FirstOrDefaultAsync(
+                client => client.Name == uniqueName,
+                cancellationToken);
 
         saved.Should().NotBeNull();
         saved!.AddressId.Should().BeGreaterThan(0);
 
         var address = await db.Set<AddressEntity>()
-            .FirstOrDefaultAsync(a => a.AddressId == saved.AddressId);
+            .FirstOrDefaultAsync(
+                item => item.AddressId == saved.AddressId,
+                cancellationToken);
 
         address.Should().NotBeNull();
         address!.Street.Should().Be("Testowa");
@@ -89,32 +122,55 @@ public class CreateClientIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_NameIsMissing()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var payload = BuildCreateClientPayload(name: "");
 
-        var response = await _client.PostAsJsonAsync("/api/Client/create", payload);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Client/create",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Should_Return400_When_NipIsMissing()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var payload = BuildCreateClientPayload(nip: "");
 
-        var response = await _client.PostAsJsonAsync("/api/Client/create", payload);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Client/create",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }    
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
+    }
 
-    private async Task SeedUserAsync()
+    private async Task SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
-        if (existing != null) return;
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
 
         var address = new AddressEntity
         {
@@ -124,25 +180,30 @@ public class CreateClientIntegrationTests : IAsyncLifetime
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma Sprzedawcy",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private static string GenerateUniqueNip()
     {
-        var random = new Random();
-        return random.NextInt64(1000000000L, 9999999999L).ToString();
+        return Random.Shared
+            .NextInt64(1000000000L, 9999999999L)
+            .ToString();
     }
 
     private static object BuildCreateClientPayload(
