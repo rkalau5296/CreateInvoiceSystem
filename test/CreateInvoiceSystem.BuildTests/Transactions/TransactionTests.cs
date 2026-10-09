@@ -29,13 +29,18 @@ public sealed class TransactionTests
     [Fact]
     public async Task ShouldCommitChanges_WhenPipelineCompletes()
     {
+        var cancellationToken =
+            TestContext.Current.CancellationToken;
+
         var invoiceTitle =
             $"Committed invoice {Guid.NewGuid():N}";
 
         await using var context =
             new CreateInvoiceSystemDbContext(_options);
 
-        var user = await CreateUserAsync(context);
+        var user = await CreateUserAsync(
+            context,
+            cancellationToken);
 
         var loggerMock =
             new Mock<ILogger<TransactionBehavior<TestCommand, bool>>>();
@@ -72,7 +77,7 @@ public sealed class TransactionTests
         var result = await behavior.Handle(
             command,
             next,
-            CancellationToken.None);
+            cancellationToken);
 
         Assert.True(result);
 
@@ -80,9 +85,11 @@ public sealed class TransactionTests
             new CreateInvoiceSystemDbContext(_options);
 
         var invoiceExists = await verificationContext.Invoices
-            .AnyAsync(invoice =>
-                invoice.Title == invoiceTitle
-                && invoice.UserId == user.Id);
+            .AnyAsync(
+                invoice =>
+                    invoice.Title == invoiceTitle
+                    && invoice.UserId == user.Id,
+                cancellationToken);
 
         Assert.True(invoiceExists);
     }
@@ -90,13 +97,18 @@ public sealed class TransactionTests
     [Fact]
     public async Task ShouldRollbackAllChanges_WhenExceptionOccursInPipeline()
     {
+        var cancellationToken =
+            TestContext.Current.CancellationToken;
+
         var invoiceTitle =
             $"Rolled back invoice {Guid.NewGuid():N}";
 
         await using var context =
             new CreateInvoiceSystemDbContext(_options);
 
-        var user = await CreateUserAsync(context);
+        var user = await CreateUserAsync(
+            context,
+            cancellationToken);
 
         var loggerMock =
             new Mock<ILogger<TransactionBehavior<TestCommand, bool>>>();
@@ -157,7 +169,7 @@ public sealed class TransactionTests
                 ClientAddress = "Client address",
                 ClientEmail = client.Email,
                 MethodOfPayment = "Transfer",
-                Comments = "Rollback invoice"                
+                Comments = "Rollback invoice"
             };
 
             invoice.InvoicePositions.Add(
@@ -167,12 +179,12 @@ public sealed class TransactionTests
                     ProductDescription = product.Description,
                     ProductValue = product.Value,
                     Quantity = 1,
-                    VatRate = "23%"                    
+                    VatRate = "23%"
                 });
 
             context.Invoices.Add(invoice);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
 
             throw new InvalidOperationException(
                 "Simulated transaction failure.");
@@ -182,26 +194,30 @@ public sealed class TransactionTests
             () => behavior.Handle(
                 command,
                 next,
-                CancellationToken.None));
+                cancellationToken));
 
         await using var verificationContext =
             new CreateInvoiceSystemDbContext(_options);
 
         var invoiceExists = await verificationContext.Invoices
-            .AnyAsync(invoice =>
-                invoice.Title == invoiceTitle);
+            .AnyAsync(
+                invoice => invoice.Title == invoiceTitle,
+                cancellationToken);
 
         var clientExists = await verificationContext.Clients
-            .AnyAsync(client =>
-                client.Name.StartsWith("Rollback Client "));
+            .AnyAsync(
+                client => client.Name.StartsWith("Rollback Client "),
+                cancellationToken);
 
         var productExists = await verificationContext.Products
-            .AnyAsync(product =>
-                product.Name.StartsWith("Rollback Product "));
+            .AnyAsync(
+                product => product.Name.StartsWith("Rollback Product "),
+                cancellationToken);
 
         var positionExists = await verificationContext.InvoicePositions
-            .AnyAsync(position =>
-                position.Invoice.Title == invoiceTitle);
+            .AnyAsync(
+                position => position.Invoice.Title == invoiceTitle,
+                cancellationToken);
 
         Assert.False(invoiceExists);
         Assert.False(clientExists);
@@ -210,7 +226,8 @@ public sealed class TransactionTests
     }
 
     private static async Task<UserEntity> CreateUserAsync(
-        CreateInvoiceSystemDbContext context)
+        CreateInvoiceSystemDbContext context,
+        CancellationToken cancellationToken)
     {
         var address = new AddressEntity
         {
@@ -222,12 +239,16 @@ public sealed class TransactionTests
         };
 
         context.Addresses.Add(address);
-        await context.SaveChangesAsync();
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        var email =
+            $"user_{Guid.NewGuid():N}@test.local";
 
         var user = new UserEntity
         {
-            UserName = $"user_{Guid.NewGuid():N}@test.local",
-            Email = $"user_{Guid.NewGuid():N}@test.local",
+            UserName = email,
+            Email = email,
             Name = "Test User",
             CompanyName = "Test Company",
             Nip = CreateNip(),
@@ -237,7 +258,8 @@ public sealed class TransactionTests
         };
 
         context.Users.Add(user);
-        await context.SaveChangesAsync();
+
+        await context.SaveChangesAsync(cancellationToken);
 
         return user;
     }

@@ -24,7 +24,7 @@ public class QuestPdfGenerator : IPdfGenerator
             container.Page(page =>
             {
                 page.Margin(50);
-                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Verdana));
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Lato"));
                 
                 page.Header().Column(col =>
                 {

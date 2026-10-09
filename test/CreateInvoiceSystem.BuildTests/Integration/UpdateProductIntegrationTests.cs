@@ -17,7 +17,8 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public UpdateProductIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public UpdateProductIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -25,21 +26,23 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_UpdateProduct_When_RequestIsValid()
     {
-        await SeedUserAsync();
-        var productId = await SeedProductAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+        var productId = await SeedProductAsync(cancellationToken);
 
         var payload = new
         {
@@ -50,15 +53,28 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
             UserId = 1
         };
 
-        var response = await _client.PutAsJsonAsync($"/api/Product/update/{productId}", payload);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Product/update/{productId}",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var updated = await db.Set<ProductEntity>().FirstOrDefaultAsync(p => p.ProductId == productId);
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var updated = await db.Set<ProductEntity>()
+            .FirstOrDefaultAsync(
+                product => product.ProductId == productId,
+                cancellationToken);
+
         updated.Should().NotBeNull();
         updated!.Name.Should().Be("Zaktualizowana Nazwa");
         updated.Description.Should().Be("Zaktualizowany Opis");
@@ -68,7 +84,10 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return404_When_ProductDoesNotExist()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var payload = new
         {
             ProductId = 99999,
@@ -78,7 +97,10 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
             UserId = 1
         };
 
-        var response = await _client.PutAsJsonAsync("/api/Product/update/99999", payload);
+        var response = await _client.PutAsJsonAsync(
+            "/api/Product/update/99999",
+            payload,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -86,7 +108,10 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_IdInRouteIsInvalid()
     {
-        await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
         var payload = new
         {
             ProductId = 0,
@@ -96,18 +121,31 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
             UserId = 1
         };
 
-        var response = await _client.PutAsJsonAsync("/api/Product/update/0", payload);
+        var response = await _client.PutAsJsonAsync(
+            "/api/Product/update/0",
+            payload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
-    private async Task SeedUserAsync()
+    private async Task SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
-        if (existing != null) return;
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
 
         var address = new AddressEntity
         {
@@ -117,25 +155,32 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
             PostalCode = "00-100",
             Country = "Polska"
         };
+
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
-        {            
+        {
             Email = "sprzedawca@test.local",
             Name = "Sprzedawca",
             CompanyName = "Testowa Firma",
             Nip = "1234567890",
             AddressId = address.AddressId
         };
+
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<int> SeedProductAsync()
+    private async Task<int> SeedProductAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var product = new ProductEntity
         {
@@ -144,8 +189,10 @@ public class UpdateProductIntegrationTests : IAsyncLifetime
             Value = 100.00m,
             UserId = 1
         };
+
         db.Set<ProductEntity>().Add(product);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return product.ProductId;
     }

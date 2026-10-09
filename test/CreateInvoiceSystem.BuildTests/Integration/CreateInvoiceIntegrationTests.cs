@@ -22,7 +22,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public CreateInvoiceIntegrationTests(IntegrationTestFixture integrationTestFixture)
+    public CreateInvoiceIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
     {
         _integrationTestFixture = integrationTestFixture;
         _factory = integrationTestFixture.Factory;
@@ -30,20 +31,22 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_CreateInvoice_And_SendPdfEmail()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
+
         const string clientName = "Firma Klienta";
         var clientNip = CreateTestNip();
 
@@ -122,9 +125,11 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsync(
             "/api/Invoice/create",
-            content);
+            content,
+            cancellationToken);
 
-        var resultBody = await response.Content.ReadAsStringAsync();
+        var resultBody = await response.Content.ReadAsStringAsync(
+            cancellationToken);
 
         response.StatusCode.Should().Be(
             HttpStatusCode.OK,
@@ -152,7 +157,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_CreateInvoice_And_SaveToDatabase_When_RequestIsValid()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
         var clientNip = CreateTestNip();
         var clientName = $"Firma Klienta {Guid.NewGuid():N}";
         var clientEmail = $"klient_{Guid.NewGuid():N}@test.local";
@@ -165,9 +171,11 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            invoice);
+            invoice,
+            cancellationToken);
 
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
 
         response.StatusCode.Should().Be(
             HttpStatusCode.OK,
@@ -180,10 +188,12 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var saved = await db
             .Set<InvoiceEntity>()
-            .SingleOrDefaultAsync(entity =>
-                entity.UserId == userId
-                && entity.ClientNip == clientNip
-                && entity.ClientEmail == clientEmail);
+            .SingleOrDefaultAsync(
+                entity =>
+                    entity.UserId == userId
+                    && entity.ClientNip == clientNip
+                    && entity.ClientEmail == clientEmail,
+                cancellationToken);
 
         saved.Should().NotBeNull();
 
@@ -195,9 +205,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var positions = await db
             .Set<InvoicePositionEntity>()
-            .Where(position =>
-                position.InvoiceId == saved.InvoiceId)
-            .ToListAsync();
+            .Where(position => position.InvoiceId == saved.InvoiceId)
+            .ToListAsync(cancellationToken);
 
         positions.Should().ContainSingle();
 
@@ -212,7 +221,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_SendPdfToClient_When_ClientEmailIsProvided()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
@@ -220,62 +230,86 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            invoice);
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var deadline = DateTime.UtcNow.AddSeconds(3);
+
         while (DateTime.UtcNow < deadline)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 _factory.EmailMock.Verify(
-                    emailService => emailService.SendEmailWithAttachmentAsync(
-                        "klient@test.local", It.IsAny<string>(), It.IsAny<string>(),
-                        It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                    emailService =>
+                        emailService.SendEmailWithAttachmentAsync(
+                            "klient@test.local",
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<byte[]>(),
+                            It.IsAny<string>(),
+                            It.IsAny<CancellationToken>()),
                     Times.AtLeastOnce);
 
-                return; 
+                return;
             }
             catch (MockException)
             {
-                await Task.Delay(50);
+                await Task.Delay(50, cancellationToken);
             }
         }
+
+        _factory.EmailMock.Verify(
+            emailService =>
+                emailService.SendEmailWithAttachmentAsync(
+                    "klient@test.local",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<byte[]>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce);
     }
 
     [Fact]
     public async Task Should_NotSendPdfToClient_When_ClientEmailIsNotProvided()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
             clientEmail: null,
-            clientNip: "9999999999", 
+            clientNip: "9999999999",
             clientName: "Brak Emaila Sp z o.o.");
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            invoice);       
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         _factory.EmailMock.Verify(
-            emailService => emailService.SendEmailWithAttachmentAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<byte[]>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
+            emailService =>
+                emailService.SendEmailWithAttachmentAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<byte[]>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
     public async Task Should_AlwaysSendConfirmationEmailToSeller()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
@@ -283,27 +317,36 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            invoice);
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        await Helpers.WaitUntilAsync(() => _factory.EmailMock.Invocations.Any(invocation =>
-            invocation.Method.Name == nameof(IEmailService.SendEmailAsync) &&
-            invocation.Arguments[0] as string == "sprzedawca@test.local"));
+        await Helpers.WaitUntilAsync(
+            () =>
+                _factory.EmailMock.Invocations.Any(
+                    invocation =>
+                        invocation.Method.Name ==
+                            nameof(IEmailService.SendEmailAsync)
+                        && invocation.Arguments[0] as string ==
+                            "sprzedawca@test.local")
+            );
 
         _factory.EmailMock.Verify(
-            emailService => emailService.SendEmailAsync(
-                "sprzedawca@test.local",
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
+            emailService =>
+                emailService.SendEmailAsync(
+                    "sprzedawca@test.local",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
             Times.AtLeastOnce);
     }
 
     [Fact]
     public async Task Should_Return400_When_TitleIsMissing()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
@@ -338,7 +381,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
-            brokenPayload);
+            brokenPayload,
+            cancellationToken);
 
         response.StatusCode.Should().Be(
             HttpStatusCode.BadRequest);
@@ -347,7 +391,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_CreateInvoice_When_TotalVatIsZeroOrNull_And_VatRateIsExempt()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
@@ -357,23 +402,34 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             totalGross: 1000m,
             vatRate: "zw");
 
-        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Invoice/create",
+            invoice,
+            cancellationToken);
 
-        var body = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
     }
 
     [Fact]
     public async Task Should_Return400_When_TotalNetIsZeroOrNegative()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
             clientEmail: "klient@test.local",
             totalNet: 0m);
 
-        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Invoice/create",
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -381,14 +437,18 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_AmountsHaveMoreThanTwoDecimalPlaces()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
             clientEmail: "klient@test.local",
             totalNet: 1000.1234m);
 
-        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Invoice/create",
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -396,14 +456,18 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_CreatedDateIsInTheFuture()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
 
         var invoice = BuildInvoicePayload(
             userId,
             clientEmail: "klient@test.local",
             createdDate: DateTime.UtcNow.AddDays(1));
 
-        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Invoice/create",
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -411,7 +475,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_PaymentDateIsEarlierThanCreatedDate()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(cancellationToken);
         var createdDate = DateTime.UtcNow;
 
         var invoice = BuildInvoicePayload(
@@ -420,11 +485,16 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             createdDate: createdDate,
             paymentDate: createdDate.AddDays(-1));
 
-        var response = await _client.PostAsJsonAsync("/api/Invoice/create", invoice);
+        var response = await _client.PostAsJsonAsync(
+            "/api/Invoice/create",
+            invoice,
+            cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    private async Task<int> SeedUserAsync()
+
+    private async Task<int> SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         const string email = "sprzedawca@test.local";
 
@@ -433,8 +503,9 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users
-            .SingleOrDefaultAsync(user => user.Email == email);
+        var existing = await db.Users.SingleOrDefaultAsync(
+            user => user.Email == email,
+            cancellationToken);
 
         if (existing is not null)
         {
@@ -451,7 +522,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
         {
@@ -466,7 +538,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return user.Id;
     }
@@ -484,6 +557,7 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         DateTime? paymentDate = null)
     {
         clientNip ??= CreateTestNip();
+
         var now = createdDate ?? DateTime.UtcNow;
         var payDate = paymentDate ?? now.AddDays(7);
 

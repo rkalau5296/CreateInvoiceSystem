@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
-using Xunit.Abstractions;
 
 namespace CreateInvoiceSystem.BuildTests.Integration;
 
@@ -28,21 +27,25 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         _client = _factory.CreateClient();
     }
 
-    public Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return _integrationTestFixture.ResetDatabaseAsync();
+        await _integrationTestFixture.ResetDatabaseAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
     public async Task Should_UpdateInvoice_When_RequestIsValid()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -52,20 +55,25 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
 
         response.StatusCode.Should().Be(
             HttpStatusCode.OK,
             because: body);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var updated = await db.Set<InvoiceEntity>()
-            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            .FirstOrDefaultAsync(
+                invoice => invoice.InvoiceId == invoiceId,
+                cancellationToken);
 
         updated.Should().NotBeNull();
         updated!.MethodOfPayment.Should().Be("Gotówka");
@@ -75,8 +83,12 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_UpdateInvoicePositions_When_RequestIsValid()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -87,33 +99,43 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        var body = await response.Content.ReadAsStringAsync();
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
 
         response.StatusCode.Should().Be(
             HttpStatusCode.OK,
             because: body);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var positions = await db.Set<InvoicePositionEntity>()
-            .Where(p => p.InvoiceId == invoiceId)
-            .ToListAsync();
+            .Where(position => position.InvoiceId == invoiceId)
+            .ToListAsync(cancellationToken);
 
         positions.Should().NotBeEmpty();
-        positions.Should().Contain(p => p.ProductName == "Nowy Produkt");
-        positions.Should().Contain(p => p.ProductValue == 2000m);
-        positions.Should().Contain(p => p.Quantity == 2);
+        positions.Should().Contain(
+            position => position.ProductName == "Nowy Produkt");
+        positions.Should().Contain(
+            position => position.ProductValue == 2000m);
+        positions.Should().Contain(
+            position => position.Quantity == 2);
     }
 
     [Fact]
     public async Task Should_Return400_When_MethodOfPaymentIsMissing()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -122,15 +144,19 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Should_Return404_When_InvoiceDoesNotExist()
     {
-        var userId = await SeedUserAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             99999,
@@ -138,18 +164,22 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             "/api/Invoice/update/99999",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.NotFound);
     }
-
-    // --- NOWE TESTY WALIDACYJNE DLA UPDATE ---
 
     [Fact]
     public async Task Should_UpdateInvoice_When_TotalVatIsZeroOrNull_And_VatRateIsExempt()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -161,17 +191,25 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        var body = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
 
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
         var updated = await db.Set<InvoiceEntity>()
-            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            .FirstOrDefaultAsync(
+                invoice => invoice.InvoiceId == invoiceId,
+                cancellationToken);
 
         updated.Should().NotBeNull();
         updated!.TotalVat.Should().Be(0m);
@@ -181,8 +219,12 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Should_Return400_When_UpdateTotalNetIsZeroOrNegative()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -191,16 +233,22 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Should_Return400_When_UpdateAmountsHaveMoreThanTwoDecimalPlaces()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -209,16 +257,22 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Should_Return400_When_UpdateCreatedDateIsInTheFuture()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
 
         var updatePayload = BuildUpdatePayload(
             invoiceId,
@@ -227,16 +281,23 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Should_Return400_When_UpdatePaymentDateIsEarlierThanCreatedDate()
     {
-        var userId = await SeedUserAsync();
-        var invoiceId = await SeedInvoiceAsync(userId);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var userId = await SeedUserAsync(cancellationToken);
+        var invoiceId = await SeedInvoiceAsync(
+            userId,
+            cancellationToken);
+
         var createdDate = DateTime.UtcNow;
 
         var updatePayload = BuildUpdatePayload(
@@ -247,22 +308,26 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
 
         var response = await _client.PutAsJsonAsync(
             $"/api/Invoice/update/{invoiceId}",
-            updatePayload);
+            updatePayload,
+            cancellationToken);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
     }
 
-    // --- HELPERY ---
-
-    private async Task<int> SeedUserAsync()
+    private async Task<int> SeedUserAsync(
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
-        var existing = await db.Users.FindAsync(1);
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
 
-        if (existing != null)
+        if (existing is not null)
         {
             return existing.Id;
         }
@@ -277,7 +342,8 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<AddressEntity>().Add(address);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var user = new UserEntity
         {
@@ -289,14 +355,18 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return user.Id;
     }
 
-    private async Task<int> SeedInvoiceAsync(int userId)
+    private async Task<int> SeedInvoiceAsync(
+        int userId,
+        CancellationToken cancellationToken)
     {
         using var scope = _factory.Services.CreateScope();
+
         var db = scope.ServiceProvider
             .GetRequiredService<CreateInvoiceSystemDbContext>();
 
@@ -322,7 +392,8 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<InvoiceEntity>().Add(invoice);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         var position = new InvoicePositionEntity
         {
@@ -335,7 +406,8 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
         };
 
         db.Set<InvoicePositionEntity>().Add(position);
-        await db.SaveChangesAsync();
+
+        await db.SaveChangesAsync(cancellationToken);
 
         return invoice.InvoiceId;
     }
