@@ -69,19 +69,14 @@ jobs:
           name: backend
           path: publish-backend.zip
 
-      - name: Publish frontend
-        run: dotnet publish src/CreateInvoiceSystem.Frontend/CreateInvoiceSystem.Frontend.csproj -c Release -o ./publish-frontend
+      - name: Publish frontend host
+        run: dotnet publish src/CreateInvoiceSystem.Frontend.Host/CreateInvoiceSystem.Frontend.Host.csproj -c Release -o ./publish-frontend
 
-      - name: Zip frontend
+      - name: Zip frontend host
         shell: pwsh
         run: |
           Remove-Item -Force -ErrorAction SilentlyContinue ./publish-frontend.zip
-
-          if (Test-Path ./publish-frontend/web.config) {
-            Copy-Item ./publish-frontend/web.config ./publish-frontend/wwwroot/web.config
-          }
-
-          Compress-Archive -Path ./publish-frontend/wwwroot/* -DestinationPath ./publish-frontend.zip
+          Compress-Archive -Path ./publish-frontend/* -DestinationPath ./publish-frontend.zip
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v6
