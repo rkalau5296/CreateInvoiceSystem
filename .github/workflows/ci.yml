@@ -26,7 +26,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          global-json-file: ./global.json
+          dotnet-version: '9.0.x'
 
       - name: Restore
         run: dotnet restore CreateInvoiceSystem.sln
@@ -40,14 +40,17 @@ jobs:
       - name: Test unit tests with coverage
         env:
           ConnectionStrings__DefaultConnection: 'Server=(localdb)\MSSQLLocalDB;Database=TestDb;Trusted_Connection=True;'
-        run: dotnet test test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj --configuration Release --no-build -- --filter-namespace "CreateInvoiceSystem.BuildTests.Unit*" --results-directory ./coverage --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+        run: >
+          dotnet test
+          test/CreateInvoiceSystem.BuildTests/CreateInvoiceSystem.BuildTests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName!~Transactions&FullyQualifiedName!~Integration"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
 
       - name: Generate coverage report
-        run: >
-          reportgenerator
-          -reports:./coverage/coverage.cobertura.xml
-          -targetdir:./coverage/report
-          -reporttypes:Html
+        run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v6
@@ -100,13 +103,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          global-json-file: ./global.json
+          dotnet-version: '9.0.x'
 
       - name: Restore
         run: dotnet restore CreateInvoiceSystem.sln
 
       - name: Build
-        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore
+        run: dotnet build CreateInvoiceSystem.sln --configuration Release --no-restore     
 
       - name: Run Testcontainers tests
         run: >
@@ -133,7 +136,7 @@ jobs:
       - name: Deploy Backend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: CreateInvoiceSystem-backend
+          app-name: createinvoicesystem-backend-rkalau
           publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
           package: publish-backend.zip
           type: zip
@@ -155,7 +158,7 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: CreateInvoiceSystem-frontend
+          app-name: createinvoicesystem-frontend-rk
           publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
           package: publish-frontend.zip
           type: zip
