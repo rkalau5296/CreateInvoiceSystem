@@ -1,0 +1,37 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+
+
+<input list="@DataList"
+       type="text"
+       class="@CssClass"
+       value="@Value"
+       placeholder="@Placeholder"
+       @oninput="OnInput" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? DataList { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "Nieprawidłowy format adresu email";
+        
+    private bool IsInvalid =>
+        !EmailFormatHelper.IsValidOrEmpty(Value);
+
+    private bool ShowError => IsActive && IsInvalid;
+
+    private string CssClass =>
+        !IsActive ? "form-control" :
+        IsInvalid ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        await ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+}

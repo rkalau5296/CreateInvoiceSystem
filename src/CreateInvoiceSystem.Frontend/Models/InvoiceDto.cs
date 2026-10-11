@@ -4,52 +4,25 @@ namespace CreateInvoiceSystem.Frontend.Models
 {
     public class InvoiceDto
     {
-        public int InvoiceId { get; set; }
-
-        [Required(ErrorMessage = "Numer faktury jest wymagany")]
+        public int InvoiceId { get; set; }                
         public string Title { get; set; } = string.Empty;
-
-        public string Comments { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Metoda płatności jest wymagana")]
-        public string MethodOfPayment { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Termin płatności jest wymagany")]
-        public DateTime PaymentDate { get; set; } = DateTime.Today.AddDays(14);
-
-        [Required(ErrorMessage = "Data wystawienia jest wymagana")]
+        public string Comments { get; set; } = string.Empty;                
+        public string MethodOfPayment { get; set; } = string.Empty;                
+        public DateTime PaymentDate { get; set; } = DateTime.Today.AddDays(14);                
         public DateTime CreatedDate { get; set; } = DateTime.Today;
-
         public int UserId { get; set; }
         public string? UserEmail { get; set; }
-        public int? ClientId { get; set; }
-
-        [Required(ErrorMessage = "Nazwa sprzedawcy jest wymagana")]
-        public string? SellerName { get; set; }
-
-        [Required(ErrorMessage = "NIP sprzedawcy jest wymagany")]
-        public string? SellerNip { get; set; }
-
-        [Required(ErrorMessage = "Adres sprzedawcy jest wymagany")]
+        public int? ClientId { get; set; }                
+        public string? SellerName { get; set; }                
+        public string? SellerNip { get; set; }                
         public string? SellerAddress { get; set; }
-
-        public string BankAccountNumber { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Nazwa klienta jest wymagana")]
-        public string? ClientName { get; set; }
-
-        [Required(ErrorMessage = "NIP klienta jest wymagany")]
-        public string? ClientNip { get; set; }
-
-        [Required(ErrorMessage = "Adres klienta jest wymagany")]
+        public string BankAccountNumber { get; set; } = string.Empty;                
+        public string? ClientName { get; set; }                
+        public string? ClientNip { get; set; }                
         public string? ClientAddress { get; set; }
         public string? ClientEmail { get; set; }
-
-        public ClientDto? Client { get; set; }
-
-        [MinLength(1, ErrorMessage = "Faktura musi mieć co najmniej jedną pozycję")]
+        public ClientDto? Client { get; set; }                
         public List<InvoicePositionDto> InvoicePositions { get; set; } = new();
-
         public decimal TotalNet { get; set; }
         public decimal TotalVat { get; set; }
         public decimal TotalGross { get; set; }      
