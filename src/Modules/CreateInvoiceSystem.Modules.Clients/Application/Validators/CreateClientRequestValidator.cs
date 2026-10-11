@@ -18,6 +18,9 @@ public class CreateClientRequestValidator : AbstractValidator<CreateClientReques
                 .Matches(@"^\d{10}$")
                 .WithMessage("The Nip number must contain exactly 10 digits.");
 
+            RuleFor(x => x.Client.Email)
+                .EmailAddress().WithMessage("Nieprawidłowy format adresu email.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Client.Email));
             RuleFor(x => x.Client.Address)
                 .NotNull().WithMessage("Address must be specified.");
 
@@ -39,7 +42,7 @@ public class CreateClientRequestValidator : AbstractValidator<CreateClientReques
                     .WithMessage("Postal code must be in the format XX-XXX.");
             
                 RuleFor(x => x.Client.Address.Country)
-                    .NotEmpty().WithMessage("Postal code is required in address.");
+                    .NotEmpty().WithMessage("Country code is required in address.");
             });
         });
     }

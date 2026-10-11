@@ -1,8 +1,9 @@
 ﻿@page "/invoices/create"
+@using System.Globalization
+@using System.Text.RegularExpressions
+@using CreateInvoiceSystem.Frontend.Components
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
-@using CreateInvoiceSystem.Frontend.Components
-@using System.Globalization
 @inject InvoiceService InvoiceService
 @inject ClientService ClientService
 @inject ProductService ProductService
@@ -89,8 +90,12 @@
                         </div>
                         <div class="col-md-3">
                             <label class="small fw-bold">Email klienta</label>
-                            <input class="form-control" value="@_clientEmail" placeholder="email@klienta.pl"
-                                   @oninput="e => _clientEmail = e.Value?.ToString()" />
+                            <input class="@ClientEmailCssClass" value="@_clientEmail" placeholder="email@klienta.pl"
+                                   @oninput="e => { _clientEmail = e.Value?.ToString(); Touch(nameof(_clientEmail)); }" />
+                            @if (ShowClientEmailError)
+                            {
+                                <span class="text-danger small">Nieprawidłowy format adresu email</span>
+                            }
                         </div>
                         <div class="col-md-5">
                             <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
@@ -357,6 +362,7 @@
         if (string.IsNullOrWhiteSpace(_postalCode)) return false;
         if (string.IsNullOrWhiteSpace(_city)) return false;
         if (!_positions.Any()) return false;
+        if (!IsClientEmailValid) return false;
         foreach (var pos in _positions)
         {
             if (string.IsNullOrWhiteSpace(pos.ProductName)) return false;
@@ -448,4 +454,17 @@
             _isSaving = false;
         }
     }
+
+    private static bool IsValidEmailFormat(string value) =>
+        Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+
+    private bool IsClientEmailValid =>
+        string.IsNullOrWhiteSpace(_clientEmail) || IsValidEmailFormat(_clientEmail);
+
+    private bool ShowClientEmailError =>
+        IsActive(nameof(_clientEmail)) && !IsClientEmailValid;
+
+    private string ClientEmailCssClass =>
+        !IsActive(nameof(_clientEmail)) ? "form-control" :
+        IsClientEmailValid ? "form-control is-valid" : "form-control is-invalid";
 }

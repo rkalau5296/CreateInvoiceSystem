@@ -21,10 +21,49 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
             RuleFor(x => x.Invoice.Title)
                 .NotEmpty().WithMessage("Name is required.")
                 .MaximumLength(100).WithMessage("Title cannot exceed 100 characters.");
-            
+
             RuleFor(x => x.Invoice)
                 .Must(invoice => invoice.ClientId.HasValue || (invoice.Client != null && !IsClientDtoEmpty(invoice.Client)))
                 .WithMessage("Invoice must contain a valid ClientId or Client details.");
+                        
+            When(x => !x.Invoice.ClientId.HasValue && x.Invoice.Client != null, () =>
+            {
+                RuleFor(x => x.Invoice.Client.Name)
+                    .NotEmpty().WithMessage("Name is required.")
+                    .MaximumLength(100);
+
+                RuleFor(x => x.Invoice.Client.Nip)
+                    .NotEmpty().WithMessage("Nip number is required.")
+                    .Matches(@"^\d{10}$")
+                    .WithMessage("The Nip number must contain exactly 10 digits.");
+
+                RuleFor(x => x.Invoice.Client.Email)
+                    .EmailAddress().WithMessage("Nieprawidłowy format adresu email.")
+                    .When(x => !string.IsNullOrWhiteSpace(x.Invoice.Client.Email));
+
+                RuleFor(x => x.Invoice.Client.Address)
+                    .NotNull().WithMessage("Address must be specified.");
+
+                When(x => x.Invoice.Client.Address != null, () =>
+                {
+                    RuleFor(x => x.Invoice.Client.Address.Street)
+                        .NotEmpty().WithMessage("Street is required in address.");
+
+                    RuleFor(x => x.Invoice.Client.Address.Number)
+                        .NotEmpty().WithMessage("Street number is required in address.");
+
+                    RuleFor(x => x.Invoice.Client.Address.City)
+                        .NotEmpty().WithMessage("City is required in address.");
+
+                    RuleFor(x => x.Invoice.Client.Address.PostalCode)
+                        .NotEmpty().WithMessage("Postal code is required in address.")
+                        .Matches(@"^\d{2}-\d{3}$")
+                        .WithMessage("Postal code must be in the format XX-XXX.");
+
+                    RuleFor(x => x.Invoice.Client.Address.Country)
+                        .NotEmpty().WithMessage("Country is required in address.");
+                });
+            });
 
             RuleFor(x => x.Invoice.CreatedDate)
                 .NotEmpty().WithMessage("CreatedDate is required.")
