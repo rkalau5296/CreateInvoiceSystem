@@ -18,7 +18,7 @@ public static class InvoiceMappers
         invoice.PaymentDate,
         invoice.CreatedDate,
         invoice.Comments,
-        invoice.ClientId,
+        null,
         invoice.UserId,
         invoice.MethodOfPayment,
         invoice.InvoicePositions.Select(ip => ip.ToDto()).ToList(),
@@ -38,72 +38,14 @@ public static class InvoiceMappers
         : new(
             invoicePosition.InvoicePositionId,
             invoicePosition.InvoiceId,
-            invoicePosition.ProductId,
-            invoicePosition.Product != null
-                ? new ProductDto(
-                    invoicePosition.Product.ProductId,
-                    invoicePosition.Product.Name,
-                    invoicePosition.Product.Description,
-                    invoicePosition.Product.Value,
-                    invoicePosition.Product.UserId                    
-                  )
-                : null!,
+            null, 
+            null!,
             invoicePosition.ProductName,
             invoicePosition.ProductDescription,
             invoicePosition.ProductValue,
             invoicePosition.Quantity,
             invoicePosition.VatRate
         );
-
-    public static Invoice ToEntity(this InvoiceDto dto) =>
-        dto == null
-        ? throw new ArgumentNullException(nameof(dto), "InvoiceDto cannot be null when mapping to Invoice.")
-        :
-        new()
-        {
-            InvoiceId = dto.InvoiceId,
-            Title = dto.Title,
-            TotalNet = dto.TotalNet,
-            TotalVat = dto.TotalVat,
-            TotalGross = dto.TotalGross,
-            PaymentDate = dto.PaymentDate,
-            CreatedDate = dto.CreatedDate,
-            Comments = dto.Comments,
-            ClientId = dto.ClientId,
-            UserId = dto.UserId,
-            MethodOfPayment = dto.MethodOfPayment,
-            InvoicePositions = dto.InvoicePositions.Select(ipDto => ipDto.ToEntity()).ToList()
-        };
-
-    public static InvoicePosition ToEntity(this InvoicePositionDto dto) =>
-        dto == null
-        ? throw new ArgumentNullException(nameof(dto), "InvoicePositionDto cannot be null when mapping to InvoicePosition.")
-        :
-        new()
-        {
-            InvoicePositionId = dto.InvoicePositionId,
-            InvoiceId = dto.InvoiceId,
-            ProductId = dto.ProductId,
-            Product = dto.Product.ToEntity(),
-            Quantity = dto.Quantity,
-            VatRate = dto.VatRate,
-            ProductName = dto.ProductName,
-            ProductDescription = dto.ProductDescription,
-            ProductValue = dto.ProductValue
-        };
-
-    public static Product ToEntity(this ProductDto dto) =>
-        dto == null
-        ? throw new ArgumentNullException(nameof(dto), "Product cannot be null when mapping to Product.")
-        :
-        new()
-        {
-            ProductId = dto.ProductId,
-            Name = dto.Name,
-            Description = dto.Description,
-            Value = dto.Value,
-            UserId = dto.UserId
-        };
 
     public static Invoice ToInvoiceWithNewClient(this CreateInvoiceDto dto, Client client, User user)
     {
@@ -123,9 +65,7 @@ public static class InvoiceMappers
             PaymentDate = dto.PaymentDate,
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
-            UserId = dto.UserId,
-            ClientId = client.ClientId,
-            Client = client,
+            UserId = dto.UserId,            
             MethodOfPayment = dto.MethodOfPayment,
             SellerName = user.CompanyName,
             SellerNip = user.Nip,
@@ -162,9 +102,7 @@ public static class InvoiceMappers
             PaymentDate = dto.PaymentDate,
             CreatedDate = dto.CreatedDate,
             Comments = dto.Comments,
-            UserId = dto.UserId,
-            ClientId = client.ClientId,
-            Client = client,
+            UserId = dto.UserId,            
             MethodOfPayment = dto.MethodOfPayment,
             SellerName = user.CompanyName,
             SellerNip = user.Nip,
@@ -201,41 +139,21 @@ public static class InvoiceMappers
             invoice.PaymentDate,
             invoice.CreatedDate,
             invoice.Comments,
-            invoice.ClientId,
+            null,
             invoice.UserId,
-            invoice.Client != null ? new UpdateClientDto(
-                invoice.Client.ClientId,
-                invoice.Client.Name,
-                invoice.Client.Nip,
-                invoice.Client.Address != null ? new AddressDto(
-                    invoice.Client.Address.AddressId,
-                    invoice.Client.Address.Street,
-                    invoice.Client.Address.Number,
-                    invoice.Client.Address.City,
-                    invoice.Client.Address.PostalCode,
-                    invoice.Client.Address.Country
-                ) : null!,
-                invoice.Client.UserId,
-                invoice.Client.Email
-            ) : null!,
+            null!,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
                 .Select(ip => new UpdateInvoicePositionDto(
                     ip.InvoicePositionId,
                     ip.InvoiceId,
-                    ip.ProductId,
+                    null,
                     ip.ProductName,
                     ip.ProductDescription,
                     ip.ProductValue,
                     ip.Quantity,
                     ip.VatRate,
-                    ip.Product != null ? new ProductDto(
-                        ip.Product.ProductId,
-                        ip.Product.Name,
-                        ip.Product.Description,
-                        ip.Product.Value,
-                        ip.Product.UserId
-                    ) : null
+                    null
                 )).ToList() ?? [],
             invoice.SellerName,
             invoice.SellerNip,

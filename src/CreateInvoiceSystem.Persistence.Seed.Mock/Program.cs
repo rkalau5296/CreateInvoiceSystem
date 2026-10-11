@@ -212,8 +212,7 @@ foreach (var user in users)
         var positions = dbContext.InvoicePositions
             .Where(p => p.InvoiceId == inv.InvoiceId)
             .Select(p => new
-            {
-                p.ProductId,
+            {                
                 p.ProductName,
                 p.ProductDescription,
                 p.ProductValue,
@@ -246,8 +245,7 @@ static List<InvoicePositionEntity> BuildPositionsFromProducts(int invoiceId, IRe
     {
         positions.Add(new InvoicePositionEntity
         {
-            InvoiceId = invoiceId,
-            ProductId = product.ProductId,
+            InvoiceId = invoiceId,            
             ProductName = product.Name,
             ProductDescription = product.Description,
             ProductValue = product.Value,

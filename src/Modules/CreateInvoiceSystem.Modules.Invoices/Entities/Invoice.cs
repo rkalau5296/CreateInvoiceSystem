@@ -5,10 +5,8 @@ public class Invoice
     public string Title { get; set; } = string.Empty;
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
-    public string Comments { get; set; } = string.Empty;
-    public int? ClientId { get; set; }
-    public int UserId { get; set; }
-    public Client Client { get; set; } = null!;
+    public string Comments { get; set; } = string.Empty;    
+    public int UserId { get; set; }    
     public string MethodOfPayment { get; set; } = string.Empty;
     public string SellerName { get; set; } = string.Empty;
     public string SellerNip { get; set; } = string.Empty;

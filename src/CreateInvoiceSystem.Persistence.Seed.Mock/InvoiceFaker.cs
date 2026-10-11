@@ -54,8 +54,7 @@ public static class InvoiceFaker
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.NewClient_ProductsFromDb:
                 {
-                    var client = ClientFaker.Generate(user);
-                    invoice.ClientId = null;
+                    var client = ClientFaker.Generate(user);                    
                     invoice.ClientName = client.Name;
                     invoice.ClientNip = client.Nip;
                     var address = AddressFaker.Generate();
@@ -66,8 +65,7 @@ public static class InvoiceFaker
             case InvoiceScenario.ExistingClient_NewProducts:
             case InvoiceScenario.ExistingClient_ProductsFromDb:
                 {
-                    if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));
-                    invoice.ClientId = dbClient.ClientId;
+                    if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));                    
                     invoice.ClientName = dbClient.Name;
                     invoice.ClientNip = dbClient.Nip;
                     invoice.ClientAddress = FormatAddress(dbClientAddress)!;

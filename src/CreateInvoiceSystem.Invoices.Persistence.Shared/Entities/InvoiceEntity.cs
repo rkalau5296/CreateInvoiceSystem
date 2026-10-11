@@ -6,8 +6,7 @@ public class InvoiceEntity
     public string Title { get; set; } = string.Empty;
     public DateTime PaymentDate { get; set; }    
     public DateTime CreatedDate { get; set; }    
-    public string? Comments { get; set; }    
-    public int? ClientId { get; set; }    
+    public string? Comments { get; set; }
     public int UserId { get; set; }    
     public string MethodOfPayment { get; set; } = string.Empty;
     public string? SellerName { get; set; }

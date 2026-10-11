@@ -40,13 +40,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClientEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserEntityConfiguration).Assembly);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);
-        
-        modelBuilder.Entity<InvoiceEntity>()
-            .HasOne<ClientEntity>()
-            .WithMany()
-            .HasForeignKey(i => i.ClientId)
-            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);             
 
         modelBuilder.Entity<InvoiceEntity>()
             .HasOne<UserEntity>()
@@ -62,12 +56,6 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
             .WithMany(invoice => invoice.InvoicePositions)
             .HasForeignKey(position => position.InvoiceId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<InvoicePositionEntity>()
-            .HasOne<ProductEntity>()
-            .WithMany()
-            .HasForeignKey(p => p.ProductId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<InvoicePositionEntity>()
             .Property(p => p.ProductValue)

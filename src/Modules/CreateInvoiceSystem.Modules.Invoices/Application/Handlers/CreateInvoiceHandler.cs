@@ -45,7 +45,7 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
             await _writer.WriteAsync(new SellerEmailTask(userEmail, entity.Title), cancellationToken);
         }
 
-        if (!string.IsNullOrWhiteSpace(entity.Client?.Email))
+        if (!string.IsNullOrWhiteSpace(entity.ClientEmail))
         {
             var dto = entity.ToDto();
             await _writer.WriteAsync(new ClientEmailTask(dto), cancellationToken);
@@ -106,9 +106,7 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
 
             var invoicePosition = new InvoicePosition
             {
-                Quantity = position.Quantity,
-                Product = product,
-                ProductId = product.ProductId > 0 ? product.ProductId : null,                
+                Quantity = position.Quantity,                           
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 ProductValue = product.Value,
