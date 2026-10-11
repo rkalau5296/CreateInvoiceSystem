@@ -1,237 +1,251 @@
 ﻿@page "/invoices/edit/{Id:int}"
-@using Microsoft.AspNetCore.Components.Forms
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @using CreateInvoiceSystem.Frontend.Components
+@using System.Globalization
 @inject InvoiceService InvoiceService
 @inject ClientService ClientService
 @inject ProductService ProductService
 @inject NavigationManager Navigation
-@implements IDisposable
 
-<div class="container my-5">
-    @if (_isLoading)
-    {
-        <div class="text-center p-5">
-            <div class="spinner-border text-primary"></div>
-            <p>Ładowanie danych faktury...</p>
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Edycja faktury</h3>
+            <button class="btn btn-sm btn-outline-light" type="button" @onclick='() => Navigation.NavigateTo("/invoices")'>
+                <i class="bi bi-arrow-left"></i> Powrót do listy
+            </button>
         </div>
-    }
-    else
-    {
-        <div class="d-flex justify-content-between mb-4">
-            <h3>Tryb Edycji: @_invoice.Title</h3>
-            <div>
-                <button class="btn btn-secondary me-2 shadow-sm" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
-            </div>
-        </div>
+        <div class="card-body">
 
-        <ValidatedEditForm @ref="_validatedForm"
-                           TModel="InvoiceDto"
-                           Model="_invoice"
-                           OnValidSubmit="OnSubmitUpdate"
-                           OnInvalidSubmit="OnInvalidSubmitHandler"
-                           OnEditContextInitialized="OnEditContextInitialized">
-            <div class="invoice-box p-5 border shadow bg-white">
-                <div class="row mb-5">
-                    <div class="col-6">
-                        <label class="small text-muted fw-bold">Numer faktury: <span class="text-danger">*</span></label>
-                        <ValidatedInputText @bind-Value="_invoice.Title" Placeholder="np. FV 01/2026" />
+            @if (_isLoading)
+            {
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary"></div>
+                    <p>Ładowanie danych faktury...</p>
+                </div>
+            }
+            else
+            {
+                @if (_errorMessage != null)
+                {
+                    <div class="alert alert-danger">@_errorMessage</div>
+                }
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tytuł faktury <span class="text-danger">*</span></label>
+                        <SimpleTextInput Value="@_title"
+                                         ValueChanged="v => { _title = v; Touch(nameof(_title)); }"
+                                         IsActive="@IsActive(nameof(_title))"
+                                         Placeholder="np. FV 01/2026"
+                                         ErrorMessage="Tytuł faktury jest wymagany" />
                     </div>
-                    <div class="col-6 text-end">
-                        <div class="mb-2">
-                            <label class="small text-muted fw-bold">Data wystawienia: <span class="text-danger">*</span></label>
-                            <InputDate @bind-Value="_invoice.CreatedDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.CreatedDate)}")" />
-                            <ValidationMessage For="@(() => _invoice.CreatedDate)" class="text-danger small" />
-                        </div>
-                        <div class="mb-2">
-                            <label class="small text-muted fw-bold">Termin płatności: <span class="text-danger">*</span></label>
-                            <InputDate @bind-Value="_invoice.PaymentDate" class="@($"form-control form-control-sm d-inline-block w-auto ms-2 {GetFieldClass(() => _invoice.PaymentDate)}")" />
-                            <ValidationMessage For="@(() => _invoice.PaymentDate)" class="text-danger small" />
-                        </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Data wystawienia <span class="text-danger">*</span></label>
+                        <SimpleTextInput Value="@_createdDate"
+                                         ValueChanged="v => { _createdDate = v; Touch(nameof(_createdDate)); }"
+                                         IsActive="@IsActive(nameof(_createdDate))"
+                                         Type="date"
+                                         ErrorMessage="Data wystawienia jest wymagana" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Termin płatności <span class="text-danger">*</span></label>
+                        <SimpleTextInput Value="@_paymentDate"
+                                         ValueChanged="v => { _paymentDate = v; Touch(nameof(_paymentDate)); }"
+                                         IsActive="@IsActive(nameof(_paymentDate))"
+                                         Type="date"
+                                         ErrorMessage="Termin płatności jest wymagany" />
                     </div>
                 </div>
 
-                <div class="row mb-3">
+                <div class="row mb-4">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Metoda płatności <span class="text-danger">*</span></label>
-                        <InputSelect @bind-Value="_invoice.MethodOfPayment" class="@($"form-select {GetFieldClass(() => _invoice.MethodOfPayment)}")">
+                        <SimpleSelect Value="@_methodOfPayment"
+                                      ValueChanged="v => { _methodOfPayment = v; Touch(nameof(_methodOfPayment)); }"
+                                      IsActive="@IsActive(nameof(_methodOfPayment))"
+                                      ErrorMessage="Metoda płatności jest wymagana">
                             <option value="">-- Wybierz --</option>
                             <option value="Przelew">Przelew</option>
                             <option value="Gotówka">Gotówka</option>
                             <option value="BLIK">BLIK</option>
                             <option value="Karta">Karta</option>
-                        </InputSelect>
-                        <ValidationMessage For="@(() => _invoice.MethodOfPayment)" class="text-danger small" />
+                        </SimpleSelect>
                     </div>
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-12">
                         <label class="form-label fw-bold">Uwagi / Komentarz</label>
-                        <InputTextArea @bind-Value="_invoice.Comments" class="@($"form-control {GetFieldClass(() => _invoice.Comments)}")" rows="3" />
+                        <textarea class="form-control" rows="3"
+                                  value="@_comments"
+                                  @oninput="e => _comments = e.Value?.ToString()"></textarea>
                     </div>
                 </div>
 
-                <div class="row mb-5">
-                    <div class="col-6">
-                        <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-muted">Sprzedawca</h6>
+                <div class="card mb-4 bg-light border-0">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6 class="text-uppercase fw-bold text-muted">Sprzedawca</h6>
+                                <label class="small fw-bold">Nazwa sprzedawcy <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_sellerName"
+                                                 ValueChanged="v => { _sellerName = v; Touch(nameof(_sellerName)); }"
+                                                 IsActive="@IsActive(nameof(_sellerName))"
+                                                 Placeholder="Nazwa sprzedawcy"
+                                                 ErrorMessage="Nazwa sprzedawcy jest wymagana" />
 
-                        <label class="small text-muted">Nazwa sprzedawcy: <span class="text-danger">*</span></label>
-                        <ValidatedInputText @bind-Value="_invoice.SellerName" Placeholder="Nazwa sprzedawcy" />
-
-                        <label class="small text-muted">Adres sprzedawcy: <span class="text-danger">*</span></label>
-                        <textarea value="@_invoice.SellerAddress"
-                                  @oninput="OnSellerAddressInput"
-                                  class="@($"form-control mb-1 {GetFieldClass(() => _invoice.SellerAddress)}")"
-                                  rows="2"
-                                  placeholder="Adres (ulica, nr, miasto)"></textarea>
-                        <ValidationMessage For="@(() => _invoice.SellerAddress)" class="text-danger small" />
-
-                        <label class="small text-muted">NIP sprzedawcy: <span class="text-danger">*</span></label>
-                        <ValidatedInputText @bind-Value="_invoice.SellerNip" Placeholder="NIP sprzedawcy" />
-                    </div>
-
-                    <div class="col-6">
-                        <h6 class="text-uppercase fw-bold border-bottom pb-2 mb-3 text-primary">Nabywca</h6>
-
-                        <label class="small text-muted">Nazwa nabywcy: <span class="text-danger">*</span></label>
-                        <input list="clientOptions"
-                               value="@_invoice.ClientName"
-                               class="@($"form-control mb-1 fw-bold {GetFieldClass(() => _invoice.ClientName)}")"
-                               @oninput="OnClientNameInput"
-                               placeholder="Wpisz nazwę klienta..." />
-                        <ValidationMessage For="@(() => _invoice.ClientName)" class="text-danger small" />
-
-                        <label class="small text-muted">Adres nabywcy: <span class="text-danger">*</span></label>
-                        <textarea value="@_invoice.ClientAddress"
-                                  @oninput="OnClientAddressInput"
-                                  class="@($"form-control mb-1 {GetFieldClass(() => _invoice.ClientAddress)}")"
-                                  rows="2"
-                                  placeholder="Adres (ulica, nr, miasto)"></textarea>
-                        <ValidationMessage For="@(() => _invoice.ClientAddress)" class="text-danger small" />
-
-                        <label class="small text-muted">NIP nabywcy: <span class="text-danger">*</span></label>
-                        <ValidatedInputText @bind-Value="_invoice.ClientNip" Placeholder="NIP" />
-
-                        <label class="small text-muted">Email nabywcy:</label>
-                        <InputText @bind-Value="_invoice.ClientEmail" class="form-control" placeholder="Email" />
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    @{
-                        var posField = new FieldIdentifier(_invoice, nameof(_invoice.InvoicePositions));
-                        var posErrors = _editContext?.GetValidationMessages(posField) ?? Enumerable.Empty<string>();
-                    }
-                    @if (posErrors.Any())
-                    {
-                        <div class="alert alert-danger small">
-                            @foreach (var msg in posErrors)
-                            {
-                                <div>@msg</div>
-                            }
-                        </div>
-                    }
-
-                    <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle">
-                            <thead class="table-dark text-center small">
-                                <tr>
-                                    <th style="width: 50px">Lp.</th>
-                                    <th>Produkt / Opis</th>
-                                    <th style="width: 80px">Ilość <span class="text-danger">*</span></th>
-                                    <th style="width: 140px">Cena netto <span class="text-danger">*</span></th>
-                                    <th style="width: 100px">VAT</th>
-                                    <th style="width: 130px">Kwota VAT</th>
-                                    <th style="width: 150px">Wartość BRUTTO</th>
-                                    <th style="width: 100px">Akcje</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (int i = 0; i < _invoice.InvoicePositions.Count; i++)
+                                <label class="small fw-bold mt-2">Adres sprzedawcy <span class="text-danger">*</span></label>
+                                <textarea class="@(!IsActive(nameof(_sellerAddress)) ? "form-control mb-1" : string.IsNullOrWhiteSpace(_sellerAddress) ? "form-control mb-1 is-invalid" : "form-control mb-1 is-valid")"
+                                          rows="2"
+                                          value="@_sellerAddress"
+                                          @oninput="e => OnSellerAddressInput(e.Value?.ToString())"
+                                          placeholder="Adres (ulica, nr, miasto)"></textarea>
+                                @if (IsActive(nameof(_sellerAddress)) && string.IsNullOrWhiteSpace(_sellerAddress))
                                 {
-                                    var idx = i;
-                                    var pos = _invoice.InvoicePositions[idx];
-                                    <tr @key="pos">
-                                        <td class="text-center">@(idx + 1)</td>
-                                        <td>
-                                            <input list="productOptions"
-                                                   value="@pos.ProductName"
-                                                   class="@($"form-control mb-1 fw-bold {GetFieldClass(() => pos.ProductName)}")"
-                                                   @oninput="(ChangeEventArgs e) => OnProductNameInput(e, pos)"
-                                                   placeholder="Nazwa produktu..." />
-                                            <ValidationMessage For="@(() => pos.ProductName)" class="text-danger small" />
-
-                                            <InputTextArea @bind-Value="pos.ProductDescription"
-                                                           class="@($"form-control form-control-sm mt-2 {GetFieldClass(() => pos.ProductDescription)}")"
-                                                           placeholder="Opis pozycji..." />
-                                        </td>
-                                        <td>
-                                            <ValidatedInputNumber TValue="int"
-                                                                  @bind-Value="pos.Quantity"
-                                                                  AdditionalAttributes="@_minOneAttributes"
-                                                                  CssClass="@($"form-control text-center {GetFieldClass(() => pos.Quantity)}")" />
-                                        </td>
-                                        <td>
-                                            <ValidatedInputNumber TValue="decimal?"
-                                                                  @bind-Value="pos.ProductValue"
-                                                                  CssClass="@($"form-control text-end {GetFieldClass(() => pos.ProductValue)}")"
-                                                                  Step="0.01"
-                                                                  AdditionalAttributes="@_priceAttributes" />
-                                        </td>
-                                        <td>
-                                            <select @bind="pos.VatRate" class="form-select">
-                                                <option value="23%">23%</option>
-                                                <option value="8%">8%</option>
-                                                <option value="5%">5%</option>
-                                                <option value="0%">0%</option>
-                                                <option value="zw">zw</option>
-                                            </select>
-                                        </td>
-                                        <td class="text-end">@CalculatePositionVat(pos).ToString("N2")</td>
-                                        <td class="text-end fw-bold">@CalculatePositionGross(pos).ToString("N2")</td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => RemovePositionWithClear(pos)">
-                                                <i class="bi bi-trash me-1"></i> Usuń
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    <span class="text-danger small">Adres sprzedawcy jest wymagany</span>
                                 }
-                            </tbody>
-                        </table>
+
+                                <label class="small fw-bold mt-2">NIP sprzedawcy <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_sellerNip"
+                                                 ValueChanged="v => { _sellerNip = v; Touch(nameof(_sellerNip)); }"
+                                                 IsActive="@IsActive(nameof(_sellerNip))"
+                                                 Placeholder="NIP sprzedawcy"
+                                                 ErrorMessage="NIP sprzedawcy jest wymagany" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6 class="text-uppercase fw-bold text-primary">Nabywca</h6>
+                                <label class="small fw-bold">Nazwa nabywcy <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_clientName"
+                                                 ValueChanged="v => { Touch(nameof(_clientName)); OnClientInput(v); }"
+                                                 IsActive="@IsActive(nameof(_clientName))"
+                                                 DataList="clientOptions"
+                                                 Placeholder="Nazwa klienta..."
+                                                 ErrorMessage="Nazwa klienta jest wymagana" />
+
+                                <label class="small fw-bold mt-2">Adres nabywcy <span class="text-danger">*</span></label>
+                                <textarea class="@(!IsActive(nameof(_clientAddress)) ? "form-control mb-1" : string.IsNullOrWhiteSpace(_clientAddress) ? "form-control mb-1 is-invalid" : "form-control mb-1 is-valid")"
+                                          rows="2"
+                                          value="@_clientAddress"
+                                          @oninput="e => OnClientAddressInput(e.Value?.ToString())"
+                                          placeholder="Adres (ulica, nr, miasto)"></textarea>
+                                @if (IsActive(nameof(_clientAddress)) && string.IsNullOrWhiteSpace(_clientAddress))
+                                {
+                                    <span class="text-danger small">Adres nabywcy jest wymagany</span>
+                                }
+
+                                <label class="small fw-bold mt-2">NIP nabywcy <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_clientNip"
+                                                 ValueChanged="v => { _clientNip = v; Touch(nameof(_clientNip)); }"
+                                                 IsActive="@IsActive(nameof(_clientNip))"
+                                                 Placeholder="NIP"
+                                                 ErrorMessage="NIP klienta jest wymagany" />
+
+                                <label class="small fw-bold mt-2">Email nabywcy</label>
+                                <SimpleEmailInput Value="@_clientEmail"
+                                                  ValueChanged="v => { _clientEmail = v; Touch(nameof(_clientEmail)); }"
+                                                  IsActive="@IsActive(nameof(_clientEmail))"
+                                                  Placeholder="email@klienta.pl" />
+                            </div>
+                        </div>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-2" @onclick="AddPosition">
-                        <i class="bi bi-plus-lg"></i> Dodaj kolejną pozycję
+                </div>
+
+                <h5 class="mb-3 text-secondary">Pozycje na fakturze</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width:48px">Lp.</th>
+                                <th>Produkt / Usługa <span class="text-danger">*</span></th>
+                                <th style="width:110px">Ilość <span class="text-danger">*</span></th>
+                                <th style="width:160px">Cena netto <span class="text-danger">*</span></th>
+                                <th style="width:100px">VAT</th>
+                                <th style="width:130px">Kwota VAT</th>
+                                <th style="width:150px">Wartość BRUTTO</th>
+                                <th style="width:80px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < _positions.Count; i++)
+                            {
+                                var pos = _positions[i];
+                                var idx = i;
+                                <tr @key="pos">
+                                    <td>@(idx + 1)</td>
+                                    <td>
+                                        <SimpleTextInput Value="@pos.ProductName"
+                                                         ValueChanged="v => { pos.ProductName = v; TouchPos(pos, nameof(pos.ProductName)); OnProductInput(pos, v); }"
+                                                         IsActive="@IsActivePos(pos, nameof(pos.ProductName))"
+                                                         DataList="productOptions"
+                                                         Placeholder="Nazwa produktu..."
+                                                         ErrorMessage="Nazwa produktu jest wymagana" />
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm" placeholder="Opis..."
+                                                      @oninput="e => pos.ProductDescription = e.Value?.ToString() ?? string.Empty">@pos.ProductDescription</textarea>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <SimpleIntInput Value="@pos.Quantity"
+                                                        ValueChanged="v => { pos.Quantity = v; TouchPos(pos, nameof(pos.Quantity)); }"
+                                                        IsActive="@IsActivePos(pos, nameof(pos.Quantity))"
+                                                        Min="1"
+                                                        ErrorMessage="Ilość jest wymagana" />
+                                    </td>
+                                    <td>
+                                        <SimpleDecimalInput Value="@pos.ProductValue"
+                                                            ValueChanged="v => { pos.ProductValue = v; TouchPos(pos, nameof(pos.ProductValue)); }"
+                                                            StringValue="@pos.ProductValueString"
+                                                            StringValueChanged="s => pos.ProductValueString = s"
+                                                            IsActive="@IsActivePos(pos, nameof(pos.ProductValue))"
+                                                            ErrorMessage="Cena produktu jest wymagana" />
+                                    </td>
+                                    <td>
+                                        <select class="form-select" @onchange="e => OnVatChanged(pos, e)">
+                                            <option value="23%" selected="@(pos.VatRate == "23%")">23%</option>
+                                            <option value="8%" selected="@(pos.VatRate == "8%")">8%</option>
+                                            <option value="5%" selected="@(pos.VatRate == "5%")">5%</option>
+                                            <option value="zw" selected="@(pos.VatRate == "zw")">zw</option>
+                                            <option value="0%" selected="@(pos.VatRate == "0%")">0%</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-end">@CalculatePositionVat(pos).ToString("N2")</td>
+                                    <td class="fw-bold text-end">@CalculatePositionGross(pos).ToString("N2")</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-danger px-3 shadow-sm" @onclick="() => RemovePosition(pos)">
+                                            <i class="bi bi-trash me-1"></i> Usuń
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-4" @onclick="AddPosition">
+                    <i class="bi bi-plus-lg"></i> Dodaj pozycję
+                </button>
+
+                <div class="d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-light px-4" @onclick='() => Navigation.NavigateTo("/invoices")'>Anuluj</button>
+                    <button type="button" class="btn btn-success btn-lg px-5 shadow" @onclick="HandleSave" disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Zapisywanie...</span>
+                        }
+                        else
+                        {
+                            <span>Zapisz zmiany</span>
+                        }
                     </button>
                 </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-12 text-end mb-4">
-                        <div class="p-3 bg-light rounded d-inline-block border text-end" style="min-width: 300px;">
-                            <div class="text-muted">Suma netto: @CalculateTotalNet().ToString("N2") PLN</div>
-                            <div class="text-muted mb-1">Suma VAT: @CalculateTotalVat().ToString("N2") PLN</div>
-                            <h3 class="mb-0 text-primary fw-bold">RAZEM (Brutto): @CalculateTotalGross().ToString("N2") PLN</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="text-end mt-4">
-                    <button type="submit" class="btn btn-primary shadow">Zapisz zmiany</button>
-                </div>
-            </div>
-        </ValidatedEditForm>
-    }
+            }
+        </div>
+    </div>
 </div>
-
-<datalist id="clientOptions">
-    @foreach (var c in _availableClients)
-    {
-        <option value="@c.Name">NIP: @c.Nip</option>
-    }
-</datalist>
 
 <datalist id="productOptions">
     @foreach (var p in _availableProducts)
@@ -240,18 +254,55 @@
     }
 </datalist>
 
+<datalist id="clientOptions">
+    @foreach (var c in _availableClients)
+    {
+        <option value="@c.Name">NIP: @c.Nip</option>
+    }
+</datalist>
+
 @code {
     [Parameter] public int Id { get; set; }
 
-    private ValidatedEditForm<InvoiceDto>? _validatedForm;
-    private InvoiceDto _invoice = new() { InvoicePositions = new List<InvoicePositionDto>() };
+    private int _invoiceId;
+    private string? _title;
+    private string? _createdDate;
+    private string? _paymentDate;
+    private string? _methodOfPayment;
+    private string? _comments;
+
+    private string? _sellerName;
+    private string? _sellerNip;
+    private string? _sellerAddress;
+    private string? _bankAccountNumber;
+
+    private int? _selectedClientId;
+    private string? _clientName;
+    private string? _clientNip;
+    private string? _clientEmail;
+    private string? _clientAddress;
+
+    private List<PositionRow> _positions = new();
     private List<ClientDto> _availableClients = new();
     private List<ProductDto> _availableProducts = new();
-    private bool _isLoading = true;
-    private EditContext? _editContext;
 
-    private readonly IDictionary<string, object> _minOneAttributes = new Dictionary<string, object> { { "min", "1" } };
-    private readonly IDictionary<string, object> _priceAttributes = new Dictionary<string, object> { { "step", "0.01" }, { "inputmode", "decimal" } };
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private string? _errorMessage;
+    private HashSet<string> _touched = new();
+    private bool _submitAttempted;
+
+    private class PositionRow
+    {
+        public string? ProductName { get; set; }
+        public string ProductDescription { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+        public decimal? ProductValue { get; set; }
+        public string ProductValueString { get; set; } = string.Empty;
+        public string VatRate { get; set; } = "23%";
+        public int? ProductId { get; set; }
+        public HashSet<string> Touched { get; } = new();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -260,8 +311,54 @@
         {
             var inv = await InvoiceService.GetInvoiceByIdAsync(Id);
             if (inv == null) { Navigation.NavigateTo("/invoices"); return; }
-            _invoice = inv;
-            _invoice.InvoicePositions ??= new List<InvoicePositionDto>();
+
+            _invoiceId = inv.InvoiceId;
+            _title = inv.Title;
+            _createdDate = inv.CreatedDate.ToString("yyyy-MM-dd");
+            _paymentDate = inv.PaymentDate.ToString("yyyy-MM-dd");
+            _methodOfPayment = inv.MethodOfPayment;
+            _comments = inv.Comments;
+
+            _sellerName = inv.SellerName;
+            _sellerNip = inv.SellerNip;
+            _sellerAddress = inv.SellerAddress;
+            _bankAccountNumber = inv.BankAccountNumber;
+
+            _selectedClientId = inv.ClientId;
+            _clientName = inv.ClientName;
+            _clientNip = inv.ClientNip;
+            _clientEmail = inv.ClientEmail;
+            _clientAddress = inv.ClientAddress;
+
+            _positions = inv.InvoicePositions.Select(p => new PositionRow
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                ProductDescription = p.ProductDescription,
+                Quantity = p.Quantity,
+                ProductValue = p.ProductValue,
+                ProductValueString = p.ProductValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+                VatRate = p.VatRate
+            }).ToList();
+
+            Touch(nameof(_title));
+            Touch(nameof(_createdDate));
+            Touch(nameof(_paymentDate));
+            Touch(nameof(_methodOfPayment));
+            Touch(nameof(_sellerName));
+            Touch(nameof(_sellerNip));
+            Touch(nameof(_sellerAddress));
+            Touch(nameof(_clientName));
+            Touch(nameof(_clientNip));
+            Touch(nameof(_clientAddress));
+            Touch(nameof(_clientEmail));
+
+            foreach (var pos in _positions)
+            {
+                TouchPos(pos, nameof(pos.ProductName));
+                TouchPos(pos, nameof(pos.Quantity));
+                TouchPos(pos, nameof(pos.ProductValue));
+            }
 
             var cResp = await ClientService.GetClientsAsync(1, 1000);
             _availableClients = cResp?.Data ?? new();
@@ -272,49 +369,52 @@
         finally { _isLoading = false; }
     }
 
-    private Task OnEditContextInitialized(EditContext ctx)
+    private void Touch(string field) => _touched.Add(field);
+    private void TouchPos(PositionRow pos, string field) => pos.Touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
+    private bool IsActivePos(PositionRow pos, string field) => _submitAttempted || pos.Touched.Contains(field);
+
+    private void AddPosition() => _positions.Add(new PositionRow { Quantity = 1, VatRate = "23%" });
+    private void RemovePosition(PositionRow pos) => _positions.Remove(pos);
+
+    private void OnVatChanged(PositionRow pos, ChangeEventArgs e)
     {
-        _editContext = ctx;
-        return Task.CompletedTask;
+        pos.VatRate = e.Value?.ToString() ?? "23%";
     }
 
-    private void OnClientNameInput(ChangeEventArgs e)
+    private void OnClientInput(string? value)
     {
-        var v = e.Value?.ToString();
-        _invoice.ClientName = v;
-        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(v ?? "", StringComparison.OrdinalIgnoreCase));
+        _clientName = value;
+        var match = _availableClients.FirstOrDefault(c => c.Name.Equals(value ?? "", StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
-            _invoice.ClientId = match.ClientId;
-            _invoice.ClientName = match.Name;
-            _invoice.ClientNip = match.Nip;
-            _invoice.ClientEmail = match.Email;
-            _invoice.ClientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.PostalCode} {match.Address.City}";
+            _selectedClientId = match.ClientId;
+            _clientName = match.Name;
+            _clientNip = match.Nip;
+            _clientEmail = match.Email;
+            _clientAddress = $"{match.Address.Street} {match.Address.Number}, {match.Address.PostalCode} {match.Address.City}";
         }
-        else { _invoice.ClientId = null; }
-        _editContext?.NotifyFieldChanged(new FieldIdentifier(_invoice, nameof(_invoice.ClientName)));
+        else
+        {
+            _selectedClientId = null;
+        }
     }
 
-    private void OnProductNameInput(ChangeEventArgs e, InvoicePositionDto position)
+    private void OnProductInput(PositionRow pos, string? value)
     {
-        var v = e.Value?.ToString();
-        position.ProductName = v;
-        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(v ?? "", StringComparison.OrdinalIgnoreCase));
+        pos.ProductName = value;
+        var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(value ?? "", StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
-            position.ProductId = match.ProductId;
-            position.ProductName = match.Name;
-            position.ProductValue = match.Value;
-            position.ProductDescription = match.Description;
+            pos.ProductId = match.ProductId;
+            pos.ProductValue = match.Value;
+            pos.ProductValueString = match.Value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+            pos.ProductDescription = match.Description;
+            TouchPos(pos, nameof(pos.ProductValue));
         }
-        else { position.ProductId = null; }
-        _editContext?.NotifyFieldChanged(new FieldIdentifier(position, nameof(position.ProductName)));
     }
 
-    private void AddPosition() => _invoice.InvoicePositions.Add(new InvoicePositionDto { Quantity = 1, VatRate = "23%" });
-    private void RemovePositionWithClear(InvoicePositionDto pos) => _invoice.InvoicePositions.Remove(pos);
-
-    private decimal CalculatePositionVat(InvoicePositionDto pos)
+    private decimal CalculatePositionVat(PositionRow pos)
     {
         var net = (pos.ProductValue ?? 0) * pos.Quantity;
         if (pos.VatRate == "zw" || string.IsNullOrEmpty(pos.VatRate) || !pos.VatRate.Contains("%")) return 0;
@@ -322,48 +422,118 @@
         return Math.Round(net * (rate / 100m), 2);
     }
 
-    private decimal CalculatePositionGross(InvoicePositionDto pos) => Math.Round(((pos.ProductValue ?? 0) * pos.Quantity) + CalculatePositionVat(pos), 2);
-    private decimal CalculateTotalNet() => Math.Round(_invoice.InvoicePositions.Sum(p => (p.ProductValue ?? 0) * p.Quantity), 2);
-    private decimal CalculateTotalVat() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionVat(p)), 2);
-    private decimal CalculateTotalGross() => Math.Round(_invoice.InvoicePositions.Sum(p => CalculatePositionGross(p)), 2);
+    private decimal CalculatePositionGross(PositionRow pos) =>
+        Math.Round(((pos.ProductValue ?? 0) * pos.Quantity) + CalculatePositionVat(pos), 2);
 
-    private string GetFieldClass<T>(System.Linq.Expressions.Expression<Func<T>> accessor)
+    private decimal CalculateTotalNet() =>
+        Math.Round(_positions.Sum(p => (p.ProductValue ?? 0) * p.Quantity), 2);
+
+    private decimal CalculateTotalVat() =>
+        Math.Round(_positions.Sum(p => CalculatePositionVat(p)), 2);
+
+    private decimal CalculateTotalGross() =>
+        Math.Round(_positions.Sum(p => CalculatePositionGross(p)), 2);
+
+    private bool IsValid()
     {
-        if (_editContext == null) return "";
-        var fieldId = FieldIdentifier.Create(accessor);
-        return _editContext.GetValidationMessages(fieldId).Any() ? "is-invalid" : "is-valid";
+        if (string.IsNullOrWhiteSpace(_title)) return false;
+        if (string.IsNullOrWhiteSpace(_createdDate)) return false;
+        if (string.IsNullOrWhiteSpace(_paymentDate)) return false;
+        if (string.IsNullOrWhiteSpace(_methodOfPayment)) return false;
+        if (string.IsNullOrWhiteSpace(_sellerName)) return false;
+        if (string.IsNullOrWhiteSpace(_sellerNip)) return false;
+        if (string.IsNullOrWhiteSpace(_sellerAddress)) return false;
+        if (string.IsNullOrWhiteSpace(_clientName)) return false;
+        if (string.IsNullOrWhiteSpace(_clientNip)) return false;
+        if (string.IsNullOrWhiteSpace(_clientAddress)) return false;
+        if (!EmailFormatHelper.IsValidOrEmpty(_clientEmail)) return false;
+        if (!_positions.Any()) return false;
+        foreach (var pos in _positions)
+        {
+            if (string.IsNullOrWhiteSpace(pos.ProductName)) return false;
+            if (pos.Quantity < 1) return false;
+            if (pos.ProductValue == null || pos.ProductValue <= 0) return false;
+        }
+        return true;
     }
 
-    private Task OnInvalidSubmitHandler(EditContext ctx) => Task.CompletedTask;
-
-    private async Task OnSubmitUpdate()
+    private void OnClientAddressInput(string? value)
     {
-        _invoice.TotalNet = CalculateTotalNet();
-        _invoice.TotalVat = CalculateTotalVat();
-        _invoice.TotalGross = CalculateTotalGross();
+        _clientAddress = value;
+        Touch(nameof(_clientAddress));
+    }
+
+    private void OnSellerAddressInput(string? value)
+    {
+        _sellerAddress = value;
+        Touch(nameof(_sellerAddress));
+    }
+
+    private async Task HandleSave()
+    {
+        if (_isSaving) return;
+        _isSaving = true;
 
         try
         {
-            await InvoiceService.UpdateInvoiceAsync(_invoice);
-            Navigation.NavigateTo("/invoices");
+            _submitAttempted = true;
+            foreach (var pos in _positions)
+            {
+                TouchPos(pos, nameof(pos.ProductName));
+                TouchPos(pos, nameof(pos.Quantity));
+                TouchPos(pos, nameof(pos.ProductValue));
+            }
+            if (!IsValid()) return;
+
+            try
+            {
+                DateTime.TryParse(_createdDate, out var created);
+                created = DateTime.SpecifyKind(created, DateTimeKind.Local);
+                DateTime.TryParse(_paymentDate, out var payment);
+                payment = DateTime.SpecifyKind(payment, DateTimeKind.Local);
+
+                var invoice = new InvoiceDto
+                {
+                    InvoiceId = _invoiceId,
+                    Title = _title!,
+                    CreatedDate = created,
+                    PaymentDate = payment,
+                    MethodOfPayment = _methodOfPayment!,
+                    Comments = _comments ?? string.Empty,
+                    SellerName = _sellerName,
+                    SellerNip = _sellerNip,
+                    SellerAddress = _sellerAddress,
+                    BankAccountNumber = _bankAccountNumber ?? string.Empty,
+                    ClientId = _selectedClientId,
+                    ClientName = _clientName,
+                    ClientNip = _clientNip,
+                    ClientEmail = _clientEmail,
+                    ClientAddress = _clientAddress,
+                    InvoicePositions = _positions.Select(p => new InvoicePositionDto
+                    {
+                        ProductId = p.ProductId,
+                        ProductName = p.ProductName,
+                        ProductDescription = p.ProductDescription,
+                        Quantity = p.Quantity,
+                        ProductValue = p.ProductValue,
+                        VatRate = p.VatRate
+                    }).ToList()
+                };
+                invoice.TotalNet = CalculateTotalNet();
+                invoice.TotalVat = CalculateTotalVat();
+                invoice.TotalGross = CalculateTotalGross();
+
+                await InvoiceService.UpdateInvoiceAsync(invoice);
+                Navigation.NavigateTo("/invoices");
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            _validatedForm?.AddServerError(string.Empty, ex.Message);
+            _isSaving = false;
         }
     }
-
-    private void OnClientAddressInput(ChangeEventArgs e)
-    {
-        _invoice.ClientAddress = e.Value?.ToString();
-        _editContext?.NotifyFieldChanged(new FieldIdentifier(_invoice, nameof(_invoice.ClientAddress)));
-    }
-
-    private void OnSellerAddressInput(ChangeEventArgs e)
-    {
-        _invoice.SellerAddress = e.Value?.ToString();
-        _editContext?.NotifyFieldChanged(new FieldIdentifier(_invoice, nameof(_invoice.SellerAddress)));
-    }
-
-    public void Dispose() { _validatedForm = null; }
 }

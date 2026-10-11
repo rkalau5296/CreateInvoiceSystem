@@ -88,14 +88,12 @@
                                              Placeholder="NIP"
                                              ErrorMessage="NIP klienta jest wymagany" />
                         </div>
-                        <div class="col-md-3">
-                            <label class="small fw-bold">Email klienta</label>
-                            <input class="@ClientEmailCssClass" value="@_clientEmail" placeholder="email@klienta.pl"
-                                   @oninput="e => { _clientEmail = e.Value?.ToString(); Touch(nameof(_clientEmail)); }" />
-                            @if (ShowClientEmailError)
-                            {
-                                <span class="text-danger small">Nieprawidłowy format adresu email</span>
-                            }
+                        <div class="col-md-3">                       
+                                <label class="small fw-bold">Email klienta</label>
+                                <SimpleEmailInput Value="@_clientEmail"
+                                                  ValueChanged="v => { _clientEmail = v; Touch(nameof(_clientEmail)); }"
+                                                  IsActive="@IsActive(nameof(_clientEmail))"
+                                                  Placeholder="email@klienta.pl" />                            
                         </div>
                         <div class="col-md-5">
                             <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
@@ -362,7 +360,7 @@
         if (string.IsNullOrWhiteSpace(_postalCode)) return false;
         if (string.IsNullOrWhiteSpace(_city)) return false;
         if (!_positions.Any()) return false;
-        if (!IsClientEmailValid) return false;
+        if (!EmailFormatHelper.IsValidOrEmpty(_clientEmail)) return false;
         foreach (var pos in _positions)
         {
             if (string.IsNullOrWhiteSpace(pos.ProductName)) return false;
@@ -453,18 +451,5 @@
         {
             _isSaving = false;
         }
-    }
-
-    private static bool IsValidEmailFormat(string value) =>
-        Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-
-    private bool IsClientEmailValid =>
-        string.IsNullOrWhiteSpace(_clientEmail) || IsValidEmailFormat(_clientEmail);
-
-    private bool ShowClientEmailError =>
-        IsActive(nameof(_clientEmail)) && !IsClientEmailValid;
-
-    private string ClientEmailCssClass =>
-        !IsActive(nameof(_clientEmail)) ? "form-control" :
-        IsClientEmailValid ? "form-control is-valid" : "form-control is-invalid";
+    }   
 }
