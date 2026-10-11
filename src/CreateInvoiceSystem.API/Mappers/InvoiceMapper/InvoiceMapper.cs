@@ -35,10 +35,8 @@ public static class InvoiceMapper
         };
     }
 
-    public static InvoiceEntity ToInvoiceEntity(Invoice invoice, int? clientId = null)
+    public static InvoiceEntity ToInvoiceEntity(Invoice invoice)
     {
-        var resolvedClientId = clientId ?? invoice.ClientId;
-
         return new InvoiceEntity
         {
             InvoiceId = invoice.InvoiceId,
@@ -48,10 +46,7 @@ public static class InvoiceMapper
             TotalGross = invoice.TotalGross,
             PaymentDate = invoice.PaymentDate,
             CreatedDate = invoice.CreatedDate,
-            Comments = invoice.Comments,
-            ClientId = resolvedClientId > 0
-            ? resolvedClientId
-            : null,
+            Comments = invoice.Comments,            
             UserId = invoice.UserId,
             MethodOfPayment = invoice.MethodOfPayment,
             SellerName = invoice.SellerName,
@@ -69,8 +64,7 @@ public static class InvoiceMapper
     {
         return new InvoicePositionEntity
         {
-            InvoicePositionId = ip.InvoicePositionId,
-            ProductId = ip.ProductId > 0 ? ip.ProductId : null,
+            InvoicePositionId = ip.InvoicePositionId,            
             ProductName = ip.ProductName,
             ProductDescription = ip.ProductDescription,
             ProductValue = ip.ProductValue,
@@ -134,37 +128,28 @@ public static class InvoiceMapper
         };
     }
 
-    public static InvoicePosition MapPosition(InvoicePositionEntity e, IDictionary<int, ProductEntity>? productsMap = null)
+    public static InvoicePosition MapPosition(InvoicePositionEntity e)
     {
-        Product prod = null!;
-        if (e.ProductId.HasValue && productsMap != null && productsMap.TryGetValue(e.ProductId.Value, out var p))
-            prod = MapProduct(p);
-
         return new InvoicePosition
         {
             InvoicePositionId = e.InvoicePositionId,
             InvoiceId = e.InvoiceId,
-            ProductId = e.ProductId,
             ProductName = e.ProductName,
             ProductDescription = e.ProductDescription ?? string.Empty,
             ProductValue = e.ProductValue,
             Quantity = e.Quantity,
-            VatRate = e.VatRate,
-            Product = prod
+            VatRate = e.VatRate
         };
     }
 
-    public static List<InvoicePosition> MapPositions(IEnumerable<InvoicePositionEntity> entities, IDictionary<int, ProductEntity>? productsMap = null)
+    public static List<InvoicePosition> MapPositions(IEnumerable<InvoicePositionEntity> entities)
     {
-        return entities.Select(e => MapPosition(e, productsMap)).ToList();
+        return entities.Select(MapPosition).ToList();
     }
 
     public static Invoice MapDetailed(
         InvoiceEntity e,
-        ClientEntity? clientEntity,
-        AddressEntity? addressEntity,
-        IEnumerable<InvoicePositionEntity> positions,
-        IDictionary<int, ProductEntity>? productsMap = null)
+        IEnumerable<InvoicePositionEntity> positions)
     {
         return new Invoice
         {
@@ -175,8 +160,7 @@ public static class InvoiceMapper
             TotalGross = e.TotalGross,
             PaymentDate = e.PaymentDate,
             CreatedDate = e.CreatedDate,
-            Comments = e.Comments ?? string.Empty,
-            ClientId = e.ClientId,
+            Comments = e.Comments ?? string.Empty,            
             UserId = e.UserId,
             MethodOfPayment = e.MethodOfPayment,
             SellerName = e.SellerName ?? string.Empty,
@@ -186,16 +170,14 @@ public static class InvoiceMapper
             ClientName = e.ClientName ?? string.Empty,
             ClientEmail = e.ClientEmail ?? string.Empty,
             ClientAddress = e.ClientAddress ?? string.Empty,
-            ClientNip = e.ClientNip ?? string.Empty,
-            Client = MapClient(clientEntity, addressEntity),
-            InvoicePositions = MapPositions(positions, productsMap)
+            ClientNip = e.ClientNip ?? string.Empty,            
+            InvoicePositions = MapPositions(positions)
         };
     }
 
     public static Invoice MapSummary(
         InvoiceEntity e,
-        IEnumerable<InvoicePositionEntity> positions,
-        ClientEntity? clientEntity = null)
+    IEnumerable<InvoicePositionEntity> positions)
     {
         return new Invoice
         {
@@ -206,8 +188,7 @@ public static class InvoiceMapper
             TotalGross = e.TotalGross,
             PaymentDate = e.PaymentDate,
             CreatedDate = e.CreatedDate,
-            Comments = e.Comments ?? string.Empty,
-            ClientId = e.ClientId,
+            Comments = e.Comments ?? string.Empty,            
             UserId = e.UserId,
             MethodOfPayment = e.MethodOfPayment,
             SellerName = e.SellerName ?? string.Empty,
@@ -217,24 +198,16 @@ public static class InvoiceMapper
             ClientName = e.ClientName ?? string.Empty,
             ClientAddress = e.ClientAddress ?? string.Empty,
             ClientNip = e.ClientNip ?? string.Empty,
-            ClientEmail = e.ClientEmail ?? string.Empty,        
-            Client = clientEntity == null ? null! : new Client
-            {
-                ClientId = clientEntity.ClientId,
-                Name = clientEntity.Name,
-                Nip = clientEntity.Nip
-            },
+            ClientEmail = e.ClientEmail ?? string.Empty,
             InvoicePositions = [..positions.Select(ip => new InvoicePosition
             {
                 InvoicePositionId = ip.InvoicePositionId,
-                InvoiceId = ip.InvoiceId,
-                ProductId = ip.ProductId,
+                InvoiceId = ip.InvoiceId,                
                 ProductName = ip.ProductName,
                 ProductDescription = ip.ProductDescription ?? string.Empty,
                 ProductValue = ip.ProductValue,
                 Quantity = ip.Quantity,
-                VatRate = ip.VatRate,
-                Product = null!
+                VatRate = ip.VatRate                
             })]
         };
     }

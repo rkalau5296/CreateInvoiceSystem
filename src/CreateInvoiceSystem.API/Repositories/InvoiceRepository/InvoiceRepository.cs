@@ -47,11 +47,7 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
         return Task.FromResult(
             InvoiceMapper.MapDetailed(
-                invoiceEntity,
-                null,
-                null,
-                positionsToSave,
-                new Dictionary<int, ProductEntity>()));
+                invoiceEntity, positionsToSave));
     }
 
     public Task AddInvoicePositionAsync(ICollection<InvoicePosition> invoicePositions, CancellationToken cancellationToken)
@@ -114,41 +110,12 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .SingleOrDefaultAsync(i => i.InvoiceId == invoiceId && i.UserId == user, cancellationToken)
             ?? throw new InvalidOperationException($"Invoice with ID {invoiceId} not found.");
 
-        ClientEntity? clientEntity = null;
-        AddressEntity? addressEntity = null;
-
-        if (invoiceEntity.ClientId.HasValue)
-        {
-            clientEntity = await _db.Set<ClientEntity>()
-                .AsNoTracking()
-                .SingleOrDefaultAsync(c => c.ClientId == invoiceEntity.ClientId, cancellationToken);
-
-            if (clientEntity != null)
-            {
-                addressEntity = await _db.Set<AddressEntity>()
-                    .AsNoTracking()
-                    .SingleOrDefaultAsync(a => a.AddressId == clientEntity.AddressId, cancellationToken);
-            }
-        }
-
         var invoicePositionsEntity = await _db.Set<InvoicePositionEntity>()
             .AsNoTracking()
             .Where(p => p.InvoiceId == invoiceId)
             .ToListAsync(cancellationToken);
 
-        var productIds = invoicePositionsEntity
-            .Select(p => p.ProductId)
-            .Where(id => id.HasValue)
-            .Cast<int>()
-            .Distinct()
-            .ToList();
-
-        var productsMap = await _db.Set<ProductEntity>()
-            .AsNoTracking()
-            .Where(p => productIds.Contains(p.ProductId))
-            .ToDictionaryAsync(p => p.ProductId, cancellationToken);
-
-        return InvoiceMapper.MapDetailed(invoiceEntity, clientEntity, addressEntity, invoicePositionsEntity, productsMap);
+        return InvoiceMapper.MapDetailed(invoiceEntity, invoicePositionsEntity);
     }
 
     public async Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken)
@@ -178,32 +145,17 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             return new PagedResult<Invoice>(new List<Invoice>(), totalCount, pageNumber, pageSize);
 
         var invoiceIds = invoiceEntities.Select(i => i.InvoiceId).ToList();
-        var clientIds = invoiceEntities
-                .Select(i => i.ClientId)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .Distinct()
-                .ToList();
 
         var allPositions = await _db.Set<InvoicePositionEntity>()
             .AsNoTracking()
             .Where(p => invoiceIds.Contains(p.InvoiceId))
             .ToListAsync(cancellationToken);
 
-        var allClients = await _db.Set<ClientEntity>()
-            .AsNoTracking()
-            .Where(c => clientIds.Contains(c.ClientId))
-            .ToListAsync(cancellationToken);
-
         var positionsLookup = allPositions.ToLookup(p => p.InvoiceId);
-        var clientsDict = allClients.ToDictionary(c => c.ClientId);
 
-        var items = invoiceEntities.Select(i =>
-        {
-            clientsDict.TryGetValue(i.ClientId ?? 0, out var cEntity);
-            var positionsForInvoice = positionsLookup[i.InvoiceId];
-            return InvoiceMapper.MapSummary(i, positionsForInvoice, cEntity);
-        }).ToList();
+        var items = invoiceEntities
+            .Select(i => InvoiceMapper.MapSummary(i, positionsLookup[i.InvoiceId]))
+            .ToList();
 
         return new PagedResult<Invoice>(items, totalCount, pageNumber, pageSize);
     }

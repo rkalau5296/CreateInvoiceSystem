@@ -44,8 +44,7 @@ public class GetInvoicePdfHandlerTests
             InvoicePositions = new List<InvoicePosition>
             {
                 new()
-                {
-                    ProductId = 1,
+                {                    
                     Quantity = 5,
                     ProductValue = 24.39m,
                     VatRate = "23"

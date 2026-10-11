@@ -26,8 +26,7 @@ public class InvoiceEntityConfiguration : IEntityTypeConfiguration<InvoiceEntity
         builder.Property(i => i.ClientAddress).HasMaxLength(500);
         builder.Property(i => i.ClientNip).HasMaxLength(50);
         builder.Property(i => i.ClientEmail).HasMaxLength(250).IsRequired(false);
-        builder.Property(i => i.Comments).IsRequired(false);
-        builder.Property(i => i.ClientId).IsRequired(false);
+        builder.Property(i => i.Comments).IsRequired(false);        
         builder.Property(i => i.UserId).IsRequired();        
     }
 }

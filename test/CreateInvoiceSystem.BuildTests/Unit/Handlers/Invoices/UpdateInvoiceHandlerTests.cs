@@ -104,8 +104,7 @@ public class UpdateInvoiceHandlerTests
             BankAccountNumber = "Bank",
             ClientName = "Client",
             ClientNip = "C-NIP",
-            ClientAddress = "C-ADDR",
-            ClientId = null,
+            ClientAddress = "C-ADDR",            
             InvoicePositions = new List<InvoicePosition>()
         };
 
@@ -153,7 +152,6 @@ public class UpdateInvoiceHandlerTests
         {
             UserId = userId,
             InvoiceId = invoiceId,
-            ClientId = 10,
             ClientName = "Old Corp",
             InvoicePositions = new List<InvoicePosition>()
         };
@@ -191,8 +189,7 @@ public class UpdateInvoiceHandlerTests
         var result = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        invoice.ClientId.Should().Be(500);
+        result.Should().NotBeNull();        
         invoice.ClientName.Should().Be("New Corp");
         invoice.ClientNip.Should().Be("9876543210");
         invoice.ClientEmail.Should().Be("new@test.com");

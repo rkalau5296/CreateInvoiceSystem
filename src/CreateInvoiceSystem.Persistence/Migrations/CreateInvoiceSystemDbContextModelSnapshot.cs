@@ -17,7 +17,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.19")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -42,9 +42,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("ClientEmail")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
-
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("int");
 
                     b.Property<string>("ClientName")
                         .IsRequired()
@@ -104,8 +101,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("InvoiceId");
 
-                    b.HasIndex("ClientId");
-
                     b.HasIndex("UserId", "Title")
                         .IsUnique();
 
@@ -126,9 +121,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("ProductDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -147,8 +139,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasKey("InvoicePositionId");
 
                     b.HasIndex("InvoiceId");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("InvoicePositions");
                 });
@@ -538,11 +528,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
             modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", b =>
                 {
-                    b.HasOne("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -557,11 +542,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("CreateInvoiceSystem.Modules.Products.Persistence.Entities.ProductEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Invoice");
                 });

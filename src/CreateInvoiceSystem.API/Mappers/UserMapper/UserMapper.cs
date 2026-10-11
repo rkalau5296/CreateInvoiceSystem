@@ -74,8 +74,7 @@ internal static class UserMapper
         return new InvoicePosition
         {
             InvoicePositionId = e.InvoicePositionId,
-            InvoiceId = e.InvoiceId,
-            ProductId = e.ProductId,
+            InvoiceId = e.InvoiceId,            
             Quantity = e.Quantity,
             ProductDescription = e.ProductDescription ?? string.Empty,
             ProductName = e.ProductName,
@@ -97,8 +96,7 @@ internal static class UserMapper
             TotalGross = e.TotalGross,
             PaymentDate = e.PaymentDate,
             CreatedDate = e.CreatedDate,
-            Comments = e.Comments ?? string.Empty,
-            ClientId = e.ClientId,
+            Comments = e.Comments ?? string.Empty,            
             UserId = e.UserId,
             MethodOfPayment = e.MethodOfPayment,
             ClientName = e.ClientName,

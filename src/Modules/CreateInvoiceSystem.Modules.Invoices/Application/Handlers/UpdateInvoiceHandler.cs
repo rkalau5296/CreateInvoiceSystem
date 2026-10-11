@@ -92,8 +92,7 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                     client,
                     cancellationToken);
             }
-
-            invoice.ClientId = client.ClientId > 0 ? client.ClientId : invoice.ClientId;
+                        
             invoice.ClientName = client.Name;
             invoice.ClientNip = client.Nip;
             invoice.ClientEmail = client.Email;
@@ -111,8 +110,7 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
             await _invoiceRepository.GetClientByIdAsync(request.Invoice.ClientId.Value, cancellationToken)
             ?? throw new InvalidOperationException(
                 $"Client with ID {request.Invoice.ClientId.Value} not found.");
-
-        invoice.ClientId = existingClientById.ClientId;
+                
         invoice.ClientName = existingClientById.Name;
         invoice.ClientNip = existingClientById.Nip;
         invoice.ClientEmail = existingClientById.Email;
@@ -166,8 +164,7 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                         + $"does not belong to invoice "
                         + $"{invoice.InvoiceId}.");
                 }
-
-                existingPosition.ProductId = product.ProductId;
+                
                 existingPosition.ProductName = product.Name;
                 existingPosition.ProductDescription = product.Description;
                 existingPosition.ProductValue = product.Value;
@@ -178,8 +175,7 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
             {
                 invoice.InvoicePositions.Add(new InvoicePosition
                 {
-                    InvoiceId = invoice.InvoiceId,
-                    ProductId = product.ProductId,
+                    InvoiceId = invoice.InvoiceId,                    
                     ProductName = product.Name,
                     ProductDescription = product.Description,
                     ProductValue = product.Value,

@@ -2,9 +2,7 @@
 public class InvoicePosition
 {
     public int InvoicePositionId { get; set; }
-    public int InvoiceId { get; set; }    
-    public int? ProductId { get; set; }
-    public Product Product { get; set; } = null!;
+    public int InvoiceId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public string ProductDescription { get; set; } = string.Empty;
     public decimal? ProductValue { get; set; }
@@ -17,7 +15,6 @@ public class InvoicePosition
     {
         if (string.IsNullOrWhiteSpace(VatRate) || VatRate.ToLower() == "zw")
             return 0;
-
         
         var cleanRate = VatRate.Replace("%", "").Replace(",", ".");
 
