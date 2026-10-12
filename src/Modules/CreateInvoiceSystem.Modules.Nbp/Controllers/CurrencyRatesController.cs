@@ -6,7 +6,6 @@ using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.PreviousDatesR
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace CreateInvoiceSystem.Modules.Nbp.Controllers;
 
@@ -28,7 +27,7 @@ public class CurrencyRatesController(IMediator mediator) : ApiControllerBase(med
     {
         if (!DateTime.TryParse(dateFrom, out var parsedFrom) || !DateTime.TryParse(dateTo, out var parsedTo))
         {
-            var pd = new Microsoft.AspNetCore.Mvc.ProblemDetails
+            var pd = new ProblemDetails
             {
                 Title = "Invalid date format",
                 Status = StatusCodes.Status400BadRequest,

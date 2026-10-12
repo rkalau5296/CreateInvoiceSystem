@@ -41,11 +41,11 @@ public sealed class NbpApiRestService(HttpClient httpClient)
             $"rates/{table}/{currencyCode}/" +
             $"{dateFrom:yyyy-MM-dd}/{dateTo:yyyy-MM-dd}?format=json";
 
-        var result = await GetRequiredAsync<List<CurrencyRatesTable>>(
+        var result = await GetRequiredAsync<CurrencyRatesTable>(
             uri,
             cancellationToken);
 
-        return result.Single();
+        return result;
     }
 
     public async Task<List<CurrencyRatesTable>> GetSeriesCurrencyRatesFromToAsync(

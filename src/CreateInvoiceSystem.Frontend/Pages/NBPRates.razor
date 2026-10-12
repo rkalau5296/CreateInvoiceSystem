@@ -140,7 +140,24 @@
                 else
                     result = await NbpService.GetSpecificCurrencyRateAsync(_selectedTable, _currencyCode);
 
-                if (result != null) _allTables.Add(result);
+                if (result != null)
+                {
+                    if (result.Rates != null && result.Rates.Any())
+                    {
+                        foreach (var rate in result.Rates)
+                        {
+                            _allTables.Add(result with
+                            {
+                                EffectiveDate = rate.EffectiveDate.ToString("yyyy-MM-dd"),
+                                Rates = new List<CurrencyRate> { rate }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        _allTables.Add(result);
+                    }
+                }
                 else
                 {
                     _statusMessage = "Brak danych dla podanych parametrów.";
