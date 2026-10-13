@@ -20,17 +20,10 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
         }
         var response = await _mediator.Send(request, cancellationToken);
 
-        if (response != null)
+        if (response is IApiResponse { IsSuccess: false })
         {
-            var prop = response.GetType().GetProperty("IsSuccess");
-            if (prop != null && prop.PropertyType == typeof(bool))
-            {
-                var isSuccess = (bool?)prop.GetValue(response);
-                if (isSuccess.HasValue && !isSuccess.Value)
-                    return this.BadRequest(response);
-            }
+            return this.BadRequest(response);
         }
-
 
         return this.Ok(response);
     }
