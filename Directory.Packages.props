@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftNetVersion>10.0.12</MicrosoftNetVersion>
+    <MicrosoftNetVersion>10.0.13</MicrosoftNetVersion>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>    
@@ -22,11 +22,12 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="$(MicrosoftNetVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+	<PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+	<PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="NLog" Version="6.2.1" />
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.1" />
@@ -49,6 +50,6 @@
     <PackageVersion Include="Moq" Version="4.21.0" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
 	<PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
-	  <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="$(MicrosoftNetVersion)" />
+	<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
   </ItemGroup>
 </Project>
