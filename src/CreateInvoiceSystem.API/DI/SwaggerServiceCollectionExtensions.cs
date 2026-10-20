@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Microsoft.OpenApi;
+﻿using Microsoft.OpenApi;
 
 namespace CreateInvoiceSystem.API.DI;
 

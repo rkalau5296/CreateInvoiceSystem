@@ -119,7 +119,7 @@
                                 <h6 class="text-uppercase fw-bold text-primary">Nabywca</h6>
                                 <label class="small fw-bold">Nazwa nabywcy <span class="text-danger">*</span></label>
                                 <SimpleTextInput Value="@_clientName"
-                                                 ValueChanged="v => { Touch(nameof(_clientName)); OnClientInput(v); }"
+                                                 ValueChanged="async v => { Touch(nameof(_clientName)); await OnClientInputAsync(v); }"
                                                  IsActive="@IsActive(nameof(_clientName))"
                                                  DataList="clientOptions"
                                                  Placeholder="Nazwa klienta..."
@@ -177,7 +177,7 @@
                                     <td>@(idx + 1)</td>
                                     <td>
                                         <SimpleTextInput Value="@pos.ProductName"
-                                                         ValueChanged="v => { pos.ProductName = v; TouchPos(pos, nameof(pos.ProductName)); OnProductInput(pos, v); }"
+                                                         ValueChanged="async v => { TouchPos(pos, nameof(pos.ProductName)); await OnProductInputAsync(pos, v); }"
                                                          IsActive="@IsActivePos(pos, nameof(pos.ProductName))"
                                                          DataList="productOptions"
                                                          Placeholder="Nazwa produktu..."
@@ -360,10 +360,10 @@
                 TouchPos(pos, nameof(pos.ProductValue));
             }
 
-            var cResp = await ClientService.GetClientsAsync(1, 1000);
+            var cResp = await ClientService.GetClientsAsync(1, 20);
             _availableClients = cResp?.Data ?? new();
 
-            var pResp = await ProductService.GetProductsAsync(1, 1000);
+            var pResp = await ProductService.GetProductsAsync(1, 20);
             _availableProducts = pResp?.Data ?? new();
         }
         finally { _isLoading = false; }
@@ -382,9 +382,16 @@
         pos.VatRate = e.Value?.ToString() ?? "23%";
     }
 
-    private void OnClientInput(string? value)
+    private async Task OnClientInputAsync(string? value)
     {
         _clientName = value;
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var cResp = await ClientService.GetClientsAsync(1, 20, value);
+            _availableClients = cResp?.Data ?? new();
+        }
+
         var match = _availableClients.FirstOrDefault(c => c.Name.Equals(value ?? "", StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
@@ -400,9 +407,16 @@
         }
     }
 
-    private void OnProductInput(PositionRow pos, string? value)
+    private async Task OnProductInputAsync(PositionRow pos, string? value)
     {
         pos.ProductName = value;
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var pResp = await ProductService.GetProductsAsync(1, 20, value);
+            _availableProducts = pResp?.Data ?? new();
+        }
+
         var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(value ?? "", StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
