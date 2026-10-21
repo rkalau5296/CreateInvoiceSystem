@@ -1,8 +1,7 @@
 ﻿@page "/clients"
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
-@using System.ComponentModel.DataAnnotations
-@using System.Linq.Expressions
+@using CreateInvoiceSystem.Frontend.Components
 @using System.Text.Json
 @inject ClientService ClientService
 
@@ -46,62 +45,75 @@
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog modal-lg shadow-lg">
                 <div class="modal-content">
-                    <ValidatedEditForm TModel="ClientDto" Model="_editingClient" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit" @ref="modalFormRef">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title">@(_isEditMode ? "Edytuj Klienta" : "Nowy Klient")</h5>
-                            <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
-                        </div>
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">@(_isEditMode ? "Edytuj Klienta" : "Nowy Klient")</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                    </div>
 
-                        <div class="modal-body">
-                            @if (!string.IsNullOrEmpty(_modalErrorMessage))
-                            {
-                                <div class="alert alert-danger small">@_modalErrorMessage</div>
-                            }
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(_modalErrorMessage))
+                        {
+                            <div class="alert alert-danger small">@_modalErrorMessage</div>
+                        }
 
-                            <div class="row g-3">
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold">Nazwa firmy <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Name" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">NIP <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Nip" />
-                                </div>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Nazwa firmy <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_editingClient.Name"
+                                                 ValueChanged="v => { _editingClient.Name = v ?? string.Empty; Touch(nameof(_editingClient.Name)); }"
+                                                 IsActive="@IsActive(nameof(_editingClient.Name))" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">NIP <span class="text-danger">*</span></label>
+                                <SimpleNipInput Value="@_editingClient.Nip"
+                                                ValueChanged="v => { _editingClient.Nip = v ?? string.Empty; Touch(nameof(_editingClient.Nip)); }"
+                                                IsActive="@IsActive(nameof(_editingClient.Nip))" />
+                            </div>
 
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold">E-mail <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Email" placeholder="adres@klienta.pl" />
-                                </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">E-mail</label>
+                                <SimpleEmailInput Value="@_editingClient.Email"
+                                                  ValueChanged="v => { _editingClient.Email = v ?? string.Empty; Touch(nameof(_editingClient.Email)); }"
+                                                  IsActive="@IsActive(nameof(_editingClient.Email))"
+                                                  Placeholder="adres@klienta.pl" />
+                            </div>
 
-                                <hr class="my-2 text-muted" />
-                                <h6 class="text-muted mb-2">Adres klienta</h6>
+                            <hr class="my-2 text-muted" />
+                            <h6 class="text-muted mb-2">Adres klienta</h6>
 
-                                <div class="col-md-9">
-                                    <label class="form-label fw-bold">Ulica <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Address.Street" />
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold">Numer <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Address.Number" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Address.PostalCode" />
-                                </div>
-                                <div class="col-md-8">
-                                    <label class="form-label fw-bold">Miasto <span class="text-danger">*</span></label>
-                                    <ValidatedInputText @bind-Value="_editingClient.Address.City" />
-                                </div>
+                            <div class="col-md-9">
+                                <label class="form-label fw-bold">Ulica <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_editingClient.Address.Street"
+                                                 ValueChanged="v => { _editingClient.Address.Street = v ?? string.Empty; Touch(nameof(_editingClient.Address.Street)); }"
+                                                 IsActive="@IsActive(nameof(_editingClient.Address.Street))" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Numer <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_editingClient.Address.Number"
+                                                 ValueChanged="v => { _editingClient.Address.Number = v ?? string.Empty; Touch(nameof(_editingClient.Address.Number)); }"
+                                                 IsActive="@IsActive(nameof(_editingClient.Address.Number))" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Kod pocztowy <span class="text-danger">*</span></label>
+                                <SimplePostalCodeInput Value="@_editingClient.Address.PostalCode"
+                                                       ValueChanged="v => { _editingClient.Address.PostalCode = v ?? string.Empty; Touch(nameof(_editingClient.Address.PostalCode)); }"
+                                                       IsActive="@IsActive(nameof(_editingClient.Address.PostalCode))" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Miasto <span class="text-danger">*</span></label>
+                                <SimpleTextInput Value="@_editingClient.Address.City"
+                                                 ValueChanged="v => { _editingClient.Address.City = v ?? string.Empty; Touch(nameof(_editingClient.Address.City)); }"
+                                                 IsActive="@IsActive(nameof(_editingClient.Address.City))" />
                             </div>
                         </div>
+                    </div>
 
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-check-circle me-1"></i> Zapisz
-                            </button>
-                        </div>
-                    </ValidatedEditForm>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Anuluj</button>
+                        <button type="button" class="btn btn-success px-4" @onclick="HandleSubmit">
+                            <i class="bi bi-check-circle me-1"></i> Zapisz
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -167,16 +179,25 @@
     private int _page_size = 10;
     private int _pageSize { get => _page_size; set => _page_size = value; }
     private int _totalCount = 0;
-    private int _totalPages => (_pageSize == 0) ? 0 : (int)Math.Ceiling((double)_totalCount / _pageSize);
     private bool _isModalOpen = false;
     private bool _isEditMode = false;
     private System.Timers.Timer? _searchTimer;
 
-    private bool _submitAttempted = false;
-    private HashSet<string> _invalidFields = new();
-
-    private ValidatedEditForm<ClientDto>? modalFormRef;
+    private HashSet<string> _touched = new();
+    private bool _submitAttempted;
     private string? _modalErrorMessage;
+
+    private void Touch(string field) => _touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
+
+    private bool IsValid() =>
+        !string.IsNullOrWhiteSpace(_editingClient.Name) && _editingClient.Name.Length >= 2 &&
+        System.Text.RegularExpressions.Regex.IsMatch(_editingClient.Nip ?? "", @"^\d{10}$") &&
+        EmailFormatHelper.IsValidOrEmpty(_editingClient.Email) &&
+        !string.IsNullOrWhiteSpace(_editingClient.Address.Street) &&
+        !string.IsNullOrWhiteSpace(_editingClient.Address.Number) &&
+        System.Text.RegularExpressions.Regex.IsMatch(_editingClient.Address.PostalCode ?? "", @"^\d{2}-\d{3}$") &&
+        !string.IsNullOrWhiteSpace(_editingClient.Address.City);
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
@@ -237,7 +258,7 @@
     {
         _isEditMode = false;
         _editingClient = new ClientDto { Address = new AddressDto() };
-        _invalidFields.Clear();
+        _touched.Clear();
         _submitAttempted = false;
         _modalErrorMessage = null;
         _isModalOpen = true;
@@ -264,88 +285,34 @@
                 Country = client.Address?.Country ?? "Polska"
             }
         };
-        _invalidFields.Clear();
+        _touched.Clear();
         _submitAttempted = false;
         _modalErrorMessage = null;
         _isModalOpen = true;
+
+        Touch(nameof(_editingClient.Name));
+        Touch(nameof(_editingClient.Nip));
+        Touch(nameof(_editingClient.Email));
+        Touch(nameof(_editingClient.Address.Street));
+        Touch(nameof(_editingClient.Address.Number));
+        Touch(nameof(_editingClient.Address.PostalCode));
+        Touch(nameof(_editingClient.Address.City));
     }
 
     private void CloseModal() => _isModalOpen = false;
 
-    private void HandleInvalidSubmit()
-    {
-        _submitAttempted = true;
-        RunValidationAndCollectInvalidFields();
-    }
-
-    private Task HandleInvalidSubmit(EditContext ctx)
-    {
-        HandleInvalidSubmit();
-        return Task.CompletedTask;
-    }
-
     private async Task HandleSubmit()
     {
         _submitAttempted = true;
-        RunValidationAndCollectInvalidFields();
 
-        if (!_invalid_fields_any())
+        if (!IsValid())
         {
-            await HandleSave();
+            _modalErrorMessage = "Uzupełnij poprawnie wszystkie wymagane pola.";
+            return;
         }
+
+        await HandleSave();
     }
-
-    private bool _invalid_fields_any() => _invalidFields.Any();
-
-    private void RunValidationAndCollectInvalidFields()
-    {
-        _invalidFields.Clear();
-
-        var context = new ValidationContext(_editingClient);
-        var results = new List<ValidationResult>();
-        Validator.TryValidateObject(_editingClient, context, results, true);
-        foreach (var r in results)
-        {
-            foreach (var m in r.MemberNames)
-            {
-                if (!string.IsNullOrWhiteSpace(m))
-                    _invalidFields.Add(m);
-            }
-        }        
-
-        if (_editingClient.Address != null)
-        {
-            var addrCtx = new ValidationContext(_editingClient.Address);
-            var addrResults = new List<ValidationResult>();
-            Validator.TryValidateObject(_editingClient.Address, addrCtx, addrResults, true);
-            foreach (var r in addrResults)
-            {
-                foreach (var m in r.MemberNames)
-                {
-                    if (!string.IsNullOrWhiteSpace(m))
-                        AddInvalid($"Address.{m}");
-                }
-            }
-        }
-
-        if (_editingClient.Address == null)
-        {
-            AddInvalid("Address");
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(_editingClient.Address.Street))
-                AddInvalid("Address.Street");
-            if (string.IsNullOrWhiteSpace(_editingClient.Address.Number))
-                AddInvalid("Address.Number");
-            if (string.IsNullOrWhiteSpace(_editingClient.Address.PostalCode))
-                AddInvalid("Address.PostalCode");
-            if (string.IsNullOrWhiteSpace(_editingClient.Address.City))
-                AddInvalid("Address.City");
-        }
-    }
-
-    private void AddInvalid(string s) => _invalidFields.Add(s);
 
     private async Task HandleSave()
     {
@@ -389,45 +356,6 @@
     }
 
     private async Task ExportToCsv() => await ClientService.DownloadClientsCsvAsync();
-
-    private string GetFieldClass<T>(Expression<Func<T>> accessor)
-    {
-        if (!_submitAttempted) return "";
-
-        var path = GetPropertyPath(accessor);
-
-        if (_invalidFields.Contains(path)) return "is-invalid";
-
-        T? value;
-        try
-        {
-            value = accessor.Compile().Invoke();
-        }
-        catch
-        {
-            value = default;
-        }
-
-        bool hasValue;
-        if (value is string s)
-            hasValue = !string.IsNullOrWhiteSpace(s);
-        else
-            hasValue = !EqualityComparer<T?>.Default.Equals(value, default);
-
-        return hasValue ? "is-valid" : "is-invalid";
-    }
-
-    private static string GetPropertyPath<T>(Expression<Func<T>> expr)
-    {
-        var parts = new List<string>();
-        Expression e = expr.Body;
-        while (e is MemberExpression me)
-        {
-            parts.Insert(0, me.Member.Name);
-            e = me.Expression!;
-        }
-        return string.Join(".", parts);
-    }
 
     private static string? ExtractMessageFromApiException(ApiException aex)
     {

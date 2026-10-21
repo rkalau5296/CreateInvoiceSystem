@@ -3,7 +3,6 @@
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Components
 @using CreateInvoiceSystem.Frontend.Services
-@using Microsoft.AspNetCore.Components.Forms
 @attribute [AllowAnonymous]
 @inject AuthService AuthService
 @inject NavigationManager Navigation
@@ -18,55 +17,142 @@
                 <div class="card-body p-4">
                     @if (!_isRegistered)
                     {
-                        <ValidatedEditForm TModel="RegisterUserDto" Model="_regModel" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalidSubmit" @ref="formRef">
-                            <div class="row">
-                                <div class="col-md-6 border-end">
-                                    <h5 class="text-primary mb-3">Dane użytkownika</h5>
-                                    <ValidatedInputText @bind-Value="_regModel.Email" Label="Email / Login" Placeholder="Email / Login" />
-                                    <ValidatedInputText @bind-Value="_regModel.Password" Label="Hasło" Placeholder="Hasło" Type="password" />
-                                    <ValidatedInputText @bind-Value="_regModel.ConfirmPassword" Label="Potwierdź Hasło" Placeholder="Potwierdź Hasło" Type="password" />
-                                    <ValidatedInputText @bind-Value="_regModel.Name" Label="Imię i Nazwisko" Placeholder="Imię i Nazwisko" />
+                        <div class="row">
+                            <div class="col-md-6 border-end">
+                                <h5 class="text-primary mb-3">Dane użytkownika</h5>
 
-                                    <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
-                                    <ValidatedInputText @bind-Value="_regModel.CompanyName" Label="Nazwa firmy" Placeholder="Nazwa firmy" />
-                                    <ValidatedInputText @bind-Value="_regModel.Nip" Label="NIP" Placeholder="NIP" />
-                                    <ValidatedInputText @bind-Value="_regModel.BankAccountNumber" Label="Konto bankowe" Placeholder="Konto bankowe" />
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Email / Login</label>
+                                    <SimpleEmailInput Value="@_regModel.Email"
+                                                      ValueChanged="v => { _regModel.Email = v ?? string.Empty; Touch(nameof(_regModel.Email)); }"
+                                                      IsActive="@IsActive(nameof(_regModel.Email))"
+                                                      Required="true"
+                                                      Placeholder="Email / Login" />
                                 </div>
 
-                                <div class="col-md-6">
-                                    <h5 class="text-primary mb-3">Adres siedziby</h5>
-                                    <ValidatedInputText @bind-Value="_regModel.Address.Street" Label="Ulica" Placeholder="Ulica" />
-                                    <ValidatedInputText @bind-Value="_regModel.Address.Number" Label="Numer budynku" Placeholder="Numer budynku" />
-                                    <ValidatedInputText @bind-Value="_regModel.Address.PostalCode" Label="Kod pocztowy" Placeholder="Kod pocztowy" />
-                                    <ValidatedInputText @bind-Value="_regModel.Address.City" Label="Miasto" Placeholder="Miasto" />
-                                    <ValidatedInputText @bind-Value="_regModel.Address.Country" Label="Kraj" Placeholder="Kraj" />
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Hasło</label>
+                                    <SimplePasswordInput Value="@_regModel.Password"
+                                                         ValueChanged="v => { _regModel.Password = v ?? string.Empty; Touch(nameof(_regModel.Password)); }"
+                                                         IsActive="@IsActive(nameof(_regModel.Password))"
+                                                         MinLength="6"
+                                                         RequireComplexity="true"
+                                                         Placeholder="Hasło" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Potwierdź Hasło</label>
+                                    <SimplePasswordInput Value="@_regModel.ConfirmPassword"
+                                                         ValueChanged="v => { _regModel.ConfirmPassword = v ?? string.Empty; Touch(nameof(_regModel.ConfirmPassword)); }"
+                                                         IsActive="@IsActive(nameof(_regModel.ConfirmPassword))"
+                                                         MinLength="0"
+                                                         CompareTo="@_regModel.Password"
+                                                         Placeholder="Potwierdź Hasło" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Imię i Nazwisko</label>
+                                    <SimpleTextInput Value="@_regModel.Name"
+                                                     ValueChanged="v => { _regModel.Name = v ?? string.Empty; Touch(nameof(_regModel.Name)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.Name))"
+                                                     Placeholder="Imię i Nazwisko" />
+                                </div>
+
+                                <h5 class="text-primary mt-4 mb-3">Dane firmy</h5>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Nazwa firmy</label>
+                                    <SimpleTextInput Value="@_regModel.CompanyName"
+                                                     ValueChanged="v => { _regModel.CompanyName = v ?? string.Empty; Touch(nameof(_regModel.CompanyName)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.CompanyName))"
+                                                     Placeholder="Nazwa firmy" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">NIP</label>
+                                    <SimpleNipInput Value="@_regModel.Nip"
+                                                    ValueChanged="v => { _regModel.Nip = v ?? string.Empty; Touch(nameof(_regModel.Nip)); }"
+                                                    IsActive="@IsActive(nameof(_regModel.Nip))"
+                                                    Placeholder="NIP" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Konto bankowe</label>
+                                    <SimpleIbanInput Value="@_regModel.BankAccountNumber"
+                                                     ValueChanged="v => { _regModel.BankAccountNumber = v; Touch(nameof(_regModel.BankAccountNumber)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.BankAccountNumber))"
+                                                     Placeholder="Konto bankowe" />
                                 </div>
                             </div>
 
-                            <hr class="my-4" />
+                            <div class="col-md-6">
+                                <h5 class="text-primary mb-3">Adres siedziby</h5>
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
-                                    @if (isSubmitting)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
-                                        <span>Trwa rejestracja...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Zarejestruj konto</span>
-                                    }
-                                </button>
-                                <a href="/login" class="btn btn-link text-center">Powrót do logowania</a>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Ulica</label>
+                                    <SimpleTextInput Value="@_regModel.Address.Street"
+                                                     ValueChanged="v => { _regModel.Address.Street = v ?? string.Empty; Touch(nameof(_regModel.Address.Street)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.Address.Street))"
+                                                     Placeholder="Ulica" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Numer budynku</label>
+                                    <SimpleTextInput Value="@_regModel.Address.Number"
+                                                     ValueChanged="v => { _regModel.Address.Number = v ?? string.Empty; Touch(nameof(_regModel.Address.Number)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.Address.Number))"
+                                                     Placeholder="Numer budynku" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Kod pocztowy</label>
+                                    <SimplePostalCodeInput Value="@_regModel.Address.PostalCode"
+                                                           ValueChanged="v => { _regModel.Address.PostalCode = v ?? string.Empty; Touch(nameof(_regModel.Address.PostalCode)); }"
+                                                           IsActive="@IsActive(nameof(_regModel.Address.PostalCode))"
+                                                           Placeholder="Kod pocztowy" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Miasto</label>
+                                    <SimpleTextInput Value="@_regModel.Address.City"
+                                                     ValueChanged="v => { _regModel.Address.City = v ?? string.Empty; Touch(nameof(_regModel.Address.City)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.Address.City))"
+                                                     Placeholder="Miasto" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Kraj</label>
+                                    <SimpleTextInput Value="@_regModel.Address.Country"
+                                                     ValueChanged="v => { _regModel.Address.Country = v ?? string.Empty; Touch(nameof(_regModel.Address.Country)); }"
+                                                     IsActive="@IsActive(nameof(_regModel.Address.Country))"
+                                                     Placeholder="Kraj" />
+                                </div>
                             </div>
-                        </ValidatedEditForm>
+                        </div>
+
+                        <hr class="my-4" />
 
                         @if (!string.IsNullOrEmpty(statusMessage))
                         {
-                            <div class="alert mt-4 @(isError ? "alert-danger" : "alert-success")">
+                            <div class="alert mb-3 @(isError ? "alert-danger" : "alert-success")">
                                 @statusMessage
                             </div>
                         }
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary btn-lg" disabled="@isSubmitting" @onclick="HandleRegister">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>Trwa rejestracja...</span>
+                                }
+                                else
+                                {
+                                    <span>Zarejestruj konto</span>
+                                }
+                            </button>
+                            <a href="/login" class="btn btn-link text-center">Powrót do logowania</a>
+                        </div>
                     }
                     else
                     {
@@ -100,52 +186,43 @@
     private bool _isRegistered = false;
     private string statusMessage = "";
     private bool isError = false;
+    private HashSet<string> _touched = new();
+    private bool _submitAttempted;
 
-    private ValidatedEditForm<RegisterUserDto>? formRef;
+    private static readonly System.Text.RegularExpressions.Regex PasswordComplexity =
+        new(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$");
 
-    private void HandleInvalidSubmit(EditContext context)
-    {
-        statusMessage = "Uzupełnij wymagane pola.";
-        isError = true;
-    }
+    private void Touch(string field) => _touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
 
-    private static string NormalizeFieldName(string original)
-    {
-        if (string.IsNullOrWhiteSpace(original))
-            return original ?? string.Empty;
-
-        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < parts.Length; i++)
-        {
-            var p = parts[i];
-            if (p.Length == 0) continue;
-            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
-        }
-        return string.Join('.', parts);
-    }
+    private bool IsValid() =>
+        !string.IsNullOrWhiteSpace(_regModel.Email) && EmailFormatHelper.IsValidOrEmpty(_regModel.Email) &&
+        !string.IsNullOrWhiteSpace(_regModel.Password) && PasswordComplexity.IsMatch(_regModel.Password) &&
+        _regModel.Password == _regModel.ConfirmPassword &&
+        !string.IsNullOrWhiteSpace(_regModel.Name) &&
+        !string.IsNullOrWhiteSpace(_regModel.CompanyName) &&
+        System.Text.RegularExpressions.Regex.IsMatch(_regModel.Nip ?? "", @"^\d{10}$") &&
+        System.Text.RegularExpressions.Regex.IsMatch(_regModel.BankAccountNumber ?? "", @"^PL\d{26}$") &&
+        !string.IsNullOrWhiteSpace(_regModel.Address.Street) &&
+        !string.IsNullOrWhiteSpace(_regModel.Address.Number) &&
+        !string.IsNullOrWhiteSpace(_regModel.Address.City) &&
+        System.Text.RegularExpressions.Regex.IsMatch(_regModel.Address.PostalCode ?? "", @"^\d{2}-\d{3}$") &&
+        !string.IsNullOrWhiteSpace(_regModel.Address.Country);
 
     private async Task HandleRegister()
     {
-        formRef?.ClearServerErrors();
-        formRef?.EditContext?.NotifyValidationStateChanged();
+        _submitAttempted = true;
+        statusMessage = "";
+        isError = false;
 
-        if (string.IsNullOrWhiteSpace(_regModel.Email)) formRef?.AddServerError(nameof(_regModel.Email), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Password)) formRef?.AddServerError(nameof(_regModel.Password), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Name)) formRef?.AddServerError(nameof(_regModel.Name), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.CompanyName)) formRef?.AddServerError(nameof(_regModel.CompanyName), "Wymagane");
-        if (string.IsNullOrWhiteSpace(_regModel.Nip)) formRef?.AddServerError(nameof(_regModel.Nip), "Wymagane");
-
-        var addr = _regModel.Address;
-        if (addr == null || string.IsNullOrWhiteSpace(addr.Street) || string.IsNullOrWhiteSpace(addr.City))
+        if (!IsValid())
         {
-            statusMessage = "Uzupełnij wymagane dane adresowe.";
+            statusMessage = "Uzupełnij poprawnie wszystkie wymagane pola.";
             isError = true;
             return;
         }
 
         isSubmitting = true;
-        statusMessage = "";
-        isError = false;
 
         try
         {
@@ -172,7 +249,12 @@
         }
         catch (ApiException aex)
         {
-            bool addedAny = false;
+            var userMessage = aex.GetUserMessage();
+            if (!userMessage.StartsWith("Błąd"))
+                userMessage = "Błąd: " + userMessage;
+
+            statusMessage = userMessage;
+            isError = true;
 
             if (!string.IsNullOrWhiteSpace(aex.Response))
             {
@@ -181,24 +263,25 @@
                     using var doc = JsonDocument.Parse(aex.Response);
                     if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
                     {
+                        var sb = new System.Text.StringBuilder();
                         foreach (var prop in errorsElement.EnumerateObject())
                         {
-                            var rawField = prop.Name;
-                            var fieldName = NormalizeFieldName(rawField);
                             foreach (var msgElem in prop.Value.EnumerateArray())
                             {
-                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
-                                formRef?.AddServerError(fieldName, fieldMsg);
-                                addedAny = true;
+                                var raw = msgElem.GetString();
+                                if (!string.IsNullOrWhiteSpace(raw))
+                                {
+                                    var sanitizedMsg = ApiExceptionExtensions.SanitizeMessage(raw);
+                                    if (!sanitizedMsg.StartsWith("Błąd"))
+                                        sanitizedMsg = "Błąd: " + sanitizedMsg;
+                                    if (sb.Length > 0) sb.Append(" ; ");
+                                    sb.Append(sanitizedMsg);
+                                }
                             }
                         }
-
-                        if (addedAny)
+                        if (sb.Length > 0)
                         {
-                            formRef?.EditContext?.NotifyValidationStateChanged();
-                            isError = true;
-                            isSubmitting = false;
-                            return;
+                            statusMessage = sb.ToString();
                         }
                     }
                 }
@@ -206,14 +289,6 @@
                 {
                 }
             }
-
-            var userMessage = aex.GetUserMessage();
-            if (!userMessage.StartsWith("Błąd"))
-                userMessage = "Błąd: " + userMessage;
-
-            statusMessage = userMessage;
-            isError = true;
-            formRef?.EditContext?.NotifyValidationStateChanged();
         }
         catch (Exception ex)
         {

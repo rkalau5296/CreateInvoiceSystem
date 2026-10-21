@@ -1,0 +1,32 @@
+﻿@namespace CreateInvoiceSystem.Frontend.Components
+
+<input type="text"
+       class="@CssClass"
+       value="@Value"
+       placeholder="@Placeholder"
+       @oninput="OnInput" />
+
+@if (ShowError)
+{
+    <span class="text-danger small">@ErrorMessage</span>
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string ErrorMessage { get; set; } = "IBAN musi zaczynać się od PL i zawierać dokładnie 26 cyfr";
+
+    private bool IsInvalid => !System.Text.RegularExpressions.Regex.IsMatch(Value ?? "", @"^PL\d{26}$");
+    private bool ShowError => IsActive && IsInvalid;
+
+    private string CssClass =>
+        !IsActive ? "form-control" :
+        IsInvalid ? "form-control is-invalid" : "form-control is-valid";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        await ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+}
