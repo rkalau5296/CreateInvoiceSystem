@@ -9,6 +9,7 @@ public class InvoiceEntity
     public string? Comments { get; set; }
     public int UserId { get; set; }    
     public string MethodOfPayment { get; set; } = string.Empty;
+    public string Currency { get; set; } = "PLN";
     public string? SellerName { get; set; }
     public string? SellerNip { get; set; }
     public string? SellerAddress { get; set; }

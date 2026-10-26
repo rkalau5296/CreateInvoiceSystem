@@ -162,7 +162,7 @@ public class CreateInvoiceRequestValidatorTests
             Client = null!,
             InvoicePositions = new List<InvoicePositionDto>
             {
-                new InvoicePositionDto(0, 0, 1, null!, "Item", "Desc", 1250.00m, 1, "23%")
+                new InvoicePositionDto(0, 0, 1, null!, "Item", "Desc", 1250.00m, 1, "23%", "szt.")
             }
         };
     }

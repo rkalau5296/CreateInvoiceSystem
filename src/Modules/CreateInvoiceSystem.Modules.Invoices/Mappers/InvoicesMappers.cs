@@ -29,7 +29,8 @@ public static class InvoiceMappers
         invoice.ClientName,
         invoice.ClientNip,
         invoice.ClientAddress,
-        invoice.ClientEmail
+        invoice.ClientEmail,
+        invoice.Currency
     );
 
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
@@ -44,7 +45,8 @@ public static class InvoiceMappers
             invoicePosition.ProductDescription,
             invoicePosition.ProductValue,
             invoicePosition.Quantity,
-            invoicePosition.VatRate
+            invoicePosition.VatRate,
+            invoicePosition.UnitOfMeasure
         );
 
     public static Invoice ToInvoiceWithNewClient(this CreateInvoiceDto dto, Client client, User user)
@@ -75,7 +77,8 @@ public static class InvoiceMappers
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
             ClientEmail = dto.ClientEmail ?? string.Empty,
-            InvoicePositions = []
+            InvoicePositions = [],
+            Currency = dto.Currency,
         };
     }
 
@@ -112,7 +115,8 @@ public static class InvoiceMappers
             ClientNip = client.Nip,
             ClientAddress = FormatAddress(client.Address),
             ClientEmail = client.Email,
-            InvoicePositions = []
+            InvoicePositions = [],
+            Currency = dto.Currency
         };
     }
 
@@ -152,8 +156,9 @@ public static class InvoiceMappers
                     ip.ProductDescription,
                     ip.ProductValue,
                     ip.Quantity,
-                    ip.VatRate,
-                    null
+                    ip.VatRate,                    
+                    null,
+                    ip.UnitOfMeasure
                 )).ToList() ?? [],
             invoice.SellerName,
             invoice.SellerNip,
@@ -162,7 +167,8 @@ public static class InvoiceMappers
             invoice.ClientName,
             invoice.ClientNip,
             invoice.ClientAddress,
-            invoice.ClientEmail
+            invoice.ClientEmail,
+            invoice.Currency
         );
 
     public static Client ToEntity(this CreateClientDto dto) =>

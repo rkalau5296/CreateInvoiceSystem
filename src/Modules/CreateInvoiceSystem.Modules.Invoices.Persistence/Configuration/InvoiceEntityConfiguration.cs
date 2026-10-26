@@ -18,6 +18,7 @@ public class InvoiceEntityConfiguration : IEntityTypeConfiguration<InvoiceEntity
         builder.Property(i => i.TotalGross).HasPrecision(38, 2);
         builder.Property(i => i.Title).HasMaxLength(250);
         builder.Property(i => i.MethodOfPayment).HasMaxLength(100);
+        builder.Property(i => i.Currency).HasMaxLength(3).IsRequired().HasDefaultValue("PLN");
         builder.Property(i => i.SellerName).HasMaxLength(200).IsRequired(false); ;
         builder.Property(i => i.SellerNip).HasMaxLength(50).IsRequired(false); ;
         builder.Property(i => i.SellerAddress).HasMaxLength(500).IsRequired(false);

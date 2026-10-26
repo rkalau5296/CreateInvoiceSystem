@@ -7,7 +7,7 @@ public class InvoicePosition
     public string ProductDescription { get; set; } = string.Empty;
     public decimal? ProductValue { get; set; }
     public int Quantity { get; set; }
-
+    public string UnitOfMeasure { get; set; } = "szt.";
     public string VatRate { get; set; } = "23%";
     public decimal GetNetValue() => Math.Round((ProductValue ?? 0) * Quantity, 2, MidpointRounding.AwayFromZero);    
 

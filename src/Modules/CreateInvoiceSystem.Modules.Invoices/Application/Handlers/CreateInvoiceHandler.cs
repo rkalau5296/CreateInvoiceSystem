@@ -110,7 +110,8 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 ProductValue = product.Value,
-                VatRate = position.VatRate
+                VatRate = position.VatRate,
+                UnitOfMeasure = position.UnitOfMeasure
             };
             entity.InvoicePositions.Add(invoicePosition);
         }

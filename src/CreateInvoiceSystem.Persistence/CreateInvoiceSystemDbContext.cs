@@ -75,5 +75,11 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.Entity<InvoicePositionEntity>()
             .Property(p => p.ProductDescription)
             .IsRequired(false);
+
+        modelBuilder.Entity<InvoicePositionEntity>()
+            .Property(p => p.UnitOfMeasure)
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValue("szt.");
     }
 }

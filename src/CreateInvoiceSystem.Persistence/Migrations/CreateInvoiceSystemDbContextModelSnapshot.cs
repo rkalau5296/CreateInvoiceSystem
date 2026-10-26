@@ -59,6 +59,13 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("PLN");
+
                     b.Property<string>("MethodOfPayment")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -131,6 +138,13 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("szt.");
 
                     b.Property<string>("VatRate")
                         .IsRequired()

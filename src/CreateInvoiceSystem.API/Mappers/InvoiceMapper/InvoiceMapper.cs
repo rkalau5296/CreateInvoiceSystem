@@ -49,6 +49,7 @@ public static class InvoiceMapper
             Comments = invoice.Comments,            
             UserId = invoice.UserId,
             MethodOfPayment = invoice.MethodOfPayment,
+            Currency = invoice.Currency,
             SellerName = invoice.SellerName,
             SellerNip = invoice.SellerNip,
             SellerAddress = invoice.SellerAddress,
@@ -69,7 +70,8 @@ public static class InvoiceMapper
             ProductDescription = ip.ProductDescription,
             ProductValue = ip.ProductValue,
             Quantity = ip.Quantity,
-            VatRate = ip.VatRate
+            VatRate = ip.VatRate,
+            UnitOfMeasure = ip.UnitOfMeasure
         };
     }
 
@@ -138,7 +140,8 @@ public static class InvoiceMapper
             ProductDescription = e.ProductDescription ?? string.Empty,
             ProductValue = e.ProductValue,
             Quantity = e.Quantity,
-            VatRate = e.VatRate
+            VatRate = e.VatRate,
+            UnitOfMeasure = e.UnitOfMeasure
         };
     }
 
@@ -163,6 +166,7 @@ public static class InvoiceMapper
             Comments = e.Comments ?? string.Empty,            
             UserId = e.UserId,
             MethodOfPayment = e.MethodOfPayment,
+            Currency = e.Currency ?? "PLN",
             SellerName = e.SellerName ?? string.Empty,
             SellerNip = e.SellerNip ?? string.Empty,
             SellerAddress = e.SellerAddress ?? string.Empty,
@@ -191,6 +195,7 @@ public static class InvoiceMapper
             Comments = e.Comments ?? string.Empty,            
             UserId = e.UserId,
             MethodOfPayment = e.MethodOfPayment,
+            Currency = e.Currency ?? "PLN",
             SellerName = e.SellerName ?? string.Empty,
             SellerNip = e.SellerNip ?? string.Empty,
             SellerAddress = e.SellerAddress ?? string.Empty,
@@ -207,7 +212,8 @@ public static class InvoiceMapper
                 ProductDescription = ip.ProductDescription ?? string.Empty,
                 ProductValue = ip.ProductValue,
                 Quantity = ip.Quantity,
-                VatRate = ip.VatRate                
+                VatRate = ip.VatRate,
+                UnitOfMeasure = ip.UnitOfMeasure
             })]
         };
     }

@@ -170,6 +170,7 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                 existingPosition.ProductValue = product.Value;
                 existingPosition.Quantity = incomingPosition.Quantity;
                 existingPosition.VatRate = incomingPosition.VatRate;
+                existingPosition.UnitOfMeasure = incomingPosition.UnitOfMeasure;
             }
             else
             {
@@ -180,7 +181,8 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                     ProductDescription = product.Description,
                     ProductValue = product.Value,
                     Quantity = incomingPosition.Quantity,
-                    VatRate = incomingPosition.VatRate
+                    VatRate = incomingPosition.VatRate,
+                    UnitOfMeasure = incomingPosition.UnitOfMeasure,
                 });
             }
         }

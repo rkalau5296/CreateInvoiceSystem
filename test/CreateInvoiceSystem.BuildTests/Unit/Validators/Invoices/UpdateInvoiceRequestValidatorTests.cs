@@ -86,7 +86,8 @@ public class UpdateInvoiceRequestValidatorTests
             ClientName: "Client Name",
             ClientNip: "1234567890",
             ClientAddress: "Street 1, City",
-            ClientEmail: "testc@test.com"
+            ClientEmail: "testc@test.com",
+            Currency: "PLN"
         );
     }
 }
