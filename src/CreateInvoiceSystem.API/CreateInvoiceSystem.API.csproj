@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" >
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -36,6 +36,7 @@
     <ProjectReference Include="..\CreateInvoiceSystem.Persistence\CreateInvoiceSystem.Persistence.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Clients\CreateInvoiceSystem.Modules.Clients.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Invoices\CreateInvoiceSystem.Modules.Invoices.csproj" />
+    <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Ksef\CreateInvoiceSystem.Modules.Ksef.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Nbp\CreateInvoiceSystem.Modules.Nbp.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Products\CreateInvoiceSystem.Modules.Products.csproj" />
     <ProjectReference Include="..\Modules\CreateInvoiceSystem.Modules.Users\CreateInvoiceSystem.Modules.Users.csproj" />

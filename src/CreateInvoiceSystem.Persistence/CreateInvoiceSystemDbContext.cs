@@ -14,6 +14,9 @@ using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Persistence.Configuration;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Configuration;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -23,7 +26,7 @@ namespace CreateInvoiceSystem.Persistence;
 
 public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDbContext> options)
     : IdentityDbContext<UserEntity, IdentityRole<int>, int>(options),
-      IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext
+      IAddressDbContext, IClientDbContext, IProductDbContext, IInvoicePosistionDbContext, IInvoiceDbContext, IUserDbContext, IDbContext, IKsefDbContext
 {
     public DbSet<AddressEntity> Addresses { get; set; }
     public DbSet<ClientEntity> Clients { get; set; }
@@ -31,6 +34,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<InvoicePositionEntity> InvoicePositions { get; set; }
     public DbSet<InvoiceEntity> Invoices { get; set; }
     public DbSet<UserSessionEntity> UserSessions { get; set; }
+    public DbSet<KsefOutgoingInvoiceStatus> KsefOutgoingInvoiceStatuses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,7 +44,14 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClientEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserEntityConfiguration).Assembly);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);             
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(KsefOutgoingInvoiceStatusEntityConfiguration).Assembly);
+
+        modelBuilder.Entity<KsefOutgoingInvoiceStatus>()
+            .HasOne<InvoiceEntity>()
+            .WithOne()
+            .HasForeignKey<KsefOutgoingInvoiceStatus>(k => k.InvoiceId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<InvoiceEntity>()
             .HasOne<UserEntity>()

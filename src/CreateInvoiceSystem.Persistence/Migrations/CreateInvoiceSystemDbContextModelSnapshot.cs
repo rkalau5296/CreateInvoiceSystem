@@ -17,7 +17,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -179,6 +179,49 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasFilter("[Nip] IS NOT NULL");
 
                     b.ToTable("Clients", (string)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>
+                {
+                    b.Property<int>("KsefOutgoingInvoiceStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KsefOutgoingInvoiceStatusId"));
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ElementReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("KsefReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpoXml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("KsefOutgoingInvoiceStatusId");
+
+                    b.HasIndex("InvoiceId")
+                        .IsUnique();
+
+                    b.ToTable("KsefOutgoingInvoiceStatuses", (string)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Products.Persistence.Entities.ProductEntity", b =>
@@ -555,6 +598,15 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", null)
+                        .WithOne()
+                        .HasForeignKey("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", "InvoiceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>

@@ -9,6 +9,8 @@ using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
 using CreateInvoiceSystem.Modules.Invoices.Application.Services;
 using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Ksef.DI;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.DI;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
@@ -78,6 +80,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddCsvModule();
 builder.Services.AddPdfModule();
 builder.Services.AddNbpModule(builder.Configuration);
+builder.Services.AddKsefModule(builder.Configuration);
+builder.Services.AddScoped<IKsefApiClient, KsefApiClient>();
 builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((serviceProvider, client) =>
 {
     var options =
