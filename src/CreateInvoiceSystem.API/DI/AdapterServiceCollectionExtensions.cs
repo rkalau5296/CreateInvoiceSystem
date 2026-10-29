@@ -1,11 +1,13 @@
 ﻿using CreateInvoiceSystem.API.Adapters.CsvDataAdapter;
 using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
+using CreateInvoiceSystem.API.Adapters.KsefInvoiceXmlAdapter;
 using CreateInvoiceSystem.API.Adapters.PdfAdapter;
 using CreateInvoiceSystem.API.Adapters.UserAuthAdapter;
 using CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 using CreateInvoiceSystem.API.Adapters.UserTokenAdapter;
 using CreateInvoiceSystem.Csv.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Interfaces;
 
 namespace CreateInvoiceSystem.API.DI;
@@ -20,6 +22,7 @@ public static class AdapterServiceCollectionExtensions
         services.AddTransient<IInvoiceEmailSender, InvoiceEmailAdapter>();
         services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
         services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
+        services.AddScoped<IKsefInvoiceXmlGenerator, KsefInvoiceXmlAdapter>();
 
         return services;
     }

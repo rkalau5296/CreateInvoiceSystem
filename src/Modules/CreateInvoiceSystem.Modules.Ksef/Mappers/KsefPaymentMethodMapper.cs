@@ -1,4 +1,4 @@
-﻿namespace CreateInvoiceSystem.Modules.Ksef.Application.Mapping;
+﻿namespace CreateInvoiceSystem.Modules.Ksef.Mappers;
 
 public static class KsefPaymentMethodMapper
 {

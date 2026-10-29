@@ -16,8 +16,4 @@
 		<ProjectReference Include="..\..\CreateInvoiceSystem.Abstractions\CreateInvoiceSystem.Abstractions.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Controllers\" />
-	</ItemGroup>
-
 </Project>
