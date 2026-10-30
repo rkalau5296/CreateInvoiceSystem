@@ -69,6 +69,9 @@ public static class InvoiceToFa3XmlMapper
                 new XElement(Fa3Ns + "Email", request.ClientEmail)));
         }
 
+        podmiot2.Add(new XElement(Fa3Ns + "JST", "2"));
+        podmiot2.Add(new XElement(Fa3Ns + "GV", "2"));
+
         return podmiot2;
     }
 

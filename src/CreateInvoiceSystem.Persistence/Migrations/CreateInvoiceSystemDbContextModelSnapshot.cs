@@ -230,6 +230,9 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<string>("UpoXml")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("KsefOutgoingInvoiceStatusId");
 
                     b.HasIndex("InvoiceId")

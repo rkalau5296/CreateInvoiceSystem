@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Modules.Ksef.Application.Options;
+using CreateInvoiceSystem.Modules.Ksef.Application.Services;
 using KSeF.Client.DI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class KsefServiceCollectionExtensions
         });
 
         services.AddCryptographyClient();
+        services.AddHostedService<KsefSendingBackgroundService>();
 
         return services;
     }
