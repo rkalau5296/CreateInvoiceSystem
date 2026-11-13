@@ -19,4 +19,11 @@ public class KsefController(IKsefOutboxRepository outboxRepository) : Controller
         var outboxId = await outboxRepository.EnqueueAsync(actualUserId, invoiceId, cancellationToken);        
         return Accepted(new { OutboxId = outboxId });
     }
+
+    [HttpGet("{invoiceId:int}/status")]
+    public async Task<IActionResult> GetStatusAsync([FromRoute] int invoiceId, CancellationToken cancellationToken)
+    {
+        var status = await outboxRepository.GetStatusByInvoiceIdAsync(invoiceId, cancellationToken);
+        return Ok(status);
+    }
 }

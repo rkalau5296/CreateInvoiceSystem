@@ -14,7 +14,7 @@
             <i class="bi bi-arrow-left me-1"></i> Powrót do listy
         </button>
 
-        <div class="btn-group">
+        <div class="btn-group align-items-center">
             <button class="btn btn-primary shadow-sm"
                     @onclick="DownloadPdf"
                     disabled="@(_isLoading || _isDownloading || _invoice == null)">
@@ -29,6 +29,30 @@
                     <span>Pobierz PDF</span>
                 }
             </button>
+
+            @if (_ksefStatus == null)
+            {
+                <button class="btn btn-outline-primary shadow-sm ms-2"
+                        @onclick="SendToKsef"
+                        disabled="@(_isLoading || _isSendingToKsef || _invoice == null)">
+                    @if (_isSendingToKsef)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Wysyłanie...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-send me-2"></i>
+                        <span>Wyślij do KSeF</span>
+                    }
+                </button>
+            }
+            else
+            {
+                <span class="badge @KsefStatusBadgeClass(_ksefStatus.Status) fs-6 shadow-sm ms-2">
+                    @KsefStatusLabel(_ksefStatus.Status)
+                </span>
+            }
         </div>
     </div>
 
@@ -188,6 +212,8 @@
     private string? _errorMessage;
     private bool _isLoading = true;
     private bool _isDownloading = false;
+    private KsefStatusDto? _ksefStatus;
+    private bool _isSendingToKsef = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -204,6 +230,8 @@
 
             if (_invoice == null)
                 _errorMessage = "Nie znaleziono faktury o podanym identyfikatorze.";
+            else
+                _ksefStatus = await InvoiceService.GetKsefStatusAsync(Id);
         }
         catch (Exception ex)
         {
@@ -214,6 +242,44 @@
             _isLoading = false;
         }
     }
+
+    private async Task SendToKsef()
+    {
+        if (_invoice == null || _isSendingToKsef) return;
+
+        try
+        {
+            _isSendingToKsef = true;
+            await InvoiceService.SendToKsefAsync(Id);
+            _ksefStatus = new KsefStatusDto { Status = 0 };
+        }
+        catch (Exception ex)
+        {
+            HandleException(ex, "wysyłki do KSeF");
+        }
+        finally
+        {
+            _isSendingToKsef = false;
+        }
+    }
+
+    private static string KsefStatusLabel(int status) => status switch
+    {
+        0 => "Wysyłanie do KSeF...",
+        1 => "Oczekuje na potwierdzenie KSeF",
+        2 => "Zaakceptowana przez KSeF",
+        3 => "Odrzucona przez KSeF",
+        _ => "Nieznany status KSeF"
+    };
+
+    private static string KsefStatusBadgeClass(int status) => status switch
+    {
+        0 => "bg-secondary",
+        1 => "bg-warning text-dark",
+        2 => "bg-success",
+        3 => "bg-danger",
+        _ => "bg-secondary"
+    };
 
     private (decimal VatAmount, decimal GrossAmount) CalculateLineTotals(InvoicePositionDto pos)
     {

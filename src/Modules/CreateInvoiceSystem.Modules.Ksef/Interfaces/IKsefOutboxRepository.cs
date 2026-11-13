@@ -10,4 +10,5 @@ public interface IKsefOutboxRepository
     Task MarkSucceededAsync(int id, KsefSendResult result, CancellationToken cancellationToken);
     Task MarkFailedAsync(int id, string errorMessage, CancellationToken cancellationToken);
     Task SaveChangesAsync(CancellationToken cancellationToken);
+    Task<KsefOutboxStatus?> GetStatusByInvoiceIdAsync(int invoiceId, CancellationToken cancellationToken);
 }
