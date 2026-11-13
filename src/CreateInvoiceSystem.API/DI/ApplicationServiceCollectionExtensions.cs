@@ -1,6 +1,7 @@
 ﻿using CreateInvoiceSystem.Modules.Clients.Application.RequestsResponses.GetClients;
 using CreateInvoiceSystem.Modules.Clients.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncomingKsefInvoices;
 using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
@@ -22,6 +23,7 @@ public static class ApplicationServiceCollectionExtensions
             typeof(GetUsersRequest).Assembly,
             typeof(GetActualCurrencyRatesRequest).Assembly,
             typeof(GetInvoicesRequest).Assembly,
+            typeof(GetIncomingKsefInvoicesRequest).Assembly,
             typeof(ActivateUserHandler).Assembly
         ));
 

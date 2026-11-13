@@ -1,0 +1,247 @@
+@page "/ksef/invoices/view/{KsefNumber}"
+@using CreateInvoiceSystem.Frontend.Components
+@using CreateInvoiceSystem.Frontend.Models
+@inject KsefService KsefService
+@inject NavigationManager Navigation
+
+<PageTitle>Faktura KSeF @_invoice?.InvoiceNumber</PageTitle>
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary shadow-sm" @onclick='() => Navigation.NavigateTo("/ksef/invoices")'>
+            <i class="bi bi-arrow-left me-1"></i> Powrót do faktur zakupowych
+        </button>
+
+        <button class="btn btn-outline-primary shadow-sm"
+                @onclick="DownloadXml"
+                disabled="@(_isLoading || _isDownloadingXml || _invoice == null)">
+            @if (_isDownloadingXml)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span>Pobieranie...</span>
+            }
+            else
+            {
+                <i class="bi bi-filetype-xml me-2"></i>
+                <span>Pobierz oryginalny XML</span>
+            }
+        </button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted">Pobieranie faktury z KSeF...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="alert alert-danger shadow-sm border-start border-5 border-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@_errorMessage
+        </div>
+    }
+    else if (_invoice is not null)
+    {
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-dark text-white p-4">
+                <div class="row align-items-center">
+                    <div class="col-sm-8">
+                        <p class="mb-0 small opacity-75 text-uppercase fw-lighter">Faktura zakupowa</p>
+                        <h3 class="mb-0 fw-bold">@_invoice.InvoiceNumber</h3>
+                        <div class="small opacity-75">Numer KSeF: @_invoice.KsefNumber</div>
+                    </div>
+                    <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
+                        <p class="mb-0 small opacity-75 text-uppercase fw-lighter">Data wystawienia</p>
+                        <span class="fs-5">@FormatDate(_invoice.IssueDate)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <div class="row mb-5 py-4 border-bottom border-top bg-light bg-opacity-50 rounded">
+                    <div class="col-md-6 border-end-md">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-3">
+                            <i class="bi bi-building me-2"></i>Sprzedawca
+                        </h6>
+                        <h5 class="fw-bold text-primary mb-2">@(_invoice.Seller.Name ?? "Brak danych")</h5>
+                        <div class="mb-1"><strong>NIP:</strong> @(_invoice.Seller.Nip ?? "---")</div>
+                        <div class="text-muted small">@(_invoice.Seller.Address ?? "---")</div>
+                        @if (!string.IsNullOrWhiteSpace(_invoice.Seller.Email))
+                        {
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-envelope me-1"></i>@_invoice.Seller.Email
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-6 ps-md-5 mt-4 mt-md-0">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-3">
+                            <i class="bi bi-person-badge me-2"></i>Nabywca
+                        </h6>
+                        <h5 class="fw-bold mb-2">@(_invoice.Buyer.Name ?? "Brak danych")</h5>
+                        <div class="mb-1"><strong>NIP:</strong> @(_invoice.Buyer.Nip ?? "---")</div>
+                        <div class="text-muted small">@(_invoice.Buyer.Address ?? "---")</div>
+                        @if (!string.IsNullOrWhiteSpace(_invoice.Buyer.Email))
+                        {
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-envelope me-1"></i>@_invoice.Buyer.Email
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover border align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px">Lp.</th>
+                                <th>Produkt / Usługa</th>
+                                <th class="text-center">Ilość</th>
+                                <th class="text-end">Cena netto</th>
+                                <th class="text-center">VAT</th>
+                                <th class="text-end">Wartość netto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_invoice.Lines.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        Faktura nie zawiera pozycji w standardowym układzie FA(3).
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var line in _invoice.Lines)
+                                {
+                                    <tr>
+                                        <td class="text-center text-muted">@line.Number</td>
+                                        <td class="fw-bold">@(!string.IsNullOrWhiteSpace(line.Description) ? line.Description : "—")</td>
+                                        <td class="text-center">
+                                            @line.Quantity.ToString("N2") @(line.UnitOfMeasure ?? "")
+                                        </td>
+                                        <td class="text-end">@line.UnitPrice.ToString("N2") @_invoice.Currency</td>
+                                        <td class="text-center">@(line.VatRate ?? "—")</td>
+                                        <td class="text-end fw-bold">@line.NetAmount.ToString("N2") @_invoice.Currency</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row pt-3">
+                    <div class="col-lg-7 mb-4 mb-lg-0">
+                        @if (_invoice.SaleDate.HasValue)
+                        {
+                            <div class="p-3 bg-light rounded border-start border-4 border-primary shadow-sm h-100">
+                                <h6 class="small fw-bold text-muted mb-3 text-uppercase">Dodatkowe informacje</h6>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Data sprzedaży:</span>
+                                    <span class="fw-bold">@FormatDate(_invoice.SaleDate)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="p-4 border rounded shadow-sm bg-white border-start-5 border-success">
+                            <h6 class="text-muted fw-bold text-uppercase small mb-3">Podsumowanie płatności</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Metoda płatności:</span>
+                                <span class="fw-bold">@PaymentMethodLabel(_invoice.PaymentMethod)</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block mb-1">Konto bankowe:</label>
+                                <div class="p-2 bg-light rounded fw-bold font-monospace border text-center small">
+                                    @FormatAccountNumber(_invoice.BankAccount)
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Suma netto:</span>
+                                <span>@_invoice.NetAmount.ToString("N2") @_invoice.Currency</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Suma VAT:</span>
+                                <span>@_invoice.VatAmount.ToString("N2") @_invoice.Currency</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="h5 mb-0 fw-bold">DO ZAPŁATY:</span>
+                                <span class="h4 mb-0 fw-bold text-primary">
+                                    @_invoice.GrossAmount.ToString("N2") @_invoice.Currency
+                                </span>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <span class="badge bg-danger p-2 px-3">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    Termin płatności: @FormatDate(_invoice.PaymentDueDate)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string KsefNumber { get; set; } = string.Empty;
+
+    private KsefInvoiceDetailsDto? _invoice;
+    private string? _errorMessage;
+    private bool _isLoading = true;
+    private bool _isDownloadingXml;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _invoice = await KsefService.GetInvoiceDetailsAsync(KsefNumber);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać szczegółów faktury: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task DownloadXml()
+    {
+        if (_invoice is null || _isDownloadingXml) return;
+
+        try
+        {
+            _isDownloadingXml = true;
+            _errorMessage = null;
+            await KsefService.DownloadInvoiceXmlAsync(_invoice.KsefNumber);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać XML faktury: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+        }
+        finally
+        {
+            _isDownloadingXml = false;
+        }
+    }
+
+    private static string FormatDate(DateOnly? date) => date?.ToString("d") ?? "—";
+
+    private static string PaymentMethodLabel(string? code) => code switch
+    {
+        "1" => "Gotówka",
+        "2" => "Karta",
+        "6" => "Przelew",
+        "7" => "BLIK",
+        _ => code ?? "Brak danych"
+    };
+
+    private static string FormatAccountNumber(string? accountNumber) =>
+        string.IsNullOrWhiteSpace(accountNumber) ? "---" : accountNumber;
+}

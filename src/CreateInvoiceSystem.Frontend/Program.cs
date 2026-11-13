@@ -37,6 +37,12 @@ namespace CreateInvoiceSystem.Frontend
             })
             .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
 
+            builder.Services.AddHttpClient<KsefService>(client =>
+            {
+                client.BaseAddress = apiUri;
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
+
             builder.Services.AddHttpClient<ClientService>(client =>
             {
                 client.BaseAddress = apiUri;

@@ -8,6 +8,7 @@ using KSeF.Client.Core.Interfaces.Clients;
 using KSeF.Client.Core.Interfaces.Services;
 using KSeF.Client.Core.Models;
 using KSeF.Client.Core.Models.Authorization;
+using KSeF.Client.Core.Models.Invoices;
 using KSeF.Client.Core.Models.Sessions;
 using KSeF.Client.Core.Models.Sessions.OnlineSession;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,7 @@ namespace CreateInvoiceSystem.API.RestServices;
 
 public sealed class KsefApiClient(
     IAuthorizationClient authorizationClient,
+    IInvoiceDownloadClient invoiceDownloadClient,
     IKSeFClient ksefClient,
     ICryptographyService cryptographyService,
     IOptions<KsefApiOptions> ksefOptions) : IKsefApiClient
@@ -163,6 +165,52 @@ public sealed class KsefApiClient(
             InvoiceReferenceNumber: sendResponse.ReferenceNumber,
             KsefNumber: sentInvoice.KsefNumber,
             UpoXml: upoXml);
+    }
+
+    public async Task<KsefInvoicePage> GetIncomingInvoicesAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        int pageOffset,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        string accessToken = await AuthenticateAsync(cancellationToken).ConfigureAwait(false);
+        var filters = new InvoiceQueryFilters
+        {
+            SubjectType = InvoiceSubjectType.Subject2,
+            DateRange = new DateRange
+            {
+                DateType = DateType.Issue,
+                From = new DateTimeOffset(fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)),
+                To = new DateTimeOffset(toDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc))
+            }
+        };
+
+        PagedInvoiceResponse response = await invoiceDownloadClient
+            .QueryInvoiceMetadataAsync(filters, accessToken, pageOffset, pageSize, SortOrder.Desc, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new KsefInvoicePage(
+            response.Invoices?.Select(invoice => new KsefInvoiceDto(
+                invoice.KsefNumber,
+                invoice.InvoiceNumber,
+                invoice.IssueDate,
+                invoice.Seller?.Name,
+                invoice.Seller?.Nip,
+                invoice.Buyer?.Name,
+                invoice.NetAmount,
+                invoice.VatAmount,
+                invoice.GrossAmount,
+                invoice.Currency)).ToList() ?? [],
+            response.HasMore);
+    }
+
+    public async Task<string> DownloadInvoiceXmlAsync(string ksefNumber, CancellationToken cancellationToken)
+    {
+        string accessToken = await AuthenticateAsync(cancellationToken).ConfigureAwait(false);
+        return await invoiceDownloadClient
+            .GetInvoiceAsync(ksefNumber, accessToken, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private async Task<SessionStatusResponse> PollSessionStatusAsync(

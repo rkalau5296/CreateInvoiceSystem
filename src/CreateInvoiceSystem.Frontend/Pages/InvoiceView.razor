@@ -3,6 +3,7 @@
 @using CreateInvoiceSystem.Frontend.Services
 @using Microsoft.JSInterop
 @inject InvoiceService InvoiceService
+@inject KsefService KsefService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -231,7 +232,7 @@
             if (_invoice == null)
                 _errorMessage = "Nie znaleziono faktury o podanym identyfikatorze.";
             else
-                _ksefStatus = await InvoiceService.GetKsefStatusAsync(Id);
+                _ksefStatus = await KsefService.GetInvoiceStatusAsync(Id);
         }
         catch (Exception ex)
         {
@@ -250,7 +251,7 @@
         try
         {
             _isSendingToKsef = true;
-            await InvoiceService.SendToKsefAsync(Id);
+            await KsefService.SendInvoiceAsync(Id);
             _ksefStatus = new KsefStatusDto { Status = 0 };
         }
         catch (Exception ex)

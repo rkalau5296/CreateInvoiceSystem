@@ -55,10 +55,10 @@ public class KsefOutboxRepository(IKsefDbContext db) : IKsefOutboxRepository
         entity.ErrorMessage = errorMessage;        
     }
 
-    public async Task<KsefOutboxStatus?> GetStatusByInvoiceIdAsync(int invoiceId, CancellationToken cancellationToken)
+    public async Task<KsefOutboxStatus?> GetStatusByInvoiceIdAsync(int userId, int invoiceId, CancellationToken cancellationToken)
     {
         return await db.KsefOutgoingInvoiceStatuses
-            .Where(s => s.InvoiceId == invoiceId)
+            .Where(s => s.UserId == userId && s.InvoiceId == invoiceId)
             .Select(s => new KsefOutboxStatus((int)s.Status, s.KsefReferenceNumber, s.ErrorMessage))
             .SingleOrDefaultAsync(cancellationToken);
     }

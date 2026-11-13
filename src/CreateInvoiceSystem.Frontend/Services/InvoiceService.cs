@@ -79,20 +79,6 @@ namespace CreateInvoiceSystem.Frontend.Services
             await _js.InvokeVoidAsync("downloadFile", "faktury.csv", "text/csv", fileBytes);
         }
 
-        public async Task<KsefStatusDto?> GetKsefStatusAsync(int invoiceId)
-        {
-            var response = await _http.GetAsync($"api/Ksef/{invoiceId}/status");
-            if (!response.IsSuccessStatusCode) return null;
-
-            return await response.Content.ReadFromJsonAsync<KsefStatusDto>();
-        }
-
-        public async Task SendToKsefAsync(int invoiceId)
-        {
-            var response = await _http.PostAsync($"api/Ksef/{invoiceId}/send", null);
-            await response.EnsureSuccessOrThrowApiExceptionAsync();
-        }
-
         public class GetInvoicesResponse
         {
             [JsonPropertyName("data")]
