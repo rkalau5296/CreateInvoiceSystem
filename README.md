@@ -106,6 +106,8 @@ Wartość BaseApiUrl musi być poprawnym absolutnym adresem URL API. Nie umieszc
 
 ### KSeF i ochrona tokenów
 
+Pakiet `KSeF.Client` jest pobierany z GitHub Packages organizacji CIRFMF i wymaga uwierzytelnienia. W GitHub Actions ustaw sekret repozytorium `KSEF_PACKAGES_TOKEN` na osobisty token GitHub (classic) z uprawnieniem `read:packages`. Token nie jest dostępny dla workflow pull requestów z forków. Lokalnie skonfiguruj dostęp zgodnie z [instrukcją klienta KSeF](https://github.com/CIRFMF/ksef-client-csharp/blob/main/nuget-package.md); nie zapisuj tokenu w repozytorium.
+
 Każdy użytkownik zapisuje własny token KSeF w **Ustawienia konta i firmy → Integracja KSeF**. Token jest powiązany z zapisanym w profilu NIP i środowiskiem KSeF skonfigurowanym przez `KsefApi:BaseUrl`. Status oznacza zapisanie tokenu, a nie potwierdzenie jego ważności przez KSeF. Po zmianie NIP, środowiska lub unieważnieniu tokenu należy zapisać odpowiedni nowy token. Aplikacja nie zwraca zapisanego tokenu do przeglądarki. Usuń stare `KsefApi:KsefToken` i `KsefApi:ContextIdentifierNip` z lokalnej i wdrożeniowej konfiguracji — nie są już używane. Jeśli token trafił do repozytorium lub logów, unieważnij go w KSeF i wygeneruj nowy.
 
 Aplikacja uruchamia się bez połączenia z KSeF. Certyfikaty są pobierane przy pierwszej operacji KSeF; wcześniej zlecone wysyłki są nadal obsługiwane w tle.

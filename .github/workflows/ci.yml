@@ -29,6 +29,8 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
+        env:
+          NuGetPackageSourceCredentials_ksef-github: Username=token;Password=${{ secrets.KSEF_PACKAGES_TOKEN }}
         run: dotnet restore CreateInvoiceSystem.sln
 
       - name: Build
@@ -55,6 +57,8 @@ jobs:
           path: coverage/report
 
       - name: Publish backend
+        env:
+          NuGetPackageSourceCredentials_ksef-github: Username=token;Password=${{ secrets.KSEF_PACKAGES_TOKEN }}
         run: dotnet publish src/CreateInvoiceSystem.API/CreateInvoiceSystem.API.csproj -c Release -o ./publish-backend
 
       - name: Zip backend
@@ -70,6 +74,8 @@ jobs:
           path: publish-backend.zip
 
       - name: Publish frontend host
+        env:
+          NuGetPackageSourceCredentials_ksef-github: Username=token;Password=${{ secrets.KSEF_PACKAGES_TOKEN }}
         run: dotnet publish src/CreateInvoiceSystem.Frontend.Host/CreateInvoiceSystem.Frontend.Host.csproj -c Release -o ./publish-frontend
 
       - name: Zip frontend host
@@ -97,6 +103,8 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
+        env:
+          NuGetPackageSourceCredentials_ksef-github: Username=token;Password=${{ secrets.KSEF_PACKAGES_TOKEN }}
         run: dotnet restore CreateInvoiceSystem.sln
 
       - name: Build
