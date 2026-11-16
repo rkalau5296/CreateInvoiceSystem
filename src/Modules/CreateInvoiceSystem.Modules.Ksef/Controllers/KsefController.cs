@@ -40,10 +40,10 @@ public class KsefController : ApiControllerBase
     public async Task<IActionResult> SaveSettingsAsync([FromBody] SaveKsefSettingsDto settings, CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
-        if (settings is null || string.IsNullOrWhiteSpace(settings.Token))
+        if (settings is null)
             return BadRequest("Podaj token KSeF.");
         Response.Headers.CacheControl = "no-store";
-        await _mediator.Send(new SaveKsefSettingsRequest(userId, settings.Token), cancellationToken);
+        await _mediator.Send(new SaveKsefSettingsRequest(userId, settings.Token ?? string.Empty), cancellationToken);
         return NoContent();
     }
 
@@ -82,13 +82,6 @@ public class KsefController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
-        if (request.FromDate > request.ToDate
-            || request.PageNumber < 1
-            || request.PageSize is < 1 or > 100)
-        {
-            return BadRequest("Nieprawidłowy zakres dat lub parametry stronicowania.");
-        }
-
         request.UserId = userId;
         var response = await _mediator.Send(request, cancellationToken);
         return Ok(response);
@@ -100,8 +93,6 @@ public class KsefController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
-        if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
-
         var xml = await _mediator.Send(new GetKsefInvoiceXmlRequest(ksefNumber) { UserId = userId }, cancellationToken);
         var safeFileName = string.Concat(ksefNumber.Select(character =>
             char.IsLetterOrDigit(character) || character is '-' or '_' or '.' ? character : '_'));
@@ -112,7 +103,6 @@ public class KsefController : ApiControllerBase
     public async Task<IActionResult> GetInvoicePdfAsync([FromRoute] string ksefNumber, CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
-        if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
         Response.Headers.CacheControl = "no-store";
         var pdf = await _mediator.Send(new GetKsefInvoicePdfRequest(userId, ksefNumber), cancellationToken);
         var safeFileName = string.Concat(ksefNumber.Select(character =>
@@ -126,8 +116,6 @@ public class KsefController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
-        if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
-
         var response = await _mediator.Send(new GetKsefInvoiceDetailsRequest(ksefNumber) { UserId = userId }, cancellationToken);
         return Ok(response);
     }

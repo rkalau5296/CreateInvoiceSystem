@@ -2,6 +2,7 @@
 using CreateInvoiceSystem.Modules.Clients.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncomingKsefInvoices;
+using CreateInvoiceSystem.Modules.Ksef.Application.Validators;
 using CreateInvoiceSystem.Modules.Invoices.Application.Validators;
 using CreateInvoiceSystem.Modules.Nbp.Application.RequestResponse.ActualRates;
 using CreateInvoiceSystem.Modules.Products.Application.RequestsResponses.GetProducts;
@@ -35,6 +36,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<UpdateUserRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateInvoiceRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateInvoiceRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<GetIncomingKsefInvoicesRequestValidator>();
         
         return services;
     }

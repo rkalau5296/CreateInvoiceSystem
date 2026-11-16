@@ -156,7 +156,7 @@ public class ExceptionHandlingMiddleware
         context.Response.Clear();
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = status;
-        await context.Response.WriteAsync(JsonSerializer.Serialize(problem, options)).ConfigureAwait(false);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(problem, problem.GetType(), options)).ConfigureAwait(false);
     }
 
     private static bool IsConnectionIssue(Exception? ex)
