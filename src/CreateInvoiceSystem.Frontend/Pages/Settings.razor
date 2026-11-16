@@ -224,7 +224,7 @@
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
+            var response = await Http.GetFromJsonAsync("api/User/me", FrontendJsonContext.Default.GetMeResponse);
 
             if (response?.Data != null)
             {
@@ -354,7 +354,7 @@
 
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel);
+            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel, FrontendJsonContext.Default.UpdateUserDto);
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = "Ustawienia zapisane!";

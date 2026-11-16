@@ -56,9 +56,9 @@ public static class InvoiceFaker
                 {
                     var client = ClientFaker.Generate(user);                    
                     invoice.ClientName = client.Name;
-                    invoice.ClientNip = client.Nip;
+                    invoice.ClientNip = client.Nip ?? throw new InvalidOperationException("Wygenerowany kontrahent nie ma numeru NIP.");
                     var address = AddressFaker.Generate();
-                    invoice.ClientAddress = FormatAddress(address)!;
+                    invoice.ClientAddress = FormatAddress(address);
                     break;
                 }
 
@@ -67,8 +67,8 @@ public static class InvoiceFaker
                 {
                     if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));                    
                     invoice.ClientName = dbClient.Name;
-                    invoice.ClientNip = dbClient.Nip;
-                    invoice.ClientAddress = FormatAddress(dbClientAddress)!;
+                    invoice.ClientNip = dbClient.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP.");
+                    invoice.ClientAddress = FormatAddress(dbClientAddress ?? throw new ArgumentNullException(nameof(dbClientAddress)));
                     break;
                 }
         }
@@ -123,6 +123,6 @@ public static class InvoiceFaker
 
     private static int RandomQuantity() => new Faker().Random.Int(1, 10);
 
-    private static string? FormatAddress(AddressEntity? address) =>
-        address == null ? null : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
+    private static string FormatAddress(AddressEntity address) =>
+        $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-#nullable disable
+#nullable enable
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
@@ -18,7 +18,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
@@ -320,7 +319,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.Navigation("Products");
                 });
-#pragma warning restore 612, 618
         }
     }
 }

@@ -2,9 +2,9 @@
 public record UpdateClientDto(
     int ClientId,      
     string Name,      
-    string Nip,    
+    string? Nip,
     AddressDto Address,
     int AddressId,    
     int UserId,
-    string Email
+    string? Email
 );

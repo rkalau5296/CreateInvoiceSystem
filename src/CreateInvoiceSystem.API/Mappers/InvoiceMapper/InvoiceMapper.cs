@@ -24,14 +24,15 @@ public static class InvoiceMapper
 
     public static ClientEntity ToClientEntity(Client c)
     {
+        ArgumentNullException.ThrowIfNull(c);
         return new ClientEntity
         {
-            ClientId = c?.ClientId ?? 0,
-            Name = c?.Name,
-            Nip = c?.Nip,
-            AddressId = c?.AddressId ?? 0,
-            UserId = c?.UserId ?? 0,
-            Email = c?.Email
+            ClientId = c.ClientId,
+            Name = c.Name,
+            Nip = c.Nip,
+            AddressId = c.AddressId,
+            UserId = c.UserId,
+            Email = c.Email
         };
     }
 

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-#nullable disable
+#nullable enable
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
@@ -18,7 +18,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.19")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
@@ -112,7 +111,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasIndex("UserId", "Title")
                         .IsUnique();
 
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("Invoices", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoicePositionEntity", b =>
@@ -191,7 +190,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[Nip] IS NOT NULL");
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Products.Persistence.Entities.ProductEntity", b =>
@@ -218,7 +217,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("ProductId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>
@@ -329,7 +328,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserSessionEntity", b =>
@@ -359,7 +358,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Shared.Persistence.AddressEntity", b =>
@@ -397,7 +396,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("AddressId");
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -427,7 +426,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -451,7 +450,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -475,7 +474,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
@@ -496,7 +495,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
@@ -511,7 +510,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -530,7 +529,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", b =>
@@ -649,7 +648,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                 {
                     b.Navigation("InvoicePositions");
                 });
-#pragma warning restore 612, 618
         }
     }
 }

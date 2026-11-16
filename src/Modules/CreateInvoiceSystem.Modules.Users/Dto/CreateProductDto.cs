@@ -2,7 +2,7 @@
 
 public record CreateProductDto(
     string Name,
-    string Description,
+    string? Description,
     decimal? Value,
     int UserId 
 );

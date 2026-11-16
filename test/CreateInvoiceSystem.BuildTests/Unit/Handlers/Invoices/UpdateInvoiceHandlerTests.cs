@@ -212,6 +212,24 @@ public class UpdateInvoiceHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldRejectClientWithoutNip()
+    {
+        var dto = new UpdateInvoiceDto(
+            1, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C",
+            500, 1, null, "Card", [], "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "test@test.com", "PLN");
+        var request = new UpdateInvoiceRequest(1, dto) { UserId = 1 };
+        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(1, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Invoice { InvoiceId = 1, UserId = 1 });
+        _repositoryMock.Setup(r => r.GetClientByIdAsync(500, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Client { Name = "Client", Nip = null });
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.Handle(request, CancellationToken.None));
+
+        Assert.Equal("Kontrahent nie ma numeru NIP.", exception.Message);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldThrowException_WhenInvoiceNotFound()
     {
         // Arrange

@@ -32,7 +32,7 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<GetProductsResponse>() ?? new GetProductsResponse();
+                return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetProductsResponse) ?? new GetProductsResponse();
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -47,23 +47,19 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task SaveProductAsync(ProductDto product)
         {            
-            var response = await _http.PostAsJsonAsync("api/Product/create", product);
+            var response = await _http.PostAsJsonAsync("api/Product/create", product, FrontendJsonContext.Default.ProductDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task UpdateProductAsync(ProductDto product)
         {
-            var updateDto = new
-            {
-                product.ProductId,
-                product.Name,
-                product.Description,
-                product.Value                
-            };
+            var updateDto = new UpdateProductPayload(product.ProductId, product.Name, product.Description, product.Value);
 
-            var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
+            var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto, FrontendJsonContext.Default.UpdateProductPayload);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
+
+        public sealed record UpdateProductPayload(int ProductId, string Name, string Description, decimal? Value);
 
         public async Task DeleteProductAsync(int productId)
         {

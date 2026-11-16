@@ -10,7 +10,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
     public async Task SendResetPasswordEmailAsync(string email, string resetLink)
     {
         var message = new MimeMessage();        
-        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        message.From.Add(new MailboxAddress("System Faktur", GetRequiredSmtpSetting("Username")));
         message.To.Add(new MailboxAddress("", email));
         message.Subject = "Resetowanie hasła - System Faktur";
 
@@ -42,13 +42,13 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
-            _configuration["Smtp:Host"],
-            int.Parse(_configuration["Smtp:Port"]!),
+            GetRequiredSmtpSetting("Host"),
+            GetSmtpPort(),
             SecureSocketOptions.StartTls);
 
         await client.AuthenticateAsync(
-            _configuration["Smtp:Username"],
-            _configuration["Smtp:Password"]);
+            GetRequiredSmtpSetting("Username"),
+            GetRequiredSmtpSetting("Password"));
 
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
@@ -57,7 +57,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
     public async Task SendEmailAsync(string toEmail, string subject, string body, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();        
-        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        message.From.Add(new MailboxAddress("System Faktur", GetRequiredSmtpSetting("Username")));
         message.To.Add(new MailboxAddress("", toEmail));
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = body };
@@ -67,14 +67,14 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
-            _configuration["Smtp:Host"],
-            int.Parse(_configuration["Smtp:Port"]),
+            GetRequiredSmtpSetting("Host"),
+            GetSmtpPort(),
             SecureSocketOptions.StartTls,
             cancellationToken);
         
         await client.AuthenticateAsync(
-            _configuration["Smtp:Username"],
-            _configuration["Smtp:Password"],
+            GetRequiredSmtpSetting("Username"),
+            GetRequiredSmtpSetting("Password"),
             cancellationToken);
         
         await client.SendAsync(message, cancellationToken);
@@ -83,7 +83,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
     public async Task SendActivationEmailAsync(string email, string activationLink)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        message.From.Add(new MailboxAddress("System Faktur", GetRequiredSmtpSetting("Username")));
         message.To.Add(new MailboxAddress("", email));
         message.Subject = "Aktywacja konta - System Faktur";
 
@@ -112,13 +112,13 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         await client.ConnectAsync(
-            _configuration["Smtp:Host"],
-            int.Parse(_configuration["Smtp:Port"]!),
+            GetRequiredSmtpSetting("Host"),
+            GetSmtpPort(),
             SecureSocketOptions.StartTls);
 
         await client.AuthenticateAsync(
-            _configuration["Smtp:Username"],
-            _configuration["Smtp:Password"]);
+            GetRequiredSmtpSetting("Username"),
+            GetRequiredSmtpSetting("Password"));
 
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
@@ -136,7 +136,7 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         if (attachmentBytes is null || attachmentBytes.Length == 0)
             throw new ArgumentException("Brak załącznika PDF.", nameof(attachmentBytes));
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("System Faktur", _configuration["Smtp:Username"]));
+        message.From.Add(new MailboxAddress("System Faktur", GetRequiredSmtpSetting("Username")));
         message.To.Add(new MailboxAddress("", toEmail));
         message.Subject = subject;
         var builder = new BodyBuilder
@@ -149,15 +149,31 @@ public class SmtpEmailService(IConfiguration _configuration) : IEmailService
         using var client = new SmtpClient();
         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
         await client.ConnectAsync(
-            _configuration["Smtp:Host"],
-            int.Parse(_configuration["Smtp:Port"]!),
+            GetRequiredSmtpSetting("Host"),
+            GetSmtpPort(),
             SecureSocketOptions.StartTls,
             cancellationToken);
         await client.AuthenticateAsync(
-            _configuration["Smtp:Username"],
-            _configuration["Smtp:Password"],
+            GetRequiredSmtpSetting("Username"),
+            GetRequiredSmtpSetting("Password"),
             cancellationToken);
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
+    }
+
+    private string GetRequiredSmtpSetting(string name)
+    {
+        var value = _configuration[$"Smtp:{name}"];
+        return !string.IsNullOrWhiteSpace(value)
+            ? value
+            : throw new InvalidOperationException($"Nie skonfigurowano Smtp:{name}.");
+    }
+
+    private int GetSmtpPort()
+    {
+        var value = GetRequiredSmtpSetting("Port");
+        return int.TryParse(value, out var port) && port is > 0 and <= 65535
+            ? port
+            : throw new InvalidOperationException("Nieprawidłowa wartość Smtp:Port.");
     }
 }

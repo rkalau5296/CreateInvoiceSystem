@@ -115,7 +115,7 @@ public static class InvoiceMappers
             Client = client,
             MethodOfPayment = dto.MethodOfPayment,            
             ClientName = client.Name,
-            ClientNip = client.Nip,
+            ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP."),
             ClientAddress = FormatAddress(client.Address),
             InvoicePositions = []
         };

@@ -42,9 +42,13 @@ namespace CreateInvoiceSystem.Frontend.Services
         {
             var payload = jwt.Split('.')[1];
             var jsonBytes = ParseBase64WithoutPadding(payload);
-            var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+            var keyValuePairs = JsonSerializer.Deserialize(jsonBytes, FrontendJsonContext.Default.DictionaryStringJsonElement)
+                ?? throw new JsonException("Nieprawidłowa zawartość tokenu JWT.");
 
-            return keyValuePairs!.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!));
+            return keyValuePairs.Select(kvp => new Claim(kvp.Key,
+                kvp.Value.ValueKind == JsonValueKind.Null
+                    ? throw new JsonException("Wartość roszczenia tokenu JWT jest pusta.")
+                    : kvp.Value.ToString()));
         }
 
         private byte[] ParseBase64WithoutPadding(string base64)

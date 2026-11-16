@@ -46,13 +46,12 @@ else
             var response = await Http.GetAsync($"api/Auth/activate?token={Token}");
             var content = await response.Content.ReadAsStringAsync();
 
-            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             ServerActivateResponse? srv = null;
             if (!string.IsNullOrWhiteSpace(content))
             {
                 try
                 {
-                    srv = System.Text.Json.JsonSerializer.Deserialize<ServerActivateResponse>(content, options);
+                    srv = System.Text.Json.JsonSerializer.Deserialize(content, FrontendJsonContext.Default.ServerActivateResponse);
                 }
                 catch
                 {

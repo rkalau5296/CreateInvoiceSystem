@@ -11,7 +11,7 @@ public record UpdateInvoiceDto
     string Comments,
     int? ClientId,
     int UserId,
-    UpdateClientDto Client,
+    UpdateClientDto? Client,
     string MethodOfPayment,
     ICollection<UpdateInvoicePositionDto> InvoicePositions,
     string SellerName,

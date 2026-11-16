@@ -27,23 +27,23 @@ namespace CreateInvoiceSystem.Frontend.Services
             };
 
             var url = QueryHelpers.AddQueryString("api/Invoice", query);
-            var response = await _http.GetFromJsonAsync<GetInvoicesResponse>(url);
+            var response = await _http.GetFromJsonAsync(url, FrontendJsonContext.Default.GetInvoicesResponse);
 
             return response ?? new GetInvoicesResponse();
         }
 
         public async Task<InvoiceDto?> SaveInvoiceAsync(InvoiceDto invoice)
         {
-            var response = await _http.PostAsJsonAsync("api/Invoice/create", invoice);
+            var response = await _http.PostAsJsonAsync("api/Invoice/create", invoice, FrontendJsonContext.Default.InvoiceDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            var result = await response.Content.ReadFromJsonAsync<GetInvoiceResponse>();
+            var result = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetInvoiceResponse);
             return result?.Data;
         }
 
         public async Task UpdateInvoiceAsync(InvoiceDto invoice)
         {
-            var response = await _http.PutAsJsonAsync($"api/Invoice/update/{invoice.InvoiceId}", invoice);
+            var response = await _http.PutAsJsonAsync($"api/Invoice/update/{invoice.InvoiceId}", invoice, FrontendJsonContext.Default.InvoiceDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
@@ -58,7 +58,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             var response = await _http.GetAsync($"api/Invoice/{id}");
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            var result = await response.Content.ReadFromJsonAsync<GetInvoiceResponse>();
+            var result = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetInvoiceResponse);
             return result?.Data;
         }
 

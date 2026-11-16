@@ -3,7 +3,7 @@
 public record ProductDto(
     int ProductId,
     string Name,
-    string Description,
+    string? Description,
     decimal? Value,
     int UserId,
     bool IsDeleted

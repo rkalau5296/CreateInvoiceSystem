@@ -12,14 +12,14 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
     {
         using var response = await http.GetAsync("api/Ksef/settings");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
-        var result = await response.Content.ReadFromJsonAsync<KsefSettingsResponse>()
+        var result = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefSettingsResponse)
             ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź ustawień KSeF.");
         return result.IsConfigured;
     }
 
     public async Task SaveTokenAsync(string token)
     {
-        using var response = await http.PutAsJsonAsync("api/Ksef/settings", new { Token = token });
+        using var response = await http.PutAsJsonAsync("api/Ksef/settings", new KsefTokenPayload(token), FrontendJsonContext.Default.KsefTokenPayload);
         await response.EnsureSuccessOrThrowApiExceptionAsync();
     }
 
@@ -45,7 +45,7 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
         using var response = await http.GetAsync(QueryHelpers.AddQueryString("api/Ksef/invoices", query));
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        return await response.Content.ReadFromJsonAsync<KsefInvoicesResponse>()
+        return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefInvoicesResponse)
             ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź z listą faktur KSeF.");
     }
 
@@ -54,7 +54,7 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
         using var response = await http.GetAsync($"api/Ksef/invoices/{Uri.EscapeDataString(ksefNumber)}");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        return await response.Content.ReadFromJsonAsync<KsefInvoiceDetailsDto>()
+        return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefInvoiceDetailsDto)
             ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź ze szczegółami faktury KSeF.");
     }
 
@@ -64,7 +64,7 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        return await response.Content.ReadFromJsonAsync<KsefStatusDto>();
+        return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefStatusDto);
     }
 
     public async Task SendInvoiceAsync(int invoiceId)
@@ -90,7 +90,9 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("downloadFile", $"KSeF_{ksefNumber}.pdf", "application/pdf", pdfBytes);
     }
 
-    private sealed class KsefSettingsResponse
+    public sealed record KsefTokenPayload(string Token);
+
+    public sealed class KsefSettingsResponse
     {
         public bool IsConfigured { get; set; }
     }

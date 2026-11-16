@@ -74,7 +74,7 @@ public static class InvoiceMappers
             SellerAddress = FormatAddress(user.Address),
             BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
-            ClientNip = client.Nip,
+            ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP."),
             ClientAddress = FormatAddress(client.Address),
             ClientEmail = dto.ClientEmail ?? string.Empty,
             InvoicePositions = [],
@@ -112,9 +112,9 @@ public static class InvoiceMappers
             SellerAddress = FormatAddress(user.Address),
             BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
-            ClientNip = client.Nip,
+            ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP."),
             ClientAddress = FormatAddress(client.Address),
-            ClientEmail = client.Email,
+            ClientEmail = client.Email ?? string.Empty,
             InvoicePositions = [],
             Currency = dto.Currency
         };
@@ -145,7 +145,7 @@ public static class InvoiceMappers
             invoice.Comments,
             null,
             invoice.UserId,
-            null!,
+            null,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
                 .Select(ip => new UpdateInvoicePositionDto(
