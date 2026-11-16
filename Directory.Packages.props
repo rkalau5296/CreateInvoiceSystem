@@ -1,10 +1,11 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftNetVersion>10.0.13</MicrosoftNetVersion>
+    <MicrosoftNetVersion>10.0.15</MicrosoftNetVersion>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-  <ItemGroup>    
+  <ItemGroup>
+    <PackageVersion Include="KSeF.Client" Version="2.8.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />
@@ -22,13 +23,14 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.15" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(MicrosoftNetVersion)" />
-	<PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
-	<PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+	<PackageVersion Include="System.Security.Cryptography.Xml" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="NLog" Version="6.2.1" />
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.1" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
@@ -39,6 +41,10 @@
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     <PackageVersion Include="QuestPDF" Version="2026.9.1" />
+    <PackageVersion Include="QRCoder" Version="1.8.1" />
+    <PackageVersion Include="PdfPig" Version="0.1.16" />
+    <PackageVersion Include="SkiaSharp" Version="3.116.1" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.11" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="FluentAssertions" Version="8.11.0" />
@@ -49,7 +55,7 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
     <PackageVersion Include="Moq" Version="4.21.0" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
-	<PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
-	<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.15" />
   </ItemGroup>
 </Project>

@@ -94,8 +94,8 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
             }
                         
             invoice.ClientName = client.Name;
-            invoice.ClientNip = client.Nip;
-            invoice.ClientEmail = client.Email;
+            invoice.ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP.");
+            invoice.ClientEmail = client.Email ?? string.Empty;
             invoice.ClientAddress = FormatAddress(clientDto.Address);
 
             return;
@@ -112,8 +112,8 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                 $"Client with ID {request.Invoice.ClientId.Value} not found.");
                 
         invoice.ClientName = existingClientById.Name;
-        invoice.ClientNip = existingClientById.Nip;
-        invoice.ClientEmail = existingClientById.Email;
+        invoice.ClientNip = existingClientById.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP.");
+        invoice.ClientEmail = existingClientById.Email ?? string.Empty;
         invoice.ClientAddress = FormatAddress(existingClientById.Address);
     }
 
@@ -166,10 +166,11 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                 }
                 
                 existingPosition.ProductName = product.Name;
-                existingPosition.ProductDescription = product.Description;
+                existingPosition.ProductDescription = product.Description ?? string.Empty;
                 existingPosition.ProductValue = product.Value;
                 existingPosition.Quantity = incomingPosition.Quantity;
                 existingPosition.VatRate = incomingPosition.VatRate;
+                existingPosition.UnitOfMeasure = incomingPosition.UnitOfMeasure;
             }
             else
             {
@@ -177,10 +178,11 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
                 {
                     InvoiceId = invoice.InvoiceId,                    
                     ProductName = product.Name,
-                    ProductDescription = product.Description,
+                    ProductDescription = product.Description ?? string.Empty,
                     ProductValue = product.Value,
                     Quantity = incomingPosition.Quantity,
-                    VatRate = incomingPosition.VatRate
+                    VatRate = incomingPosition.VatRate,
+                    UnitOfMeasure = incomingPosition.UnitOfMeasure,
                 });
             }
         }

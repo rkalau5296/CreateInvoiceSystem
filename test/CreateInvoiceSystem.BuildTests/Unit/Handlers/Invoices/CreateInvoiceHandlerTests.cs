@@ -36,7 +36,7 @@ public class CreateInvoiceHandlerTests
         dto.ClientId = 100;
         dto.InvoicePositions = new List<InvoicePositionDto>
         {
-            new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "23%")
+            new(0, 0, 10, null!, "Laptop", "Opis", 1000m, 2, "23%", "szt.")
         };
         var request = new CreateInvoiceRequest(dto);
 
@@ -92,7 +92,7 @@ public class CreateInvoiceHandlerTests
         {
             new(0, 0, null,
                 new ProductDto(0, "Nowy Produkt", "Opis", 500m, 1),
-                "Nowy Produkt", "Opis", 500m, 1, "23%")
+                "Nowy Produkt", "Opis", 500m, 1, "23%", "szt.")
         };
         var request = new CreateInvoiceRequest(dto);
 
@@ -211,7 +211,7 @@ public class CreateInvoiceHandlerTests
 
     private static CreateInvoiceDto CreateBaseDto()
     {
-        var position = new InvoicePositionDto(0, 0, 10, null!, "Laptop", "High-end laptop", 1000m, 2, "23%");
+        var position = new InvoicePositionDto(0, 0, 10, null!, "Laptop", "High-end laptop", 1000m, 2, "23%", "szt.");
 
         return new CreateInvoiceDto
         {

@@ -26,7 +26,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             if (!response.IsSuccessStatusCode)
                 return new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
 
-            return await response.Content.ReadFromJsonAsync<GetClientsResponse>()
+            return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetClientsResponse)
                    ?? new GetClientsResponse { Data = new List<ClientDto>(), TotalCount = 0 };
         }
 
@@ -40,31 +40,22 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task SaveClientAsync(ClientDto client)
         {            
-            var response = await _http.PostAsJsonAsync("api/Client/create", client);
+            var response = await _http.PostAsJsonAsync("api/Client/create", client, FrontendJsonContext.Default.ClientDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task UpdateClientAsync(ClientDto client)
         {
-            var updateDto = new
-            {
-                client.ClientId,
-                client.Name,
-                client.Nip,
-                client.Email, 
-                Address = new
-                {
-                    client.Address.Street,
-                    client.Address.Number,
-                    client.Address.City,
-                    client.Address.PostalCode,
-                    client.Address.Country
-                },                
-            };
+            var updateDto = new UpdateClientPayload(client.ClientId, client.Name, client.Nip, client.Email,
+                new UpdateClientAddressPayload(client.Address.Street, client.Address.Number, client.Address.City,
+                    client.Address.PostalCode, client.Address.Country));
 
-            var response = await _http.PutAsJsonAsync($"api/Client/update/{client.ClientId}", updateDto);
+            var response = await _http.PutAsJsonAsync($"api/Client/update/{client.ClientId}", updateDto, FrontendJsonContext.Default.UpdateClientPayload);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
+
+        public sealed record UpdateClientPayload(int ClientId, string Name, string Nip, string Email, UpdateClientAddressPayload Address);
+        public sealed record UpdateClientAddressPayload(string Street, string Number, string City, string PostalCode, string Country);
 
         public async Task DeleteClientAsync(int clientId)
         {

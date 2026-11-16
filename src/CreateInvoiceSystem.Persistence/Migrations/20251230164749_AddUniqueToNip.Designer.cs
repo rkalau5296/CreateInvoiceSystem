@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-#nullable disable
+#nullable enable
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
@@ -18,7 +18,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
@@ -60,7 +59,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("AddressId");
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", b =>
@@ -100,7 +99,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities.InvoicePositionEntity", b =>
@@ -215,7 +214,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>
@@ -306,7 +305,6 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
-#pragma warning restore 612, 618
         }
     }
 }

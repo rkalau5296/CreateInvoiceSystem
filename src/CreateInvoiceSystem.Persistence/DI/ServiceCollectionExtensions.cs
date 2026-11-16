@@ -3,6 +3,7 @@ using CreateInvoiceSystem.Modules.Addresses.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Invoices.Persistence.Persistence;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Products.Persistence.Persistence;
 using CreateInvoiceSystem.Modules.Users.Persistence.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvoiceDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
         services.AddScoped<IUserDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
+        services.AddScoped<IKsefDbContext>(sp => sp.GetRequiredService<CreateInvoiceSystemDbContext>());
 
         return services;
     }

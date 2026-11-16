@@ -6,6 +6,7 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 @inject UserService UserService
+@inject KsefService KsefService
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
@@ -137,6 +138,37 @@
                     </div>
                 </div>
 
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Integracja KSeF</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">Token dotyczy NIP zapisanego w profilu firmy. Po zmianie NIP zapisz nowy token.</p>
+                        @if (_ksefConfigured.HasValue)
+                        {
+                            <p>Status: <strong>@(_ksefConfigured.Value ? "Skonfigurowano" : "Nie skonfigurowano dla aktualnego NIP")</strong></p>
+                        }
+                        <label class="form-label fw-bold" for="ksefToken">Token KSeF</label>
+                        <input id="ksefToken" type="password" class="form-control" autocomplete="off"
+                               maxlength="4096" @bind="_ksefToken" disabled="@_ksefBusy" />
+                        <div class="form-text">Zapisanego tokenu nie można ponownie wyświetlić. Wprowadź nowy, aby go zastąpić.</div>
+                        <div class="mt-3 d-flex gap-2">
+                            <button type="button" class="btn btn-success" @onclick="SaveKsefToken"
+                                    disabled="@(_ksefBusy || string.IsNullOrWhiteSpace(_ksefToken))">
+                                Zapisz token
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="DeleteKsefToken"
+                                    disabled="@(_ksefBusy || !_ksefConfigured.HasValue)">
+                                Usuń token
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(_ksefMessage))
+                        {
+                            <div class="alert @(_ksefError ? "alert-danger" : "alert-success") mt-3 mb-0" role="status">@_ksefMessage</div>
+                        }
+                    </div>
+                </div>
+
                 <div class="card shadow-sm border-danger">
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">Strefa Niebezpieczna</h5>
@@ -166,6 +198,11 @@
     private string statusClass = "";
     private HashSet<string> _touched = new();
     private bool _submitAttempted;
+    private bool? _ksefConfigured;
+    private bool _ksefBusy;
+    private bool _ksefError;
+    private string _ksefToken = string.Empty;
+    private string? _ksefMessage;
 
     private void Touch(string field) => _touched.Add(field);
     private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
@@ -187,7 +224,7 @@
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
+            var response = await Http.GetFromJsonAsync("api/User/me", FrontendJsonContext.Default.GetMeResponse);
 
             if (response?.Data != null)
             {
@@ -234,7 +271,69 @@
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();
         }
+        await LoadKsefStatus();
     }
+
+    private async Task LoadKsefStatus()
+    {
+        try
+        {
+            _ksefConfigured = await KsefService.IsConfiguredAsync();
+        }
+        catch (Exception ex)
+        {
+            _ksefConfigured = null;
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się odczytać ustawień KSeF: {KsefErrorMessage(ex)}";
+        }
+    }
+
+    private async Task SaveKsefToken()
+    {
+        _ksefBusy = true;
+        try
+        {
+            await KsefService.SaveTokenAsync(_ksefToken);
+            _ksefToken = string.Empty;
+            _ksefConfigured = true;
+            _ksefError = false;
+            _ksefMessage = "Token KSeF zapisany dla NIP z profilu.";
+        }
+        catch (Exception ex)
+        {
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się zapisać tokenu KSeF: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _ksefBusy = false;
+        }
+    }
+
+    private async Task DeleteKsefToken()
+    {
+        _ksefBusy = true;
+        try
+        {
+            await KsefService.DeleteTokenAsync();
+            _ksefToken = string.Empty;
+            _ksefConfigured = false;
+            _ksefError = false;
+            _ksefMessage = "Token KSeF został usunięty.";
+        }
+        catch (Exception ex)
+        {
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się usunąć tokenu KSeF: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _ksefBusy = false;
+        }
+    }
+
+    private static string KsefErrorMessage(Exception ex) =>
+        ex is ApiException apiException ? apiException.GetUserMessage() : ApiExceptionExtensions.SanitizeMessage(ex.Message);
 
     private async Task HandleValidSubmit()
     {
@@ -255,11 +354,12 @@
 
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel);
+            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel, FrontendJsonContext.Default.UpdateUserDto);
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = "Ustawienia zapisane!";
                 statusClass = "alert-success";
+                await LoadKsefStatus();
             }
             else
             {

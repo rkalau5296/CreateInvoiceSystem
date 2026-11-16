@@ -29,7 +29,8 @@ public static class InvoiceMappers
         invoice.ClientName,
         invoice.ClientNip,
         invoice.ClientAddress,
-        invoice.ClientEmail
+        invoice.ClientEmail,
+        invoice.Currency
     );
 
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
@@ -44,7 +45,8 @@ public static class InvoiceMappers
             invoicePosition.ProductDescription,
             invoicePosition.ProductValue,
             invoicePosition.Quantity,
-            invoicePosition.VatRate
+            invoicePosition.VatRate,
+            invoicePosition.UnitOfMeasure
         );
 
     public static Invoice ToInvoiceWithNewClient(this CreateInvoiceDto dto, Client client, User user)
@@ -72,10 +74,11 @@ public static class InvoiceMappers
             SellerAddress = FormatAddress(user.Address),
             BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
-            ClientNip = client.Nip,
+            ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP."),
             ClientAddress = FormatAddress(client.Address),
             ClientEmail = dto.ClientEmail ?? string.Empty,
-            InvoicePositions = []
+            InvoicePositions = [],
+            Currency = dto.Currency,
         };
     }
 
@@ -109,10 +112,11 @@ public static class InvoiceMappers
             SellerAddress = FormatAddress(user.Address),
             BankAccountNumber = user.BankAccountNumber,
             ClientName = client.Name,
-            ClientNip = client.Nip,
+            ClientNip = client.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP."),
             ClientAddress = FormatAddress(client.Address),
-            ClientEmail = client.Email,
-            InvoicePositions = []
+            ClientEmail = client.Email ?? string.Empty,
+            InvoicePositions = [],
+            Currency = dto.Currency
         };
     }
 
@@ -141,7 +145,7 @@ public static class InvoiceMappers
             invoice.Comments,
             null,
             invoice.UserId,
-            null!,
+            null,
             invoice.MethodOfPayment,
             invoice.InvoicePositions?
                 .Select(ip => new UpdateInvoicePositionDto(
@@ -152,8 +156,9 @@ public static class InvoiceMappers
                     ip.ProductDescription,
                     ip.ProductValue,
                     ip.Quantity,
-                    ip.VatRate,
-                    null
+                    ip.VatRate,                    
+                    null,
+                    ip.UnitOfMeasure
                 )).ToList() ?? [],
             invoice.SellerName,
             invoice.SellerNip,
@@ -162,7 +167,8 @@ public static class InvoiceMappers
             invoice.ClientName,
             invoice.ClientNip,
             invoice.ClientAddress,
-            invoice.ClientEmail
+            invoice.ClientEmail,
+            invoice.Currency
         );
 
     public static Client ToEntity(this CreateClientDto dto) =>

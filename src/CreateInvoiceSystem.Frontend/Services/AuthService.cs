@@ -27,11 +27,11 @@ namespace CreateInvoiceSystem.Frontend.Services
 
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
+            var response = await _httpClient.PostAsJsonAsync("api/auth/login", request, FrontendJsonContext.Default.LoginRequest);
 
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            var result = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.LoginResponse);
             if (result is { IsSuccess: true } && !string.IsNullOrEmpty(result.Token))
             {
                 string storageType = request.Dto.RememberMe ? "localStorage" : "sessionStorage";
@@ -78,10 +78,10 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken));
+                var response = await _httpClient.PostAsJsonAsync("api/User/refresh", Guid.Parse(currentRefreshToken), FrontendJsonContext.Default.Guid);
                 await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-                var authData = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                var authData = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.AuthResponse);
                 if (authData != null && !string.IsNullOrEmpty(authData.Token))
                 {
                     await _jsRuntime.InvokeVoidAsync($"{storageType}.setItem", "authToken", authData.Token);
@@ -114,28 +114,30 @@ namespace CreateInvoiceSystem.Frontend.Services
             var dto = new ForgotPasswordDto(email);
             var request = new ForgotPasswordRequest(dto);
 
-            var response = await _httpClient.PostAsJsonAsync("api/Auth/forgot-password", request);
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/forgot-password", request, FrontendJsonContext.Default.ForgotPasswordRequest);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            return await response.Content.ReadFromJsonAsync<ForgotPasswordResponse>()
+            return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.ForgotPasswordResponse)
                    ?? new ForgotPasswordResponse(false, "Błąd odpowiedzi.");
         }
 
         public async Task<ResetPasswordResponse> ResetPasswordAsync(string email, string token, string version, string newPassword)
         {
-            var request = new { Email = email, Token = token, Version = version, NewPassword = newPassword };
-            var response = await _httpClient.PostAsJsonAsync("api/Auth/reset-password", request);
+            var request = new ResetPasswordPayload(email, token, version, newPassword);
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/reset-password", request, FrontendJsonContext.Default.ResetPasswordPayload);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-            return await response.Content.ReadFromJsonAsync<ResetPasswordResponse>()
+            return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.ResetPasswordResponse)
                    ?? new ResetPasswordResponse(false, "Błąd odpowiedzi.");
         }
 
         public async Task<RegisterUserResponse?> RegisterAsync(RegisterUserRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/Auth/register", request);
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/register", request, FrontendJsonContext.Default.RegisterUserRequest);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
-            return await response.Content.ReadFromJsonAsync<RegisterUserResponse>();
+            return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.RegisterUserResponse);
         }
+
+        public sealed record ResetPasswordPayload(string Email, string Token, string Version, string NewPassword);
     }
 }

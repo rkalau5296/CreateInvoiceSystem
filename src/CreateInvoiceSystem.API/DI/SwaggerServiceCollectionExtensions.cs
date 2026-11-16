@@ -19,25 +19,24 @@ public static class SwaggerServiceCollectionExtensions
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = "Wklej token JWT: Bearer {twój_token}",
+                Description = "Wklej token JWT: Bearer {twój_token}",                
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Type = SecuritySchemeType.ApiKey
             });
 
             c.AddSecurityRequirement(document =>
                 new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecuritySchemeReference("Bearer")] = []
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
         });
 
         return services;
     }
-    
+
     public static WebApplication UseSwaggerModule(this WebApplication app)
-    {      
+    {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {

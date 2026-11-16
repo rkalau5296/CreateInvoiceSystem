@@ -10,4 +10,5 @@ public class InvoicePositionEntity
     public int Quantity { get; set; }
     public string VatRate { get; set; } = "23%";
     public InvoiceEntity Invoice { get; set; } = null!;
+    public string UnitOfMeasure { get; set; } = "szt.";
 }

@@ -19,5 +19,6 @@ public record InvoiceDto(
      string ClientName,
      string ClientNip,
      string ClientAddress,
-     string ClientEmail
+     string ClientEmail,
+     string Currency
 );

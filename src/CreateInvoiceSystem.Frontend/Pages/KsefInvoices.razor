@@ -1,0 +1,240 @@
+@page "/ksef/invoices"
+@using CreateInvoiceSystem.Frontend.Models
+@using CreateInvoiceSystem.Frontend.Components
+@inject KsefService KsefService
+@inject NavigationManager Navigation
+
+<PageTitle>Faktury z KSeF</PageTitle>
+
+<div class="container-fluid">
+    <h3 class="mb-4">Faktury zakupowe z KSeF</h3>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@_errorMessage</div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-end g-3">
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label" for="fromDate">Data wystawienia od</label>
+                    <input id="fromDate" class="form-control" type="date" @bind="_fromDate" />
+                </div>
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label" for="toDate">Data wystawienia do</label>
+                    <input id="toDate" class="form-control" type="date" @bind="_toDate" />
+                </div>
+                <div class="col-sm-4 col-md-3">
+                    <button class="btn btn-primary" @onclick="Search" disabled="@_isLoading">
+                        @if (_isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        Szukaj w KSeF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light fw-bold">Faktury, w których jesteś nabywcą</div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Numer faktury</th>
+                        <th>Data wystawienia</th>
+                        <th>Sprzedawca</th>
+                        <th>NIP sprzedawcy</th>
+                        <th class="text-end">Netto</th>
+                        <th class="text-end">VAT</th>
+                        <th class="text-end">Brutto</th>
+                        <th class="text-center">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_invoices.Count == 0 && !_isLoading)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                Brak faktur w wybranym zakresie dat.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var invoice in _invoices)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@invoice.InvoiceNumber</div>
+                                    <div class="small text-muted">@invoice.KsefNumber</div>
+                                </td>
+                                <td>@invoice.IssueDate.ToLocalTime().ToString("d")</td>
+                                <td>@(invoice.SellerName ?? "—")</td>
+                                <td>@(invoice.SellerNip ?? "—")</td>
+                                <td class="text-end">@invoice.NetAmount.ToString("N2") @invoice.Currency</td>
+                                <td class="text-end">@invoice.VatAmount.ToString("N2") @invoice.Currency</td>
+                                <td class="text-end fw-bold">@invoice.GrossAmount.ToString("N2") @invoice.Currency</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-info text-white"
+                                                @onclick="() => ViewInvoice(invoice)">
+                                            <i class="bi bi-eye me-1"></i>Widok
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                @onclick="() => DownloadXml(invoice)"
+                                                disabled="@(_downloadingKsefNumber != null)">
+                                            @if (_downloadingKsefNumber == invoice.KsefNumber && !_downloadingPdf)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                            }
+                                            <i class="bi bi-filetype-xml me-1"></i>XML
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => DownloadPdf(invoice)"
+                                                disabled="@(_downloadingKsefNumber != null)">
+                                            @if (_downloadingKsefNumber == invoice.KsefNumber && _downloadingPdf)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                            }
+                                            <i class="bi bi-filetype-pdf me-1"></i>PDF
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="small text-muted">Strona @_pageNumber</span>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm"
+                        @onclick="PreviousPage"
+                        disabled="@(_isLoading || _pageNumber <= 1)">
+                    Poprzednia
+                </button>
+                <button class="btn btn-outline-secondary btn-sm"
+                        @onclick="NextPage"
+                        disabled="@(_isLoading || !_hasMore)">
+                    Następna
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private const int PageSize = 20;
+    private readonly List<KsefInvoiceDto> _invoices = [];
+    private DateTime _fromDate = DateTime.Today.AddDays(-29);
+    private DateTime _toDate = DateTime.Today;
+    private string? _errorMessage;
+    private string? _downloadingKsefNumber;
+    private bool _downloadingPdf;
+    private int _pageNumber = 1;
+    private bool _hasMore;
+    private bool _isLoading;
+
+    protected override Task OnInitializedAsync() => LoadInvoices();
+
+    private async Task Search()
+    {
+        _pageNumber = 1;
+        await LoadInvoices();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_pageNumber <= 1) return;
+        _pageNumber--;
+        await LoadInvoices();
+    }
+
+    private async Task NextPage()
+    {
+        if (!_hasMore) return;
+        _pageNumber++;
+        await LoadInvoices();
+    }
+
+    private async Task LoadInvoices()
+    {
+        if (_fromDate.Date > _toDate.Date)
+        {
+            _errorMessage = "Wybierz prawidłowy zakres dat.";
+            return;
+        }
+
+        try
+        {
+            _isLoading = true;
+            _errorMessage = null;
+            var response = await KsefService.GetIncomingInvoicesAsync(
+                DateOnly.FromDateTime(_fromDate),
+                DateOnly.FromDateTime(_toDate),
+                _pageNumber,
+                PageSize);
+            _invoices.Clear();
+            _invoices.AddRange(response.Data);
+            _hasMore = response.HasMore;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać faktur z KSeF: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task DownloadXml(KsefInvoiceDto invoice)
+    {
+        try
+        {
+            _errorMessage = null;
+            _downloadingKsefNumber = invoice.KsefNumber;
+            await KsefService.DownloadInvoiceXmlAsync(invoice.KsefNumber);
+        }
+
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać XML faktury: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _downloadingKsefNumber = null;
+        }
+    }
+
+    private async Task DownloadPdf(KsefInvoiceDto invoice)
+    {
+        try
+        {
+            _errorMessage = null;
+            _downloadingKsefNumber = invoice.KsefNumber;
+            _downloadingPdf = true;
+            await KsefService.DownloadInvoicePdfAsync(invoice.KsefNumber);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać PDF faktury: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _downloadingKsefNumber = null;
+            _downloadingPdf = false;
+        }
+    }
+
+    private void ViewInvoice(KsefInvoiceDto invoice) =>
+        Navigation.NavigateTo($"/ksef/invoices/view/{Uri.EscapeDataString(invoice.KsefNumber)}");
+
+    private static string KsefErrorMessage(Exception ex) =>
+        ex is ApiException apiException ? apiException.GetUserMessage() : ApiExceptionExtensions.SanitizeMessage(ex.Message);
+}

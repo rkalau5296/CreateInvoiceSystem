@@ -28,14 +28,14 @@ public class UpdateInvoiceHandlerTests
 
         var incomingPositions = new List<UpdateInvoicePositionDto>
         {
-            new(10, invoiceId, 500, "Updated Product", "Desc", 100m, 5, "23%", null),
-            new(0, invoiceId, 600, "New Product", "Desc", 200m, 1, "8%", null)
+            new(10, invoiceId, 500, "Updated Product", "Desc", 100m, 5, "23%", null, "szt."),
+            new(0, invoiceId, 600, "New Product", "Desc", 200m, 1, "8%", null, "szt.")
         };
 
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "New Title", 1000m, 230m, 1230m, DateTime.Now.AddDays(7), DateTime.Now, "Updated",
             null, userId, null!, "Transfer", incomingPositions, "My Company", "9876543210", "Main St 1",
-            "PL00112233", "Client Name", "123456789", "Client Address", "testc@test.com"
+            "PL00112233", "Client Name", "123456789", "Client Address", "testc@test.com", "PLN"
         );
 
         var request = new UpdateInvoiceRequest(invoiceId, updateDto) { UserId = userId };
@@ -82,7 +82,7 @@ public class UpdateInvoiceHandlerTests
 
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "Same", 100m, 23m, 123m, now, now, "Same", null, userId, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "Seller", "NIP", "Address", "Bank", "Client", "C-NIP", "C-ADDR", "testc@test.com"
+            new List<UpdateInvoicePositionDto>(), "Seller", "NIP", "Address", "Bank", "Client", "C-NIP", "C-ADDR", "testc@test.com", "PLN"
         );
         var request = new UpdateInvoiceRequest(invoiceId, updateDto) { UserId = userId };
 
@@ -143,7 +143,7 @@ public class UpdateInvoiceHandlerTests
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C",
             clientId, userId, null!, "Card", new List<UpdateInvoicePositionDto>(),
-            "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
+            "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com", "PLN"
         );
 
         var request = new UpdateInvoiceRequest(invoiceId, updateDto) { UserId = userId };
@@ -212,6 +212,24 @@ public class UpdateInvoiceHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldRejectClientWithoutNip()
+    {
+        var dto = new UpdateInvoiceDto(
+            1, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C",
+            500, 1, null, "Card", [], "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "test@test.com", "PLN");
+        var request = new UpdateInvoiceRequest(1, dto) { UserId = 1 };
+        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(1, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Invoice { InvoiceId = 1, UserId = 1 });
+        _repositoryMock.Setup(r => r.GetClientByIdAsync(500, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Client { Name = "Client", Nip = null });
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.Handle(request, CancellationToken.None));
+
+        Assert.Equal("Kontrahent nie ma numeru NIP.", exception.Message);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldThrowException_WhenInvoiceNotFound()
     {
         // Arrange
@@ -220,7 +238,7 @@ public class UpdateInvoiceHandlerTests
 
         var updateDto = new UpdateInvoiceDto(
             invoiceId, "T", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "C", 1, userId, null!, "Card",
-            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com"
+            new List<UpdateInvoicePositionDto>(), "S", "SN", "SA", "SB", "CN", "CNIP", "CADDR", "testc@test.com", "PLN"
         );
 
         var request = new UpdateInvoiceRequest(invoiceId, updateDto) { UserId = userId };

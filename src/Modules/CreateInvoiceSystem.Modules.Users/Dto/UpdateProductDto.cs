@@ -3,7 +3,7 @@
 public record UpdateProductDto(
     int ProductId,
     string Name,
-    string Description,
+    string? Description,
     decimal? Value,
     bool IsDeleted 
 );

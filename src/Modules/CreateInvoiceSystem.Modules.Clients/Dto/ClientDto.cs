@@ -2,8 +2,8 @@
 public record ClientDto(
     int ClientId,   
     string Name,
-    string Nip,
+    string? Nip,
     AddressDto Address,    
     int UserId,
-    string Email
+    string? Email
 );

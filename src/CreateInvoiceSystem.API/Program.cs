@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.API.DI;
+using CreateInvoiceSystem.API.Adapters.KsefInvoicePdfAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.TransactionBehavior;
@@ -9,11 +10,15 @@ using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
 using CreateInvoiceSystem.Modules.Invoices.Application.Services;
 using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Ksef.DI;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
+using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.DI;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using CreateInvoiceSystem.Modules.Users.DI;
 using CreateInvoiceSystem.Pdf.Extensions;
+using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Persistence.DI;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +38,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
 #endif
 
+builder.Services.AddKsefDataProtection(builder.Configuration, builder.Environment);
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = false;
@@ -77,7 +83,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCsvModule();
 builder.Services.AddPdfModule();
+builder.Services.AddScoped<KsefInvoicePdfGenerator>();
+builder.Services.AddScoped<IKsefInvoicePdfGenerator, KsefInvoicePdfAdapter>();
 builder.Services.AddNbpModule(builder.Configuration);
+builder.Services.AddKsefModule(builder.Configuration);
+builder.Services.AddHttpClient<IKsefInvoiceBytesClient, KsefInvoiceBytesClient>((services, client) =>
+{
+    var options = services.GetRequiredService<IOptions<KsefApiOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+});
+builder.Services.AddScoped<IKsefApiClient, KsefApiClient>();
 builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((serviceProvider, client) =>
 {
     var options =

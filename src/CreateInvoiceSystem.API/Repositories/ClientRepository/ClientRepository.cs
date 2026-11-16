@@ -56,7 +56,7 @@ public class ClientRepository(IDbContext db) : IClientRepository
             query = query.Where(c => c.UserId == userId.Value);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
-            query = query.Where(c => c.Name.Contains(searchTerm) || c.Nip.Contains(searchTerm));
+            query = query.Where(c => c.Name.Contains(searchTerm) || (c.Nip != null && c.Nip.Contains(searchTerm)));
 
         var totalCount = await query.CountAsync(cancellationToken);
 
