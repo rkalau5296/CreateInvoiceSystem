@@ -1,10 +1,9 @@
-﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.Modules.Products.Entities;
 
 namespace CreateInvoiceSystem.Modules.Products.Interfaces;
 
-public interface IProductRepository : ISaveChangesContext
+public interface IProductRepository
 {
     Task<bool> ExistsAsync(string name, int userId, CancellationToken cancellationToken);
     Task<Product> AddAsync(Product entity, CancellationToken cancellationToken);

@@ -1,10 +1,9 @@
-﻿using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Modules.Users.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace CreateInvoiceSystem.Modules.Users.Interfaces;
 
-public interface IUserRepository : ISaveChangesContext
+public interface IUserRepository
 {    
     Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken);    
     Task RemoveAsync(int userId, CancellationToken cancellationToken);

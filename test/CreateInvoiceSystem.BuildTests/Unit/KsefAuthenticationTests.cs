@@ -68,6 +68,7 @@ public class KsefAuthenticationTests
 
         var credentials = new KsefCredentialsRepository(db, new EphemeralDataProtectionProvider());
         await credentials.SaveAsync(user.Id, "test-token", ct);
+        await db.SaveChangesAsync(ct);
         var authorization = new Mock<IAuthorizationClient>(MockBehavior.Strict);
         var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
         crypto.Setup(x => x.WarmupAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);

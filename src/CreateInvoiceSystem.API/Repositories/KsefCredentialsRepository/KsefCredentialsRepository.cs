@@ -37,7 +37,6 @@ public sealed class KsefCredentialsRepository(IDbContext db, IDataProtectionProv
 
         entity.Nip = nip;
         entity.ProtectedToken = encrypted;
-        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(int userId, CancellationToken cancellationToken)
@@ -47,7 +46,6 @@ public sealed class KsefCredentialsRepository(IDbContext db, IDataProtectionProv
         if (entity is not null)
         {
             db.Set<KsefCredentialEntity>().Remove(entity);
-            await db.SaveChangesAsync(cancellationToken);
         }
     }
 

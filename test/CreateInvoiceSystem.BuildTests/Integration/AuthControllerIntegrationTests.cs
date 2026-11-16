@@ -1,9 +1,12 @@
 ﻿using CreateInvoiceSystem.BuildTests.Helper;
 using CreateInvoiceSystem.Identity.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSettings;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +41,37 @@ public class AuthControllerIntegrationTests : IAsyncLifetime
     public ValueTask DisposeAsync()
     {
         return ValueTask.CompletedTask;
+    }
+
+    [Fact]
+    public async Task KsefSettings_AreSavedAndDeletedThroughMediatRPipeline()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        const string email = "ksef-pipeline@test.local";
+        await SeedFullUserAsync(email, "!Password123", cancellationToken: ct);
+        int userId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+            var user = await db.Users.SingleAsync(u => u.Email == email, ct);
+            user.Nip = "1234567890";
+            await db.SaveChangesAsync(ct);
+            userId = user.Id;
+            await scope.ServiceProvider.GetRequiredService<IMediator>()
+                .Send(new SaveKsefSettingsRequest(userId, "test-token"), ct);
+        }
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var store = scope.ServiceProvider.GetRequiredService<IKsefCredentialsStore>();
+            (await store.GetRequiredAsync(userId, ct)).Token.Should().Be("test-token");
+            await scope.ServiceProvider.GetRequiredService<IMediator>()
+                .Send(new DeleteKsefSettingsRequest(userId), ct);
+        }
+
+        using var verification = _factory.Services.CreateScope();
+        (await verification.ServiceProvider.GetRequiredService<IKsefCredentialsStore>()
+            .IsConfiguredAsync(userId, ct)).Should().BeFalse();
     }
 
     [Fact]

@@ -143,9 +143,6 @@ public class ClientRepository(IDbContext db) : IClientRepository
     public Task<bool> AddressExistsByIdAsync(int addressId, CancellationToken cancellationToken) =>
         _db.Set<AddressEntity>().AsNoTracking().AnyAsync(a => a.AddressId == addressId, cancellationToken);
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        _db.SaveChangesAsync(cancellationToken);
-
     public async Task RemoveAllByUserIdAsync(int userId, CancellationToken cancellationToken)
     {
         var clients = await _db.Set<ClientEntity>()
@@ -158,8 +155,6 @@ public class ClientRepository(IDbContext db) : IClientRepository
 
         _db.Set<ClientEntity>().RemoveRange(clients);
 
-        await _db.SaveChangesAsync(cancellationToken);
-
         var addresses = await _db.Set<AddressEntity>()
             .Where(a => addressIds.Contains(a.AddressId))
             .ToListAsync(cancellationToken);
@@ -167,7 +162,6 @@ public class ClientRepository(IDbContext db) : IClientRepository
         if (addresses.Count != 0)
         {
             _db.Set<AddressEntity>().RemoveRange(addresses);
-            await _db.SaveChangesAsync(cancellationToken); 
         }
     }
 }

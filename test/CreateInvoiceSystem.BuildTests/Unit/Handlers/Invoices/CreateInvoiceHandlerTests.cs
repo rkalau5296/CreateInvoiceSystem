@@ -64,9 +64,6 @@ public class CreateInvoiceHandlerTests
         _repositoryMock.Setup(r => r.GetUserEmailByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("test@user.com");
 
-        _repositoryMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
-
         // Act
         var result = await _sut.Handle(request, CancellationToken.None);
 
@@ -122,9 +119,6 @@ public class CreateInvoiceHandlerTests
 
         _repositoryMock.Setup(r => r.GetUserEmailByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("test@user.com");
-
-        _repositoryMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
 
         // Act
         var result = await _sut.Handle(request, CancellationToken.None);

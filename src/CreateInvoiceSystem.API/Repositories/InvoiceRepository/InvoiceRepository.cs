@@ -3,6 +3,7 @@ using CreateInvoiceSystem.Abstractions.Pagination;
 using CreateInvoiceSystem.API.Mappers.InvoiceMapper;
 using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
@@ -268,9 +269,6 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .RemoveRange(invoicePositionEntities);
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        _db.SaveChangesAsync(cancellationToken);
-
     public async Task<string> GetUserEmailByIdAsync(int userId, CancellationToken ct)
     {
         return await _db.Set<UserEntity>()
@@ -318,6 +316,11 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
         {
             var invoiceIds = invoices.Select(i => i.InvoiceId).ToList();
 
+            var statuses = await _db.Set<KsefOutgoingInvoiceStatus>()
+                .Where(status => invoiceIds.Contains(status.InvoiceId))
+                .ToListAsync(ct);
+            _db.Set<KsefOutgoingInvoiceStatus>().RemoveRange(statuses);
+
             var positions = await _db.Set<InvoicePositionEntity>()
                 .Where(p => invoiceIds.Contains(p.InvoiceId))
                 .ToListAsync(ct);
@@ -328,8 +331,6 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             }
 
             _db.Set<InvoiceEntity>().RemoveRange(invoices);
-
-            await _db.SaveChangesAsync(ct);
         }
     }
 }

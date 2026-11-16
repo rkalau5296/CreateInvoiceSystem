@@ -105,6 +105,7 @@ public class KsefCredentialsTests
         var store = new KsefCredentialsRepository(db, new EphemeralDataProtectionProvider());
         await store.SaveAsync(first.Id, "first-secret", ct);
         await store.SaveAsync(second.Id, "second-secret", ct);
+        await db.SaveChangesAsync(ct);
         var firstStored = await db.KsefCredentials.AsNoTracking().SingleAsync(x => x.UserId == first.Id, ct);
         var secondStored = await db.KsefCredentials.SingleAsync(x => x.UserId == second.Id, ct);
         Assert.DoesNotContain("first-secret", firstStored.ProtectedToken);
@@ -132,11 +133,14 @@ public class KsefCredentialsTests
         Assert.False(await store.IsConfiguredAsync(first.Id, ct));
         await Assert.ThrowsAsync<InvalidOperationException>(() => store.GetRequiredAsync(first.Id, ct));
         await store.SaveAsync(first.Id, "replacement-secret", ct);
+        await db.SaveChangesAsync(ct);
         Assert.Equal("replacement-secret", (await store.GetRequiredAsync(first.Id, ct)).Token);
 
         await store.DeleteAsync(first.Id, ct);
+        await db.SaveChangesAsync(ct);
         Assert.False(await store.IsConfiguredAsync(first.Id, ct));
         await store.SaveAsync(first.Id, "new-secret", ct);
+        await db.SaveChangesAsync(ct);
         db.Users.Remove(first);
         await db.SaveChangesAsync(ct);
         Assert.False(await db.KsefCredentials.AsNoTracking().AnyAsync(x => x.UserId == first.Id, ct));

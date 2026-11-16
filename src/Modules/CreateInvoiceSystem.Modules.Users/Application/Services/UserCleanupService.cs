@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using CreateInvoiceSystem.Abstractions.DbContext;
 using CreateInvoiceSystem.Modules.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,7 @@ public class UserCleanupService : BackgroundService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var _userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+                var db = scope.ServiceProvider.GetRequiredService<IDbContext>();
                 var _emailService = scope.ServiceProvider.GetRequiredService<IUserEmailSender>();
                 var _userTokenService = scope.ServiceProvider.GetRequiredService<IUserTokenService>();
                 var _configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
@@ -54,6 +56,7 @@ public class UserCleanupService : BackgroundService
                         if (!string.IsNullOrWhiteSpace(jti) && expiryUtc != null)
                         {
                             await _userRepository.SaveActivationTokenJtiAsync(user.UserId, jti, expiryUtc.Value, cancellationToken);
+                            await db.SaveChangesAsync(cancellationToken);
                         }
 
                         var frontendUrl = _configuration["FrontendUrl"]?.TrimEnd('/');

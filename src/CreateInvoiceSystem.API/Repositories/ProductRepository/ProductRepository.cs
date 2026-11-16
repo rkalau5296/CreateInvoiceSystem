@@ -87,9 +87,6 @@ public class ProductRepository(IDbContext db) : IProductRepository
         _db.Set<ProductEntity>().Remove(productEntity);        
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        _db.SaveChangesAsync(cancellationToken);
-
     public Task<Product> UpdateAsync(Product entity, CancellationToken cancellationToken)
     {
         var productEntity = ProductMapper.ToEntity(entity);

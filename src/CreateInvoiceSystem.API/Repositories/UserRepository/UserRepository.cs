@@ -45,12 +45,8 @@ public class UserRepository : IUserRepository
     public async Task<IdentityResult> CreateWithPasswordAsync(User user, string password)
     {
         var addressEntity = UserMapper.ToAddressEntity(user.Address);
-        await _db.Set<AddressEntity>().AddAsync(addressEntity);
-        await _db.SaveChangesAsync();
-
-        user.AddressId = addressEntity.AddressId;
-
         var userEntity = UserMapper.ToUserEntity(user);
+        userEntity.Address = addressEntity;
         userEntity.UserName = user.Email;
         userEntity.NormalizedUserName = _normalizer.NormalizeName(user.Email);
         userEntity.NormalizedEmail = _normalizer.NormalizeEmail(user.Email);
@@ -76,6 +72,11 @@ public class UserRepository : IUserRepository
             .Where(i => i.UserId == userId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+        var deletedInvoiceIds = _db.ChangeTracker.Entries<InvoiceEntity>()
+            .Where(entry => entry.State == EntityState.Deleted)
+            .Select(entry => entry.Entity.InvoiceId)
+            .ToHashSet();
+        invoices.RemoveAll(invoice => deletedInvoiceIds.Contains(invoice.InvoiceId));
 
         var invoiceIds = invoices.Select(i => i.InvoiceId).ToList();
         var invoicePositions = await _db.Set<InvoicePositionEntity>()
@@ -87,11 +88,21 @@ public class UserRepository : IUserRepository
             .Where(p => p.UserId == userId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+        var deletedProductIds = _db.ChangeTracker.Entries<ProductEntity>()
+            .Where(entry => entry.State == EntityState.Deleted)
+            .Select(entry => entry.Entity.ProductId)
+            .ToHashSet();
+        products.RemoveAll(product => deletedProductIds.Contains(product.ProductId));
 
         var clients = await _db.Set<ClientEntity>()
             .Where(c => c.UserId == userId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+        var deletedClientIds = _db.ChangeTracker.Entries<ClientEntity>()
+            .Where(entry => entry.State == EntityState.Deleted)
+            .Select(entry => entry.Entity.ClientId)
+            .ToHashSet();
+        clients.RemoveAll(client => deletedClientIds.Contains(client.ClientId));
 
         var clientAddressIds = clients.Select(c => c.AddressId).ToList();
         var clientAddresses = await _db.Set<AddressEntity>()
@@ -163,11 +174,6 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return _db.SaveChangesAsync(cancellationToken);
-    }
-
     public async Task UpdateAsync(User user, CancellationToken cancellationToken)
     {
         var userEntity = await _db.Set<UserEntity>()
@@ -209,9 +215,7 @@ public class UserRepository : IUserRepository
             if (addressEntity == null)
             {                
                 var newAddress = UserMapper.ToAddressEntity(user.Address);
-                await _db.Set<AddressEntity>().AddAsync(newAddress, cancellationToken);
-                await _db.SaveChangesAsync(cancellationToken);
-                userEntity.AddressId = newAddress.AddressId;
+                userEntity.Address = newAddress;
             }
             else
             {             
@@ -223,7 +227,6 @@ public class UserRepository : IUserRepository
             }
         }
 
-        await _db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<User> CheckPasswordAsync(User user, string password)
@@ -309,8 +312,6 @@ public class UserRepository : IUserRepository
     {
         var entity = UserMapper.ToUserSessionEntity(session);
         await _db.Set<UserSessionEntity>().AddAsync(entity, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
-        session.Id = entity.Id;
     }
 
     public async Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken)
@@ -336,7 +337,6 @@ public class UserRepository : IUserRepository
             entity.RefreshToken = session.RefreshToken;
             entity.LastActivityAt = session.LastActivityAt;
             entity.IsRevoked = session.IsRevoked;
-            await _db.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -433,8 +433,6 @@ public class UserRepository : IUserRepository
         var user = await _db.Set<UserEntity>().FindAsync(new object[] { userId }, ct) ?? throw new InvalidOperationException("User not found");
         user.ActivationTokenJti = jti;
         user.ActivationTokenExpiry = expiryUtc;
-
-        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<bool> ValidateAndActivateUserByTokenAsync(string email, string tokenJti, DateTimeOffset? tokenExpiry, CancellationToken ct = default)
@@ -459,8 +457,6 @@ public class UserRepository : IUserRepository
         user.IsActive = true;
         user.ActivationTokenJti = null;
         user.ActivationTokenExpiry = null;
-
-        await _db.SaveChangesAsync(ct);
 
         return true;
     }

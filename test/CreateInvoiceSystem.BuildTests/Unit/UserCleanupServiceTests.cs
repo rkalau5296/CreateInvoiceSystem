@@ -1,4 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Users.Application.Services;
+﻿using System.Text;
+using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Modules.Users.Application.Services;
 using CreateInvoiceSystem.Modules.Users.Entities;
 using CreateInvoiceSystem.Modules.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +20,7 @@ public class UserCleanupServiceTests
     private readonly Mock<ILogger<UserCleanupService>> _loggerMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IUserTokenService> _userTokenServiceMock;
+    private readonly Mock<IDbContext> _dbMock;
 
     public UserCleanupServiceTests()
     {
@@ -29,6 +32,7 @@ public class UserCleanupServiceTests
         _loggerMock = new Mock<ILogger<UserCleanupService>>();
         _configurationMock = new Mock<IConfiguration>();
         _userTokenServiceMock = new Mock<IUserTokenService>();
+        _dbMock = new Mock<IDbContext>();
 
         _scopeFactoryMock
             .Setup(factory => factory.CreateScope())
@@ -42,6 +46,10 @@ public class UserCleanupServiceTests
             .Setup(provider => provider.GetService(
                 typeof(IUserRepository)))
             .Returns(_userRepositoryMock.Object);
+
+        _serviceProviderMock
+            .Setup(provider => provider.GetService(typeof(IDbContext)))
+            .Returns(_dbMock.Object);
 
         _serviceProviderMock
             .Setup(provider => provider.GetService(
@@ -62,11 +70,13 @@ public class UserCleanupServiceTests
             .Setup(configuration => configuration["FrontendUrl"])
             .Returns("https://localhost:7022");
 
+        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(
+            $"{{\"jti\":\"cleanup-token\",\"exp\":{DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds()}}}"));
         _userTokenServiceMock
             .Setup(tokenService =>
                 tokenService.GenerateActivationToken(
                     It.IsAny<string>()))
-            .Returns("raw-token");
+            .Returns($"header.{payload}.signature");
     }
 
     [Fact]
@@ -117,6 +127,12 @@ public class UserCleanupServiceTests
                     It.IsAny<DateTime>(),
                     It.IsAny<CancellationToken>()),
             Times.AtLeastOnce);
+
+        _userRepositoryMock.Verify(
+            repository => repository.SaveActivationTokenJtiAsync(
+                It.IsAny<int>(), "cleanup-token", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        _dbMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         _emailSenderMock.Verify(
             emailSender =>
