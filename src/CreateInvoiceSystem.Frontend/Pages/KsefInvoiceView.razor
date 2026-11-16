@@ -203,7 +203,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Nie udało się pobrać szczegółów faktury: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+            _errorMessage = $"Nie udało się pobrać szczegółów faktury: {KsefErrorMessage(ex)}";
         }
         finally
         {
@@ -223,7 +223,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Nie udało się pobrać XML faktury: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+            _errorMessage = $"Nie udało się pobrać XML faktury: {KsefErrorMessage(ex)}";
         }
         finally
         {
@@ -232,6 +232,9 @@
     }
 
     private static string FormatDate(DateOnly? date) => date?.ToString("d") ?? "—";
+
+    private static string KsefErrorMessage(Exception ex) =>
+        ex is ApiException apiException ? apiException.GetUserMessage() : ApiExceptionExtensions.SanitizeMessage(ex.Message);
 
     private static string PaymentMethodLabel(string? code) => code switch
     {

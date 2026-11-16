@@ -8,6 +8,27 @@ namespace CreateInvoiceSystem.Frontend.Services;
 
 public sealed class KsefService(HttpClient http, IJSRuntime js)
 {
+    public async Task<bool> IsConfiguredAsync()
+    {
+        using var response = await http.GetAsync("api/Ksef/settings");
+        await response.EnsureSuccessOrThrowApiExceptionAsync();
+        var result = await response.Content.ReadFromJsonAsync<KsefSettingsResponse>()
+            ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź ustawień KSeF.");
+        return result.IsConfigured;
+    }
+
+    public async Task SaveTokenAsync(string token)
+    {
+        using var response = await http.PutAsJsonAsync("api/Ksef/settings", new { Token = token });
+        await response.EnsureSuccessOrThrowApiExceptionAsync();
+    }
+
+    public async Task DeleteTokenAsync()
+    {
+        using var response = await http.DeleteAsync("api/Ksef/settings");
+        await response.EnsureSuccessOrThrowApiExceptionAsync();
+    }
+
     public async Task<KsefInvoicesResponse> GetIncomingInvoicesAsync(
         DateOnly fromDate,
         DateOnly toDate,
@@ -59,5 +80,10 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
 
         var xmlBytes = await response.Content.ReadAsByteArrayAsync();
         await js.InvokeVoidAsync("downloadFile", $"KSeF_{ksefNumber}.xml", "application/xml", xmlBytes);
+    }
+
+    private sealed class KsefSettingsResponse
+    {
+        public bool IsConfigured { get; set; }
     }
 }

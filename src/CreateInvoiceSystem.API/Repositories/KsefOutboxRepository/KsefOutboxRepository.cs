@@ -2,14 +2,20 @@
 using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Ksef.Persistence.Persistence;
+using CreateInvoiceSystem.Abstractions.DbContext;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.Repositories.KsefOutboxRepository;
 
-public class KsefOutboxRepository(IKsefDbContext db) : IKsefOutboxRepository
+public class KsefOutboxRepository(IKsefDbContext db, IDbContext invoiceDb) : IKsefOutboxRepository
 {
     public async Task<int> EnqueueAsync(int userId, int invoiceId, CancellationToken cancellationToken)
     {
+        if (!await invoiceDb.Set<InvoiceEntity>().AsNoTracking()
+            .AnyAsync(invoice => invoice.InvoiceId == invoiceId && invoice.UserId == userId, cancellationToken))
+            throw new KeyNotFoundException("Nie znaleziono faktury.");
+
         var entity = new KsefOutgoingInvoiceStatus
         {
             UserId = userId,

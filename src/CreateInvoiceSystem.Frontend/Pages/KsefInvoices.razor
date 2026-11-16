@@ -175,7 +175,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Nie udało się pobrać faktur z KSeF: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+            _errorMessage = $"Nie udało się pobrać faktur z KSeF: {KsefErrorMessage(ex)}";
         }
         finally
         {
@@ -193,7 +193,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Nie udało się pobrać XML faktury: {ApiExceptionExtensions.SanitizeMessage(ex.Message)}";
+            _errorMessage = $"Nie udało się pobrać XML faktury: {KsefErrorMessage(ex)}";
         }
         finally
         {
@@ -203,4 +203,7 @@
 
     private void ViewInvoice(KsefInvoiceDto invoice) =>
         Navigation.NavigateTo($"/ksef/invoices/view/{Uri.EscapeDataString(invoice.KsefNumber)}");
+
+    private static string KsefErrorMessage(Exception ex) =>
+        ex is ApiException apiException ? apiException.GetUserMessage() : ApiExceptionExtensions.SanitizeMessage(ex.Message);
 }

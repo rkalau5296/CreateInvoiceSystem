@@ -25,8 +25,23 @@ public class KsefSendingBackgroundService(
 
                 foreach (var item in pending)
                 {
-                    await ProcessItemAsync(scope.ServiceProvider, outboxRepository, item, stoppingToken);
+                    try
+                    {
+                        await ProcessItemAsync(scope.ServiceProvider, outboxRepository, item, stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Nie udało się przygotować faktury {InvoiceId} do wysyłki KSeF.", item.InvoiceId);
+                    }
                 }
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
             }
             catch (Exception ex)
             {
@@ -43,6 +58,14 @@ public class KsefSendingBackgroundService(
         KsefOutboxItem item,
         CancellationToken cancellationToken)
     {
+        var credentialsStore = scopedProvider.GetRequiredService<IKsefCredentialsStore>();
+        if (!await credentialsStore.IsConfiguredAsync(item.UserId, cancellationToken))
+        {
+            logger.LogWarning("Faktura {InvoiceId} oczekuje na konfigurację tokenu KSeF użytkownika {UserId}.", item.InvoiceId, item.UserId);
+            return;
+        }
+
+        await credentialsStore.GetRequiredAsync(item.UserId, cancellationToken);
         await outboxRepository.MarkInProgressAsync(item.Id, cancellationToken);
         await outboxRepository.SaveChangesAsync(cancellationToken);
 
@@ -52,7 +75,7 @@ public class KsefSendingBackgroundService(
             var apiClient = scopedProvider.GetRequiredService<IKsefApiClient>();
 
             var xml = await xmlGenerator.GenerateXmlAsync(item.UserId, item.InvoiceId, cancellationToken);
-            var result = await apiClient.SendInvoiceAsync(xml, cancellationToken);
+            var result = await apiClient.SendInvoiceAsync(item.UserId, xml, cancellationToken);
 
             await outboxRepository.MarkSucceededAsync(item.Id, result, cancellationToken);
             await outboxRepository.SaveChangesAsync(cancellationToken);

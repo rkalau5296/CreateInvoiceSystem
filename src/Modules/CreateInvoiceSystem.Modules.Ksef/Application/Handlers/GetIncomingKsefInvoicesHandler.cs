@@ -12,6 +12,7 @@ public sealed class GetIncomingKsefInvoicesHandler(IKsefApiClient apiClient)
         CancellationToken cancellationToken)
     {
         var page = await apiClient.GetIncomingInvoicesAsync(
+            request.UserId,
             request.FromDate,
             request.ToDate,
             (request.PageNumber - 1) * request.PageSize,

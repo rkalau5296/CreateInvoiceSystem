@@ -4,9 +4,12 @@ using MediatR;
 
 namespace CreateInvoiceSystem.Modules.Ksef.Application.Handlers;
 
-public sealed class SendInvoiceToKsefHandler(IKsefOutboxRepository outboxRepository)
+public sealed class SendInvoiceToKsefHandler(IKsefOutboxRepository outboxRepository, IKsefCredentialsStore credentialsStore)
     : IRequestHandler<SendInvoiceToKsefRequest, int>
 {
-    public Task<int> Handle(SendInvoiceToKsefRequest request, CancellationToken cancellationToken) =>
-        outboxRepository.EnqueueAsync(request.UserId, request.InvoiceId, cancellationToken);
+    public async Task<int> Handle(SendInvoiceToKsefRequest request, CancellationToken cancellationToken)
+    {
+        await credentialsStore.GetRequiredAsync(request.UserId, cancellationToken);
+        return await outboxRepository.EnqueueAsync(request.UserId, request.InvoiceId, cancellationToken);
+    }
 }

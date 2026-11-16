@@ -6,6 +6,8 @@ using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvo
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceStatus;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceXml;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.SendInvoiceToKsef;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSettings;
+using CreateInvoiceSystem.Modules.Ksef.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,35 @@ public class KsefController : ApiControllerBase
     public KsefController(IMediator mediator) : base(mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettingsAsync(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
+        Response.Headers.CacheControl = "no-store";
+        var configured = await _mediator.Send(new GetKsefSettingsRequest(userId), cancellationToken);
+        return Ok(new { IsConfigured = configured });
+    }
+
+    [HttpPut("settings")]
+    public async Task<IActionResult> SaveSettingsAsync([FromBody] SaveKsefSettingsDto settings, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
+        if (settings is null || string.IsNullOrWhiteSpace(settings.Token))
+            return BadRequest("Podaj token KSeF.");
+        Response.Headers.CacheControl = "no-store";
+        await _mediator.Send(new SaveKsefSettingsRequest(userId, settings.Token), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("settings")]
+    public async Task<IActionResult> DeleteSettingsAsync(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
+        Response.Headers.CacheControl = "no-store";
+        await _mediator.Send(new DeleteKsefSettingsRequest(userId), cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{invoiceId:int}/send")]
@@ -67,9 +98,10 @@ public class KsefController : ApiControllerBase
         [FromRoute] string ksefNumber,
         CancellationToken cancellationToken)
     {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
         if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
 
-        var xml = await _mediator.Send(new GetKsefInvoiceXmlRequest(ksefNumber), cancellationToken);
+        var xml = await _mediator.Send(new GetKsefInvoiceXmlRequest(ksefNumber) { UserId = userId }, cancellationToken);
         var safeFileName = string.Concat(ksefNumber.Select(character =>
             char.IsLetterOrDigit(character) || character is '-' or '_' or '.' ? character : '_'));
         return File(Encoding.UTF8.GetBytes(xml), "application/xml", $"{safeFileName}.xml");
@@ -80,9 +112,10 @@ public class KsefController : ApiControllerBase
         [FromRoute] string ksefNumber,
         CancellationToken cancellationToken)
     {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
         if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
 
-        var response = await _mediator.Send(new GetKsefInvoiceDetailsRequest(ksefNumber), cancellationToken);
+        var response = await _mediator.Send(new GetKsefInvoiceDetailsRequest(ksefNumber) { UserId = userId }, cancellationToken);
         return Ok(response);
     }
 

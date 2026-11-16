@@ -17,7 +17,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.13")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -193,6 +193,25 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasFilter("[Nip] IS NOT NULL");
 
                     b.ToTable("Clients", (string)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nip")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ProtectedToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("KsefCredentials", (string)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>
@@ -615,6 +634,15 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", null)
+                        .WithOne()
+                        .HasForeignKey("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>

@@ -13,7 +13,7 @@ public sealed class GetKsefInvoiceDetailsHandler(IKsefApiClient apiClient)
         GetKsefInvoiceDetailsRequest request,
         CancellationToken cancellationToken)
     {
-        var xml = await apiClient.DownloadInvoiceXmlAsync(request.KsefNumber, cancellationToken);
+        var xml = await apiClient.DownloadInvoiceXmlAsync(request.UserId, request.KsefNumber, cancellationToken);
         return KsefInvoiceXmlMapper.ToDetailsDto(request.KsefNumber, xml);
     }
 }

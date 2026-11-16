@@ -6,4 +6,5 @@ namespace CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsef
 public sealed class GetKsefInvoiceDetailsRequest(string ksefNumber) : IRequest<KsefInvoiceDetailsDto>
 {
     public string KsefNumber { get; } = ksefNumber;
+    public int UserId { get; set; }
 }

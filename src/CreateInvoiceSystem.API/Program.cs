@@ -35,6 +35,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
 #endif
 
+builder.Services.AddKsefDataProtection(builder.Configuration, builder.Environment);
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = false;

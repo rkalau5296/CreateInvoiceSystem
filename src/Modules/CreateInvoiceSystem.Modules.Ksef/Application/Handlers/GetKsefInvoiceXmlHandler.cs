@@ -8,5 +8,5 @@ public sealed class GetKsefInvoiceXmlHandler(IKsefApiClient apiClient)
     : IRequestHandler<GetKsefInvoiceXmlRequest, string>
 {
     public Task<string> Handle(GetKsefInvoiceXmlRequest request, CancellationToken cancellationToken) =>
-        apiClient.DownloadInvoiceXmlAsync(request.KsefNumber, cancellationToken);
+        apiClient.DownloadInvoiceXmlAsync(request.UserId, request.KsefNumber, cancellationToken);
 }

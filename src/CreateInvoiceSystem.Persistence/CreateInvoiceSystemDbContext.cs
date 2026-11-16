@@ -35,6 +35,7 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
     public DbSet<InvoiceEntity> Invoices { get; set; }
     public DbSet<UserSessionEntity> UserSessions { get; set; }
     public DbSet<KsefOutgoingInvoiceStatus> KsefOutgoingInvoiceStatuses { get; set; }
+    public DbSet<KsefCredentialEntity> KsefCredentials { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +47,17 @@ public class CreateInvoiceSystemDbContext(DbContextOptions<CreateInvoiceSystemDb
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoiceEntityConfiguration).Assembly);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(KsefOutgoingInvoiceStatusEntityConfiguration).Assembly);
+
+        modelBuilder.Entity<KsefCredentialEntity>(entity =>
+        {
+            entity.ToTable("KsefCredentials");
+            entity.HasKey(x => x.UserId);
+            entity.Property(x => x.Nip).HasMaxLength(10).IsRequired();
+            entity.Property(x => x.ProtectedToken).IsRequired();
+            entity.HasOne<UserEntity>().WithOne()
+                .HasForeignKey<KsefCredentialEntity>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<KsefOutgoingInvoiceStatus>()
             .HasOne<InvoiceEntity>()

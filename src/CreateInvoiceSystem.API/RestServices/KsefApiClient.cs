@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Ksef.Dto;
 using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using KSeF.Client.Api.Builders.Auth;
@@ -7,11 +6,11 @@ using KSeF.Client.Api.Builders.Online;
 using KSeF.Client.Core.Interfaces.Clients;
 using KSeF.Client.Core.Interfaces.Services;
 using KSeF.Client.Core.Models;
+using KSeF.Client.Core.Models.ApiResponses;
 using KSeF.Client.Core.Models.Authorization;
 using KSeF.Client.Core.Models.Invoices;
 using KSeF.Client.Core.Models.Sessions;
 using KSeF.Client.Core.Models.Sessions.OnlineSession;
-using Microsoft.Extensions.Options;
 
 namespace CreateInvoiceSystem.API.RestServices;
 
@@ -20,22 +19,22 @@ public sealed class KsefApiClient(
     IInvoiceDownloadClient invoiceDownloadClient,
     IKSeFClient ksefClient,
     ICryptographyService cryptographyService,
-    IOptions<KsefApiOptions> ksefOptions) : IKsefApiClient
+    IKsefCredentialsStore credentialsStore) : IKsefApiClient
 {
     private static readonly TimeSpan AuthStatusPollInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan AuthStatusTimeout = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan SessionStatusPollInterval = TimeSpan.FromSeconds(2);
     private const int MaxSessionStatusPollAttempts = 60;
 
-    public async Task<string> AuthenticateAsync(CancellationToken cancellationToken)
+    private async Task<string> AuthenticateAsync(int userId, CancellationToken cancellationToken)
     {
-        KsefApiOptions options = ksefOptions.Value;
+        var credentials = await credentialsStore.GetRequiredAsync(userId, cancellationToken).ConfigureAwait(false);
 
         AuthenticationChallengeResponse challengeResponse = await authorizationClient
             .GetAuthChallengeAsync(cancellationToken).ConfigureAwait(false);
 
         long timeStamp = challengeResponse.Timestamp.ToUnixTimeMilliseconds();
-        string tokenWithTimestamp = $"{options.KsefToken}|{timeStamp}";
+        string tokenWithTimestamp = $"{credentials.Token}|{timeStamp}";
         byte[] tokenBytes = Encoding.UTF8.GetBytes(tokenWithTimestamp);
         byte[] encryptedBytes = cryptographyService.EncryptKsefTokenWithRSAUsingPublicKey(tokenBytes);
         string encryptedTokenBase64 = Convert.ToBase64String(encryptedBytes);
@@ -43,34 +42,36 @@ public sealed class KsefApiClient(
         IAuthKsefTokenRequestBuilderWithEncryptedToken builder = AuthKsefTokenRequestBuilder
             .Create()
             .WithChallenge(challengeResponse.Challenge)
-            .WithContext(AuthenticationTokenContextIdentifierType.Nip, options.ContextIdentifierNip)
+            .WithContext(AuthenticationTokenContextIdentifierType.Nip, credentials.Nip)
             .WithEncryptedToken(encryptedTokenBase64);
 
         SignatureResponse signatureResponse = await authorizationClient
             .SubmitKsefTokenAuthRequestAsync(builder.Build(), cancellationToken).ConfigureAwait(false);
 
-        AuthStatus authStatus;
-        DateTime startTime = DateTime.UtcNow;
-
-        do
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(AuthStatusTimeout);
+        try
         {
-            authStatus = await authorizationClient
-                .GetAuthStatusAsync(signatureResponse.ReferenceNumber, signatureResponse.AuthenticationToken.Token, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (authStatus.Status.Code != 200 && !cancellationToken.IsCancellationRequested)
+            while (true)
             {
-                await Task.Delay(AuthStatusPollInterval, cancellationToken).ConfigureAwait(false);
+                AuthStatus authStatus = await authorizationClient
+                    .GetAuthStatusAsync(signatureResponse.ReferenceNumber, signatureResponse.AuthenticationToken.Token, timeout.Token)
+                    .ConfigureAwait(false);
+
+                if (authStatus.Status.Code == AuthenticationStatusCodeResponse.AuthenticationSuccess)
+                    break;
+
+                if (authStatus.Status.Code != AuthenticationStatusCodeResponse.AuthenticationInProgress)
+                    throw new InvalidOperationException(
+                        $"Uwierzytelnienie w KSeF nie powiodło się. Kod statusu: {authStatus.Status.Code}, opis: {authStatus.Status.Description}.");
+
+                await Task.Delay(AuthStatusPollInterval, timeout.Token).ConfigureAwait(false);
             }
         }
-        while (authStatus.Status.Code != 200
-            && !cancellationToken.IsCancellationRequested
-            && (DateTime.UtcNow - startTime) < AuthStatusTimeout);
-
-        if (authStatus.Status.Code != 200)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeout.IsCancellationRequested)
         {
             throw new InvalidOperationException(
-                $"Uwierzytelnienie w KSeF nie powiodło się lub przekroczono limit czasu. Status: {authStatus.Status.Code}, opis: {authStatus.Status.Description}.");
+                "Przekroczono limit czasu oczekiwania na uwierzytelnienie w KSeF.");
         }
 
         AuthenticationOperationStatusResponse authResult = await authorizationClient
@@ -79,9 +80,9 @@ public sealed class KsefApiClient(
         return authResult.AccessToken.Token;
     }
 
-    public async Task<KsefSendResult> SendInvoiceAsync(string invoiceXml, CancellationToken cancellationToken)
+    public async Task<KsefSendResult> SendInvoiceAsync(int userId, string invoiceXml, CancellationToken cancellationToken)
     {
-        string accessToken = await AuthenticateAsync(cancellationToken).ConfigureAwait(false);
+        string accessToken = await AuthenticateAsync(userId, cancellationToken).ConfigureAwait(false);
 
         EncryptionData encryptionData = cryptographyService.GetEncryptionData();
 
@@ -168,13 +169,14 @@ public sealed class KsefApiClient(
     }
 
     public async Task<KsefInvoicePage> GetIncomingInvoicesAsync(
+        int userId,
         DateOnly fromDate,
         DateOnly toDate,
         int pageOffset,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        string accessToken = await AuthenticateAsync(cancellationToken).ConfigureAwait(false);
+        string accessToken = await AuthenticateAsync(userId, cancellationToken).ConfigureAwait(false);
         var filters = new InvoiceQueryFilters
         {
             SubjectType = InvoiceSubjectType.Subject2,
@@ -205,9 +207,9 @@ public sealed class KsefApiClient(
             response.HasMore);
     }
 
-    public async Task<string> DownloadInvoiceXmlAsync(string ksefNumber, CancellationToken cancellationToken)
+    public async Task<string> DownloadInvoiceXmlAsync(int userId, string ksefNumber, CancellationToken cancellationToken)
     {
-        string accessToken = await AuthenticateAsync(cancellationToken).ConfigureAwait(false);
+        string accessToken = await AuthenticateAsync(userId, cancellationToken).ConfigureAwait(false);
         return await invoiceDownloadClient
             .GetInvoiceAsync(ksefNumber, accessToken, cancellationToken)
             .ConfigureAwait(false);

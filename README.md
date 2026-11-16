@@ -104,6 +104,20 @@ Przed uruchomieniem sprawdź konfigurację frontendu, w szczególności:
 
 Wartość BaseApiUrl musi być poprawnym absolutnym adresem URL API. Nie umieszczaj sekretów, haseł ani kluczy w repozytorium. Dane wrażliwe przechowuj w User Secrets, zmiennych środowiskowych albo bezpiecznym systemie konfiguracji.
 
+### KSeF i ochrona tokenów
+
+Każdy użytkownik zapisuje własny token KSeF w **Ustawienia konta i firmy → Integracja KSeF**. Token jest powiązany z zapisanym w profilu NIP i środowiskiem KSeF skonfigurowanym przez `KsefApi:BaseUrl`. Status oznacza zapisanie tokenu, a nie potwierdzenie jego ważności przez KSeF. Po zmianie NIP, środowiska lub unieważnieniu tokenu należy zapisać odpowiedni nowy token. Aplikacja nie zwraca zapisanego tokenu do przeglądarki. Usuń stare `KsefApi:KsefToken` i `KsefApi:ContextIdentifierNip` z lokalnej i wdrożeniowej konfiguracji — nie są już używane. Jeśli token trafił do repozytorium lub logów, unieważnij go w KSeF i wygeneruj nowy.
+
+Przed zastosowaniem migracji i uruchomieniem produkcyjnego API skonfiguruj poniższe ustawienia (np. przez zmienne środowiskowe, bez zapisywania haseł w repozytorium):
+
+- `KsefDataProtection__KeyDirectory`: bezwzględna ścieżka do trwałego katalogu kluczy Data Protection poza repozytorium i bazą.
+- `KsefDataProtection__CertificatePath`: bezwzględna ścieżka do pliku PFX z certyfikatem i kluczem prywatnym.
+- `KsefDataProtection__CertificatePassword`: hasło PFX, dostarczone z bezpiecznego magazynu konfiguracji.
+
+Katalog musi mieć ograniczone uprawnienia, być trwały między wdrożeniami i dostępny dla wszystkich instancji API; zabezpiecz również plik PFX oraz hasło. Wykonuj bezpieczne kopie katalogu kluczy i certyfikatu wraz z hasłem. Ich utrata uniemożliwi odszyfrowanie zapisanych tokenów. Nie zastępuj certyfikatu bez planu zachowania dostępu do starych kluczy. W środowisku `Development`, jeśli żadne z tych ustawień nie jest podane, stosowany jest domyślny mechanizm Data Protection systemu; poza Windows domyślne klucze mogą nie być zaszyfrowane w spoczynku, dlatego także lokalnie zalecana jest konfiguracja certyfikatu. W pozostałych środowiskach brak konfiguracji blokuje start API.
+
+Następnie zastosuj migracje bazy, np. `dotnet ef database update --project src\CreateInvoiceSystem.Persistence --startup-project src\CreateInvoiceSystem.API`. Frontend i API muszą używać HTTPS, aby token przesyłany z przeglądarki nie podróżował w postaci jawnej.
+
 Konfiguracja API powinna zawierać co najmniej:
 
 connection string do bazy danych,
