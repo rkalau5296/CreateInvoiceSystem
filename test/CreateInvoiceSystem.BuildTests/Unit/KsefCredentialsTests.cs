@@ -7,6 +7,7 @@ using CreateInvoiceSystem.Modules.Ksef.Application.Services;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncomingKsefInvoices;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceDetails;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceXml;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoicePdf;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.SendInvoiceToKsef;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSettings;
 using CreateInvoiceSystem.Modules.Ksef.Dto;
@@ -151,18 +152,24 @@ public class KsefCredentialsTests
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
         Assert.IsType<UnauthorizedResult>(await controller.DownloadInvoiceXmlAsync("number", ct));
+        Assert.IsType<UnauthorizedResult>(await controller.GetInvoicePdfAsync("number", ct));
         Assert.IsType<UnauthorizedResult>(await controller.SaveSettingsAsync(new SaveKsefSettingsDto { Token = "secret" }, ct));
 
         controller.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
             [new Claim(ClaimTypes.NameIdentifier, "42")], "test"));
         mediator.Setup(x => x.Send(It.Is<GetKsefInvoiceXmlRequest>(r => r.UserId == 42 && r.KsefNumber == "number"), ct))
             .ReturnsAsync("<Faktura/>");
+        mediator.Setup(x => x.Send(It.Is<GetKsefInvoicePdfRequest>(r => r.UserId == 42 && r.KsefNumber == "number"), ct))
+            .ReturnsAsync([1, 2, 3]);
         mediator.Setup(x => x.Send(It.Is<GetKsefSettingsRequest>(r => r.UserId == 42), ct))
             .ReturnsAsync(true);
         mediator.Setup(x => x.Send(It.Is<SaveKsefSettingsRequest>(
                 r => r.UserId == 42 && r.Token == "secret"), ct))
             .Returns(Task.CompletedTask);
         Assert.IsType<FileContentResult>(await controller.DownloadInvoiceXmlAsync("number", ct));
+        var pdf = Assert.IsType<FileContentResult>(await controller.GetInvoicePdfAsync("number", ct));
+        Assert.Equal("application/pdf", pdf.ContentType);
+        Assert.Equal("KSeF_number.pdf", pdf.FileDownloadName);
         Assert.IsType<NoContentResult>(await controller.SaveSettingsAsync(new SaveKsefSettingsDto { Token = "secret" }, ct));
         var status = Assert.IsType<OkObjectResult>(await controller.GetSettingsAsync(ct));
         Assert.Equal("{\"IsConfigured\":true}", JsonSerializer.Serialize(status.Value));

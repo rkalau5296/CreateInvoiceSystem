@@ -5,6 +5,7 @@ using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncoming
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceDetails;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceStatus;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoiceXml;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetKsefInvoicePdf;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.SendInvoiceToKsef;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSettings;
 using CreateInvoiceSystem.Modules.Ksef.Dto;
@@ -105,6 +106,18 @@ public class KsefController : ApiControllerBase
         var safeFileName = string.Concat(ksefNumber.Select(character =>
             char.IsLetterOrDigit(character) || character is '-' or '_' or '.' ? character : '_'));
         return File(Encoding.UTF8.GetBytes(xml), "application/xml", $"{safeFileName}.xml");
+    }
+
+    [HttpGet("invoices/{ksefNumber}/pdf")]
+    public async Task<IActionResult> GetInvoicePdfAsync([FromRoute] string ksefNumber, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out int userId)) return Unauthorized();
+        if (string.IsNullOrWhiteSpace(ksefNumber)) return BadRequest();
+        Response.Headers.CacheControl = "no-store";
+        var pdf = await _mediator.Send(new GetKsefInvoicePdfRequest(userId, ksefNumber), cancellationToken);
+        var safeFileName = string.Concat(ksefNumber.Select(character =>
+            char.IsLetterOrDigit(character) || character is '-' or '_' or '.' ? character : '_'));
+        return File(pdf, "application/pdf", $"KSeF_{safeFileName}.pdf");
     }
 
     [HttpGet("invoices/{ksefNumber}")]

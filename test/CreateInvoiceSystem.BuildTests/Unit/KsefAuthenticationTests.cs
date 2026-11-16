@@ -1,5 +1,6 @@
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.Repositories.KsefCredentialsRepository;
+using CreateInvoiceSystem.Modules.Ksef.DI;
 using CreateInvoiceSystem.Modules.Ksef.Dto;
 using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
@@ -12,6 +13,9 @@ using KSeF.Client.Core.Models.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using System.Text;
 
@@ -19,6 +23,36 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class KsefAuthenticationTests
 {
+    [Fact]
+    public async Task Host_starts_without_fetching_ksef_certificates_and_retries_after_failure()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fetcher = new Mock<ICertificateFetcher>(MockBehavior.Strict);
+        fetcher.Setup(x => x.GetCertificatesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("KSeF unavailable"));
+        var outbox = new Mock<IKsefOutboxRepository>(MockBehavior.Strict);
+        outbox.Setup(x => x.GetPendingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton(fetcher.Object);
+                services.AddSingleton(outbox.Object);
+                services.AddKsefModule(new ConfigurationBuilder().Build());
+            })
+            .Build();
+
+        await host.StartAsync(ct);
+        fetcher.Verify(x => x.GetCertificatesAsync(It.IsAny<CancellationToken>()), Times.Never);
+
+        var crypto = host.Services.GetRequiredService<ICryptographyService>();
+        await Assert.ThrowsAsync<HttpRequestException>(() => crypto.WarmupAsync(ct));
+        await Assert.ThrowsAsync<HttpRequestException>(() => crypto.WarmupAsync(ct));
+        fetcher.Verify(x => x.GetCertificatesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        await host.StopAsync(ct);
+    }
+
     [Fact]
     public async Task Stored_user_credentials_are_passed_unchanged_to_authentication()
     {
@@ -36,6 +70,7 @@ public class KsefAuthenticationTests
         await credentials.SaveAsync(user.Id, "test-token", ct);
         var authorization = new Mock<IAuthorizationClient>(MockBehavior.Strict);
         var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
+        crypto.Setup(x => x.WarmupAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(1234567890000);
         authorization.Setup(x => x.GetAuthChallengeAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthenticationChallengeResponse
@@ -60,7 +95,7 @@ public class KsefAuthenticationTests
         authorization.Setup(x => x.GetAuthStatusAsync("reference", "temporary", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthStatus { Status = new OperationStatusInfo { Code = 450, Description = "failure" } });
         var client = new KsefApiClient(authorization.Object, Mock.Of<IInvoiceDownloadClient>(),
-            Mock.Of<IKSeFClient>(), crypto.Object, credentials);
+            Mock.Of<IKSeFClient>(), crypto.Object, credentials, Mock.Of<IKsefInvoiceBytesClient>());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => client.DownloadInvoiceXmlAsync(user.Id, "invoice", ct));
 
@@ -124,6 +159,7 @@ public class KsefAuthenticationTests
         var authorization = new Mock<IAuthorizationClient>(MockBehavior.Strict);
         var download = new Mock<IInvoiceDownloadClient>(MockBehavior.Strict);
         var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
+        crypto.Setup(x => x.WarmupAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var credentials = new Mock<IKsefCredentialsStore>(MockBehavior.Strict);
         credentials.Setup(x => x.GetRequiredAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new KsefCredentials("1234567890", "test-token"));
@@ -137,7 +173,7 @@ public class KsefAuthenticationTests
                 AuthenticationToken = new OperationToken { Token = "temporary" }
             });
 
-        return (new KsefApiClient(authorization.Object, download.Object, Mock.Of<IKSeFClient>(), crypto.Object, credentials.Object),
+        return (new KsefApiClient(authorization.Object, download.Object, Mock.Of<IKSeFClient>(), crypto.Object, credentials.Object, Mock.Of<IKsefInvoiceBytesClient>()),
             authorization, download);
     }
 }

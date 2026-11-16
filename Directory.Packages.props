@@ -41,6 +41,10 @@
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     <PackageVersion Include="QuestPDF" Version="2026.9.1" />
+    <PackageVersion Include="QRCoder" Version="1.8.1" />
+    <PackageVersion Include="PdfPig" Version="0.1.16" />
+    <PackageVersion Include="SkiaSharp" Version="3.116.1" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.11" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="FluentAssertions" Version="8.11.0" />

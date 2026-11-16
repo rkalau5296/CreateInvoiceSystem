@@ -108,6 +108,10 @@ Wartość BaseApiUrl musi być poprawnym absolutnym adresem URL API. Nie umieszc
 
 Każdy użytkownik zapisuje własny token KSeF w **Ustawienia konta i firmy → Integracja KSeF**. Token jest powiązany z zapisanym w profilu NIP i środowiskiem KSeF skonfigurowanym przez `KsefApi:BaseUrl`. Status oznacza zapisanie tokenu, a nie potwierdzenie jego ważności przez KSeF. Po zmianie NIP, środowiska lub unieważnieniu tokenu należy zapisać odpowiedni nowy token. Aplikacja nie zwraca zapisanego tokenu do przeglądarki. Usuń stare `KsefApi:KsefToken` i `KsefApi:ContextIdentifierNip` z lokalnej i wdrożeniowej konfiguracji — nie są już używane. Jeśli token trafił do repozytorium lub logów, unieważnij go w KSeF i wygeneruj nowy.
 
+Aplikacja uruchamia się bez połączenia z KSeF. Certyfikaty są pobierane przy pierwszej operacji KSeF; wcześniej zlecone wysyłki są nadal obsługiwane w tle.
+
+Na liście faktur zakupowych oraz w ich podglądzie można pobrać PDF generowany w module PDF na podstawie oryginalnego XML z KSeF. Jego układ nawiązuje do wizualizacji KSeF i zawiera kod QR weryfikujący dokument. Oryginałem faktury pozostaje XML dostępny osobno. Kod QR wymaga NIP sprzedawcy i daty wystawienia w XML. PDF nie zawiera drugiego kodu QR potwierdzającego certyfikat wystawcy faktury offline. Dla standardowych środowisk testowego, demo i produkcyjnego adres weryfikacji dobierany jest automatycznie; dla niestandardowego adresu API skonfiguruj właściwy `KsefApi:QrBaseUrl`.
+
 Przed zastosowaniem migracji i uruchomieniem produkcyjnego API skonfiguruj poniższe ustawienia (np. przez zmienne środowiskowe, bez zapisywania haseł w repozytorium):
 
 - `KsefDataProtection__KeyDirectory`: bezwzględna ścieżka do trwałego katalogu kluczy Data Protection poza repozytorium i bazą.

@@ -1,5 +1,6 @@
 ﻿using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Ksef.Application.Services;
+using KSeF.Client.Api.Services;
 using KSeF.Client.Clients;
 using KSeF.Client.Core.Interfaces.Clients;
 using KSeF.Client.DI;
@@ -18,10 +19,12 @@ public static class KsefServiceCollectionExtensions
 
         services.AddKSeFClient(options =>
         {
-            options.BaseUrl = ksefApiOptions.BaseUrl;
+            options.BaseUrl = ksefApiOptions.BaseUrl.TrimEnd('/');
+            if (!string.IsNullOrWhiteSpace(ksefApiOptions.QrBaseUrl))
+                options.BaseQRUrl = ksefApiOptions.QrBaseUrl.TrimEnd('/');
         });
 
-        services.AddCryptographyClient();
+        services.AddCryptographyClient(CryptographyServiceWarmupMode.Disabled);
         services.AddScoped<IInvoiceDownloadClient, InvoiceDownloadClient>();
         services.AddHostedService<KsefSendingBackgroundService>();
 

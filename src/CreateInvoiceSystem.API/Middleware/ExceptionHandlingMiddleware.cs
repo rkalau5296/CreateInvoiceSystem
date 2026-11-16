@@ -45,6 +45,19 @@ public class ExceptionHandlingMiddleware
 
         var innermost = GetInnermostException(exception);
 
+        if (exception is HttpRequestException)
+        {
+            status = StatusCodes.Status503ServiceUnavailable;
+            problem = new ProblemDetails
+            {
+                Title = "External service unavailable",
+                Status = status,
+                Detail = "Nie można połączyć się z usługą zewnętrzną. Sprawdź połączenie i spróbuj ponownie."
+            };
+            await WriteResponseAsync(context, problem, status, jsonOptions);
+            return;
+        }
+
         if (IsConnectionIssue(innermost))
         {
             status = StatusCodes.Status500InternalServerError;

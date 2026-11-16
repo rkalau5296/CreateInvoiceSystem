@@ -87,11 +87,20 @@
                                         <button class="btn btn-sm btn-outline-primary"
                                                 @onclick="() => DownloadXml(invoice)"
                                                 disabled="@(_downloadingKsefNumber != null)">
-                                            @if (_downloadingKsefNumber == invoice.KsefNumber)
+                                            @if (_downloadingKsefNumber == invoice.KsefNumber && !_downloadingPdf)
                                             {
                                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                             }
                                             <i class="bi bi-filetype-xml me-1"></i>XML
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => DownloadPdf(invoice)"
+                                                disabled="@(_downloadingKsefNumber != null)">
+                                            @if (_downloadingKsefNumber == invoice.KsefNumber && _downloadingPdf)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                            }
+                                            <i class="bi bi-filetype-pdf me-1"></i>PDF
                                         </button>
                                     </div>
                                 </td>
@@ -126,6 +135,7 @@
     private DateTime _toDate = DateTime.Today;
     private string? _errorMessage;
     private string? _downloadingKsefNumber;
+    private bool _downloadingPdf;
     private int _pageNumber = 1;
     private bool _hasMore;
     private bool _isLoading;
@@ -191,6 +201,7 @@
             _downloadingKsefNumber = invoice.KsefNumber;
             await KsefService.DownloadInvoiceXmlAsync(invoice.KsefNumber);
         }
+
         catch (Exception ex)
         {
             _errorMessage = $"Nie udało się pobrać XML faktury: {KsefErrorMessage(ex)}";
@@ -198,6 +209,26 @@
         finally
         {
             _downloadingKsefNumber = null;
+        }
+    }
+
+    private async Task DownloadPdf(KsefInvoiceDto invoice)
+    {
+        try
+        {
+            _errorMessage = null;
+            _downloadingKsefNumber = invoice.KsefNumber;
+            _downloadingPdf = true;
+            await KsefService.DownloadInvoicePdfAsync(invoice.KsefNumber);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Nie udało się pobrać PDF faktury: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _downloadingKsefNumber = null;
+            _downloadingPdf = false;
         }
     }
 

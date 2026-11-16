@@ -82,8 +82,17 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("downloadFile", $"KSeF_{ksefNumber}.xml", "application/xml", xmlBytes);
     }
 
+    public async Task DownloadInvoicePdfAsync(string ksefNumber)
+    {
+        using var response = await http.GetAsync($"api/Ksef/invoices/{Uri.EscapeDataString(ksefNumber)}/pdf");
+        await response.EnsureSuccessOrThrowApiExceptionAsync();
+        var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+        await js.InvokeVoidAsync("downloadFile", $"KSeF_{ksefNumber}.pdf", "application/pdf", pdfBytes);
+    }
+
     private sealed class KsefSettingsResponse
     {
         public bool IsConfigured { get; set; }
     }
+
 }

@@ -19,7 +19,8 @@ public sealed class KsefApiClient(
     IInvoiceDownloadClient invoiceDownloadClient,
     IKSeFClient ksefClient,
     ICryptographyService cryptographyService,
-    IKsefCredentialsStore credentialsStore) : IKsefApiClient
+    IKsefCredentialsStore credentialsStore,
+    IKsefInvoiceBytesClient invoiceBytesClient) : IKsefApiClient
 {
     private static readonly TimeSpan AuthStatusPollInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan AuthStatusTimeout = TimeSpan.FromMinutes(2);
@@ -32,6 +33,8 @@ public sealed class KsefApiClient(
 
         AuthenticationChallengeResponse challengeResponse = await authorizationClient
             .GetAuthChallengeAsync(cancellationToken).ConfigureAwait(false);
+
+        await cryptographyService.WarmupAsync(cancellationToken).ConfigureAwait(false);
 
         long timeStamp = challengeResponse.Timestamp.ToUnixTimeMilliseconds();
         string tokenWithTimestamp = $"{credentials.Token}|{timeStamp}";
@@ -213,6 +216,12 @@ public sealed class KsefApiClient(
         return await invoiceDownloadClient
             .GetInvoiceAsync(ksefNumber, accessToken, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public async Task<byte[]> DownloadInvoiceXmlBytesAsync(int userId, string ksefNumber, CancellationToken cancellationToken)
+    {
+        string accessToken = await AuthenticateAsync(userId, cancellationToken).ConfigureAwait(false);
+        return await invoiceBytesClient.DownloadAsync(ksefNumber, accessToken, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<SessionStatusResponse> PollSessionStatusAsync(

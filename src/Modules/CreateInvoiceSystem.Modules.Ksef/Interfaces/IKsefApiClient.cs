@@ -13,4 +13,5 @@ public interface IKsefApiClient
         int pageSize,
         CancellationToken cancellationToken);
     Task<string> DownloadInvoiceXmlAsync(int userId, string ksefNumber, CancellationToken cancellationToken);
+    Task<byte[]> DownloadInvoiceXmlBytesAsync(int userId, string ksefNumber, CancellationToken cancellationToken);
 }
