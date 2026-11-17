@@ -16,6 +16,27 @@ public class KsefOutboxRepository(IKsefDbContext db, IDbContext invoiceDb) : IKs
             .AnyAsync(invoice => invoice.InvoiceId == invoiceId && invoice.UserId == userId, cancellationToken))
             throw new KeyNotFoundException("Nie znaleziono faktury.");
 
+        var updated = await db.KsefOutgoingInvoiceStatuses
+            .Where(s => s.UserId == userId && s.InvoiceId == invoiceId && s.Status == KsefInvoiceStatus.Odrzucona)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(s => s.Status, KsefInvoiceStatus.Wysylanie)
+                .SetProperty(s => s.SentAt, DateTime.UtcNow)
+                .SetProperty(s => s.ErrorMessage, (string?)null)
+                .SetProperty(s => s.ElementReferenceNumber, (string?)null)
+                .SetProperty(s => s.KsefReferenceNumber, (string?)null)
+                .SetProperty(s => s.UpoXml, (string?)null)
+                .SetProperty(s => s.ConfirmedAt, (DateTime?)null), cancellationToken);
+
+        if (updated == 1)
+            return await db.KsefOutgoingInvoiceStatuses.AsNoTracking()
+                .Where(s => s.UserId == userId && s.InvoiceId == invoiceId)
+                .Select(s => s.KsefOutgoingInvoiceStatusId)
+                .SingleAsync(cancellationToken);
+
+        if (await db.KsefOutgoingInvoiceStatuses.AsNoTracking()
+            .AnyAsync(s => s.InvoiceId == invoiceId, cancellationToken))
+            throw new InvalidOperationException("Faktura jest już wysłana lub oczekuje na wysyłkę do KSeF.");
+
         var entity = new KsefOutgoingInvoiceStatus
         {
             UserId = userId,

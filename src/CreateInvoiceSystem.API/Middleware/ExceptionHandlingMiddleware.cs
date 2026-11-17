@@ -81,7 +81,8 @@ public class ExceptionHandlingMiddleware
                     var indexName = ExtractIndexNameFromSqlMessage(innerSqlEx.Message);
                     var indexMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                     {
-                        ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP"
+                        ["IX_Clients_Nip_UserId"] = "Istnieje już kontrahent o tym nr NIP",
+                        ["IX_KsefOutgoingInvoiceStatuses_InvoiceId"] = "Faktura jest już wysłana lub oczekuje na wysyłkę do KSeF."
                     };
 
                     problem = new ProblemDetails

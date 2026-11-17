@@ -21,6 +21,7 @@ using CreateInvoiceSystem.Modules.Users.DI;
 using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Pdf.Extensions;
 using CreateInvoiceSystem.Persistence.DI;
+using CreateInvoiceSystem.Persistence;
 using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -55,13 +56,18 @@ builder.Services.AddAuthModule(builder.Configuration);
 builder.Services.AddApiAdapters();
 builder.Services.AddApiRepositories();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-builder.Services.AddTransient<IPipelineBehavior<CreateInvoiceRequest, CreateInvoiceResponse>, InvoiceCreatedBehavior>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+builder.Services.AddTransient<IPipelineBehavior<CreateInvoiceRequest, CreateInvoiceResponse>, InvoiceCreatedBehavior>();
 builder.Services.AddApplication();
 
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<InvoiceCreatedEmailConsumer>();
+    x.AddEntityFrameworkOutbox<CreateInvoiceSystemDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost");

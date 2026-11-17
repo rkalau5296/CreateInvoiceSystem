@@ -19,6 +19,8 @@ public class InvoiceCreatedBehavior(
     {
         var response = await next();
 
+        await dbContext.SaveChangesAsync(ct);
+
         var invoiceId = await dbContext.Invoices
             .Where(i => i.UserId == response.Data.UserId && i.Title == response.Data.Title)
             .Select(i => i.InvoiceId)

@@ -124,6 +124,8 @@ Katalog musi mieć ograniczone uprawnienia, być trwały między wdrożeniami i 
 
 Następnie zastosuj migracje bazy, np. `dotnet ef database update --project src\CreateInvoiceSystem.Persistence --startup-project src\CreateInvoiceSystem.API`. Frontend i API muszą używać HTTPS, aby token przesyłany z przeglądarki nie podróżował w postaci jawnej.
 
+Wiadomości o utworzeniu faktury są zapisywane w outboxie MassTransit w tej samej transakcji co faktura. Po zatwierdzeniu aplikacja dostarcza je do RabbitMQ, również po ponownym uruchomieniu. Przed uruchomieniem API zastosuj migracje bazy. Dostarczenie jest co najmniej jednokrotne: ponowienia mogą powodować duplikaty maili.
+
 Konfiguracja API powinna zawierać co najmniej:
 
 connection string do bazy danych,
