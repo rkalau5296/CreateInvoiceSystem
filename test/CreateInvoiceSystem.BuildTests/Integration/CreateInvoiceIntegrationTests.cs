@@ -501,7 +501,8 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         var invoice = BuildInvoicePayload(
             userId,
             clientEmail: "klient@test.local",
-            createdDate: DateTime.UtcNow.AddDays(1));
+            createdDate: TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                DateTime.UtcNow, "Central European Standard Time").Date.AddDays(2));
 
         var response = await _client.PostAsJsonAsync(
             "/api/Invoice/create",
