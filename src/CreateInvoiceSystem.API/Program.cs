@@ -1,5 +1,7 @@
-﻿using CreateInvoiceSystem.API.DI;
+﻿using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.Adapters.KsefInvoicePdfAdapter;
+using CreateInvoiceSystem.API.DI;
+using CreateInvoiceSystem.API.InvoiceCreatedBehavior;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.TransactionBehavior;
@@ -7,27 +9,25 @@ using CreateInvoiceSystem.API.ValidationBehavior;
 using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.DI;
 using CreateInvoiceSystem.Identity.DI;
-using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Mail.DI;
-using CreateInvoiceSystem.Modules.Invoices.Application.Services;
-using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
+using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Ksef.DI;
 using CreateInvoiceSystem.Modules.Ksef.Interfaces;
-using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.Application.Options;
 using CreateInvoiceSystem.Modules.Nbp.DI;
 using CreateInvoiceSystem.Modules.Nbp.Interfaces;
 using CreateInvoiceSystem.Modules.Users.DI;
-using CreateInvoiceSystem.Pdf.Extensions;
 using CreateInvoiceSystem.Pdf;
+using CreateInvoiceSystem.Pdf.Extensions;
 using CreateInvoiceSystem.Persistence.DI;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NLog.Web;
 using System.Globalization;
 using System.Net.Http.Headers;
-using System.Threading.Channels;
 
 var cultureInfo = new CultureInfo("pl-PL");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
@@ -55,8 +55,24 @@ builder.Services.AddAuthModule(builder.Configuration);
 builder.Services.AddApiAdapters();
 builder.Services.AddApiRepositories();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddTransient<IPipelineBehavior<CreateInvoiceRequest, CreateInvoiceResponse>, InvoiceCreatedBehavior>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 builder.Services.AddApplication();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<InvoiceCreatedEmailConsumer>();
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost");
+        cfg.ReceiveEndpoint("invoice-created-email", e =>
+        {
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+            e.ConfigureConsumer<InvoiceCreatedEmailConsumer>(context);
+        });
+    });
+
+});
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -112,11 +128,6 @@ builder.Services.AddMailModule();
 builder.Services.AddUserModule();
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
-builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTask>());
-builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Writer);
-builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Reader);
-builder.Services.AddHostedService<EmailSendingService>();
-
 var app = builder.Build();
 
 app.UseExceptionHandling();

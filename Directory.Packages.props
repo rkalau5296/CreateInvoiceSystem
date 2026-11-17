@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageVersion Include="KSeF.Client" Version="2.8.1" />
     <PackageVersion Include="MassTransit" Version="9.2.6" />
+	<PackageVersion Include="MassTransit.RabbitMQ" Version="9.2.6" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />

@@ -1,10 +1,14 @@
-﻿using CreateInvoiceSystem.BuildTests.Helper;
+﻿using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
+using CreateInvoiceSystem.BuildTests.Helper;
 using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Mail;
+using CreateInvoiceSystem.Messaging.Contracts;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
 using FluentAssertions;
+using MassTransit;
+using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -46,13 +50,19 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = await SeedUserAsync(cancellationToken);
+        await using var factory = new TestWebApplicationFactory(
+            _integrationTestFixture.SqlServer.ConnectionString);
+        using var client = factory.CreateClient();
+        var harness = factory.Services.GetTestHarness();
 
         const string clientName = "Firma Klienta";
         var clientNip = CreateTestNip();
+        var clientEmail = $"klient_{Guid.NewGuid():N}@test.local";
+        var title = $"Faktura testowa {Guid.NewGuid():N}";
 
         var invoiceData = new
         {
-            Title = "Faktura testowa API",
+            Title = title,
             Comments = "Brak uwag",
             MethodOfPayment = "Przelew",
             TotalNet = 1000m,
@@ -67,7 +77,7 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             {
                 Name = clientName,
                 Nip = clientNip,
-                Email = "klient@test.local",
+                Email = clientEmail,
                 Address = new
                 {
                     Street = "Testowa",
@@ -85,30 +95,30 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             ClientName = clientName,
             ClientAddress = "Ulica 2, Warszawa",
             ClientNip = clientNip,
-            ClientEmail = "klient@test.local",
+            ClientEmail = clientEmail,
             InvoicePositions = new[]
             {
-                new
+            new
+            {
+                InvoicePositionId = 0,
+                InvoiceId = 0,
+                ProductId = (int?)null,
+                Product = new
                 {
-                    InvoicePositionId = 0,
-                    InvoiceId = 0,
-                    ProductId = (int?)null,
-                    Product = new
-                    {
-                        ProductId = 0,
-                        Name = "Produkt",
-                        Description = "Opis",
-                        Value = 1000m,
-                        UserId = userId,
-                        IsDeleted = false
-                    },
-                    ProductName = "Usługa Testowa",
-                    ProductDescription = "Opis usługi",
-                    ProductValue = 1000m,
-                    Quantity = 1,
-                    VatRate = "23%"
-                }
+                    ProductId = 0,
+                    Name = "Produkt",
+                    Description = "Opis",
+                    Value = 1000m,
+                    UserId = userId,
+                    IsDeleted = false
+                },
+                ProductName = "Usługa Testowa",
+                ProductDescription = "Opis usługi",
+                ProductValue = 1000m,
+                Quantity = 1,
+                VatRate = "23%"
             }
+        }
         };
 
         var options = new JsonSerializerOptions
@@ -123,7 +133,7 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
             Encoding.UTF8,
             "application/json");
 
-        var response = await _client.PostAsync(
+        var response = await client.PostAsync(
             "/api/Invoice/create",
             content,
             cancellationToken);
@@ -131,27 +141,56 @@ public class CreateInvoiceIntegrationTests : IAsyncLifetime
         var resultBody = await response.Content.ReadAsStringAsync(
             cancellationToken);
 
-        response.StatusCode.Should().Be(
-            HttpStatusCode.OK,
-            because: resultBody);
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: resultBody);
 
         using var document = JsonDocument.Parse(resultBody);
         var data = document.RootElement.GetProperty("data");
+        var invoiceId = data.GetProperty("invoiceId").GetInt32();
+        var actualTitle = data.GetProperty("title").GetString()
+            ?? throw new InvalidOperationException("Brak tytułu faktury.");
 
-        data.GetProperty("sellerName")
-            .GetString()
-            .Should()
-            .Be("Testowa Firma Sprzedawcy");
+        invoiceId.Should().BeGreaterThan(0);
+        data.GetProperty("sellerName").GetString().Should().Be("Testowa Firma Sprzedawcy");
+        data.GetProperty("clientName").GetString().Should().Be(clientName);
+        data.GetProperty("methodOfPayment").GetString().Should().Be("Przelew");
 
-        data.GetProperty("clientName")
-            .GetString()
-            .Should()
-            .Be(clientName);
+        var published = await harness.Published.Any<InvoiceCreatedIntegrationEvent>(
+            message =>
+                message.Context != null
+                && message.Context.Message.InvoiceId == invoiceId
+                && message.Context.Message.UserId == userId,
+            cancellationToken);
 
-        data.GetProperty("methodOfPayment")
-            .GetString()
-            .Should()
-            .Be("Przelew");
+        published.Should().BeTrue("utworzenie faktury powinno opublikować zdarzenie");
+
+        var consumerHarness = harness.GetConsumerHarness<InvoiceCreatedEmailConsumer>();
+
+        var consumed = await consumerHarness.Consumed.Any<InvoiceCreatedIntegrationEvent>(
+            message =>
+                message.Context != null
+                && message.Context.Message.InvoiceId == invoiceId
+                && message.Context.Message.UserId == userId,
+            cancellationToken);
+
+        consumed.Should().BeTrue("konsument powinien obsłużyć zdarzenie");
+
+        factory.EmailMock.Verify(
+            service => service.SendEmailAsync(
+                "sprzedawca@test.local",
+                $"Potwierdzenie: Faktura {actualTitle}",
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        factory.EmailMock.Verify(
+            service => service.SendEmailWithAttachmentAsync(
+                clientEmail,
+                $"Faktura {actualTitle}",
+                It.IsAny<string>(),
+                It.IsAny<byte[]>(),
+                $"{actualTitle.Replace("/", "-")}.pdf",
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

@@ -1,15 +1,13 @@
 ﻿using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
-using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
 using CreateInvoiceSystem.Modules.Invoices.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Entities;
 using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 using CreateInvoiceSystem.Modules.Invoices.Mappers;
 using MediatR;
-using System.Threading.Channels;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
 
-public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, ChannelWriter<EmailTask> _writer)
+public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository)
     : IRequestHandler<CreateInvoiceRequest, CreateInvoiceResponse>
 {
     public async Task<CreateInvoiceResponse> Handle(CreateInvoiceRequest request, CancellationToken cancellationToken)
@@ -37,19 +35,6 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository, Channel
         entity.Title = await GenerateInvoiceNumberAsync(request.Invoice.UserId, _invoiceRepository, cancellationToken);
 
         await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
-
-        var userEmail = await _invoiceRepository.GetUserEmailByIdAsync(request.Invoice.UserId, cancellationToken);
-
-        if (!string.IsNullOrEmpty(userEmail))
-        {
-            await _writer.WriteAsync(new SellerEmailTask(userEmail, entity.Title), cancellationToken);
-        }
-
-        if (!string.IsNullOrWhiteSpace(entity.ClientEmail))
-        {
-            var dto = entity.ToDto();
-            await _writer.WriteAsync(new ClientEmailTask(dto), cancellationToken);
-        }
 
         return new CreateInvoiceResponse()
         {
