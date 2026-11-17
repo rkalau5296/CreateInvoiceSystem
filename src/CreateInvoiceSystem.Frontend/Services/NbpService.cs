@@ -71,7 +71,7 @@ public class NbpService
         var response = await _httpClient.GetAsync($"CurrencyRates/{tableName}");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        var dto = await response.Content.ReadFromJsonAsync<GetActualCurrencyRatesResponse>();
+        var dto = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetActualCurrencyRatesResponse);
         return dto?.Data?.FirstOrDefault();
     }
 
@@ -86,7 +86,7 @@ public class NbpService
         var response = await _httpClient.GetAsync($"CurrencyRates/{tableName}/{dateFrom}/{dateTo}");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        var dto = await response.Content.ReadFromJsonAsync<GetActualCurrencyRatesResponse>();
+        var dto = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetActualCurrencyRatesResponse);
         return dto?.Data ?? new List<CurrencyRatesTable>();
     }
 
@@ -98,7 +98,7 @@ public class NbpService
         var response = await _httpClient.GetAsync($"CurrencyRates/{tableName}/{normalizedCode}");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        var dto = await response.Content.ReadFromJsonAsync<GetSingleCurrencyRateResponse>();
+        var dto = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetSingleCurrencyRateResponse);
         return dto?.Data;
     }
 
@@ -116,7 +116,7 @@ public class NbpService
         var response = await _httpClient.GetAsync($"CurrencyRates/{tableName}/{normalizedCode}/{dFrom}/{dTo}");
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        var dto = await response.Content.ReadFromJsonAsync<GetSingleCurrencyRateResponse>();
+        var dto = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetSingleCurrencyRateResponse);
         return dto?.Data;
     }
 

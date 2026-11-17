@@ -1,9 +1,9 @@
 ﻿@page "/invoices/create"
+@using System.Globalization
+@using System.Text.RegularExpressions
+@using CreateInvoiceSystem.Frontend.Components
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
-@using CreateInvoiceSystem.Frontend.Components
-@using System.ComponentModel.DataAnnotations
-@using System.Globalization
 @inject InvoiceService InvoiceService
 @inject ClientService ClientService
 @inject ProductService ProductService
@@ -74,7 +74,7 @@
                         <div class="col-md-6">
                             <label class="small fw-bold">Wybierz klienta lub wpisz nową nazwę <span class="text-danger">*</span></label>
                             <SimpleTextInput Value="@_clientName"
-                                             ValueChanged="v => { _clientName = v; Touch(nameof(_clientName)); OnClientInput(v); }"
+                                             ValueChanged="async v => { _clientName = v; Touch(nameof(_clientName)); await OnClientInputAsync(v); }"
                                              IsActive="@IsActive(nameof(_clientName))"
                                              DataList="clientOptions"
                                              Placeholder="Nazwa klienta..."
@@ -88,10 +88,12 @@
                                              Placeholder="NIP"
                                              ErrorMessage="NIP klienta jest wymagany" />
                         </div>
-                        <div class="col-md-3">
-                            <label class="small fw-bold">Email klienta</label>
-                            <input class="form-control" value="@_clientEmail" placeholder="email@klienta.pl"
-                                   @oninput="e => _clientEmail = e.Value?.ToString()" />
+                        <div class="col-md-3">                       
+                                <label class="small fw-bold">Email klienta</label>
+                                <SimpleEmailInput Value="@_clientEmail"
+                                                  ValueChanged="v => { _clientEmail = v; Touch(nameof(_clientEmail)); }"
+                                                  IsActive="@IsActive(nameof(_clientEmail))"
+                                                  Placeholder="email@klienta.pl" />                            
                         </div>
                         <div class="col-md-5">
                             <label class="small fw-bold">Ulica <span class="text-danger">*</span></label>
@@ -153,7 +155,7 @@
                                 <td>@(idx + 1)</td>
                                 <td>
                                     <SimpleTextInput Value="@pos.ProductName"
-                                                     ValueChanged="v => { pos.ProductName = v; TouchPos(pos, nameof(pos.ProductName)); OnProductInput(pos, v); }"
+                                                     ValueChanged="async v => { pos.ProductName = v; TouchPos(pos, nameof(pos.ProductName)); await OnProductInputAsync(pos, v); }"
                                                      IsActive="@IsActivePos(pos, nameof(pos.ProductName))"
                                                      DataList="productOptions"
                                                      Placeholder="Nazwa produktu..."
@@ -276,8 +278,8 @@
     {
         try
         {
-            var pResp = await ProductService.GetProductsAsync(1, 1000);
-            var cResp = await ClientService.GetClientsAsync(1, 1000);
+            var pResp = await ProductService.GetProductsAsync(1, 20);
+            var cResp = await ClientService.GetClientsAsync(1, 20);
             _availableProducts = pResp?.Data ?? new();
             _availableClients = cResp?.Data ?? new();
         }
@@ -308,8 +310,14 @@
     private decimal CalcGross(PositionRow pos) =>
         Math.Round((pos.ProductValue ?? 0) * pos.Quantity + CalcVat(pos), 2);
 
-    private void OnClientInput(string? value)
+    private async Task OnClientInputAsync(string? value)
     {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var cResp = await ClientService.GetClientsAsync(1, 20, value);
+            _availableClients = cResp?.Data ?? new();
+        }
+
         var match = _availableClients.FirstOrDefault(c => c.Name.Equals(value, StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
@@ -332,8 +340,14 @@
         }
     }
 
-    private void OnProductInput(PositionRow pos, string? value)
+    private async Task OnProductInputAsync(PositionRow pos, string? value)
     {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var pResp = await ProductService.GetProductsAsync(1, 20, value);
+            _availableProducts = pResp?.Data ?? new();
+        }
+
         var match = _availableProducts.FirstOrDefault(p => p.Name.Equals(value, StringComparison.OrdinalIgnoreCase));
         if (match != null)
         {
@@ -358,6 +372,7 @@
         if (string.IsNullOrWhiteSpace(_postalCode)) return false;
         if (string.IsNullOrWhiteSpace(_city)) return false;
         if (!_positions.Any()) return false;
+        if (!EmailFormatHelper.IsValidOrEmpty(_clientEmail)) return false;
         foreach (var pos in _positions)
         {
             if (string.IsNullOrWhiteSpace(pos.ProductName)) return false;
@@ -448,5 +463,5 @@
         {
             _isSaving = false;
         }
-    }
+    }   
 }

@@ -12,9 +12,11 @@
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
-            </LayoutView>
+            <MainLayout>
+                <Body>
+                    <p role="alert">Sorry, there's nothing at this address.</p>
+                </Body>
+            </MainLayout>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>

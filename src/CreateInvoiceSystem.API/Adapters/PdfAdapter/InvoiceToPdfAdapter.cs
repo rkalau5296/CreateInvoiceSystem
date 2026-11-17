@@ -1,6 +1,6 @@
-﻿using CreateInvoiceSystem.Modules.Invoices.Domain.Dto;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+﻿using CreateInvoiceSystem.Modules.Invoices.Dto;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Pdf.Interfaces;
 using CreateInvoiceSystem.Pdf.Models;

@@ -10,7 +10,7 @@ namespace CreateInvoiceSystem.Identity.Services;
 
 public class JwtProvider(IConfiguration _configuration) : IJwtProvider
 {
-    public TokenResponse Generate(IdentityUserModel userModel, Guid? refreshToken = null)
+    public TokenResponse Generate(IdentityUserModel userModel, Guid refreshToken, Guid sessionId)
     {
         var claims = new List<Claim>
         {
@@ -25,10 +25,7 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        if (refreshToken.HasValue && refreshToken.Value != Guid.Empty)
-        {
-            claims.Add(new Claim("refresh_token", refreshToken.Value.ToString()));
-        }
+        claims.Add(new Claim(JwtRegisteredClaimNames.Sid, sessionId.ToString()));
 
         var signingKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -46,9 +43,8 @@ public class JwtProvider(IConfiguration _configuration) : IJwtProvider
             credentials);
 
         var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-        var newRefreshToken = refreshToken ?? Guid.NewGuid();
-
-        return new TokenResponse(accessToken, newRefreshToken);
+        
+        return new TokenResponse(accessToken, refreshToken);
     }
 
     public string GenerateActivationToken(string email, int expiresHours)

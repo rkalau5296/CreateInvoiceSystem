@@ -1,11 +1,14 @@
 ﻿using CreateInvoiceSystem.API.Repositories.ClientRepository;
 using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
+using CreateInvoiceSystem.API.Repositories.KsefOutboxRepository;
+using CreateInvoiceSystem.API.Repositories.KsefCredentialsRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
-using CreateInvoiceSystem.Modules.Clients.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Products.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Clients.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
+using CreateInvoiceSystem.Modules.Products.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 
 namespace CreateInvoiceSystem.API.DI;
 
@@ -17,6 +20,8 @@ public static class RepositoryServiceCollectionExtensions
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IKsefOutboxRepository, KsefOutboxRepository>();
+        services.AddScoped<IKsefCredentialsStore, KsefCredentialsRepository>();
         return services;
     }
 }

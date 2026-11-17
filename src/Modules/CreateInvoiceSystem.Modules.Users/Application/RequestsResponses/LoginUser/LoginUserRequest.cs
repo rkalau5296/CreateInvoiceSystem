@@ -1,0 +1,10 @@
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Modules.Users.Dto;
+using MediatR;
+
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.LoginUser;
+
+public record LoginUserRequest(LoginUserDto Dto) : IRequest<LoginUserResponse>, ITransactionalRequest
+{
+    public LoginUserDto Dto { get; } = Dto;
+}

@@ -1,9 +1,9 @@
 ﻿using Bogus;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Invoices.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
 
 namespace CreateInvoiceSystem.Persistence.Seed.Mock;
 
@@ -54,10 +54,9 @@ public static class InvoiceFaker
             case InvoiceScenario.NewClient_NewProducts:
             case InvoiceScenario.NewClient_ProductsFromDb:
                 {
-                    var client = ClientFaker.Generate(user);
-                    invoice.ClientId = null;
+                    var client = ClientFaker.Generate(user);                    
                     invoice.ClientName = client.Name;
-                    invoice.ClientNip = client.Nip;
+                    invoice.ClientNip = client.Nip ?? throw new InvalidOperationException("Wygenerowany kontrahent nie ma numeru NIP.");
                     var address = AddressFaker.Generate();
                     invoice.ClientAddress = FormatAddress(address);
                     break;
@@ -66,11 +65,10 @@ public static class InvoiceFaker
             case InvoiceScenario.ExistingClient_NewProducts:
             case InvoiceScenario.ExistingClient_ProductsFromDb:
                 {
-                    if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));
-                    invoice.ClientId = dbClient.ClientId;
+                    if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));                    
                     invoice.ClientName = dbClient.Name;
-                    invoice.ClientNip = dbClient.Nip;
-                    invoice.ClientAddress = FormatAddress(dbClientAddress);
+                    invoice.ClientNip = dbClient.Nip ?? throw new InvalidOperationException("Kontrahent nie ma numeru NIP.");
+                    invoice.ClientAddress = FormatAddress(dbClientAddress ?? throw new ArgumentNullException(nameof(dbClientAddress)));
                     break;
                 }
         }
@@ -125,6 +123,6 @@ public static class InvoiceFaker
 
     private static int RandomQuantity() => new Faker().Random.Int(1, 10);
 
-    private static string? FormatAddress(AddressEntity? address) =>
-        address == null ? null : $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
+    private static string FormatAddress(AddressEntity address) =>
+        $"{address.Street} {address.Number}, {address.City}, {address.PostalCode}, {address.Country}";
 }

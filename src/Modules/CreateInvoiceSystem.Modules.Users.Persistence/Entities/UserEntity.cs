@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CreateInvoiceSystem.Shared.Persistence;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 
 public class UserEntity : IdentityUser<int>
 {   
-    public string Name { get; set; }   
-    public string CompanyName { get; set; }
-    public string Nip { get; set; }    
+    public string Name { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
+    public string Nip { get; set; } = string.Empty;
     public int AddressId { get; set; }
     public string? BankAccountNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -21,4 +22,5 @@ public class UserEntity : IdentityUser<int>
     public IEnumerable<object> Products { get; set; } = [];
     [NotMapped]
     public IEnumerable<object> Clients { get; set; } = [];
+    public AddressEntity Address { get; set; } = null!;
 }

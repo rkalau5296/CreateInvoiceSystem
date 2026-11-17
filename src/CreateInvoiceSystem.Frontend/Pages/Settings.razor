@@ -1,13 +1,12 @@
 ﻿@page "/settings"
-@using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-@using Microsoft.AspNetCore.Components.Forms
 @using CreateInvoiceSystem.Frontend.Components
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 @inject UserService UserService
+@inject KsefService KsefService
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
@@ -29,84 +28,103 @@
                         <h5 class="mb-0">Dane profilu i firmy</h5>
                     </div>
                     <div class="card-body p-4">
-                        <ValidatedEditForm TModel="UpdateUserDto" Model="userModel" OnValidSubmit="HandleValidSubmit" @ref="formRef">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <ValidatedInputText @bind-Value="userModel.Name"
-                                                        Label="Imię i Nazwisko"
-                                                        Placeholder="Wpisz imię i nazwisko" />
-                                </div>
-
-                                <div class="col-md-6">
-                                    <ValidatedInputText @bind-Value="userModel.CompanyName"
-                                                        Label="Pełna Nazwa Firmy"
-                                                        Placeholder="Wpisz nazwę firmy" />
-                                </div>
-
-                                <div class="col-md-6">
-                                    <ValidatedInputText @bind-Value="userModel.Email"
-                                                        Label="Email"
-                                                        Placeholder="adres@example.com" Type="email" />
-                                </div>
-
-                                <div class="col-md-6">
-                                    <ValidatedInputText @bind-Value="userModel.Nip"
-                                                        Label="NIP"
-                                                        Placeholder="1234567890" />
-                                </div>
-
-                                <div class="col-md-12">
-                                    <ValidatedInputText @bind-Value="userModel.BankAccountNumber"
-                                                        Label="Numer konta bankowego"
-                                                        Placeholder="PL..." />
-                                </div>
-
-                                <div class="col-12">
-                                    <hr class="my-4" />
-                                    <h5 class="text-secondary mb-3">Adres siedziby</h5>
-                                </div>
-
-                                <div class="col-md-9">
-                                    <ValidatedInputText @bind-Value="userModel.Address.Street"
-                                                        Label="Ulica"
-                                                        Placeholder="Ulica" />
-                                </div>
-                                <div class="col-md-3">
-                                    <ValidatedInputText @bind-Value="userModel.Address.Number"
-                                                        Label="Nr budynku"
-                                                        Placeholder="Nr" />
-                                </div>
-                                <div class="col-md-4">
-                                    <ValidatedInputText @bind-Value="userModel.Address.PostalCode"
-                                                        Label="Kod pocztowy"
-                                                        Placeholder="12-345" />
-                                </div>
-                                <div class="col-md-8">
-                                    <ValidatedInputText @bind-Value="userModel.Address.City"
-                                                        Label="Miasto"
-                                                        Placeholder="Miasto" />
-                                </div>
-                                <div class="col-md-12">
-                                    <ValidatedInputText @bind-Value="userModel.Address.Country"
-                                                        Label="Kraj"
-                                                        Placeholder="Kraj" />
-                                </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Imię i Nazwisko</label>
+                                <SimpleTextInput Value="@userModel.Name"
+                                                 ValueChanged="v => { userModel.Name = v ?? string.Empty; Touch(nameof(userModel.Name)); }"
+                                                 IsActive="@IsActive(nameof(userModel.Name))"
+                                                 Placeholder="Wpisz imię i nazwisko" />
                             </div>
 
-                            <div class="mt-4 d-flex align-items-center">
-                                <button type="submit" class="btn btn-success px-4" disabled="@isSubmitting">
-                                    @if (isSubmitting)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
-                                    }
-                                    Zapisz zmiany
-                                </button>
-                                @if (!string.IsNullOrEmpty(statusMessage))
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Pełna Nazwa Firmy</label>
+                                <SimpleTextInput Value="@userModel.CompanyName"
+                                                 ValueChanged="v => { userModel.CompanyName = v ?? string.Empty; Touch(nameof(userModel.CompanyName)); }"
+                                                 IsActive="@IsActive(nameof(userModel.CompanyName))"
+                                                 Placeholder="Wpisz nazwę firmy" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Email</label>
+                                <SimpleEmailInput Value="@userModel.Email"
+                                                  ValueChanged="v => { userModel.Email = v ?? string.Empty; Touch(nameof(userModel.Email)); }"
+                                                  IsActive="@IsActive(nameof(userModel.Email))"
+                                                  Required="true"
+                                                  Placeholder="adres@example.com" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">NIP</label>
+                                <SimpleNipInput Value="@userModel.Nip"
+                                                ValueChanged="v => { userModel.Nip = v ?? string.Empty; Touch(nameof(userModel.Nip)); }"
+                                                IsActive="@IsActive(nameof(userModel.Nip))"
+                                                Placeholder="1234567890" />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Numer konta bankowego</label>
+                                <SimpleIbanInput Value="@userModel.BankAccountNumber"
+                                                 ValueChanged="v => { userModel.BankAccountNumber = v ?? string.Empty; Touch(nameof(userModel.BankAccountNumber)); }"
+                                                 IsActive="@IsActive(nameof(userModel.BankAccountNumber))"
+                                                 Placeholder="PL..." />
+                            </div>
+
+                            <div class="col-12">
+                                <hr class="my-4" />
+                                <h5 class="text-secondary mb-3">Adres siedziby</h5>
+                            </div>
+
+                            <div class="col-md-9">
+                                <label class="form-label small fw-bold">Ulica</label>
+                                <SimpleTextInput Value="@userModel.Address.Street"
+                                                 ValueChanged="v => { userModel.Address.Street = v ?? string.Empty; Touch(nameof(userModel.Address.Street)); }"
+                                                 IsActive="@IsActive(nameof(userModel.Address.Street))"
+                                                 Placeholder="Ulica" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Nr budynku</label>
+                                <SimpleTextInput Value="@userModel.Address.Number"
+                                                 ValueChanged="v => { userModel.Address.Number = v ?? string.Empty; Touch(nameof(userModel.Address.Number)); }"
+                                                 IsActive="@IsActive(nameof(userModel.Address.Number))"
+                                                 Placeholder="Nr" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Kod pocztowy</label>
+                                <SimplePostalCodeInput Value="@userModel.Address.PostalCode"
+                                                       ValueChanged="v => { userModel.Address.PostalCode = v ?? string.Empty; Touch(nameof(userModel.Address.PostalCode)); }"
+                                                       IsActive="@IsActive(nameof(userModel.Address.PostalCode))"
+                                                       Placeholder="12-345" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label small fw-bold">Miasto</label>
+                                <SimpleTextInput Value="@userModel.Address.City"
+                                                 ValueChanged="v => { userModel.Address.City = v ?? string.Empty; Touch(nameof(userModel.Address.City)); }"
+                                                 IsActive="@IsActive(nameof(userModel.Address.City))"
+                                                 Placeholder="Miasto" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Kraj</label>
+                                <SimpleTextInput Value="@userModel.Address.Country"
+                                                 ValueChanged="v => { userModel.Address.Country = v ?? string.Empty; Touch(nameof(userModel.Address.Country)); }"
+                                                 IsActive="@IsActive(nameof(userModel.Address.Country))"
+                                                 Placeholder="Kraj" />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex align-items-center">
+                            <button type="button" class="btn btn-success px-4" disabled="@isSubmitting" @onclick="HandleValidSubmit">
+                                @if (isSubmitting)
                                 {
-                                    <span class="ms-3 alert @statusClass p-2 mb-0">@statusMessage</span>
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
                                 }
-                            </div>
-                        </ValidatedEditForm>
+                                Zapisz zmiany
+                            </button>
+                            @if (!string.IsNullOrEmpty(statusMessage))
+                            {
+                                <span class="ms-3 alert @statusClass p-2 mb-0">@statusMessage</span>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -117,6 +135,37 @@
                         <a href="/change-password" class="btn btn-outline-warning">
                             <i class="bi bi-shield-lock"></i> Zmień hasło dostępu
                         </a>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Integracja KSeF</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small">Token dotyczy NIP zapisanego w profilu firmy. Po zmianie NIP zapisz nowy token.</p>
+                        @if (_ksefConfigured.HasValue)
+                        {
+                            <p>Status: <strong>@(_ksefConfigured.Value ? "Skonfigurowano" : "Nie skonfigurowano dla aktualnego NIP")</strong></p>
+                        }
+                        <label class="form-label fw-bold" for="ksefToken">Token KSeF</label>
+                        <input id="ksefToken" type="password" class="form-control" autocomplete="off"
+                               maxlength="4096" @bind="_ksefToken" disabled="@_ksefBusy" />
+                        <div class="form-text">Zapisanego tokenu nie można ponownie wyświetlić. Wprowadź nowy, aby go zastąpić.</div>
+                        <div class="mt-3 d-flex gap-2">
+                            <button type="button" class="btn btn-success" @onclick="SaveKsefToken"
+                                    disabled="@(_ksefBusy || string.IsNullOrWhiteSpace(_ksefToken))">
+                                Zapisz token
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="DeleteKsefToken"
+                                    disabled="@(_ksefBusy || !_ksefConfigured.HasValue)">
+                                Usuń token
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(_ksefMessage))
+                        {
+                            <div class="alert @(_ksefError ? "alert-danger" : "alert-success") mt-3 mb-0" role="status">@_ksefMessage</div>
+                        }
                     </div>
                 </div>
 
@@ -147,14 +196,35 @@
     private bool showDeleteModal = false;
     private string statusMessage = "";
     private string statusClass = "";
+    private HashSet<string> _touched = new();
+    private bool _submitAttempted;
+    private bool? _ksefConfigured;
+    private bool _ksefBusy;
+    private bool _ksefError;
+    private string _ksefToken = string.Empty;
+    private string? _ksefMessage;
 
-    private ValidatedEditForm<UpdateUserDto>? formRef;
+    private void Touch(string field) => _touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
+
+    private bool IsValid() =>
+        userModel != null &&
+        !string.IsNullOrWhiteSpace(userModel.Name) &&
+        !string.IsNullOrWhiteSpace(userModel.CompanyName) &&
+        !string.IsNullOrWhiteSpace(userModel.Email) && EmailFormatHelper.IsValidOrEmpty(userModel.Email) &&
+        System.Text.RegularExpressions.Regex.IsMatch(userModel.Nip ?? "", @"^\d{10}$") &&
+        System.Text.RegularExpressions.Regex.IsMatch(userModel.BankAccountNumber ?? "", @"^PL\d{26}$") &&
+        !string.IsNullOrWhiteSpace(userModel.Address.Street) &&
+        !string.IsNullOrWhiteSpace(userModel.Address.Number) &&
+        System.Text.RegularExpressions.Regex.IsMatch(userModel.Address.PostalCode ?? "", @"^\d{2}-\d{3}$") &&
+        !string.IsNullOrWhiteSpace(userModel.Address.City) &&
+        !string.IsNullOrWhiteSpace(userModel.Address.Country);
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<GetMeResponse>("api/User/me");
+            var response = await Http.GetFromJsonAsync("api/User/me", FrontendJsonContext.Default.GetMeResponse);
 
             if (response?.Data != null)
             {
@@ -176,6 +246,17 @@
                         Country = userData.Address.Country
                     }
                 };
+
+                Touch(nameof(userModel.Name));
+                Touch(nameof(userModel.CompanyName));
+                Touch(nameof(userModel.Email));
+                Touch(nameof(userModel.Nip));
+                Touch(nameof(userModel.BankAccountNumber));
+                Touch(nameof(userModel.Address.Street));
+                Touch(nameof(userModel.Address.Number));
+                Touch(nameof(userModel.Address.PostalCode));
+                Touch(nameof(userModel.Address.City));
+                Touch(nameof(userModel.Address.Country));
             }
         }
         catch (ApiException aex)
@@ -190,41 +271,95 @@
             statusClass = "alert-danger";
             userModel = new UpdateUserDto();
         }
+        await LoadKsefStatus();
     }
 
-    private static string NormalizeFieldName(string original)
+    private async Task LoadKsefStatus()
     {
-        if (string.IsNullOrWhiteSpace(original))
-            return original ?? string.Empty;
-
-        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < parts.Length; i++)
+        try
         {
-            var p = parts[i];
-            if (p.Length == 0) continue;
-            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
+            _ksefConfigured = await KsefService.IsConfiguredAsync();
         }
-        return string.Join('.', parts);
+        catch (Exception ex)
+        {
+            _ksefConfigured = null;
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się odczytać ustawień KSeF: {KsefErrorMessage(ex)}";
+        }
     }
+
+    private async Task SaveKsefToken()
+    {
+        _ksefBusy = true;
+        try
+        {
+            await KsefService.SaveTokenAsync(_ksefToken);
+            _ksefToken = string.Empty;
+            _ksefConfigured = true;
+            _ksefError = false;
+            _ksefMessage = "Token KSeF zapisany dla NIP z profilu.";
+        }
+        catch (Exception ex)
+        {
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się zapisać tokenu KSeF: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _ksefBusy = false;
+        }
+    }
+
+    private async Task DeleteKsefToken()
+    {
+        _ksefBusy = true;
+        try
+        {
+            await KsefService.DeleteTokenAsync();
+            _ksefToken = string.Empty;
+            _ksefConfigured = false;
+            _ksefError = false;
+            _ksefMessage = "Token KSeF został usunięty.";
+        }
+        catch (Exception ex)
+        {
+            _ksefError = true;
+            _ksefMessage = $"Nie udało się usunąć tokenu KSeF: {KsefErrorMessage(ex)}";
+        }
+        finally
+        {
+            _ksefBusy = false;
+        }
+    }
+
+    private static string KsefErrorMessage(Exception ex) =>
+        ex is ApiException apiException ? apiException.GetUserMessage() : ApiExceptionExtensions.SanitizeMessage(ex.Message);
 
     private async Task HandleValidSubmit()
     {
         if (userModel == null) return;
 
-        formRef?.ClearServerErrors();
-        formRef?.EditContext?.NotifyValidationStateChanged();
-
-        isSubmitting = true;
+        _submitAttempted = true;
         statusMessage = "";
         statusClass = "";
 
+        if (!IsValid())
+        {
+            statusMessage = "Uzupełnij poprawnie wszystkie wymagane pola.";
+            statusClass = "alert-danger";
+            return;
+        }
+
+        isSubmitting = true;
+
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel);
+            var response = await Http.PutAsJsonAsync($"api/User/update/{userModel.UserId}", userModel, FrontendJsonContext.Default.UpdateUserDto);
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = "Ustawienia zapisane!";
                 statusClass = "alert-success";
+                await LoadKsefStatus();
             }
             else
             {
@@ -239,23 +374,22 @@
 
                         if (root.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
                         {
-                            bool addedAny = false;
+                            var sb = new System.Text.StringBuilder();
                             foreach (var prop in errorsElement.EnumerateObject())
                             {
-                                var rawField = prop.Name;
-                                var fieldName = NormalizeFieldName(rawField);
                                 foreach (var msgElem in prop.Value.EnumerateArray())
                                 {
-                                    var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
-                                    formRef?.AddServerError(fieldName, fieldMsg);
-                                    addedAny = true;
+                                    var raw = msgElem.GetString();
+                                    if (!string.IsNullOrWhiteSpace(raw))
+                                    {
+                                        if (sb.Length > 0) sb.Append(" ; ");
+                                        sb.Append(raw);
+                                    }
                                 }
                             }
-
-                            if (addedAny)
+                            if (sb.Length > 0)
                             {
-                                formRef?.EditContext?.NotifyValidationStateChanged();
-                                statusMessage = "Wystąpiły błędy walidacji.";
+                                statusMessage = sb.ToString();
                                 statusClass = "alert-danger";
                                 return;
                             }
@@ -291,38 +425,6 @@
             var userMessage = aex.GetUserMessage();
             statusMessage = userMessage.StartsWith("Błąd") ? userMessage : $"Błąd: {userMessage}";
             statusClass = "alert-danger";
-
-            if (!string.IsNullOrWhiteSpace(aex.Response))
-            {
-                try
-                {
-                    using var doc = JsonDocument.Parse(aex.Response);
-                    if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
-                    {
-                        bool addedAny = false;
-                        foreach (var prop in errorsElement.EnumerateObject())
-                        {
-                            var rawField = prop.Name;
-                            var fieldName = NormalizeFieldName(rawField);
-                            foreach (var msgElem in prop.Value.EnumerateArray())
-                            {
-                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
-                                formRef?.AddServerError(fieldName, fieldMsg);
-                                addedAny = true;
-                            }
-                        }
-
-                        if (addedAny)
-                        {
-                            formRef?.EditContext?.NotifyValidationStateChanged();
-                            return;
-                        }
-                    }
-                }
-                catch
-                {
-                }
-            }
         }
         catch (Exception ex)
         {

@@ -100,7 +100,7 @@
     private int _totalCount = 0;
     private int _totalPages => _totalCount == 0 ? 1 : (int)Math.Ceiling((double)_totalCount / _pageSize);
 
-    private string _searchTerm = "";
+    private string _searchTerm = string.Empty;
     private System.Timers.Timer? _searchTimer;
 
     private string? _pageErrorMessage;

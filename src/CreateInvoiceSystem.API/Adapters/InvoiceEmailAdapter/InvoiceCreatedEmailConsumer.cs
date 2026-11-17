@@ -1,9 +1,8 @@
 ﻿using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Messaging.Contracts;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Invoices.Interfaces;
 using MassTransit;
-using CreateInvoiceSystem.Modules.Invoices.Domain.Mappers;
-
+using CreateInvoiceSystem.Modules.Invoices.Mappers;
 
 namespace CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter
 {

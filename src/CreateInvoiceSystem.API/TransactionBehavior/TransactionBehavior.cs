@@ -1,4 +1,5 @@
-﻿using CreateInvoiceSystem.Persistence;
+﻿using CreateInvoiceSystem.Abstractions.CQRS;
+using CreateInvoiceSystem.Persistence;
 using MediatR;
 
 namespace CreateInvoiceSystem.API.TransactionBehavior;
@@ -11,7 +12,7 @@ public class TransactionBehavior<TRequest, TResponse>(
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
     {
-        if (!request.GetType().Name.EndsWith("Command"))
+        if (request is not ITransactionalRequest)
         {
             return await next();
         }
@@ -21,7 +22,7 @@ public class TransactionBehavior<TRequest, TResponse>(
         {
             var response = await next();
 
-            await dbContext.SaveChangesAsync(ct);
+            await dbContext.SaveChangesAsync(ct);            
             await transaction.CommitAsync(ct);
 
             return response;

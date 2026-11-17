@@ -3,7 +3,6 @@
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @using CreateInvoiceSystem.Frontend.Components
-@using Microsoft.AspNetCore.Components.Forms
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -18,33 +17,37 @@
                 </div>
 
                 <div class="card-body p-4">
-                    <ValidatedEditForm TModel="LoginUserDto" Model="_loginRequest.Dto" OnValidSubmit="HandleLoginSubmit" OnInvalidSubmit="HandleInvalidSubmit" @ref="formRef">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <SimpleEmailInput Value="@_loginRequest.Dto.Email"
+                                          ValueChanged="v => { _loginRequest.Dto.Email = v ?? string.Empty; Touch(nameof(_loginRequest.Dto.Email)); }"
+                                          IsActive="@IsActive(nameof(_loginRequest.Dto.Email))"
+                                          Required="true"
+                                          Placeholder="email@przyklad.pl" />
+                    </div>
 
-                        <div class="mb-3">
-                            <ValidatedInputText @bind-Value="_loginRequest.Dto.Email"
-                                                Type="email"
-                                                Label="Email"
-                                                Placeholder="email@przyklad.pl" />
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Hasło</label>
+                        <SimpleTextInput Type="password"
+                                         Value="@_loginRequest.Dto.Password"
+                                         ValueChanged="v => { _loginRequest.Dto.Password = v ?? string.Empty; Touch(nameof(_loginRequest.Dto.Password)); }"
+                                         IsActive="@IsActive(nameof(_loginRequest.Dto.Password))"
+                                         ErrorMessage="Hasło jest wymagane" />
+                    </div>
 
-                        <div class="mb-3">
-                            <ValidatedInputText @bind-Value="_loginRequest.Dto.Password"
-                                                Type="password"
-                                                Label="Hasło" />
+                    <div class="form-group mb-4 d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe"
+                                   checked="@_loginRequest.Dto.RememberMe"
+                                   @onchange="e => _loginRequest.Dto.RememberMe = (bool)(e.Value ?? false)" />
+                            <label class="form-check-label small" for="rememberMe">Zapamiętaj mnie</label>
                         </div>
+                        <a href="/forgot-password" class="text-decoration-none small">Zapomniałeś hasła?</a>
+                    </div>
 
-                        <div class="form-group mb-4 d-flex justify-content-between align-items-center">
-                            <div class="form-check">
-                                <InputCheckbox @bind-Value="_loginRequest.Dto.RememberMe" class="form-check-input" id="rememberMe" />
-                                <label class="form-check-label small" for="rememberMe">Zapamiętaj mnie</label>
-                            </div>
-                            <a href="/forgot-password" class="text-decoration-none small">Zapomniałeś hasła?</a>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg mb-3">Zaloguj</button>
-                        </div>
-                    </ValidatedEditForm>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary btn-lg mb-3" @onclick="HandleLoginSubmit">Zaloguj</button>
+                    </div>
 
                     <div class="text-center">
                         <span class="text-muted small">Nie masz konta?</span>
@@ -66,32 +69,26 @@
 @code {
     private LoginRequest _loginRequest = new LoginRequest { Dto = new LoginUserDto() };
     private string _statusMessage = "";
-    private ValidatedEditForm<LoginUserDto>? formRef;
+    private HashSet<string> _touched = new();
+    private bool _submitAttempted;
 
-    private void HandleInvalidSubmit(EditContext context)
-    {
-        _statusMessage = "Błąd: uzupełnij wymagane pola.";
-    }
+    private void Touch(string field) => _touched.Add(field);
+    private bool IsActive(string field) => _submitAttempted || _touched.Contains(field);
 
-    private static string NormalizeFieldName(string original)
-    {
-        if (string.IsNullOrWhiteSpace(original))
-            return original ?? string.Empty;
-
-        var parts = original.Split(new[] { '.', '_', '/' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < parts.Length; i++)
-        {
-            var p = parts[i];
-            if (p.Length == 0) continue;
-            parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1) : string.Empty);
-        }
-        return string.Join('.', parts);
-    }
+    private bool IsValid() =>
+        !string.IsNullOrWhiteSpace(_loginRequest.Dto.Email) &&
+        EmailFormatHelper.IsValidOrEmpty(_loginRequest.Dto.Email) &&
+        !string.IsNullOrWhiteSpace(_loginRequest.Dto.Password);
 
     private async Task HandleLoginSubmit()
     {
-        formRef?.ClearServerErrors();
-        formRef?.EditContext?.NotifyValidationStateChanged();
+        _submitAttempted = true;
+
+        if (!IsValid())
+        {
+            _statusMessage = "Błąd: uzupełnij wymagane pola.";
+            return;
+        }
 
         _statusMessage = "Łączenie z serwerem...";
 
@@ -134,7 +131,11 @@
         }
         catch (ApiException aex)
         {
-            bool addedAny = false;
+            var userMessage = aex.GetUserMessage();
+            if (!userMessage.StartsWith("Błąd"))
+                userMessage = "Błąd: " + userMessage;
+
+            _statusMessage = userMessage;
 
             if (!string.IsNullOrWhiteSpace(aex.Response))
             {
@@ -143,22 +144,25 @@
                     using var doc = JsonDocument.Parse(aex.Response);
                     if (doc.RootElement.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Object)
                     {
+                        var sb = new System.Text.StringBuilder();
                         foreach (var prop in errorsElement.EnumerateObject())
                         {
-                            var rawField = prop.Name;
-                            var fieldName = NormalizeFieldName(rawField);
                             foreach (var msgElem in prop.Value.EnumerateArray())
                             {
-                                var fieldMsg = msgElem.GetString() ?? "Błąd walidacji";
-                                formRef?.AddServerError(fieldName, fieldMsg);
-                                addedAny = true;
+                                var raw = msgElem.GetString();
+                                if (!string.IsNullOrWhiteSpace(raw))
+                                {
+                                    var sanitizedMsg = ApiExceptionExtensions.SanitizeMessage(raw);
+                                    if (!sanitizedMsg.StartsWith("Błąd"))
+                                        sanitizedMsg = "Błąd: " + sanitizedMsg;
+                                    if (sb.Length > 0) sb.Append(" ; ");
+                                    sb.Append(sanitizedMsg);
+                                }
                             }
                         }
-
-                        if (addedAny)
+                        if (sb.Length > 0)
                         {
-                            formRef?.EditContext?.NotifyValidationStateChanged();
-                            return;
+                            _statusMessage = sb.ToString();
                         }
                     }
                 }
@@ -166,13 +170,6 @@
                 {
                 }
             }
-
-            var userMessage = aex.GetUserMessage();
-            if (!userMessage.StartsWith("Błąd"))
-                userMessage = "Błąd: " + userMessage;
-
-            formRef?.EditContext?.NotifyValidationStateChanged();
-            _statusMessage = userMessage;
         }
         catch (Exception ex)
         {

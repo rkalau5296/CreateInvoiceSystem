@@ -1,4 +1,4 @@
-using CreateInvoiceSystem.Frontend.Handler;
+Ôªøusing CreateInvoiceSystem.Frontend.Handler;
 using CreateInvoiceSystem.Frontend.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -23,16 +23,21 @@ namespace CreateInvoiceSystem.Frontend
             if (!Uri.TryCreate(apiBaseUrlSetting, UriKind.Absolute, out var validatedUri))
             {
                 throw new InvalidOperationException(
-                    $"B£•D KONFIGURACJI: 'BaseApiUrl' jest nieprawid≥owy lub nieobecny (WartoúÊ: '{apiBaseUrlSetting}'). " +
-                    "Sprawdü plik appsettings.json.");
+                    $"B≈ÅƒÑD KONFIGURACJI: 'BaseApiUrl' jest nieprawid≈Çowy lub nieobecny (Warto≈õƒá: '{apiBaseUrlSetting}'). " +
+                    "Sprawd≈∫ plik appsettings.json.");
             }
 
             var apiUri = new Uri(apiBaseUrlSetting);
-
-            builder.Services.AddTransient<AuthenticationHeaderHandler>();
+            
             builder.Services.AddTransient<AuthenticatedAndRefreshedHandler>();
             
             builder.Services.AddHttpClient<InvoiceService>(client =>
+            {
+                client.BaseAddress = apiUri;
+            })
+            .AddHttpMessageHandler<AuthenticatedAndRefreshedHandler>();
+
+            builder.Services.AddHttpClient<KsefService>(client =>
             {
                 client.BaseAddress = apiUri;
             })

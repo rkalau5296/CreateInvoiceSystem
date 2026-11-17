@@ -1,7 +1,6 @@
 ﻿using CreateInvoiceSystem.Frontend.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
@@ -33,7 +32,7 @@ namespace CreateInvoiceSystem.Frontend.Services
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<GetProductsResponse>() ?? new GetProductsResponse();
+                return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetProductsResponse) ?? new GetProductsResponse();
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -47,26 +46,20 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public async Task SaveProductAsync(ProductDto product)
-        {
-            product.UserId = await GetUserIdFromToken();
-            var response = await _http.PostAsJsonAsync("api/Product/create", product);
+        {            
+            var response = await _http.PostAsJsonAsync("api/Product/create", product, FrontendJsonContext.Default.ProductDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
         public async Task UpdateProductAsync(ProductDto product)
         {
-            var updateDto = new
-            {
-                product.ProductId,
-                product.Name,
-                product.Description,
-                product.Value,
-                product.UserId
-            };
+            var updateDto = new UpdateProductPayload(product.ProductId, product.Name, product.Description, product.Value);
 
-            var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto);
+            var response = await _http.PutAsJsonAsync($"api/Product/update/{product.ProductId}", updateDto, FrontendJsonContext.Default.UpdateProductPayload);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
+
+        public sealed record UpdateProductPayload(int ProductId, string Name, string Description, decimal? Value);
 
         public async Task DeleteProductAsync(int productId)
         {
@@ -87,19 +80,7 @@ namespace CreateInvoiceSystem.Frontend.Services
             {
                 await response.EnsureSuccessOrThrowApiExceptionAsync();
             }
-        }
-
-        private async Task<int> GetUserIdFromToken()
-        {
-            var token = await _js.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-            if (string.IsNullOrEmpty(token)) return 0;
-
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            var claim = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
-
-            return int.TryParse(claim, out var id) ? id : 0;
-        }
+        }       
 
         public class GetProductsResponse
         {

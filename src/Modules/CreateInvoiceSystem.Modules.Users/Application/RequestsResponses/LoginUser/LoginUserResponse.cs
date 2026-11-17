@@ -1,0 +1,4 @@
+﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
+namespace CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.LoginUser;
+
+public record LoginUserResponse(string Token, bool IsSuccess, Guid RefreshToken, string Message = "") : IApiResponse;

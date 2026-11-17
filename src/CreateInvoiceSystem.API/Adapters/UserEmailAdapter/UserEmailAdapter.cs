@@ -1,5 +1,5 @@
 ﻿using CreateInvoiceSystem.Mail;
-using CreateInvoiceSystem.Modules.Users.Domain.Interfaces;
+using CreateInvoiceSystem.Modules.Users.Interfaces;
 
 namespace CreateInvoiceSystem.API.Adapters.UserEmailAdapter;
 
@@ -67,7 +67,7 @@ public class UserEmailAdapter(IEmailService _emailService, IConfiguration _confi
         await _emailService.SendResetPasswordEmailAsync(email, resetLink);
     }
 
-    public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft, string activationLink)
+    public async Task SendCleanupWarningEmailAsync(string email, string name, int daysLeft, string? activationLink = null)
     {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentNullException(nameof(email));

@@ -1,0 +1,199 @@
+﻿using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
+using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
+using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Shared.Persistence;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using System.Net.Http.Json;
+
+namespace CreateInvoiceSystem.BuildTests.Integration;
+
+[Collection("Integration tests")]
+public class UpdateProductIntegrationTests : IAsyncLifetime
+{
+    private readonly IntegrationTestFixture _integrationTestFixture;
+    private readonly TestWebApplicationFactory _factory;
+    private readonly HttpClient _client;
+
+    public UpdateProductIntegrationTests(
+        IntegrationTestFixture integrationTestFixture)
+    {
+        _integrationTestFixture = integrationTestFixture;
+        _factory = integrationTestFixture.Factory;
+        _factory.ResetEmailMock();
+        _client = _factory.CreateClient();
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _integrationTestFixture.ResetDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+
+    [Fact]
+    public async Task Should_UpdateProduct_When_RequestIsValid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+        var productId = await SeedProductAsync(cancellationToken);
+
+        var payload = new
+        {
+            ProductId = productId,
+            Name = "Zaktualizowana Nazwa",
+            Description = "Zaktualizowany Opis",
+            Value = 299.99m,
+            UserId = 1
+        };
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/Product/update/{productId}",
+            payload,
+            cancellationToken);
+
+        var body = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            because: body);
+
+        using var scope = _factory.Services.CreateScope();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var updated = await db.Set<ProductEntity>()
+            .FirstOrDefaultAsync(
+                product => product.ProductId == productId,
+                cancellationToken);
+
+        updated.Should().NotBeNull();
+        updated!.Name.Should().Be("Zaktualizowana Nazwa");
+        updated.Description.Should().Be("Zaktualizowany Opis");
+        updated.Value.Should().Be(299.99m);
+    }
+
+    [Fact]
+    public async Task Should_Return404_When_ProductDoesNotExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
+        var payload = new
+        {
+            ProductId = 99999,
+            Name = "Nieistniejący",
+            Description = "Brak",
+            Value = 1.00m,
+            UserId = 1
+        };
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Product/update/99999",
+            payload,
+            cancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Should_Return400_When_IdInRouteIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await SeedUserAsync(cancellationToken);
+
+        var payload = new
+        {
+            ProductId = 0,
+            Name = "Błędne ID",
+            Description = "Opis",
+            Value = 10.00m,
+            UserId = 1
+        };
+
+        var response = await _client.PutAsJsonAsync(
+            "/api/Product/update/0",
+            payload,
+            cancellationToken);
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.BadRequest);
+    }
+
+    private async Task SeedUserAsync(
+        CancellationToken cancellationToken)
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var existing = await db.Users.FindAsync(
+            new object[] { 1 },
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
+
+        var address = new AddressEntity
+        {
+            Street = "Testowa",
+            Number = "1",
+            City = "Warszawa",
+            PostalCode = "00-100",
+            Country = "Polska"
+        };
+
+        db.Set<AddressEntity>().Add(address);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var user = new UserEntity
+        {
+            Email = "sprzedawca@test.local",
+            Name = "Sprzedawca",
+            CompanyName = "Testowa Firma",
+            Nip = "1234567890",
+            AddressId = address.AddressId
+        };
+
+        db.Users.Add(user);
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<int> SeedProductAsync(
+        CancellationToken cancellationToken)
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        var db = scope.ServiceProvider
+            .GetRequiredService<CreateInvoiceSystemDbContext>();
+
+        var product = new ProductEntity
+        {
+            Name = "Oryginalna Nazwa",
+            Description = "Oryginalny Opis",
+            Value = 100.00m,
+            UserId = 1
+        };
+
+        db.Set<ProductEntity>().Add(product);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return product.ProductId;
+    }
+}

@@ -1,6 +1,7 @@
-﻿using CreateInvoiceSystem.Modules.Clients.Domain.Entities;
+﻿using CreateInvoiceSystem.Modules.Clients.Entities;
 using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
-using CreateInvoiceSystem.Modules.Addresses.Persistence.Entities;
+using CreateInvoiceSystem.Shared.Persistence;
+
 
 namespace CreateInvoiceSystem.API.Mappers.ClientMapper;
 
@@ -16,7 +17,7 @@ public static class ClientMapper
             AddressId = c.AddressId,
             UserId = c.UserId,
             Email = c.Email,
-            Address = a is null ? null : new Address
+            Address = a is null ? null! : new Address
             {
                 AddressId = a.AddressId,
                 Street = a.Street,

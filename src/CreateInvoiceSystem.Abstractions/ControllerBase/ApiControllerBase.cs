@@ -11,26 +11,19 @@ public abstract class ApiControllerBase(IMediator _mediator) : ControllerBase
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(
-                this.ModelState.Where(x => x.Value.Errors.Any())
+                this.ModelState.Where(x => x.Value is { Errors.Count: > 0 })
                     .Select(x => new
                     {
                         property = x.Key,
-                        errors = x.Value.Errors
+                        errors = x.Value?.Errors
                     }));
         }
         var response = await _mediator.Send(request, cancellationToken);
 
-        if (response != null)
+        if (response is IApiResponse { IsSuccess: false })
         {
-            var prop = response.GetType().GetProperty("IsSuccess");
-            if (prop != null && prop.PropertyType == typeof(bool))
-            {
-                var isSuccess = (bool?)prop.GetValue(response);
-                if (isSuccess.HasValue && !isSuccess.Value)
-                    return this.BadRequest(response);
-            }
+            return this.BadRequest(response);
         }
-
 
         return this.Ok(response);
     }

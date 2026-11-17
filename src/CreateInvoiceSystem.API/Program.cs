@@ -1,6 +1,5 @@
-using CreateInvoiceSystem.Abstractions.DI;
-using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
-using CreateInvoiceSystem.API.DI;
+ï»¿using CreateInvoiceSystem.API.DI;
+using CreateInvoiceSystem.API.Adapters.KsefInvoicePdfAdapter;
 using CreateInvoiceSystem.API.Middleware;
 using CreateInvoiceSystem.API.RestServices;
 using CreateInvoiceSystem.API.TransactionBehavior;
@@ -10,18 +9,25 @@ using CreateInvoiceSystem.Csv.DI;
 using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Mail.DI;
-using CreateInvoiceSystem.Modules.Nbp.Domain.DI;
-using CreateInvoiceSystem.Modules.Nbp.Domain.Interfaces;
-using CreateInvoiceSystem.Modules.Users.Domain.DI;
+using CreateInvoiceSystem.Modules.Invoices.Application.Services;
+using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+using CreateInvoiceSystem.Modules.Ksef.DI;
+using CreateInvoiceSystem.Modules.Ksef.Interfaces;
+using CreateInvoiceSystem.Modules.Ksef.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.Application.Options;
+using CreateInvoiceSystem.Modules.Nbp.DI;
+using CreateInvoiceSystem.Modules.Nbp.Interfaces;
+using CreateInvoiceSystem.Modules.Users.DI;
 using CreateInvoiceSystem.Pdf.Extensions;
-using CreateInvoiceSystem.Persistence;
+using CreateInvoiceSystem.Pdf;
 using CreateInvoiceSystem.Persistence.DI;
-using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NLog.Web;
 using System.Globalization;
+using System.Net.Http.Headers;
+using System.Threading.Channels;
 
 var cultureInfo = new CultureInfo("pl-PL");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
@@ -33,10 +39,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
 #endif
 
+builder.Services.AddKsefDataProtection(builder.Configuration, builder.Environment);
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = false;
 }).AddJsonOptions(_ => { })
+  .AddMvcOptions(mvcOptions =>
+      mvcOptions.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
   .AddApplicationPart(typeof(ExportController).Assembly);
 
 builder.Services.AddSwaggerModule();
@@ -62,66 +71,58 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-});
-
-builder.Services.AddAbstractionsModule();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddCsvModule();
-builder.Services.AddPdfModule();
-builder.Services.AddNbpModule(builder.Configuration);
-builder.Services.AddScoped<INbpApiRestService, NbpApiRestService>();
-builder.Services.AddMailModule();
-builder.Services.AddUserModule();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazor", policy =>
+    options.AddPolicy("AllowConfiguredOrigins", policy =>
     {
-        policy.WithOrigins("https://localhost:7022", "http://localhost:5004")
+        var frontendUrl = builder.Configuration["FrontendUrl"]?.TrimEnd('/');
+
+        policy.WithOrigins(frontendUrl ?? string.Empty)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
-builder.Services.AddMassTransit(x =>
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCsvModule();
+builder.Services.AddPdfModule();
+builder.Services.AddScoped<KsefInvoicePdfGenerator>();
+builder.Services.AddScoped<IKsefInvoicePdfGenerator, KsefInvoicePdfAdapter>();
+builder.Services.AddNbpModule(builder.Configuration);
+builder.Services.AddKsefModule(builder.Configuration);
+builder.Services.AddHttpClient<IKsefInvoiceBytesClient, KsefInvoiceBytesClient>((services, client) =>
 {
-    x.AddConsumer<InvoiceCreatedEmailConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("localhost", "/", h => { h.Username("guest"); h.Password("guest"); });
-
-        cfg.ReceiveEndpoint("invoice-created-email", e =>
-        {
-            e.ConfigureConsumer<InvoiceCreatedEmailConsumer>(context);
-            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); // retry z opóŸnieniem
-            // po wyczerpaniu retry MassTransit sam tworzy invoice-created-email_error (DLQ)
-        });
-    });
+    var options = services.GetRequiredService<IOptions<KsefApiOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
 });
+builder.Services.AddScoped<IKsefApiClient, KsefApiClient>();
+builder.Services.AddHttpClient<INbpApiRestService, NbpApiRestService>((serviceProvider, client) =>
+{
+    var options =
+        serviceProvider.GetRequiredService<IOptions<NbpApiOptions>>();
+
+    var baseUrl = options.Value.BaseUrl
+        ?? throw new InvalidOperationException(
+            "NbpApi:BaseUrl is not configured.");
+
+    client.BaseAddress = new Uri(baseUrl);
+
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+});
+builder.Services.AddMailModule();
+builder.Services.AddUserModule();
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
+builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTask>());
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Writer);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Channel<EmailTask>>().Reader);
+builder.Services.AddHostedService<EmailSendingService>();
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<CreateInvoiceSystemDbContext>();
-        context.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "B³¹d podczas automatycznej migracji bazy danych.");
-    }
-}
 
 app.UseExceptionHandling();
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowConfiguredOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSessionActivityTracking();

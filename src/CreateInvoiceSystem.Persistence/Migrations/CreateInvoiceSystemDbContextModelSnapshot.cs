@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-#nullable disable
+#nullable enable
 
 namespace CreateInvoiceSystem.Persistence.Migrations
 {
@@ -15,49 +15,145 @@ namespace CreateInvoiceSystem.Persistence.Migrations
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
-#pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.11")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.Addresses.Persistence.Entities.AddressEntity", b =>
+            modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", b =>
                 {
-                    b.Property<int>("AddressId")
+                    b.Property<int>("InvoiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AddressId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
-                    b.Property<string>("City")
+                    b.Property<string>("BankAccountNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ClientAddress")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("ClientEmail")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("Number")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("PostalCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Street")
+                    b.Property<string>("ClientName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("AddressId");
+                    b.Property<string>("ClientNip")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.ToTable("Addresses", (string)null);
+                    b.Property<string>("Comments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("PLN");
+
+                    b.Property<string>("MethodOfPayment")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SellerAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SellerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SellerNip")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<decimal>("TotalGross")
+                        .HasPrecision(38, 2)
+                        .HasColumnType("decimal(38,2)");
+
+                    b.Property<decimal>("TotalNet")
+                        .HasPrecision(38, 2)
+                        .HasColumnType("decimal(38,2)");
+
+                    b.Property<decimal>("TotalVat")
+                        .HasPrecision(38, 2)
+                        .HasColumnType("decimal(38,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("InvoiceId");
+
+                    b.HasIndex("UserId", "Title")
+                        .IsUnique();
+
+                    b.ToTable("Invoices", (string?)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoicePositionEntity", b =>
+                {
+                    b.Property<int>("InvoicePositionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoicePositionId"));
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ProductValue")
+                        .HasPrecision(38, 2)
+                        .HasColumnType("decimal(38,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("szt.");
+
+                    b.Property<string>("VatRate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InvoicePositionId");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("InvoicePositions");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", b =>
@@ -95,129 +191,72 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[Nip] IS NOT NULL");
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients", (string?)null);
                 });
 
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities.InvoicePositionEntity", b =>
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", b =>
                 {
-                    b.Property<int>("InvoicePositionId")
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nip")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ProtectedToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("KsefCredentials", (string?)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>
+                {
+                    b.Property<int>("KsefOutgoingInvoiceStatusId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoicePositionId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KsefOutgoingInvoiceStatusId"));
 
-                    b.Property<int>("InvoiceId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProductDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("ProductValue")
-                        .HasPrecision(38, 2)
-                        .HasColumnType("decimal(38,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("VatRate")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("InvoicePositionId");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("InvoicePositions");
-                });
-
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.Invoices.Persistence.Entities.InvoiceEntity", b =>
-                {
-                    b.Property<int>("InvoiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
-
-                    b.Property<string>("BankAccountNumber")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("ClientAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("ClientEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ClientName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("ClientNip")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Comments")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime?>("ConfirmedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MethodOfPayment")
+                    b.Property<string>("ElementReferenceNumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("PaymentDate")
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("KsefReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SellerAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
-                    b.Property<string>("SellerName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("SellerNip")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Title")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<decimal>("TotalGross")
-                        .HasPrecision(38, 2)
-                        .HasColumnType("decimal(38,2)");
-
-                    b.Property<decimal>("TotalNet")
-                        .HasPrecision(38, 2)
-                        .HasColumnType("decimal(38,2)");
-
-                    b.Property<decimal>("TotalVat")
-                        .HasPrecision(38, 2)
-                        .HasColumnType("decimal(38,2)");
+                    b.Property<string>("UpoXml")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("InvoiceId");
+                    b.HasKey("KsefOutgoingInvoiceStatusId");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("InvoiceId")
+                        .IsUnique();
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("KsefOutgoingInvoiceStatuses", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Products.Persistence.Entities.ProductEntity", b =>
@@ -244,7 +283,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("ProductId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>
@@ -355,7 +394,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", (string?)null);
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserSessionEntity", b =>
@@ -375,6 +414,9 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.Property<Guid>("RefreshToken")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -383,9 +425,50 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                     b.HasIndex("RefreshToken")
                         .IsUnique();
 
+                    b.HasIndex("SessionId")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions", (string?)null);
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Shared.Persistence.AddressEntity", b =>
+                {
+                    b.Property<int>("AddressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AddressId"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("AddressId");
+
+                    b.ToTable("Addresses", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -415,7 +498,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -439,7 +522,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -463,7 +546,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
@@ -484,7 +567,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
@@ -499,7 +582,7 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", (string?)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -518,30 +601,11 @@ namespace CreateInvoiceSystem.Persistence.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", (string?)null);
                 });
 
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.InvoicePositions.Persistence.Entities.InvoicePositionEntity", b =>
+            modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", b =>
                 {
-                    b.HasOne("CreateInvoiceSystem.Modules.Invoices.Persistence.Entities.InvoiceEntity", null)
-                        .WithMany()
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("CreateInvoiceSystem.Modules.Products.Persistence.Entities.ProductEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.Invoices.Persistence.Entities.InvoiceEntity", b =>
-                {
-                    b.HasOne("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -549,13 +613,55 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>
+            modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoicePositionEntity", b =>
                 {
-                    b.HasOne("CreateInvoiceSystem.Modules.Addresses.Persistence.Entities.AddressEntity", null)
+                    b.HasOne("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", "Invoice")
+                        .WithMany("InvoicePositions")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Clients.Persistence.Entities.ClientEntity", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Shared.Persistence.AddressEntity", "Address")
                         .WithMany()
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Address");
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", null)
+                        .WithOne()
+                        .HasForeignKey("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefCredentialEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", null)
+                        .WithOne()
+                        .HasForeignKey("CreateInvoiceSystem.Modules.Ksef.Persistence.Entities.KsefOutgoingInvoiceStatus", "InvoiceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserEntity", b =>
+                {
+                    b.HasOne("CreateInvoiceSystem.Shared.Persistence.AddressEntity", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Address");
                 });
 
             modelBuilder.Entity("CreateInvoiceSystem.Modules.Users.Persistence.Entities.UserSessionEntity", b =>
@@ -617,7 +723,11 @@ namespace CreateInvoiceSystem.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
-#pragma warning restore 612, 618
+
+            modelBuilder.Entity("CreateInvoiceSystem.Invoices.Persistence.Shared.Entities.InvoiceEntity", b =>
+                {
+                    b.Navigation("InvoicePositions");
+                });
         }
     }
 }

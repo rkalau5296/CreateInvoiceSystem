@@ -26,11 +26,11 @@ namespace CreateInvoiceSystem.Frontend.Services
         }
 
         public async Task<GetUserResponse?> GetMe()
-            => await _http.GetFromJsonAsync<GetUserResponse>("api/User/me");
+            => await _http.GetFromJsonAsync("api/User/me", FrontendJsonContext.Default.GetUserResponse);
 
         public async Task UpdateUser(int id, UpdateUserDto dto)
         {
-            var response = await _http.PutAsJsonAsync($"api/User/update/{id}", dto);
+            var response = await _http.PutAsJsonAsync($"api/User/update/{id}", dto, FrontendJsonContext.Default.UpdateUserDto);
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 

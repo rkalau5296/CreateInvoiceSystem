@@ -1,5 +1,9 @@
 <Project>
   <PropertyGroup>
-    <NoWarn>$(NoWarn);CS8600;CS8618;CS8632;CS8669</NoWarn>
+	  <TargetFramework>net10.0</TargetFramework>	  
+      <Nullable>enable</Nullable>
+      <_TrimmerShowRedundantSuppressions>true</_TrimmerShowRedundantSuppressions>
+      <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+      <EnableTrimAnalyzer Condition="'$(MSBuildProjectName)' == 'CreateInvoiceSystem.Frontend'">true</EnableTrimAnalyzer>
   </PropertyGroup>
 </Project>

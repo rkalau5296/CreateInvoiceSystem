@@ -1,0 +1,34 @@
+using CreateInvoiceSystem.Modules.Users.Entities;
+using Microsoft.AspNetCore.Identity;
+
+namespace CreateInvoiceSystem.Modules.Users.Interfaces;
+
+public interface IUserRepository
+{    
+    Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken);    
+    Task RemoveAsync(int userId, CancellationToken cancellationToken);
+    Task RemoveAddress(int addressId, CancellationToken cancellationToken);
+    Task<bool> IsUserExists(int userId, CancellationToken cancellationToken);
+    Task<bool> IsAddressExists(int addressId, CancellationToken cancellationToken);
+    Task AddAsync(User user, CancellationToken cancellationToken);
+    Task<List<User>> GetUsersAsync(CancellationToken cancellationToken);
+    Task UpdateAsync(User user, CancellationToken cancellationToken);
+    Task<IdentityResult> CreateWithPasswordAsync(User user, string password);
+    Task<User> CheckPasswordAsync(User user, string password);
+    Task<User> FindByEmailAsync(string email);    
+    Task<List<string>> GetRolesAsync(User user, CancellationToken cancellationToken);
+    Task<(string Token, string Version)?> GeneratePasswordResetTokenAsync(User user, CancellationToken cancellationToken);
+    Task<bool> ResetPasswordAsync(User user, string token, string version, string newPassword, CancellationToken cancellationToken);
+    Task AddSessionAsync(UserSession session, CancellationToken cancellationToken);
+    Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken);
+    public Task<UserSession?> GetSessionByTokenAsync(Guid refreshToken, CancellationToken cancellationToken);
+    Task<UserSession?> GetSessionByUserAndSessionIdAsync(int userId, Guid sessionId, CancellationToken cancellationToken);
+    Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken);
+    Task<int> GetLoggedUserId(CancellationToken ct);
+    Task<(bool Succeeded, string ErrorMessage)> ChangePasswordAsync(User user, string currentPassword, string newPassword);
+    Task<int> RemoveInactiveUsersAsync(DateTime cutoffDate, CancellationToken ct);
+    Task<List<User>> GetUsersForCleanupWarningAsync(DateTime warningDate, CancellationToken ct);
+
+    Task SaveActivationTokenJtiAsync(int userId, string jti, DateTimeOffset expiryUtc, CancellationToken ct = default);
+    Task<bool> ValidateAndActivateUserByTokenAsync(string email, string tokenJti, DateTimeOffset? tokenExpiry, CancellationToken ct = default);
+}
