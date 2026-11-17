@@ -10,8 +10,9 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
     private static readonly string[] AllowedVatRates = ["23%", "8%", "5%", "0%", "zw", "np"];
     private static readonly string[] NonTaxableRates = ["zw", "np"];
 
-    public CreateInvoiceRequestValidator()
+    public CreateInvoiceRequestValidator(TimeProvider? timeProvider = null)
     {
+        var clock = timeProvider ?? TimeProvider.System;
         RuleFor(x => x.Invoice)
             .NotNull()
             .WithMessage("Invoice data cannot be null.");
@@ -67,7 +68,8 @@ public class CreateInvoiceRequestValidator : AbstractValidator<CreateInvoiceRequ
 
             RuleFor(x => x.Invoice.CreatedDate)
                 .NotEmpty().WithMessage("CreatedDate is required.")
-                .Must(date => date.Date <= DateTime.UtcNow.Date)
+                .Must(date => date.Date <= TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                    clock.GetUtcNow(), "Central European Standard Time").Date)
                 .WithMessage("CreatedDate cannot be in the future.");
 
             RuleFor(x => x.Invoice.PaymentDate)

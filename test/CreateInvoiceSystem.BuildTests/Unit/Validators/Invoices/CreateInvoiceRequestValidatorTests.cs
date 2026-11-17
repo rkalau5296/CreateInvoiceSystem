@@ -110,6 +110,30 @@ public class CreateInvoiceRequestValidatorTests
             .WithErrorMessage("CreatedDate cannot be in the future.");
     }
 
+    [Theory]
+    [InlineData("2026-11-17T23:37:00Z", "2026-11-18", false)]
+    [InlineData("2026-11-17T23:37:00Z", "2026-11-19", true)]
+    [InlineData("2026-07-17T22:37:00Z", "2026-07-18", false)]
+    [InlineData("2026-07-17T22:37:00Z", "2026-07-19", true)]
+    public void CreatedDate_uses_the_current_date_in_Poland(string utcNow, string date, bool isFuture)
+    {
+        var clock = new FixedTimeProvider(DateTimeOffset.Parse(utcNow));
+        var validator = new CreateInvoiceRequestValidator(clock);
+        var dto = CreateValidDto() with { CreatedDate = DateTime.Parse(date) };
+
+        var result = validator.TestValidate(new CreateInvoiceRequest(dto));
+
+        if (isFuture)
+            result.ShouldHaveValidationErrorFor(x => x.Invoice.CreatedDate);
+        else
+            result.ShouldNotHaveValidationErrorFor(x => x.Invoice.CreatedDate);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+
     [Fact]
     public void Should_Have_Error_When_TotalGross_Has_More_Than_Two_Decimal_Places()
     {
