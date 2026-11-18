@@ -29,6 +29,7 @@ using Microsoft.Extensions.Options;
 using NLog.Web;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 
 var cultureInfo = new CultureInfo("pl-PL");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
@@ -60,6 +61,13 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBe
 builder.Services.AddTransient<IPipelineBehavior<CreateInvoiceRequest, CreateInvoiceResponse>, InvoiceCreatedBehavior>();
 builder.Services.AddApplication();
 
+var rabbitMqHost = builder.Configuration["RabbitMq:Host"] ?? "localhost";
+var rabbitMqPort = builder.Configuration.GetValue<ushort>("RabbitMq:Port", 5672);
+var rabbitMqVirtualHost = builder.Configuration["RabbitMq:VirtualHost"] ?? "/";
+var rabbitMqUsername = builder.Configuration["RabbitMq:Username"] ?? "guest";
+var rabbitMqPassword = builder.Configuration["RabbitMq:Password"] ?? "guest";
+var rabbitMqUseSsl = builder.Configuration.GetValue<bool>("RabbitMq:UseSsl");
+
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<InvoiceCreatedEmailConsumer>();
@@ -70,7 +78,13 @@ builder.Services.AddMassTransit(x =>
     });
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost");
+        cfg.Host(rabbitMqHost, rabbitMqPort, rabbitMqVirtualHost, host =>
+        {
+            host.Username(rabbitMqUsername);
+            host.Password(rabbitMqPassword);
+            if (rabbitMqUseSsl)
+                host.UseSsl(ssl => ssl.Protocol = SslProtocols.Tls12);
+        });
         cfg.ReceiveEndpoint("invoice-created-email", e =>
         {
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
