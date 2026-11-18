@@ -2,6 +2,7 @@
 public class Invoice
 {
     public int InvoiceId { get; set; }
+    public bool? IsKsefAccepted { get; set; }
     public string Title { get; set; } = string.Empty;
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }

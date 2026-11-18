@@ -1,6 +1,4 @@
-﻿using System.Threading.Channels;
-using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
-using CreateInvoiceSystem.Modules.Invoices.BackgroundTasks;
+﻿using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Dto;
 using CreateInvoiceSystem.Modules.Invoices.Entities;
@@ -12,20 +10,18 @@ namespace CreateInvoiceSystem.BuildTests.Unit.Handlers.Invoices;
 
 public class CreateInvoiceHandlerTests
 {
-    private readonly Mock<IInvoiceRepository> _repositoryMock;
-    private readonly Mock<ChannelWriter<EmailTask>> _writerMock;
+    private readonly Mock<IInvoiceRepository> _repositoryMock;    
     private readonly CreateInvoiceHandler _sut;
 
     public CreateInvoiceHandlerTests()
     {
         _repositoryMock = new Mock<IInvoiceRepository>();
-        _writerMock = new Mock<ChannelWriter<EmailTask>>();
 
         _repositoryMock
             .Setup(r => r.GetMaxInvoiceNumberInMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        _sut = new CreateInvoiceHandler(_repositoryMock.Object, _writerMock.Object);
+        _sut = new CreateInvoiceHandler(_repositoryMock.Object);
     }
 
     [Fact]
@@ -74,9 +70,6 @@ public class CreateInvoiceHandlerTests
         result.Data.TotalVat.Should().Be(460m);
         result.Data.TotalGross.Should().Be(2460m);
         result.Data.Title.Should().NotBeNullOrEmpty();
-
-        _writerMock.Verify(w => w.WriteAsync(It.Is<SellerEmailTask>(task => task.UserEmail == "test@user.com"), It.IsAny<CancellationToken>()), Times.Once);
-        _writerMock.Verify(w => w.WriteAsync(It.Is<ClientEmailTask>(task => task.Invoice.ClientEmail == "client@test.com"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -129,8 +122,6 @@ public class CreateInvoiceHandlerTests
         result.Data.TotalGross.Should().Be(615m);
 
         _repositoryMock.Verify(r => r.AddProductAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
-        _writerMock.Verify(w => w.WriteAsync(It.Is<SellerEmailTask>(task => task.UserEmail == "test@user.com"), It.IsAny<CancellationToken>()), Times.Once);
-        _writerMock.Verify(w => w.WriteAsync(It.Is<ClientEmailTask>(task => task.Invoice.ClientEmail == "client@test.com"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -151,9 +142,7 @@ public class CreateInvoiceHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage($"User with ID {dto.UserId} not found.");
-
-        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
+            .WithMessage($"User with ID {dto.UserId} not found.");        
     }
 
     [Fact]
@@ -172,9 +161,7 @@ public class CreateInvoiceHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Client with ID 999 not found.");
-
-        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
+            .WithMessage("Client with ID 999 not found.");        
     }
 
     [Fact]
@@ -198,9 +185,7 @@ public class CreateInvoiceHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Product with ID 10 not found.");
-
-        _writerMock.Verify(w => w.WriteAsync(It.IsAny<EmailTask>(), It.IsAny<CancellationToken>()), Times.Never);
+            .WithMessage("Product with ID 10 not found.");        
     }
 
     private static CreateInvoiceDto CreateBaseDto()

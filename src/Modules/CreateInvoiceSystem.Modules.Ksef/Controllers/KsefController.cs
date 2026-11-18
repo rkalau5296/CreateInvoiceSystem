@@ -70,6 +70,7 @@ public class KsefController : ApiControllerBase
     public async Task<IActionResult> GetStatusAsync([FromRoute] int invoiceId, CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out int userId)) return Unauthorized();
+        Response.Headers.CacheControl = "no-store";
 
         var request = new GetKsefInvoiceStatusRequest(invoiceId) { UserId = userId };
         var status = await _mediator.Send(request, cancellationToken);

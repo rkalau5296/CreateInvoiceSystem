@@ -1,5 +1,4 @@
 ﻿using CreateInvoiceSystem.API.Adapters.CsvDataAdapter;
-using CreateInvoiceSystem.API.Adapters.InvoiceEmailAdapter;
 using CreateInvoiceSystem.API.Adapters.KsefInvoiceXmlAdapter;
 using CreateInvoiceSystem.API.Adapters.PdfAdapter;
 using CreateInvoiceSystem.API.Adapters.UserAuthAdapter;
@@ -18,8 +17,7 @@ public static class AdapterServiceCollectionExtensions
     {     
         services.AddScoped<IUserTokenService, UserTokenAdapter>();
         services.AddScoped<IUserAuthService, UserAuthServiceAdapter>();
-        services.AddTransient<IUserEmailSender, UserEmailAdapter>();
-        services.AddTransient<IInvoiceEmailSender, InvoiceEmailAdapter>();
+        services.AddTransient<IUserEmailSender, UserEmailAdapter>();        
         services.AddScoped<IExportDataProvider, InvoiceExportDataProvider>();
         services.AddScoped<IInvoiceExportService, InvoiceToPdfAdapter>();
         services.AddScoped<IKsefInvoiceXmlGenerator, KsefInvoiceXmlAdapter>();

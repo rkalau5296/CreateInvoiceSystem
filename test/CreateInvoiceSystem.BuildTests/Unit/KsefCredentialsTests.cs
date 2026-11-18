@@ -1,7 +1,10 @@
 using CreateInvoiceSystem.API.Repositories.KsefCredentialsRepository;
 using CreateInvoiceSystem.API.Repositories.KsefOutboxRepository;
+using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Ksef.Application.Handlers;
 using CreateInvoiceSystem.Modules.Ksef.Application.Services;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncomingKsefInvoices;
@@ -13,6 +16,7 @@ using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSetting
 using CreateInvoiceSystem.Modules.Ksef.Dto;
 using CreateInvoiceSystem.Modules.Ksef.Interfaces;
 using CreateInvoiceSystem.Modules.Ksef.Controllers;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
@@ -36,6 +40,46 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class KsefCredentialsTests
 {
+    [Fact]
+    public async Task Invoice_list_marks_only_users_accepted_ksef_invoices()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync(ct);
+        var options = new DbContextOptionsBuilder<CreateInvoiceSystemDbContext>().UseSqlite(connection).Options;
+        await using var db = new CreateInvoiceSystemDbContext(options);
+        await db.Database.EnsureCreatedAsync(ct);
+        var owner = new UserEntity { UserName = "owner", Nip = "1234567890", Address = new AddressEntity() };
+        var other = new UserEntity { UserName = "other", Nip = "9876543210", Address = new AddressEntity() };
+        db.Users.AddRange(owner, other);
+        await db.SaveChangesAsync(ct);
+        var accepted = new InvoiceEntity { UserId = owner.Id, Title = "Accepted" };
+        var pending = new InvoiceEntity { UserId = owner.Id, Title = "Pending" };
+        var rejected = new InvoiceEntity { UserId = owner.Id, Title = "Rejected" };
+        var unsent = new InvoiceEntity { UserId = owner.Id, Title = "Unsent" };
+        var wrongOwner = new InvoiceEntity { UserId = owner.Id, Title = "Wrong owner" };
+        var anotherUserInvoice = new InvoiceEntity { UserId = other.Id, Title = "Other invoice" };
+        db.Invoices.AddRange(accepted, pending, rejected, unsent, wrongOwner, anotherUserInvoice);
+        await db.SaveChangesAsync(ct);
+        db.KsefOutgoingInvoiceStatuses.AddRange(
+            new() { InvoiceId = accepted.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = pending.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.OczekujeNaPotwierdzenie, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = rejected.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Odrzucona, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = wrongOwner.InvoiceId, UserId = other.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow });
+        await db.SaveChangesAsync(ct);
+
+        var handler = new GetInvoicesHandler(new InvoiceRepository(db));
+        var result = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 10 }, ct);
+        Assert.Equal(5, result.TotalCount);
+        Assert.True(result.Data.Single(i => i.InvoiceId == accepted.InvoiceId).IsKsefAccepted);
+        foreach (var invoice in new[] { pending, rejected, unsent, wrongOwner })
+            Assert.False(result.Data.Single(i => i.InvoiceId == invoice.InvoiceId).IsKsefAccepted);
+        Assert.DoesNotContain(result.Data, i => i.InvoiceId == anotherUserInvoice.InvoiceId);
+
+        var filtered = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 1, SearchTerm = "Accepted" }, ct);
+        Assert.True(Assert.Single(filtered.Data).IsKsefAccepted);
+    }
+
     [Fact]
     public void Protected_tokens_remain_readable_after_restart_with_persisted_certificate_keys()
     {
@@ -209,6 +253,95 @@ public class KsefCredentialsTests
             new SendInvoiceToKsefHandler(outbox.Object, store.Object)
                 .Handle(new SendInvoiceToKsefRequest(1) { UserId = 42 }, ct));
         outbox.Verify(x => x.EnqueueAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Failed_invoice_can_be_requeued_once_and_old_attempt_details_are_cleared()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync(ct);
+        var options = new DbContextOptionsBuilder<CreateInvoiceSystemDbContext>().UseSqlite(connection).Options;
+        await using var db = new CreateInvoiceSystemDbContext(options);
+        await db.Database.EnsureCreatedAsync(ct);
+        var owner = new UserEntity { UserName = "owner", Nip = "1234567890", Address = new AddressEntity() };
+        var other = new UserEntity { UserName = "other", Nip = "9876543210", Address = new AddressEntity() };
+        db.Users.AddRange(owner, other);
+        await db.SaveChangesAsync(ct);
+        var invoice = new InvoiceEntity { UserId = owner.Id, Title = "Retry" };
+        db.Invoices.Add(invoice);
+        await db.SaveChangesAsync(ct);
+        var status = new KsefOutgoingInvoiceStatus
+        {
+            UserId = owner.Id,
+            InvoiceId = invoice.InvoiceId,
+            Status = KsefInvoiceStatus.Odrzucona,
+            SentAt = DateTime.UtcNow.AddDays(-1),
+            ErrorMessage = "Nieznany host. (api-test.ksef.mf.gov.pl:443)",
+            ElementReferenceNumber = "old-invoice",
+            KsefReferenceNumber = "old-ksef",
+            UpoXml = "old-upo",
+            ConfirmedAt = DateTime.UtcNow.AddDays(-1)
+        };
+        db.KsefOutgoingInvoiceStatuses.Add(status);
+        await db.SaveChangesAsync(ct);
+        var repository = new KsefOutboxRepository(db, db);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.EnqueueAsync(other.Id, invoice.InvoiceId, ct));
+        Assert.Equal(status.KsefOutgoingInvoiceStatusId, await repository.EnqueueAsync(owner.Id, invoice.InvoiceId, ct));
+        var retried = await db.KsefOutgoingInvoiceStatuses.AsNoTracking().SingleAsync(ct);
+        Assert.Equal(KsefInvoiceStatus.Wysylanie, retried.Status);
+        Assert.Null(retried.ErrorMessage);
+        Assert.Null(retried.ElementReferenceNumber);
+        Assert.Null(retried.KsefReferenceNumber);
+        Assert.Null(retried.UpoXml);
+        Assert.Null(retried.ConfirmedAt);
+        Assert.True(retried.SentAt > status.SentAt);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => repository.EnqueueAsync(owner.Id, invoice.InvoiceId, ct));
+
+        foreach (var activeStatus in new[] { KsefInvoiceStatus.OczekujeNaPotwierdzenie, KsefInvoiceStatus.Zaakceptowana })
+        {
+            await db.KsefOutgoingInvoiceStatuses.ExecuteUpdateAsync(
+                setters => setters.SetProperty(s => s.Status, activeStatus), ct);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => repository.EnqueueAsync(owner.Id, invoice.InvoiceId, ct));
+        }
+    }
+
+    [Fact]
+    public async Task Concurrent_retries_only_queue_one_attempt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var connectionString = $"Data Source=ksef-retry-{Guid.NewGuid():N};Mode=Memory;Cache=Shared;Default Timeout=10";
+        await using var keeper = new SqliteConnection(connectionString);
+        await keeper.OpenAsync(ct);
+        var options = new DbContextOptionsBuilder<CreateInvoiceSystemDbContext>().UseSqlite(connectionString).Options;
+        await using var setup = new CreateInvoiceSystemDbContext(options);
+        await setup.Database.EnsureCreatedAsync(ct);
+        var owner = new UserEntity { UserName = "owner", Nip = "1234567890", Address = new AddressEntity() };
+        setup.Users.Add(owner);
+        await setup.SaveChangesAsync(ct);
+        var invoice = new InvoiceEntity { UserId = owner.Id, Title = "Concurrent retry" };
+        setup.Invoices.Add(invoice);
+        await setup.SaveChangesAsync(ct);
+        setup.KsefOutgoingInvoiceStatuses.Add(new KsefOutgoingInvoiceStatus
+        {
+            UserId = owner.Id, InvoiceId = invoice.InvoiceId,
+            Status = KsefInvoiceStatus.Odrzucona, SentAt = DateTime.UtcNow
+        });
+        await setup.SaveChangesAsync(ct);
+
+        async Task<Exception?> Retry()
+        {
+            await using var context = new CreateInvoiceSystemDbContext(options);
+            return await Record.ExceptionAsync(() =>
+                new KsefOutboxRepository(context, context).EnqueueAsync(owner.Id, invoice.InvoiceId, ct));
+        }
+
+        var results = await Task.WhenAll(Task.Run(Retry, ct), Task.Run(Retry, ct));
+        Assert.Single(results, exception => exception is null);
+        Assert.Single(results, exception => exception is InvalidOperationException);
+        Assert.Equal(KsefInvoiceStatus.Wysylanie,
+            (await setup.KsefOutgoingInvoiceStatuses.AsNoTracking().SingleAsync(ct)).Status);
     }
 
     [Fact]

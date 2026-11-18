@@ -20,7 +20,7 @@
             int idx = StartIndex;
             foreach (var item in Items)
             {
-                <tr @key="GetKey(item)">
+                <tr @key="GetKey(item)" class="@RowClassSelector?.Invoke(item)">
                     @if (RowTemplate != null)
                     {
                         @RowTemplate(item)
@@ -40,6 +40,7 @@
     [Parameter] public string TableClass { get; set; } = "table table-hover mb-0";
     [Parameter] public string HeaderClass { get; set; } = "table-dark";
     [Parameter] public Func<TItem, object>? KeySelector { get; set; }
+    [Parameter] public Func<TItem, string?>? RowClassSelector { get; set; }
     [Parameter] public int StartIndex { get; set; } = 1;
     [Parameter] public int Cols { get; set; } = 1;
 

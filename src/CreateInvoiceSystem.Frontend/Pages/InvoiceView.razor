@@ -2,6 +2,7 @@
 @using CreateInvoiceSystem.Frontend.Models
 @using CreateInvoiceSystem.Frontend.Services
 @using Microsoft.JSInterop
+@implements IDisposable
 @inject InvoiceService InvoiceService
 @inject KsefService KsefService
 @inject NavigationManager Navigation
@@ -31,11 +32,17 @@
                 }
             </button>
 
-            @if (_ksefStatus == null)
+            @if (_ksefStatus != null)
+            {
+                <span class="badge @KsefStatusBadgeClass(_ksefStatus.Status) fs-6 shadow-sm ms-2">
+                    @KsefStatusLabel(_ksefStatus.Status)
+                </span>
+            }
+            @if (_ksefStatus == null || _ksefStatus.Status == 3)
             {
                 <button class="btn btn-outline-primary shadow-sm ms-2"
                         @onclick="SendToKsef"
-                        disabled="@(_isLoading || _isSendingToKsef || _invoice == null)">
+                        disabled="@(_isLoading || _isSendingToKsef || !_ksefStatusKnown || _invoice == null)">
                     @if (_isSendingToKsef)
                     {
                         <span class="spinner-border spinner-border-sm me-2"></span>
@@ -44,15 +51,9 @@
                     else
                     {
                         <i class="bi bi-send me-2"></i>
-                        <span>Wyślij do KSeF</span>
+                        <span>@(_ksefStatus?.Status == 3 ? "Wyślij ponownie do KSeF" : "Wyślij do KSeF")</span>
                     }
                 </button>
-            }
-            else
-            {
-                <span class="badge @KsefStatusBadgeClass(_ksefStatus.Status) fs-6 shadow-sm ms-2">
-                    @KsefStatusLabel(_ksefStatus.Status)
-                </span>
             }
         </div>
     </div>
@@ -72,6 +73,24 @@
     }
     else if (_invoice != null)
     {
+        @if (_ksefStatus?.Status == 3)
+        {
+            <div class="alert alert-danger" role="alert">
+                @if (!string.IsNullOrWhiteSpace(_ksefStatus.ErrorMessage))
+                {
+                    <div><strong>Powód błędu wysyłki do KSeF:</strong> @_ksefStatus.ErrorMessage</div>
+                }
+                <div>Przed ponowną wysyłką sprawdź w KSeF, czy faktura nie została już przyjęta.</div>
+            </div>
+        }
+        @if (_ksefError != null)
+        {
+            <div class="alert alert-warning" role="alert">@_ksefError</div>
+        }
+        @if (_ksefRefreshError != null)
+        {
+            <div class="alert alert-warning" role="alert">@_ksefRefreshError</div>
+        }
         <div class="card shadow border-0 rounded-3">
             <div class="card-header bg-dark text-white p-4">
                 <div class="row align-items-center">
@@ -215,53 +234,137 @@
     private bool _isDownloading = false;
     private KsefStatusDto? _ksefStatus;
     private bool _isSendingToKsef = false;
+    private bool _ksefStatusKnown;
+    private string? _ksefError;
+    private string? _ksefRefreshError;
+    private CancellationTokenSource? _refreshCancellation;
+    private int? _loadedId;
+    private int _statusVersion;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        await LoadInvoiceData();
+        if (_loadedId == Id) return;
+        _loadedId = Id;
+        _refreshCancellation?.Cancel();
+        _refreshCancellation?.Dispose();
+        _refreshCancellation = new CancellationTokenSource();
+        var token = _refreshCancellation.Token;
+        var invoiceId = Id;
+        _invoice = null;
+        _ksefStatus = null;
+        _ksefStatusKnown = false;
+        _ksefError = null;
+        _ksefRefreshError = null;
+        _isSendingToKsef = false;
+        await LoadInvoiceData(invoiceId, token);
+        if (!token.IsCancellationRequested && _invoice != null)
+            _ = RefreshKsefStatusPeriodically(invoiceId, token);
     }
 
-    private async Task LoadInvoiceData()
+    private async Task LoadInvoiceData(int invoiceId, CancellationToken token)
     {
         try
         {
             _isLoading = true;
             _errorMessage = null;
-            _invoice = await InvoiceService.GetInvoiceByIdAsync(Id);
+            var invoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
+            if (token.IsCancellationRequested) return;
+            _invoice = invoice;
 
             if (_invoice == null)
                 _errorMessage = "Nie znaleziono faktury o podanym identyfikatorze.";
             else
-                _ksefStatus = await KsefService.GetInvoiceStatusAsync(Id);
+                await RefreshKsefStatus(invoiceId, token);
         }
         catch (Exception ex)
         {
-            HandleException(ex, "ładowania faktury");
+            if (!token.IsCancellationRequested) HandleException(ex, "ładowania faktury");
         }
         finally
         {
-            _isLoading = false;
+            if (!token.IsCancellationRequested) _isLoading = false;
+        }
+    }
+
+    private async Task RefreshKsefStatusPeriodically(int invoiceId, CancellationToken token)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (!_isSendingToKsef)
+                        await RefreshKsefStatus(invoiceId, token);
+                    if (!token.IsCancellationRequested) StateHasChanged();
+                });
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+    }
+
+    private async Task RefreshKsefStatus(int invoiceId, CancellationToken token)
+    {
+        var version = _statusVersion;
+        try
+        {
+            var status = await KsefService.GetInvoiceStatusAsync(invoiceId, token);
+            if (token.IsCancellationRequested || version != _statusVersion || _isSendingToKsef) return;
+            _ksefStatus = status;
+            _ksefStatusKnown = true;
+            _ksefRefreshError = null;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            if (token.IsCancellationRequested || version != _statusVersion || _isSendingToKsef) return;
+            _ksefStatusKnown = false;
+            _ksefRefreshError = $"Nie udało się odświeżyć statusu KSeF: {ex.Message}";
         }
     }
 
     private async Task SendToKsef()
     {
-        if (_invoice == null || _isSendingToKsef) return;
+        if (_invoice == null || _isSendingToKsef || !_ksefStatusKnown ||
+            (_ksefStatus != null && _ksefStatus.Status != 3)) return;
 
+        var invoiceId = Id;
+        var token = _refreshCancellation!.Token;
         try
         {
             _isSendingToKsef = true;
-            await KsefService.SendInvoiceAsync(Id);
+            _statusVersion++;
+            _ksefError = null;
+            if (_ksefStatus?.Status == 3 &&
+                !await JS.InvokeAsync<bool>("confirm", "Niektóre błędy mogą wystąpić po wysłaniu faktury, więc KSeF mógł ją już przyjąć. Sprawdź to w KSeF przed ponowną wysyłką, aby uniknąć duplikatu. Czy chcesz wysłać fakturę ponownie?"))
+                return;
+            if (token.IsCancellationRequested) return;
+            await KsefService.SendInvoiceAsync(invoiceId);
+            if (token.IsCancellationRequested) return;
             _ksefStatus = new KsefStatusDto { Status = 0 };
+            _ksefStatusKnown = true;
+            _ksefError = null;
+            _ksefRefreshError = null;
         }
         catch (Exception ex)
         {
-            HandleException(ex, "wysyłki do KSeF");
+            if (!token.IsCancellationRequested)
+            {
+                _ksefStatusKnown = false;
+                _ksefError = $"Wystąpił błąd podczas wysyłki do KSeF: {ex.Message}";
+            }
         }
         finally
         {
-            _isSendingToKsef = false;
+            if (!token.IsCancellationRequested) _isSendingToKsef = false;
         }
+    }
+
+    public void Dispose()
+    {
+        _refreshCancellation?.Cancel();
+        _refreshCancellation?.Dispose();
     }
 
     private static string KsefStatusLabel(int status) => status switch
@@ -269,7 +372,7 @@
         0 => "Wysyłanie do KSeF...",
         1 => "Oczekuje na potwierdzenie KSeF",
         2 => "Zaakceptowana przez KSeF",
-        3 => "Odrzucona przez KSeF",
+        3 => "Błąd wysyłki do KSeF",
         _ => "Nieznany status KSeF"
     };
 

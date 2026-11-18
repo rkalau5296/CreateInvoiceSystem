@@ -6,6 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="KSeF.Client" Version="2.8.1" />
+    <PackageVersion Include="MassTransit" Version="8.5.12" />
+    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.12" />
+	<PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftNetVersion)" />
@@ -30,7 +33,7 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-	<PackageVersion Include="System.Security.Cryptography.Xml" Version="$(MicrosoftNetVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="NLog" Version="6.2.1" />
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.1" />
     <PackageVersion Include="MediatR" Version="14.2.0" />

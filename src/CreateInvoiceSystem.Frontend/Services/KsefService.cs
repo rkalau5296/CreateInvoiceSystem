@@ -58,13 +58,14 @@ public sealed class KsefService(HttpClient http, IJSRuntime js)
             ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź ze szczegółami faktury KSeF.");
     }
 
-    public async Task<KsefStatusDto?> GetInvoiceStatusAsync(int invoiceId)
+    public async Task<KsefStatusDto?> GetInvoiceStatusAsync(int invoiceId, CancellationToken cancellationToken = default)
     {
-        using var response = await http.GetAsync($"api/Ksef/{invoiceId}/status");
+        using var response = await http.GetAsync($"api/Ksef/{invoiceId}/status", cancellationToken);
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         await response.EnsureSuccessOrThrowApiExceptionAsync();
 
-        return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefStatusDto);
+        return await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.KsefStatusDto, cancellationToken)
+            ?? throw new InvalidOperationException("API zwróciło pustą odpowiedź statusu KSeF.");
     }
 
     public async Task SendInvoiceAsync(int invoiceId)

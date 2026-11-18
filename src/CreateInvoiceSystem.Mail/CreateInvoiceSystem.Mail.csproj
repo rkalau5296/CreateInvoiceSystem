@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CreateInvoiceSystem.Messaging.Contracts\CreateInvoiceSystem.Messaging.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 ﻿using CreateInvoiceSystem.Mail;
 using CreateInvoiceSystem.Persistence;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -46,6 +47,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            services.AddMassTransitTestHarness(x =>
+                x.SetTestTimeouts(testInactivityTimeout: TimeSpan.FromSeconds(15)));
             var servicesToRemove = services
                 .Where(descriptor =>
                     descriptor.ServiceType ==

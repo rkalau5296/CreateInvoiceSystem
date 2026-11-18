@@ -21,4 +21,7 @@ public record InvoiceDto(
      string ClientAddress,
      string ClientEmail,
      string Currency
-);
+)
+{
+    public bool? IsKsefAccepted { get; init; }
+}
