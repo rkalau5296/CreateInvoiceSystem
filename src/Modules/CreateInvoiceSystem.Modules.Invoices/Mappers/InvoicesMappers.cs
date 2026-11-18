@@ -31,7 +31,7 @@ public static class InvoiceMappers
         invoice.ClientAddress,
         invoice.ClientEmail,
         invoice.Currency
-    );
+    ) { IsKsefAccepted = invoice.IsKsefAccepted };
 
     public static InvoicePositionDto ToDto(this InvoicePosition invoicePosition) =>
     invoicePosition == null

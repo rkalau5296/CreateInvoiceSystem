@@ -154,8 +154,20 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
         var positionsLookup = allPositions.ToLookup(p => p.InvoiceId);
 
+        var acceptedInvoiceIds = (await _db.Set<KsefOutgoingInvoiceStatus>()
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && invoiceIds.Contains(s.InvoiceId) &&
+                        s.Status == KsefInvoiceStatus.Zaakceptowana)
+            .Select(s => s.InvoiceId)
+            .ToListAsync(cancellationToken)).ToHashSet();
+
         var items = invoiceEntities
-            .Select(i => InvoiceMapper.MapSummary(i, positionsLookup[i.InvoiceId]))
+            .Select(i =>
+            {
+                var invoice = InvoiceMapper.MapSummary(i, positionsLookup[i.InvoiceId]);
+                invoice.IsKsefAccepted = acceptedInvoiceIds.Contains(i.InvoiceId);
+                return invoice;
+            })
             .ToList();
 
         return new PagedResult<Invoice>(items, totalCount, pageNumber, pageSize);

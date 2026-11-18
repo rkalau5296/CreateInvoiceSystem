@@ -41,7 +41,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light fw-bold">Lista wystawionych faktur</div>
         <div class="card-body p-0">
-            <DataTable Items="_invoices" Cols="7" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="i => i.InvoiceId" NoItemsMessage="Brak faktur spełniających kryteria.">
+            <DataTable Items="_invoices" Cols="7" TableClass="table table-hover mb-0" HeaderClass="table-dark" KeySelector="i => i.InvoiceId" RowClassSelector='i => i.IsKsefAccepted == true ? "table-secondary" : null' NoItemsMessage="Brak faktur spełniających kryteria.">
                 <HeaderTemplate>
                     <tr>
                         <th>Numer/Tytuł</th>
@@ -55,7 +55,7 @@
                 </HeaderTemplate>
 
                 <RowTemplate Context="inv">
-                    <td class="align-middle"><strong>@inv.Title</strong></td>
+                    <td class="align-middle"><strong>@inv.Title</strong>@if (inv.IsKsefAccepted == true) { <span class="ms-2 text-muted small">(KSeF)</span> }</td>
                     <td class="align-middle">@inv.ClientName</td>
                     <td class="align-middle">@inv.CreatedDate.ToShortDateString()</td>
                     <td class="align-middle text-end">@inv.TotalNet.ToString("N2")</td>

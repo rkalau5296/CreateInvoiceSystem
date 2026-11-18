@@ -3,6 +3,7 @@
     public class InvoiceDto
     {
         public int InvoiceId { get; set; }                
+        public bool? IsKsefAccepted { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Comments { get; set; } = string.Empty;                
         public string MethodOfPayment { get; set; } = string.Empty;                

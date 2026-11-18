@@ -1,7 +1,10 @@
 using CreateInvoiceSystem.API.Repositories.KsefCredentialsRepository;
 using CreateInvoiceSystem.API.Repositories.KsefOutboxRepository;
+using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.DI;
 using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoices;
 using CreateInvoiceSystem.Modules.Ksef.Application.Handlers;
 using CreateInvoiceSystem.Modules.Ksef.Application.Services;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.GetIncomingKsefInvoices;
@@ -37,6 +40,46 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class KsefCredentialsTests
 {
+    [Fact]
+    public async Task Invoice_list_marks_only_users_accepted_ksef_invoices()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync(ct);
+        var options = new DbContextOptionsBuilder<CreateInvoiceSystemDbContext>().UseSqlite(connection).Options;
+        await using var db = new CreateInvoiceSystemDbContext(options);
+        await db.Database.EnsureCreatedAsync(ct);
+        var owner = new UserEntity { UserName = "owner", Nip = "1234567890", Address = new AddressEntity() };
+        var other = new UserEntity { UserName = "other", Nip = "9876543210", Address = new AddressEntity() };
+        db.Users.AddRange(owner, other);
+        await db.SaveChangesAsync(ct);
+        var accepted = new InvoiceEntity { UserId = owner.Id, Title = "Accepted" };
+        var pending = new InvoiceEntity { UserId = owner.Id, Title = "Pending" };
+        var rejected = new InvoiceEntity { UserId = owner.Id, Title = "Rejected" };
+        var unsent = new InvoiceEntity { UserId = owner.Id, Title = "Unsent" };
+        var wrongOwner = new InvoiceEntity { UserId = owner.Id, Title = "Wrong owner" };
+        var anotherUserInvoice = new InvoiceEntity { UserId = other.Id, Title = "Other invoice" };
+        db.Invoices.AddRange(accepted, pending, rejected, unsent, wrongOwner, anotherUserInvoice);
+        await db.SaveChangesAsync(ct);
+        db.KsefOutgoingInvoiceStatuses.AddRange(
+            new() { InvoiceId = accepted.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = pending.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.OczekujeNaPotwierdzenie, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = rejected.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Odrzucona, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = wrongOwner.InvoiceId, UserId = other.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow });
+        await db.SaveChangesAsync(ct);
+
+        var handler = new GetInvoicesHandler(new InvoiceRepository(db));
+        var result = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 10 }, ct);
+        Assert.Equal(5, result.TotalCount);
+        Assert.True(result.Data.Single(i => i.InvoiceId == accepted.InvoiceId).IsKsefAccepted);
+        foreach (var invoice in new[] { pending, rejected, unsent, wrongOwner })
+            Assert.False(result.Data.Single(i => i.InvoiceId == invoice.InvoiceId).IsKsefAccepted);
+        Assert.DoesNotContain(result.Data, i => i.InvoiceId == anotherUserInvoice.InvoiceId);
+
+        var filtered = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 1, SearchTerm = "Accepted" }, ct);
+        Assert.True(Assert.Single(filtered.Data).IsKsefAccepted);
+    }
+
     [Fact]
     public void Protected_tokens_remain_readable_after_restart_with_persisted_certificate_keys()
     {
