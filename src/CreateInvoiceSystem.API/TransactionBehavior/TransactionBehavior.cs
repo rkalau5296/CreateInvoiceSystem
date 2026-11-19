@@ -1,6 +1,8 @@
 ﻿using CreateInvoiceSystem.Abstractions.CQRS;
 using CreateInvoiceSystem.Persistence;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace CreateInvoiceSystem.API.TransactionBehavior;
 
@@ -17,7 +19,9 @@ public class TransactionBehavior<TRequest, TResponse>(
             return await next();
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+        using var transaction = request is ISerializableTransactionalRequest
+            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct)
+            : await dbContext.Database.BeginTransactionAsync(ct);
         try
         {
             var response = await next();

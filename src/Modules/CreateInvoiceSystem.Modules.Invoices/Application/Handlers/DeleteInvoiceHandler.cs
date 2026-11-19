@@ -12,6 +12,8 @@ public class DeleteInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
             ?? throw new InvalidOperationException(
                 $"Invoice with ID {request.Id} not found.");
 
+        invoice.EnsureNotLockedByKsef();
+
         if (invoice.InvoicePositions is { Count: > 0 })
         {
             await _invoiceRepository.RemoveRangeAsync(invoice.InvoicePositions, cancellationToken);

@@ -5,7 +5,8 @@ public enum KsefInvoiceStatus
     Wysylanie = 0,
     OczekujeNaPotwierdzenie = 1,
     Zaakceptowana = 2,
-    Odrzucona = 3
+    Odrzucona = 3,
+    PotwierdzoneOdrzucenie = 4
 }
 
 public class KsefOutgoingInvoiceStatus

@@ -3,6 +3,7 @@ using CreateInvoiceSystem.API.TransactionBehavior;
 using CreateInvoiceSystem.API.Repositories.ClientRepository;
 using CreateInvoiceSystem.API.Repositories.InvoiceRepository;
 using CreateInvoiceSystem.API.Repositories.KsefCredentialsRepository;
+using CreateInvoiceSystem.API.Repositories.KsefOutboxRepository;
 using CreateInvoiceSystem.API.Repositories.ProductRepository;
 using CreateInvoiceSystem.API.Repositories.UserRepository;
 using CreateInvoiceSystem.Abstractions.Notification;
@@ -11,6 +12,9 @@ using CreateInvoiceSystem.Modules.Clients.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Ksef.Application.Handlers;
 using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.KsefSettings;
+using CreateInvoiceSystem.Modules.Ksef.Application.RequestsResponses.SendInvoiceToKsef;
+using CreateInvoiceSystem.Modules.Invoices.Application.Handlers;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
 using CreateInvoiceSystem.Modules.Products.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Application.Handlers;
 using CreateInvoiceSystem.Modules.Users.Application.RequestsResponses.DeleteUser;
@@ -40,6 +44,60 @@ public sealed class TransactionTests
             CreateInvoiceSystemDbContext>()
             .UseSqlServer(fixture.ConnectionString)
             .Options;
+    }
+
+    [Fact]
+    public async Task Enqueue_and_delete_are_serialized_for_the_same_invoice()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var setup = new CreateInvoiceSystemDbContext(_options);
+        var user = await CreateUserAsync(setup, ct);
+        var invoice = new InvoiceEntity
+        {
+            UserId = user.Id, Title = "Concurrent KSeF", CreatedDate = DateTime.UtcNow,
+            PaymentDate = DateTime.UtcNow.AddDays(1)
+        };
+        setup.Invoices.Add(invoice);
+        await setup.SaveChangesAsync(ct);
+
+        await using var sendDb = new CreateInvoiceSystemDbContext(_options);
+        await using var deleteDb = new CreateInvoiceSystemDbContext(_options);
+        var sendBehavior = new TransactionBehavior<SendInvoiceToKsefRequest, int>(
+            sendDb, Mock.Of<ILogger<TransactionBehavior<SendInvoiceToKsefRequest, int>>>());
+        var deleteBehavior = new TransactionBehavior<DeleteInvoiceRequest, DeleteInvoiceResponse>(
+            deleteDb, Mock.Of<ILogger<TransactionBehavior<DeleteInvoiceRequest, DeleteInvoiceResponse>>>());
+        var sendRequest = new SendInvoiceToKsefRequest(invoice.InvoiceId) { UserId = user.Id };
+        var deleteRequest = new DeleteInvoiceRequest(invoice.InvoiceId) { UserId = user.Id };
+        var queued = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var send = sendBehavior.Handle(sendRequest, async token =>
+        {
+            var id = await new KsefOutboxRepository(sendDb, sendDb).EnqueueAsync(user.Id, invoice.InvoiceId, token);
+            queued.SetResult();
+            await release.Task.WaitAsync(token);
+            return id;
+        }, ct);
+        await queued.Task.WaitAsync(TimeSpan.FromSeconds(10), ct);
+        var delete = deleteBehavior.Handle(deleteRequest,
+            token => new DeleteInvoiceHandler(new InvoiceRepository(deleteDb)).Handle(deleteRequest, token), ct);
+
+        try
+        {
+            Assert.NotSame(delete, await Task.WhenAny(delete, Task.Delay(300, ct)));
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
+
+        await send.WaitAsync(TimeSpan.FromSeconds(10), ct);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => delete.WaitAsync(TimeSpan.FromSeconds(10), ct));
+        Assert.Contains("KSeF", exception.Message);
+        await using var verify = new CreateInvoiceSystemDbContext(_options);
+        Assert.True(await verify.Invoices.AnyAsync(i => i.InvoiceId == invoice.InvoiceId, ct));
+        Assert.True(await verify.KsefOutgoingInvoiceStatuses.AnyAsync(s => s.InvoiceId == invoice.InvoiceId, ct));
     }
 
     [Fact]

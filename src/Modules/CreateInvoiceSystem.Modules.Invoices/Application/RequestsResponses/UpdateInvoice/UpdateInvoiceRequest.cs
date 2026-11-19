@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.UpdateInvoice;
 
-public record UpdateInvoiceRequest(int Id, UpdateInvoiceDto Invoice) : IRequest<UpdateInvoiceResponse>, ITransactionalRequest
+public record UpdateInvoiceRequest(int Id, UpdateInvoiceDto Invoice) : IRequest<UpdateInvoiceResponse>, ISerializableTransactionalRequest
 {
     [JsonIgnore]
     public int UserId { get; set; }

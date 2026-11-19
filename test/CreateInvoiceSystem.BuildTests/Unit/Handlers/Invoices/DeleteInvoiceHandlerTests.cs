@@ -19,6 +19,27 @@ public class DeleteInvoiceHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldRejectAcceptedInvoice_WithoutDeletingAnything()
+    {
+        var invoice = new Invoice
+        {
+            InvoiceId = 10,
+            UserId = 1,
+            IsKsefLocked = true,
+            InvoicePositions = [new InvoicePosition { InvoicePositionId = 1 }]
+        };
+        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invoice);
+
+        Func<Task> act = () => _sut.Handle(new DeleteInvoiceRequest(10) { UserId = 1 }, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Nie można edytować ani usunąć faktury zleconej do KSeF, dopóki jej odrzucenie nie zostanie potwierdzone.");
+        _repositoryMock.Verify(r => r.RemoveRangeAsync(It.IsAny<IEnumerable<InvoicePosition>>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(r => r.RemoveAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnDto_WhenInvoiceIsSuccessfullyDeleted()
     {
         // Arrange

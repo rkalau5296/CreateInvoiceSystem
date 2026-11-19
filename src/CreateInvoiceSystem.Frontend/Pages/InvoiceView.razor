@@ -38,7 +38,7 @@
                     @KsefStatusLabel(_ksefStatus.Status)
                 </span>
             }
-            @if (_ksefStatus == null || _ksefStatus.Status == 3)
+            @if (_ksefStatus == null || _ksefStatus.Status == 4)
             {
                 <button class="btn btn-outline-primary shadow-sm ms-2"
                         @onclick="SendToKsef"
@@ -51,7 +51,7 @@
                     else
                     {
                         <i class="bi bi-send me-2"></i>
-                        <span>@(_ksefStatus?.Status == 3 ? "Wyślij ponownie do KSeF" : "Wyślij do KSeF")</span>
+                        <span>@(_ksefStatus?.Status == 4 ? "Wyślij ponownie do KSeF" : "Wyślij do KSeF")</span>
                     }
                 </button>
             }
@@ -73,14 +73,17 @@
     }
     else if (_invoice != null)
     {
-        @if (_ksefStatus?.Status == 3)
+        @if (_ksefStatus?.Status is 3 or 4)
         {
             <div class="alert alert-danger" role="alert">
                 @if (!string.IsNullOrWhiteSpace(_ksefStatus.ErrorMessage))
                 {
                     <div><strong>Powód błędu wysyłki do KSeF:</strong> @_ksefStatus.ErrorMessage</div>
                 }
-                <div>Przed ponowną wysyłką sprawdź w KSeF, czy faktura nie została już przyjęta.</div>
+                @if (_ksefStatus.Status == 3)
+                {
+                    <div>Wynik wysyłki jest niepewny. Sprawdź w KSeF, czy faktura została przyjęta. Edycja, usuwanie i ponowna wysyłka są zablokowane.</div>
+                }
             </div>
         }
         @if (_ksefError != null)
@@ -327,7 +330,7 @@
     private async Task SendToKsef()
     {
         if (_invoice == null || _isSendingToKsef || !_ksefStatusKnown ||
-            (_ksefStatus != null && _ksefStatus.Status != 3)) return;
+            (_ksefStatus != null && _ksefStatus.Status != 4)) return;
 
         var invoiceId = Id;
         var token = _refreshCancellation!.Token;
@@ -336,8 +339,8 @@
             _isSendingToKsef = true;
             _statusVersion++;
             _ksefError = null;
-            if (_ksefStatus?.Status == 3 &&
-                !await JS.InvokeAsync<bool>("confirm", "Niektóre błędy mogą wystąpić po wysłaniu faktury, więc KSeF mógł ją już przyjąć. Sprawdź to w KSeF przed ponowną wysyłką, aby uniknąć duplikatu. Czy chcesz wysłać fakturę ponownie?"))
+            if (_ksefStatus?.Status == 4 &&
+                !await JS.InvokeAsync<bool>("confirm", "KSeF odrzucił fakturę. Czy chcesz wysłać ją ponownie?"))
                 return;
             if (token.IsCancellationRequested) return;
             await KsefService.SendInvoiceAsync(invoiceId);
@@ -372,7 +375,8 @@
         0 => "Wysyłanie do KSeF...",
         1 => "Oczekuje na potwierdzenie KSeF",
         2 => "Zaakceptowana przez KSeF",
-        3 => "Błąd wysyłki do KSeF",
+        3 => "Niepewny wynik wysyłki do KSeF",
+        4 => "Odrzucona przez KSeF",
         _ => "Nieznany status KSeF"
     };
 
@@ -382,6 +386,7 @@
         1 => "bg-warning text-dark",
         2 => "bg-success",
         3 => "bg-danger",
+        4 => "bg-danger",
         _ => "bg-secondary"
     };
 

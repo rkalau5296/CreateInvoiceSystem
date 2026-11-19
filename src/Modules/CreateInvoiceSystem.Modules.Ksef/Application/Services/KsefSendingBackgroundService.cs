@@ -82,6 +82,16 @@ public class KsefSendingBackgroundService(
 
             logger.LogInformation("Faktura {InvoiceId} wysłana do KSeF. Numer KSeF: {KsefNumber}.", item.InvoiceId, result.KsefNumber);
         }
+        catch (KsefInvoiceRejectedException ex)
+        {
+            await outboxRepository.MarkRejectedAsync(item.Id, ex.Message, cancellationToken);
+            await outboxRepository.SaveChangesAsync(cancellationToken);
+            logger.LogWarning(ex, "KSeF odrzucił fakturę {InvoiceId}.", item.InvoiceId);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             await outboxRepository.MarkFailedAsync(item.Id, ex.Message, cancellationToken);

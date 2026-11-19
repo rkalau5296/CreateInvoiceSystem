@@ -17,7 +17,7 @@ public class KsefOutboxRepository(IKsefDbContext db, IDbContext invoiceDb) : IKs
             throw new KeyNotFoundException("Nie znaleziono faktury.");
 
         var updated = await db.KsefOutgoingInvoiceStatuses
-            .Where(s => s.UserId == userId && s.InvoiceId == invoiceId && s.Status == KsefInvoiceStatus.Odrzucona)
+            .Where(s => s.UserId == userId && s.InvoiceId == invoiceId && s.Status == KsefInvoiceStatus.PotwierdzoneOdrzucenie)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(s => s.Status, KsefInvoiceStatus.Wysylanie)
                 .SetProperty(s => s.SentAt, DateTime.UtcNow)
@@ -35,7 +35,7 @@ public class KsefOutboxRepository(IKsefDbContext db, IDbContext invoiceDb) : IKs
 
         if (await db.KsefOutgoingInvoiceStatuses.AsNoTracking()
             .AnyAsync(s => s.InvoiceId == invoiceId, cancellationToken))
-            throw new InvalidOperationException("Faktura jest już wysłana lub oczekuje na wysyłkę do KSeF.");
+            throw new InvalidOperationException("Faktura jest już zlecona do KSeF lub wynik jej wysyłki wymaga wyjaśnienia.");
 
         var entity = new KsefOutgoingInvoiceStatus
         {
@@ -80,6 +80,13 @@ public class KsefOutboxRepository(IKsefDbContext db, IDbContext invoiceDb) : IKs
         var entity = await db.KsefOutgoingInvoiceStatuses.SingleAsync(s => s.KsefOutgoingInvoiceStatusId == id, cancellationToken);
         entity.Status = KsefInvoiceStatus.Odrzucona;
         entity.ErrorMessage = errorMessage;        
+    }
+
+    public async Task MarkRejectedAsync(int id, string errorMessage, CancellationToken cancellationToken)
+    {
+        var entity = await db.KsefOutgoingInvoiceStatuses.SingleAsync(s => s.KsefOutgoingInvoiceStatusId == id, cancellationToken);
+        entity.Status = KsefInvoiceStatus.PotwierdzoneOdrzucenie;
+        entity.ErrorMessage = errorMessage;
     }
 
     public async Task<KsefOutboxStatus?> GetStatusByInvoiceIdAsync(int userId, int invoiceId, CancellationToken cancellationToken)

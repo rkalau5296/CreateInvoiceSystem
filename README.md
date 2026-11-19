@@ -112,6 +112,8 @@ Każdy użytkownik zapisuje własny token KSeF w **Ustawienia konta i firmy → 
 
 Aplikacja uruchamia się bez połączenia z KSeF. Certyfikaty są pobierane przy pierwszej operacji KSeF; wcześniej zlecone wysyłki są nadal obsługiwane w tle.
 
+Po zleceniu wysyłki edycja i usuwanie faktury są zablokowane. Blokada jest zdejmowana tylko po potwierdzonym odrzuceniu faktury przez KSeF (obsługiwane kody faktury 410, 415, 430 i 450). Duplikat 440, błędy połączenia i inne niepewne wyniki pozostają zablokowane; wymagają wyjaśnienia w KSeF. Dotyczy to również starszych statusów błędu, które nie rozróżniały odrzucenia od niepewnego wyniku. Aplikacja nie ma jeszcze funkcji rozstrzygania takich przypadków.
+
 Na liście faktur zakupowych oraz w ich podglądzie można pobrać PDF generowany w module PDF na podstawie oryginalnego XML z KSeF. Jego układ nawiązuje do wizualizacji KSeF i zawiera kod QR weryfikujący dokument. Oryginałem faktury pozostaje XML dostępny osobno. Kod QR wymaga NIP sprzedawcy i daty wystawienia w XML. PDF nie zawiera drugiego kodu QR potwierdzającego certyfikat wystawcy faktury offline. Dla standardowych środowisk testowego, demo i produkcyjnego adres weryfikacji dobierany jest automatycznie; dla niestandardowego adresu API skonfiguruj właściwy `KsefApi:QrBaseUrl`.
 
 Przed zastosowaniem migracji i uruchomieniem produkcyjnego API skonfiguruj poniższe ustawienia (np. przez zmienne środowiskowe, bez zapisywania haseł w repozytorium):
