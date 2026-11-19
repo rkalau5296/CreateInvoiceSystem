@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Abstractions.ControllerBase;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CloneInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.DeleteInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.GetInvoice;
@@ -55,6 +56,17 @@ public class InvoiceController(IMediator mediator) : ApiControllerBase(mediator)
         CreateInvoiceRequest request = new(secureDto) { UserId = actualUserId };
 
         return await HandleRequest<CreateInvoiceRequest, CreateInvoiceResponse>(request, cancellationToken);
+    }
+
+    [HttpPost("{id}/clone")]
+    [ProducesResponseType(typeof(CloneInvoiceResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CloneInvoiceAsync([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(claimValue, out int actualUserId)) return Unauthorized();
+
+        CloneInvoiceRequest request = new(id) { UserId = actualUserId };
+        return await HandleRequest<CloneInvoiceRequest, CloneInvoiceResponse>(request, cancellationToken);
     }
 
     [HttpPut]

@@ -10,6 +10,7 @@ using CreateInvoiceSystem.Csv.Controllers;
 using CreateInvoiceSystem.Csv.DI;
 using CreateInvoiceSystem.Identity.DI;
 using CreateInvoiceSystem.Mail.DI;
+using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CloneInvoice;
 using CreateInvoiceSystem.Modules.Invoices.Application.RequestsResponses.CreateInvoice;
 using CreateInvoiceSystem.Modules.Ksef.Application.Options;
 using CreateInvoiceSystem.Modules.Ksef.DI;
@@ -59,6 +60,7 @@ builder.Services.AddApiRepositories();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 builder.Services.AddTransient<IPipelineBehavior<CreateInvoiceRequest, CreateInvoiceResponse>, InvoiceCreatedBehavior>();
+builder.Services.AddTransient<IPipelineBehavior<CloneInvoiceRequest, CloneInvoiceResponse>, CloneInvoiceBehavior>();
 builder.Services.AddApplication();
 
 var rabbitMqHost = builder.Configuration["RabbitMq:Host"] ?? "localhost";
