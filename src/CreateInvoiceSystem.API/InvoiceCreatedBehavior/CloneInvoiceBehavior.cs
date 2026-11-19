@@ -5,11 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CreateInvoiceSystem.API.InvoiceCreatedBehavior;
 
-/// <summary>
-/// Zapisuje sklonowaną fakturę i uzupełnia w odpowiedzi jej InvoiceId.
-/// Celowo nie publikuje InvoiceCreatedIntegrationEvent, żeby klon nie wysyłał
-/// automatycznie e-maili z PDF do klienta, zanim użytkownik go sprawdzi.
-/// </summary>
 public class CloneInvoiceBehavior(CreateInvoiceSystemDbContext dbContext)
     : IPipelineBehavior<CloneInvoiceRequest, CloneInvoiceResponse>
 {
