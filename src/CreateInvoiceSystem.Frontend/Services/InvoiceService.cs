@@ -47,6 +47,15 @@ namespace CreateInvoiceSystem.Frontend.Services
             await response.EnsureSuccessOrThrowApiExceptionAsync();
         }
 
+        public async Task<InvoiceDto?> CloneInvoiceAsync(int invoiceId)
+        {
+            var response = await _http.PostAsync($"api/Invoice/{invoiceId}/clone", content: null);
+            await response.EnsureSuccessOrThrowApiExceptionAsync();
+
+            var result = await response.Content.ReadFromJsonAsync(FrontendJsonContext.Default.GetInvoiceResponse);
+            return result?.Data;
+        }
+
         public async Task DeleteInvoiceAsync(int invoiceId)
         {
             var response = await _http.DeleteAsync($"api/Invoice/{invoiceId}");

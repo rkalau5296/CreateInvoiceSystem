@@ -32,7 +32,7 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository)
         await AddProductsToInvoicePositionsAsync(request.Invoice, entity, _invoiceRepository, cancellationToken);
 
         entity.RecalculateTotals();
-        entity.Title = await GenerateInvoiceNumberAsync(request.Invoice.UserId, _invoiceRepository, cancellationToken);
+        entity.Title = await InvoiceNumbering.GenerateNextAsync(request.Invoice.UserId, DateTime.UtcNow, _invoiceRepository, cancellationToken);
 
         await _invoiceRepository.AddInvoiceAsync(entity, cancellationToken);
 
@@ -40,16 +40,6 @@ public class CreateInvoiceHandler(IInvoiceRepository _invoiceRepository)
         {
             Data = entity.ToDto()
         };
-    }
-
-    private static async Task<string> GenerateInvoiceNumberAsync(int userId, IInvoiceRepository invoiceRepository, CancellationToken ct)
-    {
-        var now = DateTime.UtcNow;
-
-        int maxNumber = await invoiceRepository.GetMaxInvoiceNumberInMonthAsync(userId, now.Month, now.Year, ct);
-        int nextNumber = maxNumber + 1;
-
-        return $"{nextNumber}/{now.Month:00}/{now.Year}";
     }
 
     private static async Task<Client> GetOrCreateClientAsync(CreateInvoiceDto param, IInvoiceRepository invoiceRepository, CancellationToken cancellationToken)

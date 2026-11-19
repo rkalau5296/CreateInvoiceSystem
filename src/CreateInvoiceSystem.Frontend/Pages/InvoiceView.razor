@@ -32,6 +32,22 @@
                 }
             </button>
 
+            <button class="btn btn-secondary shadow-sm ms-2"
+                    @onclick="CloneInvoice"
+                    title="Wystaw nową fakturę na podstawie tej (kolejny numer, dzisiejsze daty)."
+                    disabled="@(_isLoading || _isCloning || _invoice == null)">
+                @if (_isCloning)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Klonowanie...</span>
+                }
+                else
+                {
+                    <i class="bi bi-files me-2"></i>
+                    <span>Klonuj</span>
+                }
+            </button>
+
             @if (_ksefStatus != null)
             {
                 <span class="badge @KsefStatusBadgeClass(_ksefStatus.Status) fs-6 shadow-sm ms-2">
@@ -235,6 +251,7 @@
     private string? _errorMessage;
     private bool _isLoading = true;
     private bool _isDownloading = false;
+    private bool _isCloning = false;
     private KsefStatusDto? _ksefStatus;
     private bool _isSendingToKsef = false;
     private bool _ksefStatusKnown;
@@ -432,6 +449,33 @@
         finally
         {
             _isDownloading = false;
+        }
+    }
+
+    private async Task CloneInvoice()
+    {
+        if (_invoice == null || _isCloning) return;
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm",
+            $"Wystawić nową fakturę na podstawie {_invoice.Title}? Otrzyma kolejny numer i dzisiejsze daty.");
+        if (!confirmed) return;
+
+        try
+        {
+            _isCloning = true;
+            var cloned = await InvoiceService.CloneInvoiceAsync(Id);
+            if (cloned != null)
+            {
+                Navigation.NavigateTo($"/invoices/edit/{cloned.InvoiceId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleException(ex, "klonowania faktury");
+        }
+        finally
+        {
+            _isCloning = false;
         }
     }
 
