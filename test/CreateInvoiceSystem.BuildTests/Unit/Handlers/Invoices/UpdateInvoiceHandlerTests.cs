@@ -20,6 +20,27 @@ public class UpdateInvoiceHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldRejectAcceptedInvoice_BeforeMakingChanges()
+    {
+        var invoice = new Invoice { InvoiceId = 1, UserId = 100, Title = "Original", IsKsefLocked = true };
+        var update = new UpdateInvoiceDto(
+            1, "Changed", 100m, 23m, 123m, DateTime.Now, DateTime.Now, "Updated",
+            null, 100, null!, "Transfer", new List<UpdateInvoicePositionDto>(),
+            "Seller", "NIP", "Address", "Bank", "Client", "NIP", "Address", "test@test.com", "PLN");
+        _repositoryMock.Setup(r => r.GetInvoiceByIdAsync(100, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(invoice);
+
+        Func<Task> act = () => _sut.Handle(new UpdateInvoiceRequest(1, update) { UserId = 100 }, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Nie można edytować ani usunąć faktury zleconej do KSeF, dopóki jej odrzucenie nie zostanie potwierdzone.");
+        invoice.Title.Should().Be("Original");
+        _repositoryMock.Verify(r => r.GetInvoiceByIdAsync(100, 1, It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Invoice>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Handle_ShouldSyncPositions_RemovingAndAddingCorrectly()
     {
         // Arrange

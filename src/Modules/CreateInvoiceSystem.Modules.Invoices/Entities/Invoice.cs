@@ -3,6 +3,7 @@ public class Invoice
 {
     public int InvoiceId { get; set; }
     public bool? IsKsefAccepted { get; set; }
+    public bool IsKsefLocked { get; set; }
     public string Title { get; set; } = string.Empty;
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
@@ -23,6 +24,12 @@ public class Invoice
     public decimal TotalNet { get; set; }
     public decimal TotalVat { get; set; }
     public decimal TotalGross { get; set; }
+
+    public void EnsureNotLockedByKsef()
+    {
+        if (IsKsefLocked)
+            throw new InvalidOperationException("Nie można edytować ani usunąć faktury zleconej do KSeF, dopóki jej odrzucenie nie zostanie potwierdzone.");
+    }
 
     public void RecalculateTotals()
     {

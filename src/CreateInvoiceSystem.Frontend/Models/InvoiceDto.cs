@@ -4,6 +4,7 @@
     {
         public int InvoiceId { get; set; }                
         public bool? IsKsefAccepted { get; set; }
+        public bool IsKsefLocked { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Comments { get; set; } = string.Empty;                
         public string MethodOfPayment { get; set; } = string.Empty;                

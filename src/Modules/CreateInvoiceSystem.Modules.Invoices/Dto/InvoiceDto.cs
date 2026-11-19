@@ -24,4 +24,5 @@ public record InvoiceDto(
 )
 {
     public bool? IsKsefAccepted { get; init; }
+    public bool IsKsefLocked { get; init; }
 }

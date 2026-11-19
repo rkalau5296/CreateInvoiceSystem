@@ -40,6 +40,22 @@ namespace CreateInvoiceSystem.BuildTests.Unit;
 
 public class KsefCredentialsTests
 {
+    [Theory]
+    [InlineData(410, true)]
+    [InlineData(415, true)]
+    [InlineData(430, true)]
+    [InlineData(450, true)]
+    [InlineData(440, false)]
+    [InlineData(500, false)]
+    public void Only_unambiguous_invoice_rejections_unlock_editing(int statusCode, bool confirmed)
+    {
+        Assert.Equal(confirmed, KsefRejectionClassifier.IsConfirmed(1, [statusCode]));
+        Assert.False(KsefRejectionClassifier.IsConfirmed(1, []));
+        Assert.False(KsefRejectionClassifier.IsConfirmed(1, [statusCode, statusCode]));
+        Assert.False(KsefRejectionClassifier.IsConfirmed(0, [statusCode]));
+        Assert.False(KsefRejectionClassifier.IsConfirmed(1, [null]));
+    }
+
     [Fact]
     public async Task Invoice_list_marks_only_users_accepted_ksef_invoices()
     {
@@ -56,25 +72,42 @@ public class KsefCredentialsTests
         var accepted = new InvoiceEntity { UserId = owner.Id, Title = "Accepted" };
         var pending = new InvoiceEntity { UserId = owner.Id, Title = "Pending" };
         var rejected = new InvoiceEntity { UserId = owner.Id, Title = "Rejected" };
+        var confirmedRejection = new InvoiceEntity { UserId = owner.Id, Title = "Confirmed rejection" };
+        var sending = new InvoiceEntity { UserId = owner.Id, Title = "Sending" };
         var unsent = new InvoiceEntity { UserId = owner.Id, Title = "Unsent" };
         var wrongOwner = new InvoiceEntity { UserId = owner.Id, Title = "Wrong owner" };
         var anotherUserInvoice = new InvoiceEntity { UserId = other.Id, Title = "Other invoice" };
-        db.Invoices.AddRange(accepted, pending, rejected, unsent, wrongOwner, anotherUserInvoice);
+        db.Invoices.AddRange(accepted, pending, rejected, confirmedRejection, sending, unsent, wrongOwner, anotherUserInvoice);
         await db.SaveChangesAsync(ct);
         db.KsefOutgoingInvoiceStatuses.AddRange(
             new() { InvoiceId = accepted.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow },
             new() { InvoiceId = pending.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.OczekujeNaPotwierdzenie, SentAt = DateTime.UtcNow },
             new() { InvoiceId = rejected.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Odrzucona, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = confirmedRejection.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.PotwierdzoneOdrzucenie, SentAt = DateTime.UtcNow },
+            new() { InvoiceId = sending.InvoiceId, UserId = owner.Id, Status = KsefInvoiceStatus.Wysylanie, SentAt = DateTime.UtcNow },
             new() { InvoiceId = wrongOwner.InvoiceId, UserId = other.Id, Status = KsefInvoiceStatus.Zaakceptowana, SentAt = DateTime.UtcNow });
         await db.SaveChangesAsync(ct);
 
         var handler = new GetInvoicesHandler(new InvoiceRepository(db));
         var result = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 10 }, ct);
-        Assert.Equal(5, result.TotalCount);
+        Assert.Equal(7, result.TotalCount);
         Assert.True(result.Data.Single(i => i.InvoiceId == accepted.InvoiceId).IsKsefAccepted);
-        foreach (var invoice in new[] { pending, rejected, unsent, wrongOwner })
+        foreach (var invoice in new[] { pending, rejected, confirmedRejection, sending, unsent, wrongOwner })
             Assert.False(result.Data.Single(i => i.InvoiceId == invoice.InvoiceId).IsKsefAccepted);
+        foreach (var invoice in new[] { accepted, pending, rejected, sending })
+            Assert.True(result.Data.Single(i => i.InvoiceId == invoice.InvoiceId).IsKsefLocked);
+        foreach (var invoice in new[] { confirmedRejection, unsent, wrongOwner })
+            Assert.False(result.Data.Single(i => i.InvoiceId == invoice.InvoiceId).IsKsefLocked);
         Assert.DoesNotContain(result.Data, i => i.InvoiceId == anotherUserInvoice.InvoiceId);
+
+        var repository = new InvoiceRepository(db);
+        Assert.True((await repository.GetInvoiceByIdAsync(owner.Id, accepted.InvoiceId, ct)).IsKsefAccepted);
+        foreach (var invoice in new[] { pending, rejected, confirmedRejection, sending, unsent, wrongOwner })
+            Assert.False((await repository.GetInvoiceByIdAsync(owner.Id, invoice.InvoiceId, ct)).IsKsefAccepted);
+        foreach (var invoice in new[] { accepted, pending, rejected, sending })
+            Assert.True((await repository.GetInvoiceByIdAsync(owner.Id, invoice.InvoiceId, ct)).IsKsefLocked);
+        foreach (var invoice in new[] { confirmedRejection, unsent, wrongOwner })
+            Assert.False((await repository.GetInvoiceByIdAsync(owner.Id, invoice.InvoiceId, ct)).IsKsefLocked);
 
         var filtered = await handler.Handle(new GetInvoicesRequest { UserId = owner.Id, PageSize = 1, SearchTerm = "Accepted" }, ct);
         Assert.True(Assert.Single(filtered.Data).IsKsefAccepted);
@@ -275,7 +308,7 @@ public class KsefCredentialsTests
         {
             UserId = owner.Id,
             InvoiceId = invoice.InvoiceId,
-            Status = KsefInvoiceStatus.Odrzucona,
+            Status = KsefInvoiceStatus.PotwierdzoneOdrzucenie,
             SentAt = DateTime.UtcNow.AddDays(-1),
             ErrorMessage = "Nieznany host. (api-test.ksef.mf.gov.pl:443)",
             ElementReferenceNumber = "old-invoice",
@@ -299,7 +332,7 @@ public class KsefCredentialsTests
         Assert.True(retried.SentAt > status.SentAt);
         await Assert.ThrowsAsync<InvalidOperationException>(() => repository.EnqueueAsync(owner.Id, invoice.InvoiceId, ct));
 
-        foreach (var activeStatus in new[] { KsefInvoiceStatus.OczekujeNaPotwierdzenie, KsefInvoiceStatus.Zaakceptowana })
+        foreach (var activeStatus in new[] { KsefInvoiceStatus.OczekujeNaPotwierdzenie, KsefInvoiceStatus.Zaakceptowana, KsefInvoiceStatus.Odrzucona })
         {
             await db.KsefOutgoingInvoiceStatuses.ExecuteUpdateAsync(
                 setters => setters.SetProperty(s => s.Status, activeStatus), ct);
@@ -326,7 +359,7 @@ public class KsefCredentialsTests
         setup.KsefOutgoingInvoiceStatuses.Add(new KsefOutgoingInvoiceStatus
         {
             UserId = owner.Id, InvoiceId = invoice.InvoiceId,
-            Status = KsefInvoiceStatus.Odrzucona, SentAt = DateTime.UtcNow
+            Status = KsefInvoiceStatus.PotwierdzoneOdrzucenie, SentAt = DateTime.UtcNow
         });
         await setup.SaveChangesAsync(ct);
 
@@ -384,5 +417,42 @@ public class KsefCredentialsTests
         api.Verify(x => x.SendInvoiceAsync(20, "xml-20", It.IsAny<CancellationToken>()), Times.Once);
         outbox.Verify(x => x.MarkInProgressAsync(3, It.IsAny<CancellationToken>()), Times.Never);
         outbox.Verify(x => x.MarkFailedAsync(3, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Worker_unlocks_only_confirmed_rejections_and_keeps_uncertain_failures_locked()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var outbox = new Mock<IKsefOutboxRepository>();
+        var store = new Mock<IKsefCredentialsStore>();
+        var xml = new Mock<IKsefInvoiceXmlGenerator>();
+        var api = new Mock<IKsefApiClient>();
+        outbox.Setup(x => x.GetPendingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new KsefOutboxItem(1, 10, 100), new KsefOutboxItem(2, 10, 200)]);
+        outbox.Setup(x => x.MarkInProgressAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        outbox.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        outbox.Setup(x => x.MarkRejectedAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        outbox.Setup(x => x.MarkFailedAsync(2, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback(() => done.TrySetResult()).Returns(Task.CompletedTask);
+        store.Setup(x => x.IsConfiguredAsync(10, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        store.Setup(x => x.GetRequiredAsync(10, It.IsAny<CancellationToken>())).ReturnsAsync(new KsefCredentials("1234567890", "token"));
+        xml.Setup(x => x.GenerateXmlAsync(10, It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync("xml");
+        api.SetupSequence(x => x.SendInvoiceAsync(10, "xml", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KsefInvoiceRejectedException("Odrzucona"))
+            .ThrowsAsync(new TimeoutException("Nieznany wynik"));
+        using var services = new ServiceCollection()
+            .AddSingleton(outbox.Object).AddSingleton(store.Object).AddSingleton(xml.Object).AddSingleton(api.Object)
+            .BuildServiceProvider();
+        using var worker = new KsefSendingBackgroundService(
+            services.GetRequiredService<IServiceScopeFactory>(), NullLogger<KsefSendingBackgroundService>.Instance);
+
+        await worker.StartAsync(ct);
+        await done.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+        await worker.StopAsync(ct);
+
+        outbox.Verify(x => x.MarkRejectedAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        outbox.Verify(x => x.MarkFailedAsync(2, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        outbox.Verify(x => x.MarkRejectedAsync(2, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

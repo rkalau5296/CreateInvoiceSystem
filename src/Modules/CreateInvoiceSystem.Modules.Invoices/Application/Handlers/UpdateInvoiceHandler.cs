@@ -17,6 +17,8 @@ public class UpdateInvoiceHandler(IInvoiceRepository _invoiceRepository) : IRequ
             ?? throw new InvalidOperationException(
                 $"Invoice {request.Id} not found.");
 
+        invoice.EnsureNotLockedByKsef();
+
         UpdateBasicInformation(invoice, request);
 
         await HandleClientUpdate(invoice, request, cancellationToken);

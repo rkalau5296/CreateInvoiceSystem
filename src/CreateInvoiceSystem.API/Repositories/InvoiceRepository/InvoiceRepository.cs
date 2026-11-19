@@ -116,7 +116,15 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
             .Where(p => p.InvoiceId == invoiceId)
             .ToListAsync(cancellationToken);
 
-        return InvoiceMapper.MapDetailed(invoiceEntity, invoicePositionsEntity);
+        var invoice = InvoiceMapper.MapDetailed(invoiceEntity, invoicePositionsEntity);
+        var ksefStatus = await _db.Set<KsefOutgoingInvoiceStatus>()
+            .AsNoTracking()
+            .Where(s => s.UserId == user && s.InvoiceId == invoiceId)
+            .Select(s => (KsefInvoiceStatus?)s.Status)
+            .SingleOrDefaultAsync(cancellationToken);
+        invoice.IsKsefAccepted = ksefStatus == KsefInvoiceStatus.Zaakceptowana;
+        invoice.IsKsefLocked = ksefStatus.HasValue && ksefStatus != KsefInvoiceStatus.PotwierdzoneOdrzucenie;
+        return invoice;
     }
 
     public async Task<PagedResult<Invoice>> GetInvoicesAsync(int? userId, int pageNumber, int pageSize, string? searchTerm, CancellationToken cancellationToken)
@@ -154,18 +162,19 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
         var positionsLookup = allPositions.ToLookup(p => p.InvoiceId);
 
-        var acceptedInvoiceIds = (await _db.Set<KsefOutgoingInvoiceStatus>()
+        var statuses = (await _db.Set<KsefOutgoingInvoiceStatus>()
             .AsNoTracking()
-            .Where(s => s.UserId == userId && invoiceIds.Contains(s.InvoiceId) &&
-                        s.Status == KsefInvoiceStatus.Zaakceptowana)
-            .Select(s => s.InvoiceId)
-            .ToListAsync(cancellationToken)).ToHashSet();
+            .Where(s => s.UserId == userId && invoiceIds.Contains(s.InvoiceId))
+            .Select(s => new { s.InvoiceId, s.Status })
+            .ToListAsync(cancellationToken)).ToDictionary(s => s.InvoiceId, s => s.Status);
 
         var items = invoiceEntities
             .Select(i =>
             {
                 var invoice = InvoiceMapper.MapSummary(i, positionsLookup[i.InvoiceId]);
-                invoice.IsKsefAccepted = acceptedInvoiceIds.Contains(i.InvoiceId);
+                var hasStatus = statuses.TryGetValue(i.InvoiceId, out var status);
+                invoice.IsKsefAccepted = hasStatus && status == KsefInvoiceStatus.Zaakceptowana;
+                invoice.IsKsefLocked = hasStatus && status != KsefInvoiceStatus.PotwierdzoneOdrzucenie;
                 return invoice;
             })
             .ToList();
@@ -214,6 +223,13 @@ public class InvoiceRepository(IDbContext db) : IInvoiceRepository
 
     public async Task RemoveAsync(Invoice invoice, CancellationToken cancellationToken)
     {
+        var rejectedStatus = await _db.Set<KsefOutgoingInvoiceStatus>()
+            .SingleOrDefaultAsync(status => status.InvoiceId == invoice.InvoiceId &&
+                status.UserId == invoice.UserId && status.Status == KsefInvoiceStatus.PotwierdzoneOdrzucenie,
+                cancellationToken);
+        if (rejectedStatus != null)
+            _db.Set<KsefOutgoingInvoiceStatus>().Remove(rejectedStatus);
+
         var invoiceEntity = await _db
             .Set<InvoiceEntity>()
             .AsNoTracking()

@@ -1,4 +1,5 @@
 ﻿using CreateInvoiceSystem.Invoices.Persistence.Shared.Entities;
+using CreateInvoiceSystem.Modules.Ksef.Persistence.Entities;
 using CreateInvoiceSystem.Modules.Users.Persistence.Entities;
 using CreateInvoiceSystem.Persistence;
 using CreateInvoiceSystem.Shared.Persistence;
@@ -35,6 +36,67 @@ public class UpdateInvoiceIntegrationTests : IAsyncLifetime
     public ValueTask DisposeAsync()
     {
         return ValueTask.CompletedTask;
+    }
+
+    [Theory]
+    [InlineData(KsefInvoiceStatus.Wysylanie)]
+    [InlineData(KsefInvoiceStatus.OczekujeNaPotwierdzenie)]
+    [InlineData(KsefInvoiceStatus.Zaakceptowana)]
+    [InlineData(KsefInvoiceStatus.Odrzucona)]
+    public async Task Should_RejectUpdateAndDelete_When_KsefResultIsNotConfirmedRejected(KsefInvoiceStatus status)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(ct);
+        var invoiceId = await SeedInvoiceAsync(userId, ct);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        db.KsefOutgoingInvoiceStatuses.Add(new KsefOutgoingInvoiceStatus
+        {
+            InvoiceId = invoiceId,
+            UserId = userId,
+            Status = status,
+            SentAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync(ct);
+
+        var update = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}", BuildUpdatePayload(invoiceId, userId), ct);
+        var delete = await _client.DeleteAsync($"/api/Invoice/{invoiceId}", ct);
+
+        update.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        delete.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await update.Content.ReadAsStringAsync(ct)).Should().Contain("KSeF");
+        (await delete.Content.ReadAsStringAsync(ct)).Should().Contain("KSeF");
+        var invoice = await db.Set<InvoiceEntity>().AsNoTracking().SingleAsync(i => i.InvoiceId == invoiceId, ct);
+        invoice.Title.Should().Be("Faktura do edycji");
+        (await db.Set<InvoicePositionEntity>().CountAsync(p => p.InvoiceId == invoiceId, ct)).Should().Be(1);
+        (await db.KsefOutgoingInvoiceStatuses.CountAsync(s => s.InvoiceId == invoiceId, ct)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Should_AllowUpdateAndDelete_When_KsefRejectionIsConfirmed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = await SeedUserAsync(ct);
+        var invoiceId = await SeedInvoiceAsync(userId, ct);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CreateInvoiceSystemDbContext>();
+        db.KsefOutgoingInvoiceStatuses.Add(new KsefOutgoingInvoiceStatus
+        {
+            InvoiceId = invoiceId,
+            UserId = userId,
+            Status = KsefInvoiceStatus.PotwierdzoneOdrzucenie,
+            SentAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync(ct);
+
+        var update = await _client.PutAsJsonAsync(
+            $"/api/Invoice/update/{invoiceId}", BuildUpdatePayload(invoiceId, userId), ct);
+        update.StatusCode.Should().Be(HttpStatusCode.OK, because: await update.Content.ReadAsStringAsync(ct));
+        var delete = await _client.DeleteAsync($"/api/Invoice/{invoiceId}", ct);
+        delete.StatusCode.Should().Be(HttpStatusCode.OK, because: await delete.Content.ReadAsStringAsync(ct));
+        (await db.Set<InvoiceEntity>().AsNoTracking().AnyAsync(i => i.InvoiceId == invoiceId, ct)).Should().BeFalse();
+        (await db.KsefOutgoingInvoiceStatuses.AsNoTracking().AnyAsync(s => s.InvoiceId == invoiceId, ct)).Should().BeFalse();
     }
 
     [Fact]

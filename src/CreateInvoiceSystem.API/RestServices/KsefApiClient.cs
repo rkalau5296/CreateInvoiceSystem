@@ -136,8 +136,12 @@ public sealed class KsefApiClient(
             string details = string.Join(" | ", failedInvoices.Invoices?
                 .Select(i => $"{i.Status?.Code}: {i.Status?.Description} [{string.Join(", ", i.Status?.Details ?? [])}]") ?? []);
 
-            throw new InvalidOperationException(
-                $"KSeF odrzucił fakturę. Status sesji: {statusAfterSend.Status?.Code}, opis: {statusAfterSend.Status?.Description}. Szczegóły: {details}");
+            var message = $"KSeF odrzucił fakturę. Status sesji: {statusAfterSend.Status?.Code}, opis: {statusAfterSend.Status?.Description}. Szczegóły: {details}";
+            var codes = failedInvoices.Invoices?.Select(invoice => invoice.Status?.Code).ToArray() ?? [];
+            if (KsefRejectionClassifier.IsConfirmed(statusAfterSend.FailedInvoiceCount, codes))
+                throw new KsefInvoiceRejectedException(message);
+
+            throw new InvalidOperationException(message);
         }
 
         await ksefClient
