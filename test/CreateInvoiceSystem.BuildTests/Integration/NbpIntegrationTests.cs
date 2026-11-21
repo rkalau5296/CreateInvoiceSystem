@@ -25,10 +25,8 @@ public class NbpIntegrationTests
             {
                 builder.ConfigureTestServices(
                     services =>
-                    {                        
-                        services.AddTransient<MockNbpHttpMessageHandler>();
-                        services.AddTransient<HttpMessageHandler>(sp =>
-                            ActivatorUtilities.CreateInstance<MockNbpHttpMessageHandler>(sp));
+                    {
+                        services.AddTransient<Microsoft.Extensions.Http.IHttpMessageHandlerBuilderFilter, NbpMockFilter>();
                     });
             });
 
@@ -188,6 +186,18 @@ public class NbpIntegrationTests
     }
 }
 
+public sealed class NbpMockFilter : Microsoft.Extensions.Http.IHttpMessageHandlerBuilderFilter
+{
+    public Action<Microsoft.Extensions.Http.HttpMessageHandlerBuilder> Configure(Action<Microsoft.Extensions.Http.HttpMessageHandlerBuilder> next)
+    {
+        return builder =>
+        {
+            next(builder);
+            builder.AdditionalHandlers.Add(new MockNbpHttpMessageHandler());
+        };
+    }
+}
+
 public sealed class MockNbpHttpMessageHandler : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(
@@ -197,7 +207,7 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
         cancellationToken.ThrowIfCancellationRequested();
 
         var url = request.RequestUri?.ToString() ?? string.Empty;
-                
+
         if (url.Contains("/A/") && (url.Contains("/EUR") || url.Contains("/USD") || url.Contains("/eur") || url.Contains("/usd")))
         {
             if (!Regex.IsMatch(url, @"/\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}"))
@@ -227,27 +237,36 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
                     });
             }
         }
-                
+
         if (url.Contains("/2026-01-01/2026-01-07"))
         {
             const string seriesJson = """
-            {
-                "table": "A",
-                "currency": "euro",
-                "code": "EUR",
-                "rates": [
-                    {
-                        "no": "001/A/NBP/2026",
-                        "effectiveDate": "2026-01-02",
-                        "mid": 4.2500
-                    },
-                    {
-                        "no": "002/A/NBP/2026",
-                        "effectiveDate": "2026-01-05",
-                        "mid": 4.2650
-                    }
-                ]
-            }
+            [
+                {
+                    "table": "A",
+                    "no": "001/A/NBP/2026",
+                    "effectiveDate": "2026-01-02",
+                    "rates": [
+                        {
+                            "currency": "euro",
+                            "code": "EUR",
+                            "mid": 4.2500
+                        }
+                    ]
+                },
+                {
+                    "table": "A",
+                    "no": "002/A/NBP/2026",
+                    "effectiveDate": "2026-01-05",
+                    "rates": [
+                        {
+                            "currency": "euro",
+                            "code": "EUR",
+                            "mid": 4.2650
+                        }
+                    ]
+                }
+            ]
             """;
 
             return Task.FromResult(
@@ -259,7 +278,7 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
                         "application/json")
                 });
         }
-        
+
         if (url.Contains("nie-data-iso"))
         {
             return Task.FromResult(
@@ -272,7 +291,7 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
                 });
         }
 
-        
+
         return Task.FromResult(
             new HttpResponseMessage(HttpStatusCode.NotFound));
     }
