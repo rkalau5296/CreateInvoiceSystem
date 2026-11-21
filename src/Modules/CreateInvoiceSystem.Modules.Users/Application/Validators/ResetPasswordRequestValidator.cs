@@ -16,9 +16,7 @@ public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequ
             .NotEmpty().WithMessage("Token jest wymagany.");
 
         RuleFor(x => x.Version)
-            .NotEmpty().WithMessage("Wersja jest wymagana.")
-            .Must(version => int.TryParse(version, out var parsedVersion) && parsedVersion >= 0)
-            .WithMessage("Wersja musi być poprawną liczbą większą lub równą 0.");
+            .NotEmpty().WithMessage("Wersja jest wymagana.");            
 
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("Nowe hasło jest wymagane.");
