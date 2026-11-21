@@ -1,9 +1,10 @@
-﻿using System.Net;
-using System.Text;
-using System.Text.Json;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace CreateInvoiceSystem.BuildTests.Integration;
 
@@ -24,13 +25,10 @@ public class NbpIntegrationTests
             {
                 builder.ConfigureTestServices(
                     services =>
-                    {
-                        services.AddTransient<
-                            MockNbpHttpMessageHandler>();
-
-                        services.AddHttpClient("NbpClient")
-                            .AddHttpMessageHandler<
-                                MockNbpHttpMessageHandler>();
+                    {                        
+                        services.AddTransient<MockNbpHttpMessageHandler>();
+                        services.AddTransient<HttpMessageHandler>(sp =>
+                            ActivatorUtilities.CreateInstance<MockNbpHttpMessageHandler>(sp));
                     });
             });
 
@@ -198,39 +196,39 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var url = request.RequestUri?.ToString()
-            ?? string.Empty;
-
-        if (url.Contains("/A/EUR")
-            || url.Contains("/a/eur"))
+        var url = request.RequestUri?.ToString() ?? string.Empty;
+                
+        if (url.Contains("/A/") && (url.Contains("/EUR") || url.Contains("/USD") || url.Contains("/eur") || url.Contains("/usd")))
         {
-            const string singleRateJson = """
+            if (!Regex.IsMatch(url, @"/\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}"))
             {
-                "table": "A",
-                "currency": "euro",
-                "code": "EUR",
-                "rates": [
-                    {
-                        "no": "001/A/NBP/2026",
-                        "effectiveDate": "2026-01-02",
-                        "mid": 4.2500
-                    }
-                ]
-            }
-            """;
-
-            return Task.FromResult(
-                new HttpResponseMessage(HttpStatusCode.OK)
+                const string singleRateJson = """
                 {
-                    Content = new StringContent(
-                        singleRateJson,
-                        Encoding.UTF8,
-                        "application/json")
-                });
-        }
+                    "table": "A",
+                    "currency": "euro",
+                    "code": "EUR",
+                    "rates": [
+                        {
+                            "no": "001/A/NBP/2026",
+                            "effectiveDate": "2026-01-02",
+                            "mid": 4.2500
+                        }
+                    ]
+                }
+                """;
 
-        if (url.Contains(
-                "/2026-01-01/2026-01-07"))
+                return Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            singleRateJson,
+                            Encoding.UTF8,
+                            "application/json")
+                    });
+            }
+        }
+                
+        if (url.Contains("/2026-01-01/2026-01-07"))
         {
             const string seriesJson = """
             {
@@ -261,7 +259,20 @@ public sealed class MockNbpHttpMessageHandler : DelegatingHandler
                         "application/json")
                 });
         }
+        
+        if (url.Contains("nie-data-iso"))
+        {
+            return Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(
+                        "{\"error\": \"Invalid date format\"}",
+                        Encoding.UTF8,
+                        "application/json")
+                });
+        }
 
+        
         return Task.FromResult(
             new HttpResponseMessage(HttpStatusCode.NotFound));
     }
