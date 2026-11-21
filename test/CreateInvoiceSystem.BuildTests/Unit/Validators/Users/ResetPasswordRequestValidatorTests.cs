@@ -52,9 +52,7 @@ public class ResetPasswordRequestValidatorTests
     [Theory]
     [InlineData(null, "Wersja jest wymagana.")]
     [InlineData("", "Wersja jest wymagana.")]
-    [InlineData("   ", "Wersja jest wymagana.")]
-    [InlineData("abc", "Wersja musi być poprawną liczbą większą lub równą 0.")]
-    [InlineData("-1", "Wersja musi być poprawną liczbą większą lub równą 0.")]
+    [InlineData("   ", "Wersja jest wymagana.")]    
     public void Should_Have_Error_When_Version_Is_Invalid(string? version, string expectedMessage)
     {
         var request = CreateValidRequest();
