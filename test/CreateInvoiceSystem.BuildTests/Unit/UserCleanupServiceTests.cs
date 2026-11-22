@@ -185,4 +185,47 @@ public class UserCleanupServiceTests
                     It.IsAny<CancellationToken>()),
             Times.AtLeastOnce);
     }
+    [Fact]
+    public async Task ExecuteAsync_Should_SaveChanges_When_InactiveUsersWereRemoved()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        _userRepositoryMock
+            .Setup(r => r.RemoveInactiveUsersAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+        _userRepositoryMock
+            .Setup(r => r.GetUsersForCleanupWarningAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<User>());
+
+        var service = new UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
+
+        var executeTask = service.StartAsync(cancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken);
+        await service.StopAsync(cancellationToken);
+        await executeTask;
+
+        _dbMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_NotSaveChanges_When_NothingWasRemoved()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        _userRepositoryMock
+            .Setup(r => r.RemoveInactiveUsersAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        _userRepositoryMock
+            .Setup(r => r.GetUsersForCleanupWarningAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<User>());
+
+        var service = new UserCleanupService(_scopeFactoryMock.Object, _loggerMock.Object);
+
+        var executeTask = service.StartAsync(cancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken);
+        await service.StopAsync(cancellationToken);
+        await executeTask;
+
+        _dbMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
