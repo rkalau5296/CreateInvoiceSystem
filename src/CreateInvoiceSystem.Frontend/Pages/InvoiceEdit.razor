@@ -360,11 +360,8 @@
                 TouchPos(pos, nameof(pos.ProductValue));
             }
 
-            var cResp = await ClientService.GetClientsAsync(1, 20);
-            _availableClients = cResp?.Data ?? new();
-
-            var pResp = await ProductService.GetProductsAsync(1, 20);
-            _availableProducts = pResp?.Data ?? new();
+            _availableClients = await ClientService.GetAllClientsAsync();
+            _availableProducts = await ProductService.GetAllProductsAsync();
         }
         finally { _isLoading = false; }
     }
