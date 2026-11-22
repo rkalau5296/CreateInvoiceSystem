@@ -35,6 +35,8 @@ public class UserCleanupService : BackgroundService
 
                 var cutoffDate = DateTime.UtcNow.AddDays(-30);
                 var removedCount = await _userRepository.RemoveInactiveUsersAsync(cutoffDate, cancellationToken);
+                if (removedCount > 0)
+                    await db.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("UserCleanupService: removed {RemovedCount} inactive users older than {CutoffDate}.", removedCount, cutoffDate);
 
