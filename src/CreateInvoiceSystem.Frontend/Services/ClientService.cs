@@ -38,6 +38,25 @@ namespace CreateInvoiceSystem.Frontend.Services
             public bool Success { get; set; }
         }
 
+        public async Task<List<ClientDto>> GetAllClientsAsync()
+        {
+            const int pageSize = 100;
+            const int maxPages = 100;
+
+            var all = new List<ClientDto>();
+            for (var page = 1; page <= maxPages; page++)
+            {
+                var response = await GetClientsAsync(page, pageSize);
+                var items = response.Data;
+                if (items.Count == 0) break;
+
+                all.AddRange(items);
+                if (all.Count >= response.TotalCount) break;
+            }
+
+            return all;
+        }
+
         public async Task SaveClientAsync(ClientDto client)
         {            
             var response = await _http.PostAsJsonAsync("api/Client/create", client, FrontendJsonContext.Default.ClientDto);

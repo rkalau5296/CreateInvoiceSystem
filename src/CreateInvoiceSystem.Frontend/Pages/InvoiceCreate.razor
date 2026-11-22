@@ -278,10 +278,8 @@
     {
         try
         {
-            var pResp = await ProductService.GetProductsAsync(1, 20);
-            var cResp = await ClientService.GetClientsAsync(1, 20);
-            _availableProducts = pResp?.Data ?? new();
-            _availableClients = cResp?.Data ?? new();
+            _availableProducts = await ProductService.GetAllProductsAsync();
+            _availableClients = await ClientService.GetAllClientsAsync();
         }
         catch (Exception ex) { _errorMessage = ex.Message; }
 

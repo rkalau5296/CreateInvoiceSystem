@@ -45,6 +45,25 @@ namespace CreateInvoiceSystem.Frontend.Services
             return new GetProductsResponse();
         }
 
+        public async Task<List<ProductDto>> GetAllProductsAsync()
+        {
+            const int pageSize = 100;
+            const int maxPages = 100;
+
+            var all = new List<ProductDto>();
+            for (var page = 1; page <= maxPages; page++)
+            {
+                var response = await GetProductsAsync(page, pageSize);
+                var items = response.Data;
+                if (items.Count == 0) break;
+
+                all.AddRange(items);
+                if (all.Count >= response.TotalCount) break;
+            }
+
+            return all;
+        }
+
         public async Task SaveProductAsync(ProductDto product)
         {            
             var response = await _http.PostAsJsonAsync("api/Product/create", product, FrontendJsonContext.Default.ProductDto);
