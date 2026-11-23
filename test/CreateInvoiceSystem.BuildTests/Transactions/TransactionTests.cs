@@ -464,7 +464,7 @@ public sealed class TransactionTests
     }
 
     [Fact]
-    public async Task Cleanup_PersistsRemovalOfInactiveUsers()
+    public async Task Cleanup_RemovalIsPersistedOnlyAfterSaveChanges()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var context = new CreateInvoiceSystemDbContext(_options);
@@ -478,6 +478,11 @@ public sealed class TransactionTests
             Mock.Of<IHttpContextAccessor>(), new UpperInvariantLookupNormalizer());
 
         await repository.RemoveInactiveUsersAsync(DateTime.UtcNow.AddDays(-30), ct);
+
+        await using (var before = new CreateInvoiceSystemDbContext(_options))
+            Assert.True(await before.Users.AnyAsync(u => u.Id == entity.Id, ct));
+
+        await context.SaveChangesAsync(ct);
 
         await using var verification = new CreateInvoiceSystemDbContext(_options);
         Assert.False(await verification.Users.AnyAsync(u => u.Id == entity.Id, ct));

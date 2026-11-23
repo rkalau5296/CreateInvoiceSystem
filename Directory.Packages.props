@@ -17,8 +17,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Analyzers" Version="$(MicrosoftNetVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="$(MicrosoftNetVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Analyzers" Version="$(MicrosoftNetVersion)" />    
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftNetVersion)" />

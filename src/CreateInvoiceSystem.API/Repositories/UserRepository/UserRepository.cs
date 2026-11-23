@@ -307,7 +307,6 @@ public class UserRepository : IUserRepository
         return updateResult.Succeeded;
     }
 
-
     public async Task AddSessionAsync(UserSession session, CancellationToken cancellationToken)
     {
         var entity = UserMapper.ToUserSessionEntity(session);
@@ -316,15 +315,14 @@ public class UserRepository : IUserRepository
 
     public async Task UpdateSessionActivityAsync(UserSession session, CancellationToken cancellationToken)
     {
-        var entity = await _db.Set<UserSessionEntity>()
-            .FirstOrDefaultAsync(s => s.RefreshToken == session.RefreshToken, cancellationToken);
+        var now = DateTime.UtcNow;
 
-        if (entity is not null)
-        {
-            entity.LastActivityAt = DateTime.UtcNow;
-            session.LastActivityAt = entity.LastActivityAt;
-            await _db.SaveChangesAsync(cancellationToken);
-        }
+        var updated = await _db.Set<UserSessionEntity>()
+            .Where(s => s.RefreshToken == session.RefreshToken)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.LastActivityAt, now), cancellationToken);
+
+        if (updated > 0)
+            session.LastActivityAt = now;
     }
 
     public async Task UpdateSessionAsync(UserSession session, CancellationToken cancellationToken)
@@ -407,8 +405,7 @@ public class UserRepository : IUserRepository
 
         if (count > 0)
         {
-            _db.Set<UserEntity>().RemoveRange(usersToRemove);
-            await _db.SaveChangesAsync(ct);
+            _db.Set<UserEntity>().RemoveRange(usersToRemove);            
         }
 
         return count;
